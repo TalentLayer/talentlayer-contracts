@@ -66,16 +66,16 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /**
      * Allows getting the TalentLayerID of one address
-     * @param _tokenId Address to check
+     * @param _owner Address to check
      * @return uint256 the id of the NFT
      */
-    function walletOfOwner(address _owner) public view returns (uint256 memory) {
+    function walletOfOwner(address _owner) public view returns (uint256) {
         uint256 ownedTokenId;
         uint256 currentTokenId = _startTokenId();
         address latestOwnerAddress;
 
         while (currentTokenId <= totalSupply()) {
-            TokenOwnership memory ownership = _ownerships[currentTokenId];
+            TokenOwnership memory ownership = _ownershipOf(currentTokenId);
 
             if (!ownership.burned && ownership.addr != address(0)) {
                 latestOwnerAddress = ownership.addr;
