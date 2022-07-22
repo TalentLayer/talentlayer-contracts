@@ -64,6 +64,34 @@ contract TalentLayerID is ERC721A, Ownable {
         return pohRegistry.isRegistered(talentIdPohAddresses[_tokenId]);
     }
 
+    /**
+     * Allows getting the TalentLayerID of one address
+     * @param _tokenId Address to check
+     * @return uint256 the id of the NFT
+     */
+    function walletOfOwner(address _owner) public view returns (uint256 memory) {
+        uint256 ownedTokenId;
+        uint256 currentTokenId = _startTokenId();
+        address latestOwnerAddress;
+
+        while (currentTokenId <= totalSupply()) {
+            TokenOwnership memory ownership = _ownerships[currentTokenId];
+
+            if (!ownership.burned && ownership.addr != address(0)) {
+                latestOwnerAddress = ownership.addr;
+            }
+
+            if (latestOwnerAddress == _owner) {
+                ownedTokenId = currentTokenId;
+                break;
+            }
+
+            currentTokenId++;
+        }
+
+        return ownedTokenId;
+    }
+
     // =========================== User functions ==============================
 
     /**
@@ -190,6 +218,15 @@ contract TalentLayerID is ERC721A, Ownable {
         uint256 userTokenId = _nextTokenId() - 1;
 
         emit Mint(msg.sender, userTokenId, _handle);
+    }
+
+    // =========================== Internal functions ==============================
+
+    /**
+     * Update the start token id to 1
+     */
+    function _startTokenId() internal view virtual override returns (uint256) {
+        return 1;
     }
 
     // =========================== Overrides ==============================
