@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {IProofOfHumanity} from "./IProofOfHumanity.sol";
 
 /**
@@ -25,6 +26,12 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /// Base IPFS Token URI
     string _baseTokenURI;
+
+    /// Account recovery merkle root
+    bytes32 public recoveryRoot;
+
+    /// Addresses that have successfully recovered their account
+    mapping(address => bool) public hasBeenRecovered;
 
     /**
      * @param _baseURI IPFS base URI for tokens
@@ -100,12 +107,58 @@ contract TalentLayerID is ERC721A, Ownable {
      * Update user data.
      * @dev we are trusting the user to provide the valid IPFS URI (changing in v2)
      * @param _tokenId Token ID to update
-     * @param _newCid new IPFS URI
+     * @param _newCid New IPFS URI
      */
     function updateProfileData(uint256 _tokenId, string memory _newCid) public {
         require(ownerOf(_tokenId) == msg.sender);
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profilesData[_tokenId] = _newCid;
+    }
+
+    /**
+     * Allows recovery of a user's account with zero knowledge proofs.
+     * @param _oldAddress Old user address
+     * @param _tokenId Token ID to recover
+     * @param _index Index in the merkle tree
+     * @param _recoveryKey Recovery key
+     * @param _handle User handle
+     * @param _merkleProof Merkle proof
+     */
+    function recoverAccount(
+        address _oldAddress,
+        uint256 _tokenId,
+        uint256 _index,
+        uint256 _recoveryKey,
+        string calldata _handle,
+        bytes32[] calldata _merkleProof
+    ) public {
+        require(
+            !hasBeenRecovered[_oldAddress],
+            "This address has already been recovered"
+        );
+        require(
+            ownerOf(_tokenId) == _oldAddress,
+            "You are not the owner of this token"
+        );
+        require(numberMinted(msg.sender) == 0, "You already have a token");
+        require(
+            talentIdPohAddresses[_tokenId] == address(0),
+            "Your old address was not linked to Proof of Humanity"
+        );
+        require(handles[_handle] == _oldAddress, "Invalid handle");
+
+        bytes32 node = keccak256(
+            abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress)
+        );
+        require(
+            MerkleProof.verify(_merkleProof, recoveryRoot, node),
+            "MerkleDistributor: Invalid proof."
+        );
+
+        hasBeenRecovered[_oldAddress] = true;
+        handles[_handle] = msg.sender;
+        talentIdPohAddresses[_tokenId] = msg.sender;
+        // transfer to be implemented
     }
 
     // =========================== Owner functions ==============================
@@ -116,6 +169,14 @@ contract TalentLayerID is ERC721A, Ownable {
      */
     function setBaseURI(string memory _newBaseURI) public onlyOwner {
         _baseTokenURI = _newBaseURI;
+    }
+
+    /**
+     * Set new TalentLayer ID recovery root.
+     * @param _newRoot New merkle root
+     */
+    function updateRecoveryRoot(bytes32 _newRoot) public onlyOwner {
+        recoveryRoot = _newRoot;
     }
 
     // =========================== Private functions ==============================
