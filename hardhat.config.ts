@@ -4,7 +4,7 @@ import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 import "@nomicfoundation/hardhat-toolbox";
 import 'hardhat-contract-sizer';
-
+import './scripts/deploy'
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
