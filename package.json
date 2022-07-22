@@ -1,0 +1,28 @@
+{
+  "name": "talentlayer-id-contracts",
+  "version": "1.0.0",
+  "description": "TalentLayer ID Contracts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TalentLayer/talentlayer-id-contracts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TalentLayer/talentlayer-id-contracts/issues"
+  },
+  "homepage": "https://github.com/TalentLayer/talentlayer-id-contracts#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "hardhat": "^2.10.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.1",
+    "dotenv": "^16.0.1",
+    "hardhat-contract-sizer": "^2.6.1"
+  }
+}
