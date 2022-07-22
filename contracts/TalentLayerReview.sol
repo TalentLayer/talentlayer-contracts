@@ -66,15 +66,12 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         override
         returns (uint256)
     {
-        revert();
-    }
-
-    function balanceOf(uint256 tokenId) public view virtual returns (uint256) {
         require(
-            tokenId != 0,
+            owner != address(0),
             "TalentLayerReview: token zero is not a valid owner"
         );
-        return _balances[tokenId];
+
+        return _balances[tlId.walletOfOwner(owner)];
     }
 
     function ownerOf(uint256 tokenId)
