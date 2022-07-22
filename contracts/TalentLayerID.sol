@@ -22,7 +22,7 @@ contract TalentLayerID is ERC721A, Ownable {
     mapping(uint256 => address) public talentIdPohAddresses;
 
     /// Token ID to IPFS URI mapping
-    mapping(uint256 => string) public profilesData;
+    mapping(uint256 => string) public profilesDataUri;
 
     /// Base IPFS Token URI
     string _baseTokenURI;
@@ -140,7 +140,7 @@ contract TalentLayerID is ERC721A, Ownable {
     function updateProfileData(uint256 _tokenId, string memory _newCid) public {
         require(ownerOf(_tokenId) == msg.sender);
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
-        profilesData[_tokenId] = _newCid;
+        profilesDataUri[_tokenId] = _newCid;
     }
 
     /**
