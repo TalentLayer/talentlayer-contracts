@@ -10,8 +10,8 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import {ITalentLayerID} from "./ITalentLayerID.sol";
-import {IJobRegistry} from "./IJobRegistry.sol";
+import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
+import {IJobRegistry} from "./interfaces/IJobRegistry.sol";
 
 contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     using Address for address;
@@ -235,7 +235,12 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
             getApproved(tokenId) == spender);
     }
 
-    function _mint(uint256 jobId, uint256 to, uint256 tokenId, string calldata reviewUri) internal virtual {
+    function _mint(
+        uint256 jobId,
+        uint256 to,
+        uint256 tokenId,
+        string calldata reviewUri
+    ) internal virtual {
         require(to != 0, "TalentLayerReview: mint to invalid address");
         require(!_exists(tokenId), "TalentLayerReview: token already minted");
 
@@ -318,7 +323,12 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId
     ) internal virtual {}
 
-    event Mint(uint256 indexed _jobId, uint256 indexed _toId, uint256 indexed _tokenId, string _reviewUri);
+    event Mint(
+        uint256 indexed _jobId,
+        uint256 indexed _toId,
+        uint256 indexed _tokenId,
+        string _reviewUri
+    );
 
     function addReview(
         uint256 _jobId,
@@ -327,26 +337,32 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     ) public {
         IJobRegistry.Job memory job = jobRegistry.getJob(_jobId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(senderId == job.employerId || senderId == job.employeeId, "You're not an actor of this job");
-        require(job.status == IJobRegistry.Status.Finished, "The job is not finished yet");
+        require(
+            senderId == job.employerId || senderId == job.employeeId,
+            "You're not an actor of this job"
+        );
+        require(
+            job.status == IJobRegistry.Status.Finished,
+            "The job is not finished yet"
+        );
 
         uint256 toId;
-        if(senderId == job.employerId){
+        if (senderId == job.employerId) {
             toId = job.employeeId;
-            if(nftMintedByJobAndemployerId[_jobId] == senderId){
+            if (nftMintedByJobAndemployerId[_jobId] == senderId) {
                 revert ReviewAlreadyMinted();
             } else {
                 nftMintedByJobAndemployerId[_jobId] = senderId;
             }
         } else {
             toId = job.employerId;
-            if(nftMintedByJobAndemployeeId[_jobId] == senderId){
+            if (nftMintedByJobAndemployeeId[_jobId] == senderId) {
                 revert ReviewAlreadyMinted();
             } else {
                 nftMintedByJobAndemployeeId[_jobId] = senderId;
             }
         }
-        
+
         _mint(_jobId, toId, _tokenId, _reviewUri);
     }
 }

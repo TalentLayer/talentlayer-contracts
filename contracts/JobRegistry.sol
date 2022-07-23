@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ITalentLayerID} from "./ITalentLayerID.sol";
+import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 
 /**
  * @title JobRegistry Contract
@@ -72,9 +72,7 @@ contract JobRegistry {
      * @notice Return the whole job data information
      * @param _jobId Job identifier
      */
-    function getJob(
-        uint256 _jobId
-    ) external view returns (Job memory) {
+    function getJob(uint256 _jobId) external view returns (Job memory) {
         require(_jobId < nextJobId, "This job does'nt exist");
         return jobs[_jobId];
     }

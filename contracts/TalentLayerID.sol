@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ERC721A} from "./ERC721A.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import {IProofOfHumanity} from "./IProofOfHumanity.sol";
+import {ERC721A} from "./libs/ERC721A.sol";
+import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 
 /**
  * @title TalentLayer ID Contract
