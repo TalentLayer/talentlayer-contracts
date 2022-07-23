@@ -33,7 +33,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey;
       break;
     case 'gnosis':
-      jsonRpcUrl = 'https://rpc.gnosischain.com ';
+      jsonRpcUrl = 'https://rpc.ankr.com/gnosis';
       break;
     case 'rinkeby':
       jsonRpcUrl = 'https://rinkeby.infura.io/v3/' + infuraApiKey;
