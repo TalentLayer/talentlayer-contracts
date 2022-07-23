@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ERC721A} from "erc721a/contracts/ERC721A.sol";
+import {ERC721A} from "./ERC721A.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {IProofOfHumanity} from "./IProofOfHumanity.sol";
@@ -174,6 +174,10 @@ contract TalentLayerID is ERC721A, Ownable {
             "Your old address was not linked to Proof of Humanity"
         );
         require(handles[_handle] == _oldAddress, "Invalid handle");
+        require(
+            pohRegistry.isRegistered(msg.sender),
+            "You need to use an address registered on Proof of Humanity"
+        );
 
         bytes32 node = keccak256(
             abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress)
@@ -186,7 +190,7 @@ contract TalentLayerID is ERC721A, Ownable {
         hasBeenRecovered[_oldAddress] = true;
         handles[_handle] = msg.sender;
         talentIdPohAddresses[_tokenId] = msg.sender;
-        // transfer to be implemented
+        _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
     }
 
     // =========================== Owner functions ==============================
