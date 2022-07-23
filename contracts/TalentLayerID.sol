@@ -99,7 +99,7 @@ contract TalentLayerID is ERC721A, Ownable {
      */
     function mint(string memory _handle) public canMint(_handle) {
         _safeMint(msg.sender, 1);
-        _afterMint(_handle);
+        _afterMint(_handle, false);
     }
 
     /**
@@ -114,7 +114,7 @@ contract TalentLayerID is ERC721A, Ownable {
         _safeMint(msg.sender, 1);
         uint256 userTokenId = _nextTokenId() - 1;
         talentIdPohAddresses[userTokenId] = msg.sender;
-        _afterMint(_handle);
+        _afterMint(_handle, true);
     }
 
     /**
@@ -128,6 +128,8 @@ contract TalentLayerID is ERC721A, Ownable {
             "You're address is not registerd for poh"
         );
         talentIdPohAddresses[_tokenId] = msg.sender;
+
+        emit PohActivated(msg.sender, _tokenId, handles[_tokenId]);
     }
 
     /**
@@ -140,6 +142,8 @@ contract TalentLayerID is ERC721A, Ownable {
         require(ownerOf(_tokenId) == msg.sender);
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profilesDataUri[_tokenId] = _newCid;
+
+        emit CidUpdated(_tokenId, _newCid);
     }
 
     /**
@@ -194,17 +198,11 @@ contract TalentLayerID is ERC721A, Ownable {
         handles[_tokenId] = _handle;
         talentIdPohAddresses[_tokenId] = msg.sender;
         _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
+
+        emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
     }
 
     // =========================== Owner functions ==============================
-
-    /**
-     * Set new base uri
-     * @param _newBaseURI new base IPFS uri
-     */
-    function setBaseURI(string memory _newBaseURI) public onlyOwner {
-        _baseTokenURI = _newBaseURI;
-    }
 
     /**
      * Set new TalentLayer ID recovery root.
@@ -220,12 +218,12 @@ contract TalentLayerID is ERC721A, Ownable {
      * Update handle address mapping and emit event after mint.
      * @param _handle Handle for the user
      */
-    function _afterMint(string memory _handle) private {
+    function _afterMint(string memory _handle, bool _poh) private {
         uint256 userTokenId = _nextTokenId() - 1;
         handles[userTokenId] = _handle;
         takenHandles[_handle] = true;
 
-        emit Mint(msg.sender, userTokenId, _handle);
+        emit Mint(msg.sender, userTokenId, _handle, _poh);
     }
 
     // =========================== Internal functions ==============================
@@ -319,5 +317,39 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _tokenId TalentLayer ID for the user
      * @param _handle Handle for the user
      */
-    event Mint(address indexed _user, uint256 _tokenId, string _handle);
+    event Mint(
+        address indexed _user,
+        uint256 _tokenId,
+        string _handle,
+        bool _withPoh
+    );
+
+    /**
+     * Emit when new Proof of Identity is linked to TalentLayerID.
+     * @param _user Address of the owner of the TalentLayerID
+     * @param _tokenId TalentLayer ID for the user
+     * @param _handle Handle for the user
+     */
+    event PohActivated(address indexed _user, uint256 _tokenId, string _handle);
+
+    /**
+     * Emit when Cid is updated for a user.
+     * @param _tokenId TalentLayer ID for the user
+     * @param _newCid Content ID
+     */
+    event CidUpdated(uint256 indexed _tokenId, string _newCid);
+
+    /**
+     * Emit when account is recovered.
+     * @param _newAddress New user address
+     * @param _oldAddress Old user address
+     * @param _handle User handle
+     * @param _tokenId TalentLayer ID for the user
+     */
+    event AccountRecovered(
+        address indexed _newAddress,
+        address indexed _oldAddress,
+        string _handle,
+        uint256 _tokenId
+    );
 }
