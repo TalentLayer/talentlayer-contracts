@@ -71,7 +71,7 @@ const config: HardhatUserConfig = {
     alphaSort: true,
     disambiguatePaths: false,
     runOnCompile: true,
-    only: ['TalentLayer'],
+    only: ['TalentLayer', 'JobRegistry'],
   },
   networks: {
     hardhat: {

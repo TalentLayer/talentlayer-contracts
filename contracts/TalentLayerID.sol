@@ -10,7 +10,6 @@ import {IProofOfHumanity} from "./IProofOfHumanity.sol";
  * @title TalentLayer ID Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
-
 contract TalentLayerID is ERC721A, Ownable {
     /// Proof of Humanity registry
     IProofOfHumanity public pohRegistry;

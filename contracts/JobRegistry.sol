@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ITalentLayerID} from "./ITalentLayerID.sol";
 
-contract JobRegistry is Ownable {
+/**
+ * @title JobRegistry Contract
+ * @author TalentLayer Team @ ETHCC22 Hackathon
+ */
+contract JobRegistry {
+    // =========================== Enum ==============================
+
+    /// @notice Enum job status
     enum Status {
         Intialized, 
         Confirmed,
@@ -11,6 +18,14 @@ contract JobRegistry is Ownable {
         Rejected
     }
 
+    // =========================== Struct ==============================
+
+    /// @notice Job information struct
+    /// @param status the current status of a job
+    /// @param employerId the talentLayerId of the employer
+    /// @param employeeId the talentLayerId of the employee
+    /// @param initiatorId the talentLayerId of the user who initialized the job
+    /// @param jobDataUri token Id to IPFS URI mapping
     struct Job {
         Status status;
         uint256 employerId;
@@ -19,57 +34,121 @@ contract JobRegistry is Ownable {
         string jobDataUri;
     }
 
-    event CreateJob(uint256 id, uint256 employerId, uint256 employeeId);
+    // =========================== Events ==============================
 
-    uint256 nextJobId = 1;
-    
+    /// @notice Emitted after a new job is created
+    /// @param id The job ID (incremental)
+    /// @param employerId the talentLayerId of the employer
+    /// @param employeeId the talentLayerId of the employee
+    /// @param initiatorId the talentLayerId of the user who initialized the job
+    /// @param jobDataUri token Id to IPFS URI mapping
+    event CreateJob(uint256 id, uint256 employerId, uint256 employeeId, uint256 initiatorId, string jobDataUri);
+
+    /// @notice incremental job Id
+    uint256 private nextJobId = 1;
+
+    /// @notice TalentLayerId address
+    ITalentLayerID private tlId;
+
+    /// @notice jobs mappings index by ID
     mapping(uint256 => Job) public jobs;
 
-    function createJobFromEmployer(uint256 employeeId, string jobDataUri) public {
-        require(walletOfOwner(msg.sender) != address(0));
-        uint256 employerId = walletOfOwner(msg.sender);
-        _createJob(initiatorId, employerId, employeeId, jobDataUri);       
+    /**
+     * @param _talentLayerIdAddress TalentLayerId address
+     */
+    constructor(
+        address _talentLayerIdAddress
+    ) {
+        tlId = ITalentLayerID(_talentLayerIdAddress);
     }
 
-    function createJobFromEmployee(uint256 employerId, string jobDataUri) public {
-        require(walletOfOwner(msg.sender) != address(0));
-        uint256 employeeId = walletOfOwner(msg.sender);
-        _createJob(initiatorId, employerId, employeeId, jobDataUri);       
+    // =========================== User functions ==============================
+
+    /**
+     * @notice Allows an employer to initiate a new Job with an employee
+     * @param _employeeId Handle for the user
+     * @param _jobDataUri token Id to IPFS URI mapping
+     */
+    function createJobFromEmployer(uint256 _employeeId, string calldata _jobDataUri) public returns (uint256) {
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        return _createJob(senderId, senderId, _employeeId, _jobDataUri);       
     }
 
-    function _createJob(uint256 initiatorId, uint256 employerId, uint256 employeeId, string jobDataUri) private {
-        uint256 id = nextJobId;
-        jobs[id] = Job({
-            status: Status.Intialized,
-            employerId: employerId,
-            employeeId: employeeId,
-            initiatorId: initiatorId,
-            jobDataUri: jobDataUri
-        });
-        nextJobId++;
-        emit CreateJob(id, employerId, employeeId);
+    /**
+     * @notice Allows an employee to initiate a new Job with an employer
+     * @param _employerId Handle for the user
+     * @param _jobDataUri token Id to IPFS URI mapping
+     */
+    function createJobFromEmployee(uint256 _employerId, string calldata _jobDataUri) public returns (uint256) {
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        return _createJob(senderId, _employerId, senderId, _jobDataUri);       
     }
 
-    function confirmJob(uint256 id) public {
-        Job job = jobs[id];
-        uint256 senderId = walletOfOwner(msg.sender);
-        require(senderId != address(0));
-        require(senderId != job.initiatorId);
-        require(senderId == job.employerId || senderId == job.employeeId);
+    /**
+     * @notice Allows the user who didn't initiate the job to confirm it. They now consent both to be reviewed each other at the end of job.
+     * @param _jobId Job identifier
+     */
+    function confirmJob(uint256 _jobId) public {
+        Job storage job = jobs[_jobId];
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+
+        require(job.status == Status.Intialized, "Job has already been confirmed");
+        require(senderId == job.employerId || senderId == job.employeeId, "You're not an actor of this job");
+        require(senderId != job.initiatorId, "Only the user who didn't initate the job can confirm it");
+
         job.status = Status.Confirmed;
     }
 
-    function finishJob(uint256 id) public {
-        Job job = jobs[id];
-        uint256 senderId = walletOfOwner(msg.sender);
-        require(senderId == job.employerId || senderId == job.employeeId);
+    /**
+     * @notice Allows the user who didn't initiate the job to reject it
+     * @param _jobId Job identifier
+     */
+    function rejectJob(uint256 _jobId) public {
+        Job storage job = jobs[_jobId];
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        require(senderId == job.employerId || senderId == job.employeeId, "You're not an actor of this job");
+        require(job.status == Status.Intialized, "You can't reject this job");
+        job.status = Status.Rejected;
+    }
+
+    /**
+     * @notice Allows any part of a job to update his state to finished
+     * @param _jobId Job identifier
+     */
+    function finishJob(uint256 _jobId) public {
+        Job storage job = jobs[_jobId];
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        require(senderId == job.employerId || senderId == job.employeeId, "You're not an actor of this job");
+        require(job.status == Status.Confirmed, "You can't finish this job");
         job.status = Status.Finished;
     }
 
-    function rejectJob(uint256 id) public {
-        Job job = jobs[id];
-        uint256 senderId = walletOfOwner(msg.sender);
-        require(senderId == job.employerId || senderId == job.employeeId);
-        job.status = Status.Rejected;
+    // =========================== Private functions ==============================
+
+    /**
+     * @notice Update handle address mapping and emit event after mint.
+     * @param _senderId the talentLayerId of the msg.sender address
+     * @param _employerId the talentLayerId of the employer
+     * @param _employeeId the talentLayerId of the employee
+     * @param _jobDataUri token Id to IPFS URI mapping
+     */
+    function _createJob(uint256 _senderId, uint256 _employerId, uint256 _employeeId, string calldata _jobDataUri) private returns (uint256) {
+        require(_senderId > 0, "You sould have a TalentLayerId");
+        require(bytes(_jobDataUri).length > 0, "Should provide a valid IPFS URI");
+
+        uint256 id = nextJobId;
+        nextJobId++;
+
+        jobs[id] = Job({
+            status: Status.Intialized,
+            employerId: _employerId,
+            employeeId: _employeeId,
+            initiatorId: _senderId,
+            jobDataUri: _jobDataUri
+        });
+        
+        emit CreateJob(id, _employerId, _employeeId, _senderId, _jobDataUri);
+
+        return id;
     }
 }
