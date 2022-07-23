@@ -5,11 +5,12 @@ import { resolve } from "path";
 import "@nomicfoundation/hardhat-toolbox";
 import 'hardhat-contract-sizer';
 import './scripts/deploy'
+import './scripts/wallet'
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 const chainIds = {
-  hardhat: 31337,
+  hardhat: 1337,
   mainnet: 1,
   gnosis: 100,
   rinkeby: 4,
