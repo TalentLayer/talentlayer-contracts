@@ -42,11 +42,47 @@ contract JobRegistry {
     /// @param employeeId the talentLayerId of the employee
     /// @param initiatorId the talentLayerId of the user who initialized the job
     /// @param jobDataUri token Id to IPFS URI mapping
-    event CreateJob(
+    event JobCreated(
         uint256 id,
         uint256 employerId,
         uint256 employeeId,
         uint256 initiatorId,
+        string jobDataUri
+    );
+
+    /// @notice Emitted after a job is confirmed
+    /// @param id The job ID
+    /// @param employerId the talentLayerId of the employer
+    /// @param employeeId the talentLayerId of the employee
+    /// @param jobDataUri token Id to IPFS URI mapping
+    event JobConfirmed(
+        uint256 id,
+        uint256 employerId,
+        uint256 employeeId,
+        string jobDataUri
+    );
+
+    /// @notice Emitted after a job is rejected
+    /// @param id The job ID
+    /// @param employerId the talentLayerId of the employer
+    /// @param employeeId the talentLayerId of the employee
+    /// @param jobDataUri token Id to IPFS URI mapping
+    event JobRejected(
+        uint256 id,
+        uint256 employerId,
+        uint256 employeeId,
+        string jobDataUri
+    );
+
+    /// @notice Emitted after a job is finished
+    /// @param id The job ID
+    /// @param employerId the talentLayerId of the employer
+    /// @param employeeId the talentLayerId of the employee
+    /// @param jobDataUri token Id to IPFS URI mapping
+    event JobFinished(
+        uint256 id,
+        uint256 employerId,
+        uint256 employeeId,
         string jobDataUri
     );
 
@@ -127,6 +163,13 @@ contract JobRegistry {
         );
 
         job.status = Status.Confirmed;
+
+        emit JobConfirmed(
+            _jobId,
+            job.employerId,
+            job.employeeId,
+            job.jobDataUri
+        );
     }
 
     /**
@@ -142,6 +185,13 @@ contract JobRegistry {
         );
         require(job.status == Status.Intialized, "You can't reject this job");
         job.status = Status.Rejected;
+
+        emit JobRejected(
+            _jobId,
+            job.employerId,
+            job.employeeId,
+            job.jobDataUri
+        );
     }
 
     /**
@@ -157,6 +207,13 @@ contract JobRegistry {
         );
         require(job.status == Status.Confirmed, "You can't finish this job");
         job.status = Status.Finished;
+
+        emit JobFinished(
+            _jobId,
+            job.employerId,
+            job.employeeId,
+            job.jobDataUri
+        );
     }
 
     // =========================== Private functions ==============================
@@ -191,7 +248,7 @@ contract JobRegistry {
             jobDataUri: _jobDataUri
         });
 
-        emit CreateJob(id, _employerId, _employeeId, _senderId, _jobDataUri);
+        emit JobCreated(id, _employerId, _employeeId, _senderId, _jobDataUri);
 
         return id;
     }

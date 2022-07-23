@@ -3,7 +3,6 @@ import { task } from 'hardhat/config'
 
 // npx hardhat deploy --base-u-r-i ipfs://CID/
 task('deploy')
-  .addParam('baseURI', 'ipfs Base URI')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, run, network }) => {
     try {
@@ -34,8 +33,7 @@ task('deploy')
 
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-      const talentLayerIDArgs:[string, string] = [
-        baseURI,
+      const talentLayerIDArgs:[string] = [
         mockProofOfHumanity.address
       ]
       const talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
