@@ -37,13 +37,9 @@ contract TalentLayerID is ERC721A, Ownable {
     mapping(address => bool) public hasBeenRecovered;
 
     /**
-     * @param _baseURI IPFS base URI for tokens
      * @param _pohAddress Proof of Humanity registry address
      */
-    constructor(string memory _baseURI, address _pohAddress)
-        ERC721A("TalentLayerID", "TID")
-    {
-        setBaseURI(_baseURI);
+    constructor(address _pohAddress) ERC721A("TalentLayerID", "TID") {
         pohRegistry = IProofOfHumanity(_pohAddress);
     }
 

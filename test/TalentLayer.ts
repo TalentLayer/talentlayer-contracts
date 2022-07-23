@@ -28,8 +28,7 @@ describe("TalentLayer", function () {
 
         // Deploy TalenLayerID
         TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-        const talentLayerIDArgs:[string, string] = [
-            'ipfs://CID/',
+        const talentLayerIDArgs:[string, ] = [
             mockProofOfHumanity.address
         ]
         talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
