@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ITalentLayerID} from "./ITalentLayerID.sol";
+import {IJobRegistry} from "./IJobRegistry.sol";
 
 contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     using Address for address;
@@ -34,16 +35,30 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
+    /// Token ID to IPFS URI mapping
+    mapping(uint256 => string) public reviewDataUri;
+
+    // Mapping to save NFT minted for a jobId and employerId
+    mapping(uint256 => uint256) public nftMintedByJobAndemployerId;
+
+    // Mapping to save NFT minted for a jobId and employeeId
+    mapping(uint256 => uint256) public nftMintedByJobAndemployeeId;
+
+    error ReviewAlreadyMinted();
+
     ITalentLayerID private tlId;
+    IJobRegistry private jobRegistry;
 
     constructor(
         string memory name_,
         string memory symbol_,
-        address TalentLayerIdAddress
+        address _talentLayerIdAddress,
+        address _jobRegistryAddress
     ) {
         _name = name_;
         _symbol = symbol_;
-        tlId = ITalentLayerID(TalentLayerIdAddress);
+        tlId = ITalentLayerID(_talentLayerIdAddress);
+        jobRegistry = IJobRegistry(_jobRegistryAddress);
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -220,14 +235,15 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
             getApproved(tokenId) == spender);
     }
 
-    function _mint(uint256 to, uint256 tokenId) internal virtual {
+    function _mint(uint256 jobId, uint256 to, uint256 tokenId, string calldata reviewUri) internal virtual {
         require(to != 0, "TalentLayerReview: mint to invalid address");
         require(!_exists(tokenId), "TalentLayerReview: token already minted");
 
         _balances[to] += 1;
         _owners[tokenId] = to;
+        reviewDataUri[tokenId] = reviewUri;
 
-        emit Mint(to, tokenId);
+        emit Mint(jobId, to, tokenId, reviewUri);
     }
 
     function _burn(uint256 tokenId) internal virtual {}
@@ -302,17 +318,35 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId
     ) internal virtual {}
 
-    event Mint(uint256 indexed _toId, uint256 indexed _tokenId);
+    event Mint(uint256 indexed _jobId, uint256 indexed _toId, uint256 indexed _tokenId, string _reviewUri);
 
     function addReview(
         uint256 _jobId,
-        uint256 _to,
-        uint256 _from
+        uint256 _tokenId,
+        string calldata _reviewUri
     ) public {
-        // require message sender
-        // require job contains sender and receiver
-        // some ipfs shit
-        // require job is not already reviewed
-        //! check for ownership and other stuff
+        IJobRegistry.Job memory job = jobRegistry.getJob(_jobId);
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        require(senderId == job.employerId || senderId == job.employeeId, "You're not an actor of this job");
+        require(job.status == IJobRegistry.Status.Finished, "The job is not finished yet");
+
+        uint256 toId;
+        if(senderId == job.employerId){
+            toId = job.employeeId;
+            if(nftMintedByJobAndemployerId[_jobId] == senderId){
+                revert ReviewAlreadyMinted();
+            } else {
+                nftMintedByJobAndemployerId[_jobId] = senderId;
+            }
+        } else {
+            toId = job.employerId;
+            if(nftMintedByJobAndemployeeId[_jobId] == senderId){
+                revert ReviewAlreadyMinted();
+            } else {
+                nftMintedByJobAndemployeeId[_jobId] = senderId;
+            }
+        }
+        
+        _mint(_jobId, toId, _tokenId, _reviewUri);
     }
 }

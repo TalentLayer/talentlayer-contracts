@@ -66,6 +66,19 @@ contract JobRegistry {
         tlId = ITalentLayerID(_talentLayerIdAddress);
     }
 
+    // =========================== View functions ==============================
+
+    /**
+     * @notice Return the whole job data information
+     * @param _jobId Job identifier
+     */
+    function getJob(
+        uint256 _jobId
+    ) external view returns (Job memory) {
+        require(_jobId < nextJobId, "This job does'nt exist");
+        return jobs[_jobId];
+    }
+
     // =========================== User functions ==============================
 
     /**

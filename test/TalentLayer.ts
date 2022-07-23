@@ -11,8 +11,10 @@ describe("TalentLayer", function () {
         dave: SignerWithAddress,
         JobRegistry: ContractFactory,
         TalentLayerID: ContractFactory,
+        TalentLayerReview: ContractFactory,
         jobRegistry: Contract,
-        talentLayerID: Contract
+        talentLayerID: Contract,
+        talentLayerReview: Contract
 
     before(async function () {
         [deployer, alice, bob, carol, dave] = await ethers.getSigners()
@@ -25,14 +27,18 @@ describe("TalentLayer", function () {
         ]
         talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
 
-        // Create Id for our three users 
+        // Create Id for our three users, not for dave
         await talentLayerID.connect(alice).mint("alice");
         await talentLayerID.connect(bob).mint("bob");
         await talentLayerID.connect(carol).mint("carol");
 
-        // Prepare JobRegistry
+        // Deploy JobRegistry
         JobRegistry = await ethers.getContractFactory("JobRegistry")
         jobRegistry = await JobRegistry.deploy(talentLayerID.address)
+
+        // Deploy TalentLayerReview
+        TalentLayerReview = await ethers.getContractFactory("TalentLayerReview")
+        talentLayerReview = await TalentLayerReview.deploy("TalentLayer Review", "TLR", talentLayerID.address, jobRegistry.address)
     })
 
     it("Alice, the employer, can initiate a new job with Bob, the employee", async function () {
@@ -56,10 +62,31 @@ describe("TalentLayer", function () {
         expect(jobRegistry.connect(bob).confirmJob(1)).to.be.revertedWith("Job has already been confirmed")
     });
 
+    it("Bob can't write a review yet", async function () {
+        expect(talentLayerReview.connect(bob).addReview(1, 0, 'cidReview')).to.be.revertedWith("The job is not finished yet")
+    });
+
+    it("Carol can't write a review as she's not linked to this job", async function () {
+        expect(talentLayerReview.connect(carol).addReview(1, 0, 'cidReview')).to.be.revertedWith("You're not an actor of this job")
+    });
+
     it("Alice can say that the job is finished", async function () {
         await jobRegistry.connect(alice).finishJob(1)
         const jobData = await jobRegistry.jobs(1)
         expect(jobData.status.toString()).to.be.equal('2')
+    });
+
+    it("Alice and Bob can write a review now and we can get review data", async function () {
+        await talentLayerReview.connect(alice).addReview(1, 0, 'cidReview1')
+        await talentLayerReview.connect(bob).addReview(1, 1, 'cidReview2')
+
+        expect(await talentLayerReview.reviewDataUri(0)).to.be.equal('cidReview1')
+        expect(await talentLayerReview.reviewDataUri(1)).to.be.equal('cidReview2')
+    });
+
+    it("Alice and Bob can't write a review for the same Job", async function () {
+        expect(talentLayerReview.connect(alice).addReview(1, 0, 'cidReview')).to.be.revertedWith('ReviewAlreadyMinted()')
+        expect(talentLayerReview.connect(bob).addReview(1, 1, 'cidReview')).to.be.revertedWith('ReviewAlreadyMinted()')
     });
 
     it("Carol, a new employer, can initiate a new job with Bob, the employee", async function () {
@@ -98,7 +125,7 @@ describe("TalentLayer", function () {
         expect(jobData.status.toString()).to.be.equal('1')
     });
 
-    it("Dave, who don't have TalentLayerID, can't create a job", async function () {
+    it("Dave, who doesn't have TalentLayerID, can't create a job", async function () {
         const bobTid = await talentLayerID.walletOfOwner(bob.address)
         expect(jobRegistry.connect(dave).createJobFromEmployer(bobTid, 'cid')).to.be.revertedWith("You sould have a TalentLayerId")
     });
