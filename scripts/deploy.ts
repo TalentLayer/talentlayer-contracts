@@ -1,7 +1,7 @@
 import { formatEther } from 'ethers/lib/utils'
 import { task } from 'hardhat/config'
 
-// npx hardhat deploy --base-u-r-i ipfs://CID/ --poh-address 0xa3ebdcaecb63baab11084e4B73B5fAa0d8e14Ac9
+// npx hardhat deploy --base-u-r-i ipfs://CID/
 task('deploy')
   .addParam('baseURI', 'ipfs Base URI')
   .addFlag('verify', 'verify contracts on etherscan')
