@@ -82,6 +82,7 @@ const config: HardhatUserConfig = {
     },
     mainnet: getChainConfig('mainnet'),
     rinkeby: getChainConfig('rinkeby'),
+    gnosis: getChainConfig('gnosis'),
   },
   paths: {
     artifacts: './artifacts',
