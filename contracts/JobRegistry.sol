@@ -231,6 +231,10 @@ contract JobRegistry {
         uint256 _employeeId,
         string calldata _jobDataUri
     ) private returns (uint256) {
+        require(
+            _employeeId != _employerId,
+            "Employee and employer can't be the same"
+        );
         require(_senderId > 0, "You sould have a TalentLayerId");
         require(
             bytes(_jobDataUri).length > 0,
