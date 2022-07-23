@@ -58,7 +58,7 @@ task('deploy')
         await jobRegistry.deployTransaction.wait(5)
         await run('verify:verify', {
             address: jobRegistry.address,
-            constructorArguments: talentLayerIDArgs,
+            constructorArguments: jobRegistryArgs,
         })
       }
       console.log('Job Registry address:', jobRegistry.address)
