@@ -57,7 +57,7 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       mainnet: process.env.ETHERSCAN_API_KEY || '',
-      gnosis: process.env.GNOSIS_API_KEY || '',
+      xdai: process.env.GNOSIS_API_KEY || '',
       rinkeby: process.env.ETHERSCAN_API_KEY || '',
     },
   },
