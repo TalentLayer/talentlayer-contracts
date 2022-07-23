@@ -82,6 +82,7 @@ task('deploy')
       console.log('Reviews contract address:', talentLayerReview.address)
 
       // Register Alice, Bob, Carol, Dave
+      // const mockProofOfHumanity = await ethers.getContractAt('MockProofOfHumanity', "0x78939ABA66D1F73B0D76E9289BA79bc79dC079Dc")
       await mockProofOfHumanity.addSubmissionManually([alice.address, bob.address, carol.address, dave.address])
       console.log('Registered Alice:', alice.address)
       console.log('Registered Bob:', bob.address)
