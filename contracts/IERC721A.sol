@@ -290,12 +290,6 @@ interface IERC721A {
      */
     function tokenURI(uint256 tokenId) external view returns (string memory);
 
-    // function _internalTransferFrom(
-    //     address from,
-    //     address to,
-    //     uint256 tokenId
-    // ) external;
-
     // =============================================================
     //                           IERC2309
     // =============================================================
