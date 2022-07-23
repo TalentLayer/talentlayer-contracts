@@ -23,6 +23,8 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     // Token symbol
     string private _symbol;
 
+    uint256 public _totalSupply = 0;
+
     // Mapping from token ID to owner address
     mapping(uint256 => uint256) private _owners;
 
@@ -238,17 +240,16 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     function _mint(
         uint256 jobId,
         uint256 to,
-        uint256 tokenId,
         string calldata reviewUri
     ) internal virtual {
         require(to != 0, "TalentLayerReview: mint to invalid address");
-        require(!_exists(tokenId), "TalentLayerReview: token already minted");
 
         _balances[to] += 1;
-        _owners[tokenId] = to;
-        reviewDataUri[tokenId] = reviewUri;
+        _owners[_totalSupply] = to;
+        reviewDataUri[_totalSupply] = reviewUri;
+        _totalSupply = _totalSupply + 1;
 
-        emit Mint(jobId, to, tokenId, reviewUri);
+        emit Mint(jobId, to, _totalSupply, reviewUri);
     }
 
     function _burn(uint256 tokenId) internal virtual {}
@@ -330,11 +331,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         string _reviewUri
     );
 
-    function addReview(
-        uint256 _jobId,
-        uint256 _tokenId,
-        string calldata _reviewUri
-    ) public {
+    function addReview(uint256 _jobId, string calldata _reviewUri) public {
         IJobRegistry.Job memory job = jobRegistry.getJob(_jobId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(
@@ -363,6 +360,6 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
             }
         }
 
-        _mint(_jobId, toId, _tokenId, _reviewUri);
+        _mint(_jobId, toId, _reviewUri);
     }
 }
