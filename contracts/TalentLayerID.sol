@@ -6,6 +6,7 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 import {ERC721A} from "./libs/ERC721A.sol";
 import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 
+
 /**
  * @title TalentLayer ID Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
@@ -125,7 +126,7 @@ contract TalentLayerID is ERC721A, Ownable {
         require(ownerOf(_tokenId) == msg.sender);
         require(
             pohRegistry.isRegistered(msg.sender),
-            "You need to use an address registered on Proof of Humanity"
+            "You're address is not registerd for poh"
         );
         talentIdPohAddresses[_tokenId] = msg.sender;
     }
