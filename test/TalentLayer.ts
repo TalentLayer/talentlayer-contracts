@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { Contract, ContractFactory } from "ethers";
 
-describe("JobRegistry", function () {
+describe("TalentLayer", function () {
     let deployer: SignerWithAddress,
         alice: SignerWithAddress,
         bob: SignerWithAddress,
