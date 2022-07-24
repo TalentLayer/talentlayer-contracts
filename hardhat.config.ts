@@ -13,7 +13,7 @@ const chainIds = {
   hardhat: 1337,
   mainnet: 1,
   gnosis: 100,
-  rinkeby: 4,
+  goerli: 5,
 };
 
 const mnemonic: string | undefined = process.env.MNEMONIC;
@@ -35,8 +35,8 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
     case 'gnosis':
       jsonRpcUrl = 'https://rpc.ankr.com/gnosis';
       break;
-    case 'rinkeby':
-      jsonRpcUrl = 'https://rinkeby.infura.io/v3/' + infuraApiKey;
+    case 'goerli':
+      jsonRpcUrl = 'https://goerli.infura.io/v3/' + infuraApiKey;
       break;
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey;
@@ -58,7 +58,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: process.env.ETHERSCAN_API_KEY || '',
       xdai: process.env.GNOSIS_API_KEY || '',
-      rinkeby: process.env.ETHERSCAN_API_KEY || '',
+      goerli: process.env.ETHERSCAN_API_KEY || '',
     },
   },
   gasReporter: {
@@ -81,7 +81,7 @@ const config: HardhatUserConfig = {
       chainId: chainIds.hardhat,
     },
     mainnet: getChainConfig('mainnet'),
-    rinkeby: getChainConfig('rinkeby'),
+    goerli: getChainConfig('goerli'),
     gnosis: getChainConfig('gnosis'),
   },
   paths: {
