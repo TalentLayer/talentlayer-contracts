@@ -5,8 +5,10 @@ async function main() {
   const ProofOfHumanity = await ethers.getContractFactory("MockProofOfHumanity");
   const proofOfHumanity = await ProofOfHumanity.deploy();
 
-  await proofOfHumanity.deployed();
-  console.log("Proof of humanity deployed to:", proofOfHumanity.address);
+  // await proofOfHumanity.deployed();
+  // console.log("Proof of humanity deployed to:", proofOfHumanity.address);
+  const mockProofOfHumanity = await ethers.getContractAt('MockProofOfHumanity', "0xc7729F499f3D81643597a1e1666E9b6F8D702F8D")
+
 
   const [signer] = await ethers.getSigners()
   await proofOfHumanity.addSubmissionManually(
