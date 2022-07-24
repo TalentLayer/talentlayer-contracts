@@ -2,12 +2,11 @@ import { ethers } from "hardhat";
 
 async function main() {
   const [alice, bob, carol, dave] = await ethers.getSigners()
-  const tlID = await ethers.getContractAt('TalentLayerID', "0x931dA829f06c02fCD683a9153bBD40EF7Ce1E907")
-  tlID.connect(bob).mintWithPoh("bob.lens")
-
-
-  console.log("Bob.lens registered");
-
+  const tlRe = await ethers.getContractAt('TalentLayerReview', "0x690113a1965781e272E30DE287a0bbBd62f63269")
+  await tlRe.connect(bob).addReview(4, "ipfs://review")
+  console.log("Bob reviewed Carol");
+  await tlRe.connect(carol).addReview(4, "ipfs://review")
+  console.log("Carol reviewed Bob");
 }
 
 // We recommend this pattern to be able to use async/await everywhere
