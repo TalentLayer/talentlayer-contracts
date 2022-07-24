@@ -84,11 +84,11 @@ describe("TalentLayer", function () {
     })
 
     it("Bob can't write a review yet", async function () {
-        expect(talentLayerReview.connect(bob).addReview(1, 'cidReview')).to.be.revertedWith("The job is not finished yet")
+        expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3)).to.be.revertedWith("The job is not finished yet")
     })
 
     it("Carol can't write a review as she's not linked to this job", async function () {
-        expect(talentLayerReview.connect(carol).addReview(1, 'cidReview')).to.be.revertedWith("You're not an actor of this job")
+        expect(talentLayerReview.connect(carol).addReview(1, 'cidReview', 5)).to.be.revertedWith("You're not an actor of this job")
     })
 
     it("Alice can say that the job is finished", async function () {
@@ -98,16 +98,16 @@ describe("TalentLayer", function () {
     })
 
     it("Alice and Bob can write a review now and we can get review data", async function () {
-        await talentLayerReview.connect(alice).addReview(1, 'cidReview1')
-        await talentLayerReview.connect(bob).addReview(1, 'cidReview2')
+        await talentLayerReview.connect(alice).addReview(1, 'cidReview1', 2)
+        await talentLayerReview.connect(bob).addReview(1, 'cidReview2', 4)
 
         expect(await talentLayerReview.reviewDataUri(0)).to.be.equal('cidReview1')
         expect(await talentLayerReview.reviewDataUri(1)).to.be.equal('cidReview2')
     })
 
     it("Alice and Bob can't write a review for the same Job", async function () {
-        expect(talentLayerReview.connect(alice).addReview(1, 'cidReview')).to.be.revertedWith('ReviewAlreadyMinted()')
-        expect(talentLayerReview.connect(bob).addReview(1, 'cidReview')).to.be.revertedWith('ReviewAlreadyMinted()')
+        expect(talentLayerReview.connect(alice).addReview(1, 'cidReview', 0)).to.be.revertedWith('ReviewAlreadyMinted()')
+        expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3)).to.be.revertedWith('ReviewAlreadyMinted()')
     })
 
     it("Carol, a new employer, can initiate a new job with Bob, the employee", async function () {
