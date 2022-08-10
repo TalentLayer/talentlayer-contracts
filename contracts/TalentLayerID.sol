@@ -304,6 +304,7 @@ contract TalentLayerID is ERC721A, Ownable {
             numberMinted(msg.sender) == 0,
             "You already have a TalentLayerID"
         );
+        require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
         _;
