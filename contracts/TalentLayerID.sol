@@ -27,9 +27,6 @@ contract TalentLayerID is ERC721A, Ownable {
     /// Token ID to IPFS URI mapping
     mapping(uint256 => string) public profilesDataUri;
 
-    /// Base IPFS Token URI
-    string _baseTokenURI;
-
     /// Account recovery merkle root
     bytes32 public recoveryRoot;
 
