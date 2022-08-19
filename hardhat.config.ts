@@ -6,15 +6,9 @@ import '@nomicfoundation/hardhat-toolbox';
 import 'hardhat-contract-sizer';
 import './scripts/deploy';
 import './scripts/wallet';
+import { Network } from './scripts/config';
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
-
-const chainIds = {
-  hardhat: 1337,
-  mainnet: 1,
-  gnosis: 100,
-  goerli: 5,
-};
 
 const mnemonic: string | undefined = process.env.MNEMONIC;
 if (!mnemonic) {
@@ -26,28 +20,33 @@ if (!infuraApiKey) {
   throw new Error('Please set your INFURA_API_KEY in a .env file');
 }
 
-function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
+function getChainConfig(chain: Network): NetworkUserConfig {
   let jsonRpcUrl: string;
   switch (chain) {
-    case 'mainnet':
+    case Network.MAINNET:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey;
       break;
-    case 'gnosis':
+    case Network.GNOSIS:
       jsonRpcUrl = 'https://rpc.ankr.com/gnosis';
       break;
-    case 'goerli':
+    case Network.GOERLI:
       jsonRpcUrl = 'https://goerli.infura.io/v3/' + infuraApiKey;
+      break;
+    case Network.KOVAN:
+      jsonRpcUrl = 'https://kovan.infura.io/v3/' + infuraApiKey;
       break;
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey;
   }
+
+
   return {
     accounts: {
       count: 10,
       mnemonic,
       path: "m/44'/60'/0'/0",
     },
-    chainId: chainIds[chain],
+    chainId: chain,
     url: jsonRpcUrl,
   };
 }
@@ -59,6 +58,7 @@ const config: HardhatUserConfig = {
       mainnet: process.env.ETHERSCAN_API_KEY || '',
       xdai: process.env.GNOSIS_API_KEY || '',
       goerli: process.env.ETHERSCAN_API_KEY || '',
+      kovan: process.env.ETHERSCAN_API_KEY || '',
     },
   },
   gasReporter: {
@@ -78,11 +78,12 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic,
       },
-      chainId: chainIds.hardhat,
+      chainId: Network.LOCAL,
     },
-    mainnet: getChainConfig('mainnet'),
-    goerli: getChainConfig('goerli'),
-    gnosis: getChainConfig('gnosis'),
+    mainnet: getChainConfig(Network.MAINNET),
+    goerli: getChainConfig(Network.GOERLI),
+    gnosis: getChainConfig(Network.GNOSIS),
+    kovan: getChainConfig(Network.KOVAN),
   },
   paths: {
     artifacts: './artifacts',
