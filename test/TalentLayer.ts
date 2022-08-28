@@ -31,7 +31,7 @@ describe("TalentLayer", function () {
         const talentLayerIDArgs:[string, ] = [
             mockProofOfHumanity.address
         ]
-        talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
+        talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)        
 
         // Deploy JobRegistry
         JobRegistry = await ethers.getContractFactory("JobRegistry")
@@ -149,5 +149,17 @@ describe("TalentLayer", function () {
     it("Dave, who doesn't have TalentLayerID, can't create a job", async function () {
         const bobTid = await talentLayerID.walletOfOwner(bob.address)
         expect(jobRegistry.connect(dave).createJobFromEmployer(bobTid, 'cid')).to.be.revertedWith("You sould have a TalentLayerId")
+    })
+
+    it("Alice the employer can create an open job", async function(){
+
+        await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
+        const jobData = await jobRegistry.jobs(4)
+
+        expect(jobData.status.toString()).to.be.equal('4')
+        expect(jobData.employerId.toString()).to.be.equal('1')
+        expect(jobData.initiatorId.toString()).to.be.equal('1')
+        expect(jobData.employeeId.toString()).to.be.equal('0')
+        expect(jobData.jobDataUri).to.be.equal('cid')
     })
 })
