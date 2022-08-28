@@ -162,4 +162,15 @@ describe("TalentLayer", function () {
         expect(jobData.employeeId.toString()).to.be.equal('0')
         expect(jobData.jobDataUri).to.be.equal('cid')
     })
+
+    it("Alice can assign an employee to a job", async function(){
+
+        await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
+        const bobTid = await talentLayerID.walletOfOwner(bob.address)
+        await jobRegistry.connect(alice).assignEmployeeToJob(5, bobTid)
+        const jobData = await jobRegistry.jobs(5)
+        
+        expect(jobData.employeeId.toString()).to.be.equal(bobTid)
+
+    })
 })
