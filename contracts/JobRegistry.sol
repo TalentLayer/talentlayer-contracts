@@ -44,12 +44,14 @@ contract JobRegistry {
     /// @param employeeId the talentLayerId of the employee
     /// @param initiatorId the talentLayerId of the user who initialized the job
     /// @param jobDataUri token Id to IPFS URI mapping
+    /// @param status job status
     event JobCreated(
         uint256 id,
         uint256 employerId,
         uint256 employeeId,
         uint256 initiatorId,
-        string jobDataUri
+        string jobDataUri,
+        Status status
     );
 
     /// @notice Emitted after a new Open job is created
@@ -280,7 +282,7 @@ contract JobRegistry {
             jobDataUri: _jobDataUri
         });
 
-        emit JobCreated(id, _employerId, _employeeId, _senderId, _jobDataUri);
+        emit JobCreated(id, _employerId, _employeeId, _senderId, _jobDataUri, _status);
 
         return id;
     }
