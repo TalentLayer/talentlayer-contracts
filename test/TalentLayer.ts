@@ -151,7 +151,7 @@ describe("TalentLayer", function () {
         expect(jobRegistry.connect(dave).createJobFromEmployer(bobTid, 'cid')).to.be.revertedWith("You sould have a TalentLayerId")
     })
 
-    it("Alice the employer can create an open job", async function(){
+    it("Alice the employer can create an Open job", async function(){
 
         await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
         const jobData = await jobRegistry.jobs(4)
@@ -163,14 +163,37 @@ describe("TalentLayer", function () {
         expect(jobData.jobDataUri).to.be.equal('cid')
     })
 
-    it("Alice can assign an employee to a job", async function(){
+    it("Alice can assign an employee to a Open job", async function(){
 
         await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
         const bobTid = await talentLayerID.walletOfOwner(bob.address)
         await jobRegistry.connect(alice).assignEmployeeToJob(5, bobTid)
         const jobData = await jobRegistry.jobs(5)
-        
+
+        expect(jobData.status.toString()).to.be.equal('0')
         expect(jobData.employeeId.toString()).to.be.equal(bobTid)
 
+    })
+
+    it("Bob can confirm the Open job", async function(){
+
+        await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
+        const bobTid = await talentLayerID.walletOfOwner(bob.address)
+        await jobRegistry.connect(alice).assignEmployeeToJob(6, bobTid)
+        await jobRegistry.connect(bob).confirmJob(6)
+        const jobData = await jobRegistry.jobs(6)
+
+        expect(jobData.status.toString()).to.be.equal('1') 
+    })
+
+    it("Bob can reject an Open job", async function(){
+
+        await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
+        const bobTid = await talentLayerID.walletOfOwner(bob.address)
+        await jobRegistry.connect(alice).assignEmployeeToJob(7, bobTid)
+        await jobRegistry.connect(bob).rejectJob(7)
+        const jobData = await jobRegistry.jobs(7)
+
+        expect(jobData.status.toString()).to.be.equal('3') 
     })
 })

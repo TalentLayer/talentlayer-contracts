@@ -61,7 +61,7 @@ contract JobRegistry {
     /// @param initiatorId the talentLayerId of the user who initialized the job
     /// @param jobDataUri token Id to IPFS URI mapping
     /// @param status job status
-    event JobUpdated(
+    event JobEmployeeAssigned(
         uint256 id,
         uint256 employerId,
         uint256 employeeId,
@@ -216,7 +216,7 @@ contract JobRegistry {
             senderId == job.employerId || senderId == job.employeeId,
             "You're not an actor of this job"
         );
-        require(job.status == Status.Filled, "You can't reject this job");
+        require(job.status == Status.Filled || job.status == Status.Opened, "You can't reject this job");
         job.status = Status.Rejected;
 
         emit JobRejected(
@@ -251,13 +251,13 @@ contract JobRegistry {
 
     /**
      * @notice Allows the employer to assign an employee to the job
-     * @param _id Job identifier
+     * @param _jobId Job identifier
      * @param _employeeId Handle for the user
      */
 
-    function assignEmployeeToJob(uint256 _id, uint256 _employeeId) public {
+    function assignEmployeeToJob(uint256 _jobId, uint256 _employeeId) public {
 
-        Job storage job = jobs[_id];
+        Job storage job = jobs[_jobId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
 
         require( job.status == Status.Opened || job.status == Status.Rejected ,"Job has to be Opened or Rejected");
@@ -266,15 +266,11 @@ contract JobRegistry {
 
         require(_employeeId != job.employerId, "Employee and employer can't be the same");
 
-        jobs[_id] = Job({
-            status: job.status,
-            employerId: job.employerId,
-            employeeId: _employeeId,
-            initiatorId: senderId,
-            jobDataUri: job.jobDataUri
-        });
+        job.employeeId = _employeeId;
 
-        emit JobUpdated(_id, job.employerId, _employeeId, senderId, job.jobDataUri, job.status);
+        job.status = Status.Filled;
+
+        emit JobEmployeeAssigned(_jobId, job.employerId, _employeeId, senderId, job.jobDataUri, job.status);
 
     }
 
