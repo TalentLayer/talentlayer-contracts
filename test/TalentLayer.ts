@@ -190,10 +190,17 @@ describe("TalentLayer", function () {
 
         await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
         const bobTid = await talentLayerID.walletOfOwner(bob.address)
+        const carolId = await talentLayerID.walletOfOwner(carol.address)
         await jobRegistry.connect(alice).assignEmployeeToJob(7, bobTid)
         await jobRegistry.connect(bob).rejectJob(7)
         const jobData = await jobRegistry.jobs(7)
 
         expect(jobData.status.toString()).to.be.equal('3') 
+
+        await jobRegistry.connect(alice).assignEmployeeToJob(7, carolId)
+        await jobRegistry.connect(carol).confirmJob(7)
+        const jobDataNewAssignement = await jobRegistry.jobs(7)
+
+        expect(jobDataNewAssignement.status.toString()).to.be.equal('1') 
     })
 })
