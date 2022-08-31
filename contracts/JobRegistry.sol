@@ -133,7 +133,7 @@ contract JobRegistry {
         uint256 _employeeId,
         string calldata _jobDataUri
     ) public returns (uint256) {
-        require(_employeeId > 0, "Youn can't create a job with this id");
+        require(_employeeId > 0, "You can't create a job with this id");
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
             _createJob(
@@ -154,7 +154,7 @@ contract JobRegistry {
         uint256 _employerId,
         string calldata _jobDataUri
     ) public returns (uint256) {
-        require(_employerId > 0, "Youn can't create a job with this id");
+        require(_employerId > 0, "You can't create a job with this id");
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
             _createJob(
