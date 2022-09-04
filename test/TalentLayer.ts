@@ -74,6 +74,11 @@ describe("TalentLayer", function () {
         expect(jobData.jobDataUri).to.be.equal('cid')
     })
 
+    it("Alice can't create a new job with a talentLayerId 0", async function () {
+        expect(jobRegistry.connect(alice).createJobFromEmployer(0, 'cid')).to.be.revertedWith("Employee 0 is not a valid TalentLayerId")
+        expect(jobRegistry.connect(alice).createJobFromEmployee(0, 'cid')).to.be.revertedWith("Employer 0 is not a valid TalentLayerId")
+    })
+
     it("Bob, the employee, can confrim the job, Alice can't, Carol can't", async function () {
         expect(jobRegistry.connect(alice).confirmJob(1)).to.be.revertedWith("Only the user who didn't initate the job can confirm it")
         expect(jobRegistry.connect(carol).confirmJob(1)).to.be.revertedWith("You're not an actor of this job")
