@@ -2,13 +2,13 @@ import { formatEther } from 'ethers/lib/utils'
 import { task } from 'hardhat/config'
 import { getConfig, Network, NetworkConfig } from './config'
 
-// npx hardhat deploy --usePOHMock --verify --network kovan
+// npx hardhat deploy --use-pohmock --verify --network goerli
 task('deploy')
-  .addFlag('usePOHMock', 'deploy a mock of POH')
+  .addFlag('usePohmock', 'deploy a mock of POH')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, run, network }) => {
     try {
-      const { verify, usePOHMock } = args
+      const { verify, usePohmock } = args
       const [alice, bob, carol, dave] = await ethers.getSigners()
       const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL;
       const networkConfig:NetworkConfig = getConfig(chainId)
@@ -25,7 +25,7 @@ task('deploy')
       await run('compile')
 
       let pohAddress, mockProofOfHumanity;
-      if(usePOHMock){
+      if(usePohmock){
         // Deploy Mock proof of humanity contract
         const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
         mockProofOfHumanity = await MockProofOfHumanity.deploy()
@@ -89,7 +89,7 @@ task('deploy')
       }
       console.log('Reviews contract address:', talentLayerReview.address)
 
-      if(usePOHMock && mockProofOfHumanity){
+      if(usePohmock && mockProofOfHumanity){
         // Register Alice, Bob, Carol, Dave
         // const mockProofOfHumanity = await ethers.getContractAt('MockProofOfHumanity', "0x78939ABA66D1F73B0D76E9289BA79bc79dC079Dc")
         await mockProofOfHumanity.addSubmissionManually([alice.address, bob.address, carol.address, dave.address])
