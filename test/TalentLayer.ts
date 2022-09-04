@@ -31,7 +31,7 @@ describe("TalentLayer", function () {
         const talentLayerIDArgs:[string, ] = [
             mockProofOfHumanity.address
         ]
-        talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
+        talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)        
 
         // Deploy JobRegistry
         JobRegistry = await ethers.getContractFactory("JobRegistry")
@@ -149,5 +149,58 @@ describe("TalentLayer", function () {
     it("Dave, who doesn't have TalentLayerID, can't create a job", async function () {
         const bobTid = await talentLayerID.walletOfOwner(bob.address)
         expect(jobRegistry.connect(dave).createJobFromEmployer(bobTid, 'cid')).to.be.revertedWith("You sould have a TalentLayerId")
+    })
+
+    it("Alice the employer can create an Open job", async function(){
+
+        await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
+        const jobData = await jobRegistry.jobs(4)
+
+        expect(jobData.status.toString()).to.be.equal('4')
+        expect(jobData.employerId.toString()).to.be.equal('1')
+        expect(jobData.initiatorId.toString()).to.be.equal('1')
+        expect(jobData.employeeId.toString()).to.be.equal('0')
+        expect(jobData.jobDataUri).to.be.equal('cid')
+    })
+
+    it("Alice can assign an employee to a Open job", async function(){
+
+        await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
+        const bobTid = await talentLayerID.walletOfOwner(bob.address)
+        await jobRegistry.connect(alice).assignEmployeeToJob(5, bobTid)
+        const jobData = await jobRegistry.jobs(5)
+
+        expect(jobData.status.toString()).to.be.equal('0')
+        expect(jobData.employeeId.toString()).to.be.equal(bobTid)
+
+    })
+
+    it("Bob can confirm the Open job", async function(){
+
+        await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
+        const bobTid = await talentLayerID.walletOfOwner(bob.address)
+        await jobRegistry.connect(alice).assignEmployeeToJob(6, bobTid)
+        await jobRegistry.connect(bob).confirmJob(6)
+        const jobData = await jobRegistry.jobs(6)
+
+        expect(jobData.status.toString()).to.be.equal('1') 
+    })
+
+    it("Bob can reject an Open job", async function(){
+
+        await jobRegistry.connect(alice).createOpenJobFromEmployer('cid')
+        const bobTid = await talentLayerID.walletOfOwner(bob.address)
+        const carolId = await talentLayerID.walletOfOwner(carol.address)
+        await jobRegistry.connect(alice).assignEmployeeToJob(7, bobTid)
+        await jobRegistry.connect(bob).rejectJob(7)
+        const jobData = await jobRegistry.jobs(7)
+
+        expect(jobData.status.toString()).to.be.equal('3') 
+
+        await jobRegistry.connect(alice).assignEmployeeToJob(7, carolId)
+        await jobRegistry.connect(carol).confirmJob(7)
+        const jobDataNewAssignement = await jobRegistry.jobs(7)
+
+        expect(jobDataNewAssignement.status.toString()).to.be.equal('1') 
     })
 })
