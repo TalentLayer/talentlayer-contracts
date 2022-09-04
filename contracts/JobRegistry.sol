@@ -12,10 +12,11 @@ contract JobRegistry {
 
     /// @notice Enum job status
     enum Status {
-        Intialized,
+        Filled,
         Confirmed,
         Finished,
-        Rejected
+        Rejected,
+        Opened
     }
 
     // =========================== Struct ==============================
@@ -42,13 +43,21 @@ contract JobRegistry {
     /// @param employeeId the talentLayerId of the employee
     /// @param initiatorId the talentLayerId of the user who initialized the job
     /// @param jobDataUri token Id to IPFS URI mapping
+    /// @param status job status
     event JobCreated(
         uint256 id,
         uint256 employerId,
         uint256 employeeId,
         uint256 initiatorId,
-        string jobDataUri
+        string jobDataUri,
+        Status status
     );
+
+    /// @notice Emitted after a new job is created
+    /// @param id The job ID
+    /// @param employeeId the talentLayerId of the employee
+    /// @param status job status
+    event JobEmployeeAssigned(uint256 id, uint256 employeeId, Status status);
 
     /// @notice Emitted after a job is confirmed
     /// @param id The job ID
@@ -124,8 +133,16 @@ contract JobRegistry {
         uint256 _employeeId,
         string calldata _jobDataUri
     ) public returns (uint256) {
+        require(_employeeId > 0, "You can't create a job with this id");
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        return _createJob(senderId, senderId, _employeeId, _jobDataUri);
+        return
+            _createJob(
+                Status.Filled,
+                senderId,
+                senderId,
+                _employeeId,
+                _jobDataUri
+            );
     }
 
     /**
@@ -137,8 +154,28 @@ contract JobRegistry {
         uint256 _employerId,
         string calldata _jobDataUri
     ) public returns (uint256) {
+        require(_employerId > 0, "You can't create a job with this id");
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        return _createJob(senderId, _employerId, senderId, _jobDataUri);
+        return
+            _createJob(
+                Status.Filled,
+                senderId,
+                _employerId,
+                senderId,
+                _jobDataUri
+            );
+    }
+
+    /**
+     * @notice Allows an employer to initiate an open job
+     * @param _jobDataUri token Id to IPFS URI mapping
+     */
+    function createOpenJobFromEmployer(string calldata _jobDataUri)
+        public
+        returns (uint256)
+    {
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        return _createJob(Status.Opened, senderId, senderId, 0, _jobDataUri);
     }
 
     /**
@@ -149,10 +186,7 @@ contract JobRegistry {
         Job storage job = jobs[_jobId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
 
-        require(
-            job.status == Status.Intialized,
-            "Job has already been confirmed"
-        );
+        require(job.status == Status.Filled, "Job has already been confirmed");
         require(
             senderId == job.employerId || senderId == job.employeeId,
             "You're not an actor of this job"
@@ -183,7 +217,10 @@ contract JobRegistry {
             senderId == job.employerId || senderId == job.employeeId,
             "You're not an actor of this job"
         );
-        require(job.status == Status.Intialized, "You can't reject this job");
+        require(
+            job.status == Status.Filled || job.status == Status.Opened,
+            "You can't reject this job"
+        );
         job.status = Status.Rejected;
 
         emit JobRejected(
@@ -216,6 +253,37 @@ contract JobRegistry {
         );
     }
 
+    /**
+     * @notice Allows the employer to assign an employee to the job
+     * @param _jobId Job identifier
+     * @param _employeeId Handle for the user
+     */
+    function assignEmployeeToJob(uint256 _jobId, uint256 _employeeId) public {
+        Job storage job = jobs[_jobId];
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+
+        require(
+            job.status == Status.Opened || job.status == Status.Rejected,
+            "Job has to be Opened or Rejected"
+        );
+
+        require(
+            senderId == job.employerId,
+            "You're not an employer of this job"
+        );
+
+        require(
+            _employeeId != job.employerId,
+            "Employee and employer can't be the same"
+        );
+
+        job.employeeId = _employeeId;
+
+        job.status = Status.Filled;
+
+        emit JobEmployeeAssigned(_jobId, _employeeId, job.status);
+    }
+
     // =========================== Private functions ==============================
 
     /**
@@ -226,6 +294,7 @@ contract JobRegistry {
      * @param _jobDataUri token Id to IPFS URI mapping
      */
     function _createJob(
+        Status _status,
         uint256 _senderId,
         uint256 _employerId,
         uint256 _employeeId,
@@ -245,14 +314,21 @@ contract JobRegistry {
         nextJobId++;
 
         jobs[id] = Job({
-            status: Status.Intialized,
+            status: _status,
             employerId: _employerId,
             employeeId: _employeeId,
             initiatorId: _senderId,
             jobDataUri: _jobDataUri
         });
 
-        emit JobCreated(id, _employerId, _employeeId, _senderId, _jobDataUri);
+        emit JobCreated(
+            id,
+            _employerId,
+            _employeeId,
+            _senderId,
+            _jobDataUri,
+            _status
+        );
 
         return id;
     }
