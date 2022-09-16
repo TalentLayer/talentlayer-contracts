@@ -41,7 +41,9 @@ contract MultipleArbitrableTransaction is IArbitrable {
     bytes public arbitratorExtraData; // Extra data to set up the arbitration.
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
-
+    address _jobRegistry;
+    uint128 _jobId;
+    
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
     // **************************** //
@@ -98,7 +100,10 @@ contract MultipleArbitrableTransaction is IArbitrable {
     constructor(
         Arbitrator _arbitrator,
         bytes memory _arbitratorExtraData,
-        uint _feeTimeout
+        uint _feeTimeout,
+        uint _jobId,
+        
+
     ) public {
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
@@ -136,6 +141,42 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _receiver,
             msg.value
         );
+
+        return transactions.length - 1;
+    }
+
+    /** @dev Create a transaction. UNTRUSTED.
+     *  @param _amount The amount of tokens in this transaction.
+     *  @param _token The ERC20 token contract.
+     *  @param _timeoutPayment Time after which a party automatically loses a dispute.
+     *  @param _receiver The recipient of the transaction.
+     *  @param _metaEvidence Link to the meta-evidence.
+     *  @return The index of the transaction.
+     */
+    function createTokenTransaction(
+        uint _amount,
+        ERC20 _token,
+        uint _timeoutPayment,
+        address _receiver,
+        string _metaEvidence
+    ) public returns (uint transactionIndex) {
+        // Transfers token from sender wallet to contract.
+        require(_token.transferFrom(msg.sender, address(this), _amount), "Sender does not have enough approved funds.");
+
+        transactions.push(Transaction({
+            sender: msg.sender,
+            receiver: _receiver,
+            amount: _amount,
+            token: _token,
+            timeoutPayment: _timeoutPayment,
+            disputeId: 0,
+            senderFee: 0,
+            receiverFee: 0,
+            lastInteraction: now,
+            status: Status.NoDispute
+        }));
+        emit MetaEvidence(transactions.length - 1, _metaEvidence);
+        emit TransactionCreated(transactions.length - 1, msg.sender, _receiver, _token, _amount);
 
         return transactions.length - 1;
     }
