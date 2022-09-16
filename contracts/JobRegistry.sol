@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
+import "hardhat/console.sol";
 
 /**
  * @title JobRegistry Contract
@@ -155,18 +156,12 @@ contract JobRegistry {
     /// @notice Emitted after a proposal is validated
     /// @param jobId The job ID
     /// @param employeeId the talentLayerId of the employee
-    event ProposalValidated(
-        uint256 jobId,
-        uint256 employeeId
-    );
+    event ProposalValidated(uint256 jobId, uint256 employeeId);
 
     /// @notice Emitted after a proposal is rejected
     /// @param jobId The job ID
     /// @param employeeId the talentLayerId of the employee
-    event ProposalRejected(
-        uint256 jobId,
-        uint256 employeeId
-    );
+    event ProposalRejected(uint256 jobId, uint256 employeeId);
 
     /// @notice incremental job Id
     uint256 private nextJobId = 1;
@@ -195,6 +190,14 @@ contract JobRegistry {
     //     require(_jobId < nextJobId, "This job does'nt exist");
     //     return jobs[_jobId];
     // }
+
+    function getProposal(uint256 _jobId, uint256 _proposalId)
+        external
+        view
+        returns (Proposal memory)
+    {
+        return jobs[_jobId].proposals[_proposalId];
+    }
 
     // =========================== User functions ==============================
 
@@ -259,13 +262,21 @@ contract JobRegistry {
      * @param _rateAmount the amount of token choosed
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
-    function createProposal(uint256 _jobId, address _rateToken, uint256 _rateAmount, string calldata _proposalDataUri) public {
+    function createProposal(
+        uint256 _jobId,
+        address _rateToken,
+        uint256 _rateAmount,
+        string calldata _proposalDataUri
+    ) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You sould have a TalentLayerId");
 
         Job storage job = jobs[_jobId];
         require(job.status == Status.Opened, "Job is not opened");
-        require(job.proposals[senderId].employeeId != senderId, "You already create a proposal for this job");
+        require(
+            job.proposals[senderId].employeeId != senderId,
+            "You already create a proposal for this job"
+        );
         require(job.countProposals < 40, "Max proposals count reached");
         require(
             job.employerId != senderId,
@@ -275,7 +286,7 @@ contract JobRegistry {
             bytes(_proposalDataUri).length > 0,
             "Should provide a valid IPFS URI"
         );
-        
+
         job.countProposals++;
         job.proposals[senderId] = Proposal({
             status: ProposalStatus.Pending,
@@ -302,20 +313,31 @@ contract JobRegistry {
      * @param _rateAmount the amount of token choosed
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
-    function updateProposal(uint256 _jobId, address _rateToken, uint256 _rateAmount, string calldata _proposalDataUri) public {
+    function updateProposal(
+        uint256 _jobId,
+        address _rateToken,
+        uint256 _rateAmount,
+        string calldata _proposalDataUri
+    ) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You sould have a TalentLayerId");
 
         Job storage job = jobs[_jobId];
         Proposal storage proposal = job.proposals[senderId];
         require(job.status == Status.Opened, "Job is not opened");
-        require(proposal.employeeId == senderId, "This proposal doesn't exist yet");
+        require(
+            proposal.employeeId == senderId,
+            "This proposal doesn't exist yet"
+        );
         require(
             bytes(_proposalDataUri).length > 0,
             "Should provide a valid IPFS URI"
         );
-        require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
-        
+        require(
+            proposal.status != ProposalStatus.Validated,
+            "This proposal is already updated"
+        );
+
         proposal.rateToken = _rateToken;
         proposal.rateAmount = _rateAmount;
         proposal.proposalDataUri = _proposalDataUri;
@@ -341,15 +363,15 @@ contract JobRegistry {
         Job storage job = jobs[_jobId];
         Proposal storage proposal = job.proposals[_proposalId];
 
-        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
-        require(senderId == job.employerId,"You're not the employer");
+        require(
+            proposal.status != ProposalStatus.Validated,
+            "Proposal has already been validated"
+        );
+        require(senderId == job.employerId, "You're not the employer");
 
         proposal.status = ProposalStatus.Validated;
 
-        emit ProposalValidated(
-            _jobId,
-            senderId
-        );
+        emit ProposalValidated(_jobId, senderId);
     }
 
     /**
@@ -364,15 +386,15 @@ contract JobRegistry {
         Job storage job = jobs[_jobId];
         Proposal storage proposal = job.proposals[_proposalId];
 
-        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
-        require(senderId == job.employerId,"You're not the employer");
+        require(
+            proposal.status != ProposalStatus.Validated,
+            "Proposal has already been validated"
+        );
+        require(senderId == job.employerId, "You're not the employer");
 
         proposal.status = ProposalStatus.Rejected;
 
-        emit ProposalRejected(
-            _jobId,
-            senderId
-        );
+        emit ProposalRejected(_jobId, senderId);
     }
 
     /**
@@ -510,11 +532,11 @@ contract JobRegistry {
         nextJobId++;
 
         Job storage job = jobs[id];
-        job.status =_status;
-        job.employerId =_employerId;
-        job.employeeId =_employeeId;
-        job.initiatorId =_senderId;
-        job.jobDataUri =_jobDataUri;
+        job.status = _status;
+        job.employerId = _employerId;
+        job.employeeId = _employeeId;
+        job.initiatorId = _senderId;
+        job.jobDataUri = _jobDataUri;
 
         emit JobCreated(
             id,
