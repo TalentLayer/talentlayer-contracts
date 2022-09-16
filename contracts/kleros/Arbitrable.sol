@@ -1,24 +1,8 @@
-/**
- *  @authors: [@clesaege]
- *  @reviewers: [@remedcu]
- *  @auditors: []
- *  @bounties: []
- *  @deployments: []
- */
-
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
 import "./IArbitrable.sol";
 
-/** @title Arbitrable
- *  @author Clément Lesaege - <clement@lesaege.com>
- *  Arbitrable abstract contract.
- *  When developing arbitrable contracts, we need to:
- *  -Define the action taken when a ruling is received by the contract. We should do so in executeRuling.
- *  -Allow dispute creation. For this a function must:
- *      -Call arbitrator.createDispute.value(_fee)(_choices,_extraData);
- *      -Create the event Dispute(_arbitrator,_disputeID,_rulingOptions);
- */
 contract Arbitrable is IArbitrable {
     Arbitrator public arbitrator;
     bytes public arbitratorExtraData; // Extra data to require particular dispute and appeal behaviour.
@@ -35,7 +19,7 @@ contract Arbitrable is IArbitrable {
      *  @param _arbitrator The arbitrator of the contract.
      *  @param _arbitratorExtraData Extra data for the arbitrator.
      */
-    constructor(Arbitrator _arbitrator, bytes _arbitratorExtraData) public {
+    constructor(Arbitrator _arbitrator, bytes memory _arbitratorExtraData) {
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
     }
@@ -45,7 +29,7 @@ contract Arbitrable is IArbitrable {
      *  @param _disputeID ID of the dispute in the Arbitrator contract.
      *  @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
      */
-    function rule(uint _disputeID, uint _ruling) public onlyArbitrator {
+    function rule(uint256 _disputeID, uint _ruling) public onlyArbitrator {
         emit Ruling(Arbitrator(msg.sender), _disputeID, _ruling);
 
         executeRuling(_disputeID, _ruling);
@@ -55,5 +39,5 @@ contract Arbitrable is IArbitrable {
      *  @param _disputeID ID of the dispute in the Arbitrator contract.
      *  @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
      */
-    function executeRuling(uint _disputeID, uint _ruling) internal;
+    function executeRuling(uint256 _disputeID, uint _ruling) internal;
 }
