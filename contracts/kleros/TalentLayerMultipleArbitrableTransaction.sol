@@ -1,13 +1,5 @@
-/**
- *  @authors: [@eburgos, @n1c01a5]
- *  @reviewers: [@unknownunknown1, @clesaege*, @ferittuncer, @remedcu]
- *  @auditors: []
- *  @bounties: []
- *  @deployments: [ https://etherscan.io/address/0x0d67440946949FE293B45c52eFD8A9b3d51e2522 ]
- *  @tools: [MythX]
- */
-
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.9;
 
 import "./Arbitrator.sol";
 import "./IArbitrable.sol";
@@ -50,7 +42,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
 
-    mapping(uint => uint) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
+    mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
     // **************************** //
     // *          Events          * //
@@ -105,7 +97,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
      */
     constructor(
         Arbitrator _arbitrator,
-        bytes _arbitratorExtraData,
+        bytes memory _arbitratorExtraData,
         uint _feeTimeout
     ) public {
         arbitrator = _arbitrator;
@@ -122,7 +114,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function createTransaction(
         uint _timeoutPayment,
         address _receiver,
-        string _metaEvidence
+        string memory _metaEvidence
     ) public payable returns (uint transactionID) {
         transactions.push(
             Transaction({
@@ -133,7 +125,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
                 disputeId: 0,
                 senderFee: 0,
                 receiverFee: 0,
-                lastInteraction: now,
+                lastInteraction: block.timestamp,
                 status: Status.NoDispute
             })
         );
@@ -367,7 +359,9 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _transactionID The index of the transaction.
      *  @param _evidence A link to an evidence using its URI.
      */
-    function submitEvidence(uint _transactionID, string _evidence) public {
+    function submitEvidence(uint _transactionID, string memory _evidence)
+        public
+    {
         Transaction storage transaction = transactions[_transactionID];
         require(
             msg.sender == transaction.sender ||
@@ -457,7 +451,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function getCountTransactions()
         public
         view
-        returns (uint countTransactions)
+        returns (uint256 countTransactions)
     {
         return transactions.length;
     }
@@ -471,21 +465,21 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function getTransactionIDsByAddress(address _address)
         public
         view
-        returns (uint[] transactionIDs)
+        returns (uint256[] memory transactionIDs)
     {
-        uint count = 0;
-        for (uint i = 0; i < transactions.length; i++) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < transactions.length; i++) {
             if (
                 transactions[i].sender == _address ||
                 transactions[i].receiver == _address
             ) count++;
         }
 
-        transactionIDs = new uint[](count);
+        transactionIDs = new uint256[](count);
 
         count = 0;
 
-        for (uint j = 0; j < transactions.length; j++) {
+        for (uint256 j = 0; j < transactions.length; j++) {
             if (
                 transactions[j].sender == _address ||
                 transactions[j].receiver == _address
