@@ -4,6 +4,8 @@ pragma solidity ^0.8.9;
 import "./Arbitrator.sol";
 import "./IArbitrable.sol";
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 contract MultipleArbitrableTransaction is IArbitrable {
     // **************************** //
     // *    Contract variables    * //
@@ -25,6 +27,11 @@ contract MultipleArbitrableTransaction is IArbitrable {
         Resolved
     }
 
+    struct WalletFee {
+        address payable wallet;
+        uint fee;
+    }
+
     struct Transaction {
         address sender;
         address receiver;
@@ -37,12 +44,17 @@ contract MultipleArbitrableTransaction is IArbitrable {
         Status status;
     }
 
-    Transaction[] public transactions;
+    struct ExtendedTransaction {
+        address token;
+        Transaction _transaction;
+        WalletFee adminFee;
+    }
+
+
+    ExtendedTransaction[] public transactions;
     bytes public arbitratorExtraData; // Extra data to set up the arbitration.
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
-    address _jobRegistry;
-    uint128 _jobId;
     
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
@@ -100,109 +112,167 @@ contract MultipleArbitrableTransaction is IArbitrable {
     constructor(
         Arbitrator _arbitrator,
         bytes memory _arbitratorExtraData,
-        uint _feeTimeout,
-        uint _jobId,
-        
-
+        uint _feeTimeout
     ) public {
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
     }
 
-    /** @dev Create a transaction.
-     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _receiver The recipient of the transaction.
-     *  @param _metaEvidence Link to the meta-evidence.
-     *  @return transactionID The index of the transaction.
-     */
-    function createTransaction(
-        uint _timeoutPayment,
-        address _receiver,
-        string memory _metaEvidence
-    ) public payable returns (uint transactionID) {
-        transactions.push(
-            Transaction({
-                sender: msg.sender,
-                receiver: _receiver,
-                amount: msg.value,
-                timeoutPayment: _timeoutPayment,
-                disputeId: 0,
-                senderFee: 0,
-                receiverFee: 0,
-                lastInteraction: block.timestamp,
-                status: Status.NoDispute
-            })
-        );
-        emit MetaEvidence(transactions.length - 1, _metaEvidence);
-        emit TransactionCreated(
-            transactions.length - 1,
-            msg.sender,
-            _receiver,
-            msg.value
-        );
 
-        return transactions.length - 1;
-    }
-
-    /** @dev Create a transaction. UNTRUSTED.
-     *  @param _amount The amount of tokens in this transaction.
-     *  @param _token The ERC20 token contract.
-     *  @param _timeoutPayment Time after which a party automatically loses a dispute.
-     *  @param _receiver The recipient of the transaction.
-     *  @param _metaEvidence Link to the meta-evidence.
-     *  @return The index of the transaction.
-     */
-    function createTokenTransaction(
-        uint _amount,
-        ERC20 _token,
-        uint _timeoutPayment,
-        address _receiver,
-        string _metaEvidence
-    ) public returns (uint transactionIndex) {
-        // Transfers token from sender wallet to contract.
-        require(_token.transferFrom(msg.sender, address(this), _amount), "Sender does not have enough approved funds.");
-
-        transactions.push(Transaction({
-            sender: msg.sender,
+    function initTransaction(
+        address payable _sender,
+        address payable _receiver
+    ) private view returns (Transaction memory) {
+        return Transaction({
+            sender: _sender,
             receiver: _receiver,
-            amount: _amount,
-            token: _token,
-            timeoutPayment: _timeoutPayment,
+            amount: 0,
+            timeoutPayment: 0,
             disputeId: 0,
             senderFee: 0,
             receiverFee: 0,
-            lastInteraction: now,
+            lastInteraction: block.timestamp,
             status: Status.NoDispute
-        }));
+        });
+    }
+
+    /** @dev Create a ETH-based transaction.
+     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
+     *  @param _sender The recipient of the transaction.
+     *  @param _receiver The recipient of the transaction.
+     *  @param _metaEvidence Link to the meta-evidence.
+     *  @param _adminWallet Admin fee wallet.
+     *  @param _adminFeeAmount Admin fee amount.
+     *  @return transactionID The index of the transaction.
+     **/
+    function createETHTransaction(
+        uint _timeoutPayment,
+        address payable _sender,
+        address payable _receiver,
+        string memory _metaEvidence,
+        uint256 _amount,
+        address payable _adminWallet,
+        uint _adminFeeAmount
+    ) public payable returns (uint transactionID) {
+        require(
+            _amount + _adminFeeAmount == msg.value,
+            "Fees or amounts don't match with payed amount."
+        );
+        //address(this).transfer(msg.value); Need to look up
+
+        return createTransaction(
+            _timeoutPayment,
+            _sender,
+            _receiver,
+            _metaEvidence,
+            _amount,
+            address(0),
+            _adminWallet,
+            _adminFeeAmount
+        );
+    }
+
+   /** @dev Create a token-based transaction.
+     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
+     *  @param _sender The recipient of the transaction.
+     *  @param _receiver The recipient of the transaction.
+     *  @param _metaEvidence Link to the meta-evidence.
+     *  @param _tokenAddress Address of token used for transaction.
+     *  @param _adminWallet Admin fee wallet.
+     *  @param _adminFeeAmount Admin fee amount.
+     *  @return transactionID The index of the transaction.
+     **/
+    function createTokenTransaction(
+        uint _timeoutPayment,
+        address payable _sender,
+        address payable _receiver,
+        string memory _metaEvidence,
+        uint256 _amount,
+        address _tokenAddress,
+        address payable _adminWallet,
+        uint _adminFeeAmount
+    ) public payable returns (uint transactionID) {
+        IERC20 token = IERC20(_tokenAddress);
+        // Transfers token from sender wallet to contract. Permit before transfer
+        require(
+            token.transferFrom(msg.sender, address(this), _amount),
+            "Sender does not have enough approved funds."
+        );
+        require(
+            _adminFeeAmount + _adminFeeAmount == msg.value,
+            "Fees don't match with payed amount"
+        );
+
+        return createTransaction(
+            _timeoutPayment,
+            _sender,
+            _receiver,
+            _metaEvidence,
+            _amount,
+            _tokenAddress,
+            _adminWallet,
+            _adminFeeAmount
+        );
+    }
+
+    function createTransaction(
+        uint _timeoutPayment,
+        address payable _sender,
+        address payable _receiver,
+        string memory _metaEvidence,
+        uint256 _amount,
+        address _token,
+        address payable _adminWallet,
+        uint _adminFeeAmount
+    ) private returns (uint transactionID) {
+        WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
+        Transaction memory _rawTransaction = initTransaction(_sender, _receiver);
+
+        _rawTransaction.amount = _amount;
+        _rawTransaction.timeoutPayment = _timeoutPayment;
+
+        ExtendedTransaction memory _transaction = ExtendedTransaction({
+            token: _token,
+            _transaction: _rawTransaction,
+            adminFee: _adminFee
+        });
+
+        transactions.push(_transaction);
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
-        emit TransactionCreated(transactions.length - 1, msg.sender, _receiver, _token, _amount);
 
         return transactions.length - 1;
     }
+
 
     /** @dev Pay receiver. To be called if the good or service is provided.
      *  @param _transactionID The index of the transaction.
      *  @param _amount Amount to pay in wei.
      */
     function pay(uint _transactionID, uint _amount) public {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         require(
-            transaction.sender == msg.sender,
+            transaction._transaction.sender == msg.sender,
             "The caller must be the sender."
         );
         require(
-            transaction.status == Status.NoDispute,
+            transaction._transaction.status == Status.NoDispute,
             "The transaction shouldn't be disputed."
         );
         require(
-            _amount <= transaction.amount,
+            _amount <= transaction._transaction.amount,
             "The amount paid has to be less than or equal to the transaction."
         );
 
-        transaction.receiver.transfer(_amount);
-        transaction.amount -= _amount;
-        emit Payment(_transactionID, _amount, msg.sender);
+        _handleTransactionTransfer(
+            _transactionID,
+            transaction._transaction.receiver,
+            _amount,
+            _amount,
+            transaction.token != address(0),
+            "pay",
+            true
+        );
     }
 
     /** @dev Reimburse sender. To be called if the good or service can't be fully provided.
@@ -212,15 +282,15 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function reimburse(uint _transactionID, uint _amountReimbursed) public {
         Transaction storage transaction = transactions[_transactionID];
         require(
-            transaction.receiver == msg.sender,
+            transaction._transaction.receiver == msg.sender,
             "The caller must be the receiver."
         );
         require(
-            transaction.status == Status.NoDispute,
+            transaction._transaction.status == Status.NoDispute,
             "The transaction shouldn't be disputed."
         );
         require(
-            _amountReimbursed <= transaction.amount,
+            _amountReimbursed <= transaction._transactionamount,
             "The amount reimbursed has to be less or equal than the transaction."
         );
 
@@ -239,7 +309,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
             "The timeout has not passed yet."
         );
         require(
-            transaction.status == Status.NoDispute,
+            transaction._transaction.status == Status.NoDispute,
             "The transaction shouldn't be disputed."
         );
 
@@ -247,6 +317,17 @@ contract MultipleArbitrableTransaction is IArbitrable {
         transaction.amount = 0;
 
         transaction.status = Status.Resolved;
+
+        _handleTransactionTransfer(
+            _transactionID,
+            transaction._transaction.receiver,
+            transaction._transaction.amount,
+            0,
+            transaction.token != address(0),
+            "pay",
+            false
+        );
+        transaction._transaction.status = Status.Resolved;
     }
 
     /** @dev Reimburse sender if receiver fails to pay the fee.
@@ -255,11 +336,11 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function timeOutBySender(uint _transactionID) public {
         Transaction storage transaction = transactions[_transactionID];
         require(
-            transaction.status == Status.WaitingReceiver,
+            transaction._transaction.status == Status.WaitingReceiver,
             "The transaction is not waiting on the receiver."
         );
         require(
-            now - transaction.lastInteraction >= feeTimeout,
+            now - transaction._transaction.lastInteraction >= feeTimeout,
             "Timeout time has not passed yet."
         );
 
@@ -276,11 +357,11 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function timeOutByReceiver(uint _transactionID) public {
         Transaction storage transaction = transactions[_transactionID];
         require(
-            transaction.status == Status.WaitingSender,
+            transaction._transaction.status == Status.WaitingSender,
             "The transaction is not waiting on the sender."
         );
         require(
-            now - transaction.lastInteraction >= feeTimeout,
+            now - transaction._transaction.lastInteraction >= feeTimeout,
             "Timeout time has not passed yet."
         );
 
@@ -301,26 +382,26 @@ contract MultipleArbitrableTransaction is IArbitrable {
         uint arbitrationCost = arbitrator.arbitrationCost(arbitratorExtraData);
 
         require(
-            transaction.status < Status.DisputeCreated,
+            transaction._transaction.status < Status.DisputeCreated,
             "Dispute has already been created or because the transaction has been executed."
         );
         require(
-            msg.sender == transaction.sender,
+            msg.sender == transaction._transaction.sender,
             "The caller must be the sender."
         );
 
-        transaction.senderFee += msg.value;
+        transaction._transaction.senderFee += msg.value;
         // Require that the total pay at least the arbitration cost.
         require(
-            transaction.senderFee >= arbitrationCost,
+            transaction._transaction.senderFee >= arbitrationCost,
             "The sender fee must cover arbitration costs."
         );
 
         transaction.lastInteraction = now;
 
         // The receiver still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
-        if (transaction.receiverFee < arbitrationCost) {
-            transaction.status = Status.WaitingReceiver;
+        if (transaction._transaction.receiverFee < arbitrationCost) {
+            transaction._transaction.status = Status.WaitingReceiver;
             emit HasToPayFee(_transactionID, Party.Receiver);
         } else {
             // The receiver has also paid the fee. We create the dispute.
@@ -337,25 +418,25 @@ contract MultipleArbitrableTransaction is IArbitrable {
         uint arbitrationCost = arbitrator.arbitrationCost(arbitratorExtraData);
 
         require(
-            transaction.status < Status.DisputeCreated,
+            transaction._transaction.status < Status.DisputeCreated,
             "Dispute has already been created or because the transaction has been executed."
         );
         require(
-            msg.sender == transaction.receiver,
+            msg.sender == transaction._transaction.receiver,
             "The caller must be the receiver."
         );
 
-        transaction.receiverFee += msg.value;
+        transaction._transaction.receiverFee += msg.value;
         // Require that the total paid to be at least the arbitration cost.
         require(
-            transaction.receiverFee >= arbitrationCost,
+            transaction._transaction.receiverFee >= arbitrationCost,
             "The receiver fee must cover arbitration costs."
         );
 
         transaction.lastInteraction = now;
         // The sender still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
-        if (transaction.senderFee < arbitrationCost) {
-            transaction.status = Status.WaitingSender;
+        if (transaction._transaction.senderFee < arbitrationCost) {
+            transaction._transaction.status = Status.WaitingSender;
             emit HasToPayFee(_transactionID, Party.Sender);
         } else {
             // The sender has also paid the fee. We create the dispute.
@@ -369,30 +450,30 @@ contract MultipleArbitrableTransaction is IArbitrable {
      */
     function raiseDispute(uint _transactionID, uint _arbitrationCost) internal {
         Transaction storage transaction = transactions[_transactionID];
-        transaction.status = Status.DisputeCreated;
-        transaction.disputeId = arbitrator.createDispute.value(
+        transaction._transaction.status = Status.DisputeCreated;
+        transaction._transaction.disputeId = arbitrator.createDispute.value(
             _arbitrationCost
         )(AMOUNT_OF_CHOICES, arbitratorExtraData);
         disputeIDtoTransactionID[transaction.disputeId] = _transactionID;
         emit Dispute(
             arbitrator,
-            transaction.disputeId,
+            transaction._transaction.disputeId,
             _transactionID,
             _transactionID
         );
 
         // Refund sender if it overpaid.
-        if (transaction.senderFee > _arbitrationCost) {
-            uint extraFeeSender = transaction.senderFee - _arbitrationCost;
+        if (transaction._transaction.senderFee > _arbitrationCost) {
+            uint extraFeeSender = transaction._transaction.senderFee - _arbitrationCost;
             transaction.senderFee = _arbitrationCost;
             transaction.sender.send(extraFeeSender);
         }
 
         // Refund receiver if it overpaid.
-        if (transaction.receiverFee > _arbitrationCost) {
-            uint extraFeeReceiver = transaction.receiverFee - _arbitrationCost;
-            transaction.receiverFee = _arbitrationCost;
-            transaction.receiver.send(extraFeeReceiver);
+        if (transaction._transaction.receiverFee > _arbitrationCost) {
+            uint extraFeeReceiver = transaction._transaction.receiverFee - _arbitrationCost;
+            transaction._transaction.receiverFee = _arbitrationCost;
+            transaction._transaction.receiver.send(extraFeeReceiver);
         }
     }
 
@@ -405,12 +486,12 @@ contract MultipleArbitrableTransaction is IArbitrable {
     {
         Transaction storage transaction = transactions[_transactionID];
         require(
-            msg.sender == transaction.sender ||
-                msg.sender == transaction.receiver,
+            msg.sender == transaction._transaction.sender ||
+                msg.sender == transaction._transaction.receiver,
             "The caller must be the sender or the receiver."
         );
         require(
-            transaction.status < Status.Resolved,
+            transaction._transaction.status < Status.Resolved,
             "Must not send evidence if the dispute is resolved."
         );
 
@@ -426,7 +507,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
         Transaction storage transaction = transactions[_transactionID];
 
         arbitrator.appeal.value(msg.value)(
-            transaction.disputeId,
+            transaction._transaction.disputeId,
             arbitratorExtraData
         );
     }
@@ -444,7 +525,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
             "The caller must be the arbitrator."
         );
         require(
-            transaction.status == Status.DisputeCreated,
+            transaction._transaction.status == Status.DisputeCreated,
             "The dispute has already been resolved."
         );
 
@@ -464,23 +545,72 @@ contract MultipleArbitrableTransaction is IArbitrable {
         // Give the arbitration fee back.
         // Note that we use send to prevent a party from blocking the execution.
         if (_ruling == SENDER_WINS) {
-            transaction.sender.send(transaction.senderFee + transaction.amount);
+            transaction._transaction.sender.send(transaction._transaction.senderFee + transaction._transaction.amount);
         } else if (_ruling == RECEIVER_WINS) {
-            transaction.receiver.send(
-                transaction.receiverFee + transaction.amount
+            transaction._transaction._transaction._transaction.receiver.send(
+                transaction._transaction.receiverFee + transaction._transaction.amount
             );
         } else {
-            uint split_amount = (transaction.senderFee + transaction.amount) /
+            uint split_amount = (transaction._transaction.senderFee + transaction._transaction.amount) /
                 2;
-            transaction.sender.send(split_amount);
-            transaction.receiver.send(split_amount);
+            transaction._transaction.sender.send(split_amount);
+            transaction._transaction.receiver.send(split_amount);
         }
 
-        transaction.amount = 0;
-        transaction.senderFee = 0;
-        transaction.receiverFee = 0;
-        transaction.status = Status.Resolved;
+        transaction._transaction.amount = 0;
+        transaction._transaction.senderFee = 0;
+        transaction._transaction.receiverFee = 0;
+        transaction._transaction.status = Status.Resolved;
     }
+
+    // **************************** //
+    // *     Help functions       * //
+    // **************************** //
+
+
+
+    function _handleTransactionTransfer(
+        uint _transactionID,
+        address payable destination,
+        uint amount,
+        uint finalAmount,
+        bool isToken,
+        string memory feeMode,
+        bool emitPayment
+
+    ) private {
+        ExtendedTransaction memory transaction = transactions[_transactionID];
+        if (isToken) {
+            require(
+                IERC20(transaction._transaction.token).transfer(destination, amount),
+                "The `transfer` function must not fail."
+            );
+        } else {
+            destination.transfer(amount);
+        }
+        transaction._transaction.amount = finalAmount;
+
+        transaction._transaction.sender.transfer(transaction._transaction.adminFee.fee);
+        transaction._transaction.sender.transfer(transaction._transaction.burnFee.fee);
+
+        if (emitPayment) {
+            emit Payment(_transactionID, amount, msg.sender);
+        }
+    }
+
+
+    function _performTransactionFee(ExtendedTransaction memory transaction, string memory mode) private {
+        if (compareStrings(mode, "pay")) {
+            transaction._transaction.adminFee.wallet.transfer(transaction._transaction.adminFee.fee);
+        } else {
+            transaction._transaction.sender.transfer(transaction._transaction.adminFee.fee);
+        }
+    }
+
+    function compareStrings(string memory a, string memory b) private pure returns (bool) {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    }
+
 
     // **************************** //
     // *     Constant getters     * //
