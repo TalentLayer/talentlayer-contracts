@@ -4,8 +4,9 @@ pragma solidity ^0.8.9;
 import "./Arbitrator.sol";
 import "./IArbitrable.sol";
 import "../interfaces/IJobRegistry.sol";
-
+import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "hardhat/console.sol";
 
 contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
@@ -34,8 +35,6 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     }
 
     struct Transaction {
-        uint256 jobId; 
-        uint256 proposalId; 
         address payable sender;
         address payable receiver;
         uint amount;
@@ -51,13 +50,17 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         address token;
         Transaction _transaction;
         WalletFee adminFee;
+        uint256 jobId;
+        uint256 proposalId;
     }
 
     ExtendedTransaction[] public transactions;
     bytes public arbitratorExtraData; // Extra data to set up the arbitration.
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
-    address jobRegistryAddress;
+    
+    IJobRegistry private jobRegistry;
+    ITalentLayerID private tlId;
 
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
@@ -110,11 +113,13 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
      */
     constructor(
         address _jobRegistryAddress,
+        address _talentLayerIdAddress,
         Arbitrator _arbitrator, 
         bytes memory _arbitratorExtraData,
         uint _feeTimeout
     ) {
-        setJobRegistryAddress(_jobRegistryAddress);
+        setJobRegistry(_jobRegistryAddress);
+        tlId = ITalentLayerID(_talentLayerIdAddress);
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
@@ -123,35 +128,9 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     /** @dev Allows changing the contract address to JobRegistry.sol
      *  @param _jobRegistryAddress The new contract address.
      */
-    function setJobRegistryAddress(address _jobRegistryAddress) public {
-        jobRegistryAddress = _jobRegistryAddress;
+    function setJobRegistry(address _jobRegistryAddress) public {
+        jobRegistry = IJobRegistry(_jobRegistryAddress);
     }
-    /*
-
-    function getAmount(uint256 _jobId, uint256 _proposalId) private view returns (uint256){
-        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId).rateAmount;
-    }
-
-    function getToken(uint256 _jobId, uint256 _proposalId) private view returns (address){
-        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId).rateToken;
-    }
-
-    function getReceiver(uint256 _jobId, uint256 _proposalId) private view returns (address){
-        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId).employeeId;
-    }
-
-    function getSender(uint256 _jobId) private view returns (address){
-        return IJobRegistry(jobRegistryAddress).getJob(_jobId).employerId;
-    }
-    */
-    function getProposal(uint256 _jobId, uint256 _proposalId) private view returns (uint256){
-        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
-    }
-
-    function getJob(uint256 _jobId, uint256 _proposalId) private view returns (address){
-        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
-    }
-
 
     /** @dev Create a ETH-based transaction.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
@@ -170,7 +149,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
-        Proposal storage proposal = getProposal(_jobId,_proposalId);
+        IJobRegistry.Proposal memory proposal = jobRegistry.getProposal(_jobId, _proposalId);
         require(
             proposal.rateAmount + _adminFeeAmount == msg.value,
             "Fees or amounts don't match with payed amount."
@@ -204,7 +183,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
-        Proposal storage proposal = getProposal(_jobId,_proposalId);
+        IJobRegistry.Proposal memory proposal =  jobRegistry.getProposal(_jobId, _proposalId);
         IERC20 token = IERC20(proposal.rateToken);
         // Transfers token from sender wallet to contract. Permit before transfer
         require(
@@ -234,12 +213,14 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId, 
-        Proposal proposal
+        IJobRegistry.Proposal memory proposal
     ) private returns (uint transactionID) {
-        Job storage job = getJob(_jobId);
+        IJobRegistry.Job memory job = jobRegistry.getJob(_jobId);
 
         WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = _initTransaction(job.employerId, job.employeeId);
+        address payable _sender = payable(tlId.ownerOf(job.employerId));
+        address payable _receiver = payable(tlId.ownerOf(proposal.employeeId));
+        Transaction memory _rawTransaction = _initTransaction(_sender, _receiver);
 
         _rawTransaction.amount = proposal.rateAmount; 
         _rawTransaction.timeoutPayment = _timeoutPayment;
@@ -254,8 +235,10 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
 
         transactions.push(_transaction);
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
+        jobRegistry.afterDeposit(_jobId, _proposalId, transactions.length - 1);
 
-        IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactions.length - 1);
+        console.log("afterFullPayment %s", transactions.length - 1);
+
 
         return transactions.length - 1;
     }
@@ -291,7 +274,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         );
 
         if(transaction._transaction.amount == 0){
-            IJobRegistry(jobRegistryAddress).afterFullPayment(transaction._transaction.jobId);
+            jobRegistry.afterFullPayment(transaction.jobId);
         }
     }
 
@@ -588,14 +571,10 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
 
     function _initTransaction(
-        uint256 _jobId,
-        uint256 _proposalId,
         address payable _sender,
         address payable _receiver
     ) private view returns (Transaction memory) {
         return Transaction({
-            jobId: _jobId,
-            proposalId: _proposalId,
             sender: _sender,
             receiver: _receiver,
             amount: 0,

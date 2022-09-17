@@ -58,6 +58,7 @@ describe("TalentLayer", function () {
     TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("TalentLayerMultipleArbitrableTransaction");
     talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
       jobRegistry.address,
+      talentLayerID.address,
       talentLayerArbitrator.address,
       [],
       3600*24*30
@@ -340,10 +341,7 @@ describe("TalentLayer", function () {
 
     await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
       3600*24*7,
-      alice.address,
-      bob.address,
       '_metaEvidence',
-      rateAmount,
       carol.address,
       adminFeeAmount,
       12,
