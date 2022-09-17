@@ -123,8 +123,12 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     /** @dev Allows changing the contract address to JobRegistry.sol
      *  @param _jobRegistryAddress The new contract address.
      */
-    function setJobRegistryAddress(address _jobRegistryAddress) public {
+    function setJobRegistryAddress(address _jobRegistryAddress) internal {
         jobRegistryAddress = _jobRegistryAddress;
+    }
+
+    function getProposal(uint256 _jobId, uint256 _proposalId) private view returns (IJobRegistry.Proposal memory){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
     }
 
     /** @dev Create a ETH-based transaction.
@@ -143,23 +147,30 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         string memory _metaEvidence,
         uint256 _amount,
         address payable _adminWallet,
-        uint _adminFeeAmount,
+        uint256 _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
+        IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
+
         require(
             _amount + _adminFeeAmount == msg.value,
             "Fees or amounts don't match with payed amount."
         );
+
+        require(proposal.rateAmount == _amount, "proposal.rateAmount is not the same as _amount passed as argument");
+
         //address(this).transfer(msg.value); Need to look up
 
+        require(proposal.rateToken == address(0), "Token not in ETH");
+        
         return createTransaction(
             _timeoutPayment,
             _sender,
             _receiver,
             _metaEvidence,
-            _amount,
-            address(0),
+            proposal.rateAmount,
+            proposal.rateToken,
             _adminWallet,
             _adminFeeAmount,
             _jobId,
