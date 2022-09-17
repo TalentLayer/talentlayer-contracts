@@ -128,6 +128,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function setJobRegistryAddress(address _jobRegistryAddress) public {
         jobRegistryAddress = _jobRegistryAddress;
     }
+    /*
 
     function getAmount(uint256 _jobId, uint256 _proposalId) private view returns (uint256){
         return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId).rateAmount;
@@ -144,6 +145,15 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function getSender(uint256 _jobId) private view returns (address){
         return IJobRegistry(jobRegistryAddress).getJob(_jobId).employerId;
     }
+    */
+    function getProposal(uint256 _jobId, uint256 _proposalId) private view returns (uint256){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
+    }
+
+    function getJob(uint256 _jobId, uint256 _proposalId) private view returns (address){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
+    }
+
 
     /** @dev Create a ETH-based transaction.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
@@ -162,11 +172,11 @@ contract MultipleArbitrableTransaction is IArbitrable {
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
+        Proposal storage proposal = getProposal(_jobId,_proposalId);
         require(
-            getAmount(_jobId, _proposalId) + _adminFeeAmount == msg.value,
+            proposal.rateAmount + _adminFeeAmount == msg.value,
             "Fees or amounts don't match with payed amount."
         );
-        address(this).transfer(msg.value);
 
         return createTransaction(
             _timeoutPayment,
@@ -174,7 +184,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _adminWallet,
             _adminFeeAmount,
             _jobId,
-            _proposalId
+            _proposalId,
+            proposal
         );
     }
 
@@ -195,10 +206,11 @@ contract MultipleArbitrableTransaction is IArbitrable {
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
-        IERC20 token = IERC20(getToken(_jobId, _proposalId));
+        Proposal storage proposal = getProposal(_jobId,_proposalId);
+        IERC20 token = IERC20(proposal.rateToken);
         // Transfers token from sender wallet to contract. Permit before transfer
         require(
-            token.transferFrom(msg.sender, address(this), getAmount(_jobId,_proposalId)),
+            token.transferFrom(msg.sender, address(this), proposal.rateAmount),
             "Sender does not have enough approved funds."
         );
         require(
@@ -212,7 +224,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _adminWallet,
             _adminFeeAmount,
             _jobId,
-            _proposalId
+            _proposalId,
+            proposal
         );
     }
 
@@ -221,17 +234,20 @@ contract MultipleArbitrableTransaction is IArbitrable {
         string memory _metaEvidence,
         address payable _adminWallet,
         uint _adminFeeAmount,
-        uint256 _jobId, 
-        uint256 _proposalId
+        uint256 _jobId,
+        uint256 _proposalId, 
+        Proposal proposal
     ) private returns (uint transactionID) {
-        WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = _initTransaction(getSender(_jobId), getReceiver(_jobId,_proposalId));
+        Job storage job = getJob(_jobId);
 
-        _rawTransaction.amount = getAmount(_jobId, _proposalId); 
+        WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
+        Transaction memory _rawTransaction = _initTransaction(job.employerId, job.employeeId);
+
+        _rawTransaction.amount = proposal.rateAmount; 
         _rawTransaction.timeoutPayment = _timeoutPayment;
 
         ExtendedTransaction memory _transaction = ExtendedTransaction({
-            token: getToken(_jobId,_proposalId),
+            token: proposal.rateToken,
             _transaction: _rawTransaction,
             adminFee: _adminFee,
             jobId: _jobId,
