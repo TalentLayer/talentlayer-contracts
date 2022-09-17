@@ -53,7 +53,6 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         WalletFee adminFee;
     }
 
-
     ExtendedTransaction[] public transactions;
     bytes public arbitratorExtraData; // Extra data to set up the arbitration.
     Arbitrator public arbitrator; // Address of the arbitrator contract.
@@ -120,7 +119,6 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
     }
-
 
     /** @dev Allows changing the contract address to JobRegistry.sol
      *  @param _jobRegistryAddress The new contract address.
@@ -272,13 +270,15 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             _transactionID,
             transaction._transaction.receiver,
             _amount,
-            _amount,
+            transaction._transaction.amount - _amount,
             transaction.token != address(0),
             "pay",
             true
         );
 
-        IJobRegistry(jobRegistryAddress).afterFullPayment(transaction._transaction.jobId);
+        if(transaction._transaction.amount == 0){
+            IJobRegistry(jobRegistryAddress).afterFullPayment(transaction._transaction.jobId);
+        }
     }
 
     /** @dev Reimburse sender. To be called if the good or service can't be fully provided.
@@ -304,7 +304,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             _transactionID,
             transaction._transaction.sender,
             _amountReimbursed,
-            _amountReimbursed,
+            transaction._transaction.amount - _amountReimbursed,
             transaction.token != address(0),
             "reimburse",
             true
@@ -604,7 +604,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         bool emitPayment
 
     ) private {
-        ExtendedTransaction memory transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         if (isToken) {
             require(
                 IERC20(transaction.token).transfer(destination, amount),
@@ -615,7 +615,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         }
         transaction._transaction.amount = finalAmount;
 
-        performTransactionFee(transaction, feeMode);
+        // TODO: we should be done only one time 
+        // performTransactionFee(transaction, feeMode);
 
         if (emitPayment) {
             emit Payment(_transactionID, amount, msg.sender);
