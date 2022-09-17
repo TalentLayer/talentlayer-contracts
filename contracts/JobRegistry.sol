@@ -44,7 +44,6 @@ contract JobRegistry is AccessControl {
         uint256 employeeId;
         uint256 initiatorId;
         string jobDataUri;
-        mapping(uint256 => Proposal) proposals;
         uint256 countProposals;
         uint256 transactionId;
     }
@@ -172,6 +171,9 @@ contract JobRegistry is AccessControl {
     /// @notice jobs mappings index by ID
     mapping(uint256 => Job) public jobs;
 
+    /// @notice proposals mappings index by job ID and employee TID
+    mapping(uint256 => mapping (uint256 => Proposal)) public proposals;
+
     // @notice
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
@@ -188,18 +190,13 @@ contract JobRegistry is AccessControl {
      * @notice Return the whole job data information
      * @param _jobId Job identifier
      */
-    // TODO: find a way to upgrade this function
-    // function getJob(uint256 _jobId) external view returns (Job memory) {
-    //     require(_jobId < nextJobId, "This job does'nt exist");
-    //     return jobs[_jobId];
-    // }
+    function getJob(uint256 _jobId) external view returns (Job memory) {
+        require(_jobId < nextJobId, "This job does'nt exist");
+        return jobs[_jobId];
+    }
 
-    function getProposal(uint256 _jobId, uint256 _proposalId)
-        external
-        view
-        returns (Proposal memory)
-    {
-        return jobs[_jobId].proposals[_proposalId];
+    function getProposal(uint256 _jobId, uint256 _proposalId) external view returns (Proposal memory) {
+        return proposals[_jobId][_proposalId];
     }
 
     // =========================== User functions ==============================
@@ -277,7 +274,7 @@ contract JobRegistry is AccessControl {
         Job storage job = jobs[_jobId];
         require(job.status == Status.Opened, "Job is not opened");
         require(
-            job.proposals[senderId].employeeId != senderId,
+            proposals[_jobId][senderId].employeeId != senderId,
             "You already created a proposal for this job"
         );
         require(job.countProposals < 40, "Max proposals count reached");
@@ -291,7 +288,7 @@ contract JobRegistry is AccessControl {
         );
 
         job.countProposals++;
-        job.proposals[senderId] = Proposal({
+        proposals[_jobId][senderId] = Proposal({
             status: ProposalStatus.Pending,
             employeeId: senderId,
             rateToken: _rateToken,
@@ -326,7 +323,7 @@ contract JobRegistry is AccessControl {
         require(senderId > 0, "You sould have a TalentLayerId");
 
         Job storage job = jobs[_jobId];
-        Proposal storage proposal = job.proposals[senderId];
+        Proposal storage proposal = proposals[_jobId][senderId];
         require(job.status == Status.Opened, "Job is not opened");
         require(
             proposal.employeeId == senderId,
@@ -364,7 +361,7 @@ contract JobRegistry is AccessControl {
         require(senderId > 0, "You sould have a TalentLayerId");
 
         Job storage job = jobs[_jobId];
-        Proposal storage proposal = job.proposals[_proposalId];
+        Proposal storage proposal = proposals[_jobId][_proposalId];
 
         require(
             proposal.status != ProposalStatus.Validated,
@@ -387,7 +384,7 @@ contract JobRegistry is AccessControl {
         require(senderId > 0, "You sould have a TalentLayerId");
 
         Job storage job = jobs[_jobId];
-        Proposal storage proposal = job.proposals[_proposalId];
+        Proposal storage proposal = proposals[_jobId][_proposalId];
 
         require(
             proposal.status != ProposalStatus.Validated,
@@ -436,7 +433,7 @@ contract JobRegistry is AccessControl {
      */
     function afterDeposit(uint256 _jobId, uint256 _proposalId, uint256 _transactionId) external onlyRole(ESCROW_ROLE) {
         Job storage job = jobs[_jobId];
-        Proposal storage proposal = job.proposals[_proposalId];
+        Proposal storage proposal = proposals[_jobId][_proposalId];
          
         job.status = Status.Confirmed;
         job.employeeId = proposal.employeeId;

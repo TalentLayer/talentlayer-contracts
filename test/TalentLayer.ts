@@ -129,7 +129,7 @@ describe("TalentLayer", function () {
     expect(jobData.status.toString()).to.be.equal("2");
   });
 
-  it.skip("Alice and Bob can write a review now and we can get review data", async function () {
+  it("Alice and Bob can write a review now and we can get review data", async function () {
     await talentLayerReview.connect(alice).addReview(1, "cidReview1", 2);
     await talentLayerReview.connect(bob).addReview(1, "cidReview2", 4);
 
