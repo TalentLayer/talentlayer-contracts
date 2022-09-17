@@ -33,8 +33,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
     }
 
     struct Transaction {
-        address sender;
-        address receiver;
+        address payable sender;
+        address payable receiver;
         uint amount;
         uint timeoutPayment; // Time in seconds after which the transaction can be automatically executed if not disputed.
         uint disputeId; // If dispute exists, the ID of the dispute.
@@ -80,11 +80,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _disputeID ID of the dispute in the Arbitrator contract.
      *  @param _ruling The ruling which was given.
      */
-    event Ruling(
-        Arbitrator indexed _arbitrator,
-        uint indexed _disputeID,
-        uint _ruling
-    );
+    // event Ruling(Arbitrator indexed _arbitrator, uint indexed _disputeID, uint _ruling);
 
     /** @dev Emitted when a transaction is created.
      *  @param _transactionID The index of the transaction.
@@ -113,7 +109,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
         Arbitrator _arbitrator,
         bytes memory _arbitratorExtraData,
         uint _feeTimeout
-    ) public {
+    ) {
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
@@ -271,6 +267,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _amount,
             transaction.token != address(0),
             "pay",
+          
             true
         );
     }
@@ -280,7 +277,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _amountReimbursed Amount to reimburse in wei.
      */
     function reimburse(uint _transactionID, uint _amountReimbursed) public {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         require(
             transaction._transaction.receiver == msg.sender,
             "The caller must be the receiver."
@@ -290,33 +287,34 @@ contract MultipleArbitrableTransaction is IArbitrable {
             "The transaction shouldn't be disputed."
         );
         require(
-            _amountReimbursed <= transaction._transactionamount,
+            _amountReimbursed <= transaction._transaction.amount,
             "The amount reimbursed has to be less or equal than the transaction."
         );
 
-        transaction.sender.transfer(_amountReimbursed);
-        transaction.amount -= _amountReimbursed;
-        emit Payment(_transactionID, _amountReimbursed, msg.sender);
+        _handleTransactionTransfer(
+            _transactionID,
+            transaction._transaction.sender,
+            _amountReimbursed,
+            _amountReimbursed,
+            transaction.token != address(0),
+            "reimburse",
+            true
+        );
     }
 
     /** @dev Transfer the transaction's amount to the receiver if the timeout has passed.
      *  @param _transactionID The index of the transaction.
      */
     function executeTransaction(uint _transactionID) public {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         require(
-            now - transaction.lastInteraction >= transaction.timeoutPayment,
+            block.timestamp - transaction._transaction.lastInteraction >= transaction._transaction.timeoutPayment,
             "The timeout has not passed yet."
         );
         require(
             transaction._transaction.status == Status.NoDispute,
             "The transaction shouldn't be disputed."
         );
-
-        transaction.receiver.transfer(transaction.amount);
-        transaction.amount = 0;
-
-        transaction.status = Status.Resolved;
 
         _handleTransactionTransfer(
             _transactionID,
@@ -334,20 +332,20 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _transactionID The index of the transaction.
      */
     function timeOutBySender(uint _transactionID) public {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         require(
             transaction._transaction.status == Status.WaitingReceiver,
             "The transaction is not waiting on the receiver."
         );
         require(
-            now - transaction._transaction.lastInteraction >= feeTimeout,
+            block.timestamp - transaction._transaction.lastInteraction >= feeTimeout,
             "Timeout time has not passed yet."
         );
 
-        if (transaction.receiverFee != 0) {
-            transaction.receiver.send(transaction.receiverFee);
-            transaction.receiverFee = 0;
-        }
+        /*if (transaction._transaction.receiverFee != 0) {
+            transaction._transaction.receiver.transfer(transaction._transaction.receiverFee);
+            transaction._transaction.receiverFee = 0;
+        }*/
         executeRuling(_transactionID, SENDER_WINS);
     }
 
@@ -355,20 +353,20 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _transactionID The index of the transaction.
      */
     function timeOutByReceiver(uint _transactionID) public {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         require(
             transaction._transaction.status == Status.WaitingSender,
             "The transaction is not waiting on the sender."
         );
         require(
-            now - transaction._transaction.lastInteraction >= feeTimeout,
+            block.timestamp - transaction._transaction.lastInteraction >= feeTimeout,
             "Timeout time has not passed yet."
         );
 
-        if (transaction.senderFee != 0) {
-            transaction.sender.send(transaction.senderFee);
+        /*if (transaction.senderFee != 0) {
+            transaction.sender.transfer(transaction.senderFee);
             transaction.senderFee = 0;
-        }
+        }*/
         executeRuling(_transactionID, RECEIVER_WINS);
     }
 
@@ -378,7 +376,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _transactionID The index of the transaction.
      */
     function payArbitrationFeeBySender(uint _transactionID) public payable {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         uint arbitrationCost = arbitrator.arbitrationCost(arbitratorExtraData);
 
         require(
@@ -397,7 +395,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
             "The sender fee must cover arbitration costs."
         );
 
-        transaction.lastInteraction = now;
+        transaction._transaction.lastInteraction = block.timestamp;
 
         // The receiver still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction._transaction.receiverFee < arbitrationCost) {
@@ -406,6 +404,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
         } else {
             // The receiver has also paid the fee. We create the dispute.
             raiseDispute(_transactionID, arbitrationCost);
+            //performTransactionFee(transaction, "reimburse");
         }
     }
 
@@ -414,7 +413,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _transactionID The index of the transaction.
      */
     function payArbitrationFeeByReceiver(uint _transactionID) public payable {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         uint arbitrationCost = arbitrator.arbitrationCost(arbitratorExtraData);
 
         require(
@@ -433,7 +432,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
             "The receiver fee must cover arbitration costs."
         );
 
-        transaction.lastInteraction = now;
+        transaction._transaction.lastInteraction = block.timestamp;
         // The sender still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction._transaction.senderFee < arbitrationCost) {
             transaction._transaction.status = Status.WaitingSender;
@@ -449,12 +448,10 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _arbitrationCost Amount to pay the arbitrator.
      */
     function raiseDispute(uint _transactionID, uint _arbitrationCost) internal {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         transaction._transaction.status = Status.DisputeCreated;
-        transaction._transaction.disputeId = arbitrator.createDispute.value(
-            _arbitrationCost
-        )(AMOUNT_OF_CHOICES, arbitratorExtraData);
-        disputeIDtoTransactionID[transaction.disputeId] = _transactionID;
+        transaction._transaction.disputeId = arbitrator.createDispute{value: _arbitrationCost}(AMOUNT_OF_CHOICES, arbitratorExtraData);
+        disputeIDtoTransactionID[transaction._transaction.disputeId] = _transactionID;
         emit Dispute(
             arbitrator,
             transaction._transaction.disputeId,
@@ -465,15 +462,15 @@ contract MultipleArbitrableTransaction is IArbitrable {
         // Refund sender if it overpaid.
         if (transaction._transaction.senderFee > _arbitrationCost) {
             uint extraFeeSender = transaction._transaction.senderFee - _arbitrationCost;
-            transaction.senderFee = _arbitrationCost;
-            transaction.sender.send(extraFeeSender);
+            transaction._transaction.senderFee = _arbitrationCost;
+            transaction._transaction.sender.transfer(extraFeeSender);
         }
 
         // Refund receiver if it overpaid.
         if (transaction._transaction.receiverFee > _arbitrationCost) {
             uint extraFeeReceiver = transaction._transaction.receiverFee - _arbitrationCost;
             transaction._transaction.receiverFee = _arbitrationCost;
-            transaction._transaction.receiver.send(extraFeeReceiver);
+            transaction._transaction.receiver.transfer(extraFeeReceiver);
         }
     }
 
@@ -484,7 +481,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
     function submitEvidence(uint _transactionID, string memory _evidence)
         public
     {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         require(
             msg.sender == transaction._transaction.sender ||
                 msg.sender == transaction._transaction.receiver,
@@ -504,12 +501,9 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _transactionID The index of the transaction.
      */
     function appeal(uint _transactionID) public payable {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
 
-        arbitrator.appeal.value(msg.value)(
-            transaction._transaction.disputeId,
-            arbitratorExtraData
-        );
+        arbitrator.appeal{value: msg.value}(transaction._transaction.disputeId, arbitratorExtraData);
     }
 
     /** @dev Give a ruling for a dispute. Must be called by the arbitrator.
@@ -519,7 +513,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
      */
     function rule(uint _disputeID, uint _ruling) public {
         uint transactionID = disputeIDtoTransactionID[_disputeID];
-        Transaction storage transaction = transactions[transactionID];
+        ExtendedTransaction storage transaction = transactions[transactionID];
         require(
             msg.sender == address(arbitrator),
             "The caller must be the arbitrator."
@@ -539,22 +533,25 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _ruling Ruling given by the arbitrator. 1 : Reimburse the receiver. 2 : Pay the sender.
      */
     function executeRuling(uint _transactionID, uint _ruling) internal {
-        Transaction storage transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         require(_ruling <= AMOUNT_OF_CHOICES, "Invalid ruling.");
 
         // Give the arbitration fee back.
         // Note that we use send to prevent a party from blocking the execution.
         if (_ruling == SENDER_WINS) {
-            transaction._transaction.sender.send(transaction._transaction.senderFee + transaction._transaction.amount);
+            transaction._transaction.sender.transfer(transaction._transaction.senderFee + transaction._transaction.amount);
+            performTransactionFee(transaction, "reimburse");
         } else if (_ruling == RECEIVER_WINS) {
-            transaction._transaction._transaction._transaction.receiver.send(
+            transaction._transaction.receiver.transfer(
                 transaction._transaction.receiverFee + transaction._transaction.amount
             );
+            performTransactionFee(transaction, "pay");
         } else {
             uint split_amount = (transaction._transaction.senderFee + transaction._transaction.amount) /
                 2;
-            transaction._transaction.sender.send(split_amount);
-            transaction._transaction.receiver.send(split_amount);
+            transaction._transaction.sender.transfer(split_amount);
+            transaction._transaction.receiver.transfer(split_amount);
+            performTransactionFee(transaction, "reimburse");
         }
 
         transaction._transaction.amount = 0;
@@ -582,7 +579,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
         ExtendedTransaction memory transaction = transactions[_transactionID];
         if (isToken) {
             require(
-                IERC20(transaction._transaction.token).transfer(destination, amount),
+                IERC20(transaction.token).transfer(destination, amount),
                 "The `transfer` function must not fail."
             );
         } else {
@@ -590,8 +587,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
         }
         transaction._transaction.amount = finalAmount;
 
-        transaction._transaction.sender.transfer(transaction._transaction.adminFee.fee);
-        transaction._transaction.sender.transfer(transaction._transaction.burnFee.fee);
+        performTransactionFee(transaction, feeMode);
 
         if (emitPayment) {
             emit Payment(_transactionID, amount, msg.sender);
@@ -599,11 +595,11 @@ contract MultipleArbitrableTransaction is IArbitrable {
     }
 
 
-    function _performTransactionFee(ExtendedTransaction memory transaction, string memory mode) private {
+    function performTransactionFee(ExtendedTransaction memory transaction, string memory mode) private {
         if (compareStrings(mode, "pay")) {
-            transaction._transaction.adminFee.wallet.transfer(transaction._transaction.adminFee.fee);
+            transaction.adminFee.wallet.transfer(transaction.adminFee.fee);
         } else {
-            transaction._transaction.sender.transfer(transaction._transaction.adminFee.fee);
+            transaction._transaction.sender.transfer(transaction.adminFee.fee);
         }
     }
 
@@ -619,11 +615,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
     /** @dev Getter to know the count of transactions.
      *  @return countTransactions The count of transactions.
      */
-    function getCountTransactions()
-        public
-        view
-        returns (uint256 countTransactions)
-    {
+    function getCountTransactions() public view returns (uint256 countTransactions){
         return transactions.length;
     }
 
@@ -633,16 +625,12 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _address The specified address.
      *  @return transactionIDs The transaction IDs.
      */
-    function getTransactionIDsByAddress(address _address)
-        public
-        view
-        returns (uint256[] memory transactionIDs)
-    {
+    function getTransactionIDsByAddress(address _address) public view returns (uint256[] memory transactionIDs) {
         uint256 count = 0;
         for (uint256 i = 0; i < transactions.length; i++) {
             if (
-                transactions[i].sender == _address ||
-                transactions[i].receiver == _address
+                transactions[i]._transaction.sender == _address ||
+                transactions[i]._transaction.receiver == _address
             ) count++;
         }
 
@@ -652,8 +640,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
 
         for (uint256 j = 0; j < transactions.length; j++) {
             if (
-                transactions[j].sender == _address ||
-                transactions[j].receiver == _address
+                transactions[j]._transaction.sender == _address ||
+                transactions[j]._transaction.receiver == _address
             ) transactionIDs[count++] = j;
         }
     }
