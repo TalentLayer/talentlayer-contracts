@@ -166,49 +166,41 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
-        IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
+        //broken
+        //IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
 
         IJobRegistry.Job memory job = getJob(_jobId);
 
-        console.log("----------------------------- console.log ----------------------------------");
-        console.log("job.employerId: %s", job.employerId);
-        console.log("proposal.employeeId: %s", proposal.employeeId);
-        console.log("_proposalId: %s", _proposalId);
-        console.log("proposal.rateToken: %s", proposal.rateToken);
-        console.log("proposal.rateAmount: %s", proposal.rateAmount);
+        address payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
+    
+        //proposal broken
+        //address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
+        address payable receiver = _receiver; //remove when proposal is fixed.
 
-        address sender = ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId);
+        require(sender != receiver, "Sender and receiver must be different");
+        require(msg.sender == sender, "Sender must be the owner of the job");
 
-        console.log("sender: %s", sender);
-
-        address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
-        
-        console.log("receiver: %s", receiver);
-        
-
-        console.log("----------------------------- End of console.log ----------------------------------");
-
-
-        require(msg.sender == sender, "sender must be the owner of the job");
+        require(sender == _sender, "Passed sender must be the same as the fetched sender");
+        require(receiver == _receiver, "Passed receiver must be the same as the fetched receiver");
 
         require(
             _amount + _adminFeeAmount == msg.value,
             "Fees or amounts don't match with payed amount."
         );
 
-        //require(proposal.rateAmount == _amount, "proposal.rateAmount is not the same as _amount passed as argument");
+        //address(this).transfer(msg.value); Not needed
 
-        //address(this).transfer(msg.value); Need to look up
-
-        require(proposal.rateToken == address(0), "Token not in ETH");
+        //uncomment when proposal is fixed
+        //require(proposal.rateToken == address(0), "Token must be ETH");
         
         return createTransaction(
             _timeoutPayment,
-            _sender,
-            _receiver,
+            sender,
+            receiver,
             _metaEvidence,
             _amount,
-            proposal.rateToken,
+            address(0), //remove when proposal is fixed
+            //proposal.rateToken,          uncomment when proposal is fixed
             _adminWallet,
             _adminFeeAmount,
             _jobId,
