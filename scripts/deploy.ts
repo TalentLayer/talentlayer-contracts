@@ -89,6 +89,43 @@ task('deploy')
       }
       console.log('Reviews contract address:', talentLayerReview.address)
 
+      // Deploy TalentLayerArbitrator
+      const TalentLayerArbitrator = await ethers.getContractFactory("TalentLayerArbitrator");
+      const talentLayerArbitratorArgs:[number] = [0]
+      const talentLayerArbitrator = await TalentLayerArbitrator.deploy(...talentLayerArbitratorArgs);
+      if (verify) {
+        await talentLayerArbitrator.deployTransaction.wait(5)
+        await run('verify:verify', {
+            address: talentLayerArbitrator.address,
+            constructorArguments: talentLayerArbitratorArgs,
+        })
+      }
+      console.log('TalentLayerArbitrator contract address:', talentLayerArbitrator.address)
+
+      // Deploy TalentLayerMultipleArbitrableTransaction
+      const TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("TalentLayerMultipleArbitrableTransaction");
+      const talentLayerMultipleArbitrableTransactionArgs:[string, string, any, number] = [
+        jobRegistry.address,
+        talentLayerArbitrator.address,
+        [],
+        3600*24*30
+      ]
+      const talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
+        ...talentLayerMultipleArbitrableTransactionArgs
+      );
+      if (verify) {
+        await talentLayerMultipleArbitrableTransaction.deployTransaction.wait(5)
+        await run('verify:verify', {
+            address: talentLayerMultipleArbitrableTransaction.address,
+            constructorArguments: talentLayerMultipleArbitrableTransactionArgs,
+        })
+      }
+      console.log('TalentLayerMultipleArbitrableTransaction contract address:', talentLayerMultipleArbitrableTransaction.address)
+
+      // Grant escrow role 
+      const escrowRole = await jobRegistry.ESCROW_ROLE()
+      await jobRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address)
+
       if(usePohmock && mockProofOfHumanity){
         // Register Alice, Bob, Carol, Dave
         // const mockProofOfHumanity = await ethers.getContractAt('MockProofOfHumanity', "0x78939ABA66D1F73B0D76E9289BA79bc79dC079Dc")
