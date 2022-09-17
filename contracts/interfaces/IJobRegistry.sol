@@ -3,10 +3,11 @@ pragma solidity ^0.8.9;
 
 interface IJobRegistry {
     enum Status {
-        Intialized, 
+        Filled,
         Confirmed,
         Finished,
-        Rejected
+        Rejected,
+        Opened
     }
     
     struct Job {
@@ -15,9 +16,19 @@ interface IJobRegistry {
         uint256 employeeId;
         uint256 initiatorId;
         string jobDataUri;
+        uint256 countProposals;
+        uint256 transactionId;
+    }
+
+    struct Proposal {
+        uint256 employeeId;
+        address rateToken;
+        uint256 rateAmount;
     }
 
     function getJob(uint256 _jobId) external view returns (Job memory);
+
+    function getProposal(uint256 _jobId, uint256 _proposal) external view returns (Proposal memory);
 
     function afterDeposit(uint256 _jobId, uint256 _proposalId, uint256 _transactionId) external;
 
