@@ -18,4 +18,8 @@ interface IJobRegistry {
     }
 
     function getJob(uint256 _jobId) external view returns (Job memory);
+
+    function afterDeposit(uint256 _jobId, uint256 _proposalId, uint256 _transactionId) external;
+
+    function afterFullPayment(uint256 _jobId) external;
 }

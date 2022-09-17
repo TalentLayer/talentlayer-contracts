@@ -182,6 +182,7 @@ contract JobRegistry is AccessControl {
      */
     constructor(address _talentLayerIdAddress) {
         tlId = ITalentLayerID(_talentLayerIdAddress);
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     // =========================== View functions ==============================
@@ -445,7 +446,7 @@ contract JobRegistry is AccessControl {
      * @notice Allow the escrow contract to upgrade the Job state after the full payment has been received by the employee
      * @param _jobId Job identifier
      */
-    function afterFullPayDone(uint256 _jobId) external onlyRole(ESCROW_ROLE) {
+    function afterFullPayment(uint256 _jobId) external onlyRole(ESCROW_ROLE) {
         Job storage job = jobs[_jobId];
         job.status = Status.Finished;
     }

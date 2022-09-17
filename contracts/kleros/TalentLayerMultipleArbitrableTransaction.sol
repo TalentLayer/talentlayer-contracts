@@ -3,10 +3,11 @@ pragma solidity ^0.8.9;
 
 import "./Arbitrator.sol";
 import "./IArbitrable.sol";
+import "../interfaces/IJobRegistry.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract MultipleArbitrableTransaction is IArbitrable {
+contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
     // *    Contract variables    * //
     // **************************** //
@@ -33,6 +34,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
     }
 
     struct Transaction {
+        uint256 jobId; 
+        uint256 proposalId; 
         address payable sender;
         address payable receiver;
         uint amount;
@@ -50,12 +53,12 @@ contract MultipleArbitrableTransaction is IArbitrable {
         WalletFee adminFee;
     }
 
-
     ExtendedTransaction[] public transactions;
     bytes public arbitratorExtraData; // Extra data to set up the arbitration.
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
-    
+    address jobRegistryAddress;
+
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
     // **************************** //
@@ -106,31 +109,22 @@ contract MultipleArbitrableTransaction is IArbitrable {
      *  @param _feeTimeout Arbitration fee timeout for the parties.
      */
     constructor(
-        Arbitrator _arbitrator,
+        address _jobRegistryAddress,
+        Arbitrator _arbitrator, 
         bytes memory _arbitratorExtraData,
         uint _feeTimeout
     ) {
+        setJobRegistryAddress(_jobRegistryAddress);
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
     }
 
-
-    function initTransaction(
-        address payable _sender,
-        address payable _receiver
-    ) private view returns (Transaction memory) {
-        return Transaction({
-            sender: _sender,
-            receiver: _receiver,
-            amount: 0,
-            timeoutPayment: 0,
-            disputeId: 0,
-            senderFee: 0,
-            receiverFee: 0,
-            lastInteraction: block.timestamp,
-            status: Status.NoDispute
-        });
+    /** @dev Allows changing the contract address to JobRegistry.sol
+     *  @param _jobRegistryAddress The new contract address.
+     */
+    function setJobRegistryAddress(address _jobRegistryAddress) public {
+        jobRegistryAddress = _jobRegistryAddress;
     }
 
     /** @dev Create a ETH-based transaction.
@@ -149,7 +143,9 @@ contract MultipleArbitrableTransaction is IArbitrable {
         string memory _metaEvidence,
         uint256 _amount,
         address payable _adminWallet,
-        uint _adminFeeAmount
+        uint _adminFeeAmount,
+        uint256 _jobId,
+        uint256 _proposalId
     ) public payable returns (uint transactionID) {
         require(
             _amount + _adminFeeAmount == msg.value,
@@ -165,7 +161,9 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _amount,
             address(0),
             _adminWallet,
-            _adminFeeAmount
+            _adminFeeAmount,
+            _jobId,
+            _proposalId
         );
     }
 
@@ -187,7 +185,9 @@ contract MultipleArbitrableTransaction is IArbitrable {
         uint256 _amount,
         address _tokenAddress,
         address payable _adminWallet,
-        uint _adminFeeAmount
+        uint _adminFeeAmount,
+        uint256 _jobId,
+        uint256 _proposalId
     ) public payable returns (uint transactionID) {
         IERC20 token = IERC20(_tokenAddress);
         // Transfers token from sender wallet to contract. Permit before transfer
@@ -208,7 +208,9 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _amount,
             _tokenAddress,
             _adminWallet,
-            _adminFeeAmount
+            _adminFeeAmount,
+            _jobId,
+            _proposalId
         );
     }
 
@@ -218,24 +220,28 @@ contract MultipleArbitrableTransaction is IArbitrable {
         address payable _receiver,
         string memory _metaEvidence,
         uint256 _amount,
-        address _token,
+        address _tokenAddress,
         address payable _adminWallet,
-        uint _adminFeeAmount
+        uint _adminFeeAmount,
+        uint256 _jobId, 
+        uint256 _proposalId
     ) private returns (uint transactionID) {
         WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = initTransaction(_sender, _receiver);
+        Transaction memory _rawTransaction = _initTransaction(_jobId,_proposalId,_sender, _receiver);
 
         _rawTransaction.amount = _amount;
         _rawTransaction.timeoutPayment = _timeoutPayment;
 
         ExtendedTransaction memory _transaction = ExtendedTransaction({
-            token: _token,
+            token: _tokenAddress,
             _transaction: _rawTransaction,
             adminFee: _adminFee
         });
 
         transactions.push(_transaction);
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
+
+        IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactions.length - 1);
 
         return transactions.length - 1;
     }
@@ -264,12 +270,15 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _transactionID,
             transaction._transaction.receiver,
             _amount,
-            _amount,
+            transaction._transaction.amount - _amount,
             transaction.token != address(0),
             "pay",
-          
             true
         );
+
+        if(transaction._transaction.amount == 0){
+            IJobRegistry(jobRegistryAddress).afterFullPayment(transaction._transaction.jobId);
+        }
     }
 
     /** @dev Reimburse sender. To be called if the good or service can't be fully provided.
@@ -295,7 +304,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _transactionID,
             transaction._transaction.sender,
             _amountReimbursed,
-            _amountReimbursed,
+            transaction._transaction.amount - _amountReimbursed,
             transaction.token != address(0),
             "reimburse",
             true
@@ -564,7 +573,26 @@ contract MultipleArbitrableTransaction is IArbitrable {
     // *     Help functions       * //
     // **************************** //
 
-
+    function _initTransaction(
+        uint256 _jobId,
+        uint256 _proposalId,
+        address payable _sender,
+        address payable _receiver
+    ) private view returns (Transaction memory) {
+        return Transaction({
+            jobId: _jobId,
+            proposalId: _proposalId,
+            sender: _sender,
+            receiver: _receiver,
+            amount: 0,
+            timeoutPayment: 0,
+            disputeId: 0,
+            senderFee: 0,
+            receiverFee: 0,
+            lastInteraction: block.timestamp,
+            status: Status.NoDispute
+        });
+    }
 
     function _handleTransactionTransfer(
         uint _transactionID,
@@ -576,7 +604,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
         bool emitPayment
 
     ) private {
-        ExtendedTransaction memory transaction = transactions[_transactionID];
+        ExtendedTransaction storage transaction = transactions[_transactionID];
         if (isToken) {
             require(
                 IERC20(transaction.token).transfer(destination, amount),
@@ -587,7 +615,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
         }
         transaction._transaction.amount = finalAmount;
 
-        performTransactionFee(transaction, feeMode);
+        // TODO: we should be done only one time 
+        // performTransactionFee(transaction, feeMode);
 
         if (emitPayment) {
             emit Payment(_transactionID, amount, msg.sender);
