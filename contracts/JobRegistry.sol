@@ -2,13 +2,13 @@
 pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title JobRegistry Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
-contract JobRegistry {
+contract JobRegistry is AccessControl {
     // =========================== Enum ==============================
 
     /// @notice Enum job status
@@ -44,7 +44,6 @@ contract JobRegistry {
         uint256 employeeId;
         uint256 initiatorId;
         string jobDataUri;
-        mapping(uint256 => Proposal) proposals;
         uint256 countProposals;
         uint256 transactionId;
     }
@@ -172,6 +171,12 @@ contract JobRegistry {
     /// @notice jobs mappings index by ID
     mapping(uint256 => Job) public jobs;
 
+    /// @notice proposals mappings index by job ID and employee TID
+    mapping(uint256 => mapping (uint256 => Proposal)) public proposals;
+
+    // @notice
+    bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
+
     /**
      * @param _talentLayerIdAddress TalentLayerId address
      */
@@ -185,18 +190,13 @@ contract JobRegistry {
      * @notice Return the whole job data information
      * @param _jobId Job identifier
      */
-    // TODO: find a way to upgrade this function
-    // function getJob(uint256 _jobId) external view returns (Job memory) {
-    //     require(_jobId < nextJobId, "This job does'nt exist");
-    //     return jobs[_jobId];
-    // }
+    function getJob(uint256 _jobId) external view returns (Job memory) {
+        require(_jobId < nextJobId, "This job does'nt exist");
+        return jobs[_jobId];
+    }
 
-    function getProposal(uint256 _jobId, uint256 _proposalId)
-        external
-        view
-        returns (Proposal memory)
-    {
-        return jobs[_jobId].proposals[_proposalId];
+    function getProposal(uint256 _jobId, uint256 _proposalId) external view returns (Proposal memory) {
+        return proposals[_jobId][_proposalId];
     }
 
     // =========================== User functions ==============================
@@ -274,8 +274,8 @@ contract JobRegistry {
         Job storage job = jobs[_jobId];
         require(job.status == Status.Opened, "Job is not opened");
         require(
-            job.proposals[senderId].employeeId != senderId,
-            "You already create a proposal for this job"
+            proposals[_jobId][senderId].employeeId != senderId,
+            "You already created a proposal for this job"
         );
         require(job.countProposals < 40, "Max proposals count reached");
         require(
@@ -288,7 +288,7 @@ contract JobRegistry {
         );
 
         job.countProposals++;
-        job.proposals[senderId] = Proposal({
+        proposals[_jobId][senderId] = Proposal({
             status: ProposalStatus.Pending,
             employeeId: senderId,
             rateToken: _rateToken,
@@ -323,7 +323,7 @@ contract JobRegistry {
         require(senderId > 0, "You sould have a TalentLayerId");
 
         Job storage job = jobs[_jobId];
-        Proposal storage proposal = job.proposals[senderId];
+        Proposal storage proposal = proposals[_jobId][senderId];
         require(job.status == Status.Opened, "Job is not opened");
         require(
             proposal.employeeId == senderId,
@@ -361,7 +361,7 @@ contract JobRegistry {
         require(senderId > 0, "You sould have a TalentLayerId");
 
         Job storage job = jobs[_jobId];
-        Proposal storage proposal = job.proposals[_proposalId];
+        Proposal storage proposal = proposals[_jobId][_proposalId];
 
         require(
             proposal.status != ProposalStatus.Validated,
@@ -384,7 +384,7 @@ contract JobRegistry {
         require(senderId > 0, "You sould have a TalentLayerId");
 
         Job storage job = jobs[_jobId];
-        Proposal storage proposal = job.proposals[_proposalId];
+        Proposal storage proposal = proposals[_jobId][_proposalId];
 
         require(
             proposal.status != ProposalStatus.Validated,
@@ -423,6 +423,31 @@ contract JobRegistry {
             job.employeeId,
             job.jobDataUri
         );
+    }
+
+    /**
+     * @notice Allow the escrow contract to upgrade the Job state after a deposit has been done
+     * @param _jobId Job identifier
+     * @param _proposalId The choosed proposal id for this job
+     * @param _transactionId The escrow transaction Id
+     */
+    function afterDeposit(uint256 _jobId, uint256 _proposalId, uint256 _transactionId) external onlyRole(ESCROW_ROLE) {
+        Job storage job = jobs[_jobId];
+        Proposal storage proposal = proposals[_jobId][_proposalId];
+         
+        job.status = Status.Confirmed;
+        job.employeeId = proposal.employeeId;
+        job.transactionId = _transactionId;
+        proposal.status = ProposalStatus.Validated;
+    }
+
+    /**
+     * @notice Allow the escrow contract to upgrade the Job state after the full payment has been received by the employee
+     * @param _jobId Job identifier
+     */
+    function afterFullPayDone(uint256 _jobId) external onlyRole(ESCROW_ROLE) {
+        Job storage job = jobs[_jobId];
+        job.status = Status.Finished;
     }
 
     /**
