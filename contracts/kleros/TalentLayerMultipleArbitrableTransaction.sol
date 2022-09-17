@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import "./Arbitrator.sol";
 import "./IArbitrable.sol";
+import "../interfaces/IJobRegistry.sol"
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -218,7 +219,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
         address payable _receiver,
         string memory _metaEvidence,
         uint256 _amount,
-        address _token,
+        address _tokenAddress,
         address payable _adminWallet,
         uint _adminFeeAmount
     ) private returns (uint transactionID) {
@@ -229,7 +230,7 @@ contract MultipleArbitrableTransaction is IArbitrable {
         _rawTransaction.timeoutPayment = _timeoutPayment;
 
         ExtendedTransaction memory _transaction = ExtendedTransaction({
-            token: _token,
+            token: _tokenAddress,
             _transaction: _rawTransaction,
             adminFee: _adminFee
         });
@@ -267,7 +268,6 @@ contract MultipleArbitrableTransaction is IArbitrable {
             _amount,
             transaction.token != address(0),
             "pay",
-          
             true
         );
     }
