@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
+import "hardhat/console.sol";
 
 /**
  * @title JobRegistry Contract
@@ -19,6 +20,13 @@ contract JobRegistry {
         Opened
     }
 
+    /// @notice Enum job status
+    enum ProposalStatus {
+        Pending,
+        Validated,
+        Rejected
+    }
+
     // =========================== Struct ==============================
 
     /// @notice Job information struct
@@ -27,12 +35,32 @@ contract JobRegistry {
     /// @param employeeId the talentLayerId of the employee
     /// @param initiatorId the talentLayerId of the user who initialized the job
     /// @param jobDataUri token Id to IPFS URI mapping
+    /// @param proposals all proposals for this job
+    /// @param countProposals the total number of proposal for this job
+    /// @param transactionId the escrow transaction ID linked to the job
     struct Job {
         Status status;
         uint256 employerId;
         uint256 employeeId;
         uint256 initiatorId;
         string jobDataUri;
+        mapping(uint256 => Proposal) proposals;
+        uint256 countProposals;
+        uint256 transactionId;
+    }
+
+    /// @notice Proposal information struct
+    /// @param status the current status of a job
+    /// @param employeeId the talentLayerId of the employee
+    /// @param rateToken the token choose for the payment
+    /// @param rateAmount the amount of token choosed
+    /// @param proposalDataUri token Id to IPFS URI mapping
+    struct Proposal {
+        ProposalStatus status;
+        uint256 employeeId;
+        address rateToken;
+        uint256 rateAmount;
+        string proposalDataUri;
     }
 
     // =========================== Events ==============================
@@ -95,6 +123,46 @@ contract JobRegistry {
         string jobDataUri
     );
 
+    /// @notice Emitted after a new proposal is created
+    /// @param jobId The job id
+    /// @param employeeId The talentLayerId of the employee who made the proposal
+    /// @param proposalDataUri token Id to IPFS URI mapping
+    /// @param status proposal status
+    /// @param rateToken the token choose for the payment
+    /// @param rateAmount the amount of token choosed
+    event ProposalCreated(
+        uint256 jobId,
+        uint256 employeeId,
+        string proposalDataUri,
+        ProposalStatus status,
+        address rateToken,
+        uint256 rateAmount
+    );
+
+    /// @notice Emitted after an existing proposal has been update
+    /// @param jobId The job id
+    /// @param employeeId The talentLayerId of the employee who made the proposal
+    /// @param proposalDataUri token Id to IPFS URI mapping
+    /// @param rateToken the token choose for the payment
+    /// @param rateAmount the amount of token choosed
+    event ProposalUpdated(
+        uint256 jobId,
+        uint256 employeeId,
+        string proposalDataUri,
+        address rateToken,
+        uint256 rateAmount
+    );
+
+    /// @notice Emitted after a proposal is validated
+    /// @param jobId The job ID
+    /// @param employeeId the talentLayerId of the employee
+    event ProposalValidated(uint256 jobId, uint256 employeeId);
+
+    /// @notice Emitted after a proposal is rejected
+    /// @param jobId The job ID
+    /// @param employeeId the talentLayerId of the employee
+    event ProposalRejected(uint256 jobId, uint256 employeeId);
+
     /// @notice incremental job Id
     uint256 private nextJobId = 1;
 
@@ -117,9 +185,18 @@ contract JobRegistry {
      * @notice Return the whole job data information
      * @param _jobId Job identifier
      */
-    function getJob(uint256 _jobId) external view returns (Job memory) {
-        require(_jobId < nextJobId, "This job does'nt exist");
-        return jobs[_jobId];
+    // TODO: find a way to upgrade this function
+    // function getJob(uint256 _jobId) external view returns (Job memory) {
+    //     require(_jobId < nextJobId, "This job does'nt exist");
+    //     return jobs[_jobId];
+    // }
+
+    function getProposal(uint256 _jobId, uint256 _proposalId)
+        external
+        view
+        returns (Proposal memory)
+    {
+        return jobs[_jobId].proposals[_proposalId];
     }
 
     // =========================== User functions ==============================
@@ -176,6 +253,148 @@ contract JobRegistry {
     {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return _createJob(Status.Opened, senderId, senderId, 0, _jobDataUri);
+    }
+
+    /**
+     * @notice Allows an employee to propose his service for a job
+     * @param _jobId The job linked to the new proposal
+     * @param _rateToken the token choose for the payment
+     * @param _rateAmount the amount of token choosed
+     * @param _proposalDataUri token Id to IPFS URI mapping
+     */
+    function createProposal(
+        uint256 _jobId,
+        address _rateToken,
+        uint256 _rateAmount,
+        string calldata _proposalDataUri
+    ) public {
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        require(senderId > 0, "You sould have a TalentLayerId");
+
+        Job storage job = jobs[_jobId];
+        require(job.status == Status.Opened, "Job is not opened");
+        require(
+            job.proposals[senderId].employeeId != senderId,
+            "You already create a proposal for this job"
+        );
+        require(job.countProposals < 40, "Max proposals count reached");
+        require(
+            job.employerId != senderId,
+            "You couldn't create proposal for your own job"
+        );
+        require(
+            bytes(_proposalDataUri).length > 0,
+            "Should provide a valid IPFS URI"
+        );
+
+        job.countProposals++;
+        job.proposals[senderId] = Proposal({
+            status: ProposalStatus.Pending,
+            employeeId: senderId,
+            rateToken: _rateToken,
+            rateAmount: _rateAmount,
+            proposalDataUri: _proposalDataUri
+        });
+
+        emit ProposalCreated(
+            _jobId,
+            senderId,
+            _proposalDataUri,
+            ProposalStatus.Pending,
+            _rateToken,
+            _rateAmount
+        );
+    }
+
+    /**
+     * @notice Allows an employee to update his own proposal for a given job
+     * @param _jobId The job linked to the new proposal
+     * @param _rateToken the token choose for the payment
+     * @param _rateAmount the amount of token choosed
+     * @param _proposalDataUri token Id to IPFS URI mapping
+     */
+    function updateProposal(
+        uint256 _jobId,
+        address _rateToken,
+        uint256 _rateAmount,
+        string calldata _proposalDataUri
+    ) public {
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        require(senderId > 0, "You sould have a TalentLayerId");
+
+        Job storage job = jobs[_jobId];
+        Proposal storage proposal = job.proposals[senderId];
+        require(job.status == Status.Opened, "Job is not opened");
+        require(
+            proposal.employeeId == senderId,
+            "This proposal doesn't exist yet"
+        );
+        require(
+            bytes(_proposalDataUri).length > 0,
+            "Should provide a valid IPFS URI"
+        );
+        require(
+            proposal.status != ProposalStatus.Validated,
+            "This proposal is already updated"
+        );
+
+        proposal.rateToken = _rateToken;
+        proposal.rateAmount = _rateAmount;
+        proposal.proposalDataUri = _proposalDataUri;
+
+        emit ProposalUpdated(
+            _jobId,
+            senderId,
+            _proposalDataUri,
+            _rateToken,
+            _rateAmount
+        );
+    }
+
+    /**
+     * @notice Allows the employer to validate a proposal
+     * @param _jobId Job identifier
+     * @param _proposalId Proposal identifier
+     */
+    function validateProposal(uint256 _jobId, uint256 _proposalId) public {
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        require(senderId > 0, "You sould have a TalentLayerId");
+
+        Job storage job = jobs[_jobId];
+        Proposal storage proposal = job.proposals[_proposalId];
+
+        require(
+            proposal.status != ProposalStatus.Validated,
+            "Proposal has already been validated"
+        );
+        require(senderId == job.employerId, "You're not the employer");
+
+        proposal.status = ProposalStatus.Validated;
+
+        emit ProposalValidated(_jobId, senderId);
+    }
+
+    /**
+     * @notice Allows the employer to reject a proposal
+     * @param _jobId Job identifier
+     * @param _proposalId Proposal identifier
+     */
+    function rejectProposal(uint256 _jobId, uint256 _proposalId) public {
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        require(senderId > 0, "You sould have a TalentLayerId");
+
+        Job storage job = jobs[_jobId];
+        Proposal storage proposal = job.proposals[_proposalId];
+
+        require(
+            proposal.status != ProposalStatus.Validated,
+            "Proposal has already been validated"
+        );
+        require(senderId == job.employerId, "You're not the employer");
+
+        proposal.status = ProposalStatus.Rejected;
+
+        emit ProposalRejected(_jobId, senderId);
     }
 
     /**
@@ -278,7 +497,6 @@ contract JobRegistry {
         );
 
         job.employeeId = _employeeId;
-
         job.status = Status.Filled;
 
         emit JobEmployeeAssigned(_jobId, _employeeId, job.status);
@@ -313,13 +531,12 @@ contract JobRegistry {
         uint256 id = nextJobId;
         nextJobId++;
 
-        jobs[id] = Job({
-            status: _status,
-            employerId: _employerId,
-            employeeId: _employeeId,
-            initiatorId: _senderId,
-            jobDataUri: _jobDataUri
-        });
+        Job storage job = jobs[id];
+        job.status = _status;
+        job.employerId = _employerId;
+        job.employeeId = _employeeId;
+        job.initiatorId = _senderId;
+        job.jobDataUri = _jobDataUri;
 
         emit JobCreated(
             id,

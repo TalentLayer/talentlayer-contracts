@@ -1,11 +1,14 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const [alice, bob, carol, dave] = await ethers.getSigners()
-  const tlID = await ethers.getContractAt('TalentLayerID', "0x25DFc905884be839eCF2dE0e760C28BA6B8070e6")
-  tlID.connect(bob).mintWithPoh("bob.lens")
+  const [alice, bob, carol, dave] = await ethers.getSigners();
+  const tlID = await ethers.getContractAt(
+    "TalentLayerID",
+    "0x48C45A025D154b40AffB41bc3bDEecb689edE7E6"
+  );
+  tlID.connect(bob).mintWithPoh("bob.lens");
   console.log("Bob.lens registered");
-  tlID.connect(carol).mintWithPoh("carol.lens")
+  tlID.connect(carol).mintWithPoh("carol.lens");
   console.log("carol.lens registered");
 }
 
