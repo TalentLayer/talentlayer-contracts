@@ -4,7 +4,8 @@
   "description": "TalentLayer ID Contracts",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "solhint": "solhint contracts/kleros/*.sol"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,8 @@
     "ethers": "^5.6.9",
     "hardhat": "^2.10.1",
     "hardhat-gas-reporter": "^1.0.8",
+    "solhint": "^3.3.7",
+    "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.7.21",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.0",
