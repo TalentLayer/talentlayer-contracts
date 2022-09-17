@@ -12,10 +12,14 @@ describe("TalentLayer", function () {
     JobRegistry: ContractFactory,
     TalentLayerID: ContractFactory,
     TalentLayerReview: ContractFactory,
+    TalentLayerMultipleArbitrableTransaction: ContractFactory,
+    TalentLayerArbitrator: ContractFactory,
     MockProofOfHumanity: ContractFactory,
     jobRegistry: Contract,
     talentLayerID: Contract,
     talentLayerReview: Contract,
+    talentLayerMultipleArbitrableTransaction: Contract,
+    talentLayerArbitrator: Contract,
     mockProofOfHumanity: Contract;
 
   before(async function () {
@@ -45,6 +49,23 @@ describe("TalentLayer", function () {
       talentLayerID.address,
       jobRegistry.address
     );
+
+    // Deploy TalentLayerArbitrator
+    TalentLayerArbitrator = await ethers.getContractFactory("TalentLayerArbitrator");
+    talentLayerArbitrator = await TalentLayerArbitrator.deploy(0);
+
+    // Deploy TalentLayerMultipleArbitrableTransaction
+    TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("TalentLayerMultipleArbitrableTransaction");
+    talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
+      jobRegistry.address,
+      talentLayerArbitrator.address,
+      [],
+      3600*24*30
+    );
+
+    // Grant escrow role 
+    const escrowRole = await jobRegistry.ESCROW_ROLE()
+    await jobRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address)
   });
 
   it("Alice, Bob and Carol can mint a talentLayerId", async function () {
@@ -289,8 +310,6 @@ describe("TalentLayer", function () {
     await jobRegistry.connect(bob).createProposal(10, rateToken, 1, "cid");
 
     const proposalDataBefore = await jobRegistry.getProposal(10, bobTid);
-    console.log("proposalDataBefore", proposalDataBefore);
-
     expect(proposalDataBefore.status.toString()).to.be.equal("0");
 
     await jobRegistry.connect(alice).validateProposal(10, bobTid);
@@ -309,5 +328,71 @@ describe("TalentLayer", function () {
 
     const proposalDataAfter = await jobRegistry.getProposal(11, bobTid);
     expect(proposalDataAfter.status.toString()).to.be.equal("2");
+  });
+
+  it("Alice can validate a proposal by sending funds to escrow", async function () {
+    const bobTid = await talentLayerID.walletOfOwner(bob.address);
+    const rateToken = "0x0000000000000000000000000000000000000000";
+    const rateAmount = 100;
+    const adminFeeAmount = 10;
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(bob).createProposal(12, rateToken, rateAmount, "cid");
+
+    await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
+      3600*24*7,
+      alice.address,
+      bob.address,
+      '_metaEvidence',
+      rateAmount,
+      carol.address,
+      adminFeeAmount,
+      12,
+      bobTid, 
+      {'value': rateAmount + adminFeeAmount}
+    )
+
+    const proposalDataAfter = await jobRegistry.getProposal(12, bobTid)
+    const jobDataAfter = await jobRegistry.getJob(12)
+    expect(proposalDataAfter.status.toString()).to.be.equal("1")
+    expect(jobDataAfter.status.toString()).to.be.equal("1")
+    expect(jobDataAfter.transactionId.toString()).to.be.equal("0")
+    expect(jobDataAfter.employeeId.toString()).to.be.equal(bobTid)
+
+    const escrowBalance = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+    expect(escrowBalance).to.be.equal(rateAmount + adminFeeAmount)
+  });
+
+  it("Alice can pay Bob, first 30%, then the remaining 70%", async function () {
+    const bobBalanceStep0 = await ethers.provider.getBalance(bob.address)
+
+    // First 30% pay
+    await talentLayerMultipleArbitrableTransaction.connect(alice).pay(0, 30)
+
+    const escrowBalanceStep1 = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+    expect(escrowBalanceStep1).to.be.equal(80)
+
+    const jobDataStep1 = await jobRegistry.getJob(12)
+    expect(jobDataStep1.status.toString()).to.be.equal("1")
+
+    const bobBalanceStep1 = await ethers.provider.getBalance(bob.address)
+    expect(bobBalanceStep1).to.be.equal(bobBalanceStep0.add(30))
+
+    // Last 70% pay
+    await talentLayerMultipleArbitrableTransaction.connect(alice).pay(0, 70)
+    const escrowBalanceStep2 = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+    expect(escrowBalanceStep2).to.be.equal(10)
+
+    const bobBalanceStep2 = await ethers.provider.getBalance(bob.address)
+    expect(bobBalanceStep2).to.be.equal(bobBalanceStep1.add(70))
+
+    const jobDataStep2 = await jobRegistry.getJob(12)
+    expect(jobDataStep2.status.toString()).to.be.equal("2")
+
+    // What an amazing job, let's review each others
+    await talentLayerReview.connect(alice).addReview(12, "cidReview3", 5);
+    await talentLayerReview.connect(bob).addReview(12, "cidReview4", 5);
+
+    expect(await talentLayerReview.reviewDataUri(2)).to.be.equal("cidReview3");
+    expect(await talentLayerReview.reviewDataUri(3)).to.be.equal("cidReview4");
   });
 });
