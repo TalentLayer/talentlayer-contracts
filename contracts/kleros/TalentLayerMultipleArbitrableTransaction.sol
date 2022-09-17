@@ -34,8 +34,6 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     }
 
     struct Transaction {
-        uint256 jobId; 
-        uint256 proposalId; 
         address payable sender;
         address payable receiver;
         uint amount;
@@ -51,6 +49,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         address token;
         Transaction _transaction;
         WalletFee adminFee;
+        uint256 jobId;
     }
 
     ExtendedTransaction[] public transactions;
@@ -158,7 +157,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             "Fees or amounts don't match with payed amount."
         );
 
-        require(proposal.rateAmount == _amount, "proposal.rateAmount is not the same as _amount passed as argument");
+        //require(proposal.rateAmount == _amount, "proposal.rateAmount is not the same as _amount passed as argument");
 
         //address(this).transfer(msg.value); Need to look up
 
@@ -169,7 +168,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             _sender,
             _receiver,
             _metaEvidence,
-            proposal.rateAmount,
+            _amount,
             proposal.rateToken,
             _adminWallet,
             _adminFeeAmount,
@@ -238,7 +237,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint256 _proposalId
     ) private returns (uint transactionID) {
         WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = _initTransaction(_jobId,_proposalId,_sender, _receiver);
+        Transaction memory _rawTransaction = _initTransaction(_sender, _receiver);
 
         _rawTransaction.amount = _amount;
         _rawTransaction.timeoutPayment = _timeoutPayment;
@@ -246,7 +245,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         ExtendedTransaction memory _transaction = ExtendedTransaction({
             token: _tokenAddress,
             _transaction: _rawTransaction,
-            adminFee: _adminFee
+            adminFee: _adminFee,
+            jobId: _jobId
         });
 
         transactions.push(_transaction);
@@ -288,7 +288,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         );
 
         if(transaction._transaction.amount == 0){
-            IJobRegistry(jobRegistryAddress).afterFullPayment(transaction._transaction.jobId);
+            IJobRegistry(jobRegistryAddress).afterFullPayment(transaction.jobId);
         }
     }
 
@@ -585,14 +585,10 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
 
     function _initTransaction(
-        uint256 _jobId,
-        uint256 _proposalId,
         address payable _sender,
         address payable _receiver
     ) private view returns (Transaction memory) {
         return Transaction({
-            jobId: _jobId,
-            proposalId: _proposalId,
             sender: _sender,
             receiver: _receiver,
             amount: 0,
