@@ -56,7 +56,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
     bytes public arbitratorExtraData; // Extra data to set up the arbitration.
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
-    
+    IJobRegistry public jobRegistry;
+
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
     // **************************** //
@@ -114,24 +115,6 @@ contract MultipleArbitrableTransaction is IArbitrable {
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
-    }
-
-
-    function initTransaction(
-        address payable _sender,
-        address payable _receiver
-    ) private view returns (Transaction memory) {
-        return Transaction({
-            sender: _sender,
-            receiver: _receiver,
-            amount: 0,
-            timeoutPayment: 0,
-            disputeId: 0,
-            senderFee: 0,
-            receiverFee: 0,
-            lastInteraction: block.timestamp,
-            status: Status.NoDispute
-        });
     }
 
     /** @dev Create a ETH-based transaction.
@@ -221,10 +204,12 @@ contract MultipleArbitrableTransaction is IArbitrable {
         uint256 _amount,
         address _tokenAddress,
         address payable _adminWallet,
-        uint _adminFeeAmount
+        uint _adminFeeAmount,
+        uint256 _jobId, 
+        uint256 _proposalId
     ) private returns (uint transactionID) {
         WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = initTransaction(_sender, _receiver);
+        Transaction memory _rawTransaction = _initTransaction(_sender, _receiver);
 
         _rawTransaction.amount = _amount;
         _rawTransaction.timeoutPayment = _timeoutPayment;
@@ -237,6 +222,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
 
         transactions.push(_transaction);
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
+
+        jobRegistry.afterDeposit(_jobId, _proposalId, transactions.length - 1);
 
         return transactions.length - 1;
     }
@@ -270,6 +257,8 @@ contract MultipleArbitrableTransaction is IArbitrable {
             "pay",
             true
         );
+
+        jobRegistry.afterFullPayment(_jobId);
     }
 
     /** @dev Reimburse sender. To be called if the good or service can't be fully provided.
@@ -564,7 +553,22 @@ contract MultipleArbitrableTransaction is IArbitrable {
     // *     Help functions       * //
     // **************************** //
 
-
+    function _initTransaction(
+        address payable _sender,
+        address payable _receiver
+    ) private view returns (Transaction memory) {
+        return Transaction({
+            sender: _sender,
+            receiver: _receiver,
+            amount: 0,
+            timeoutPayment: 0,
+            disputeId: 0,
+            senderFee: 0,
+            receiverFee: 0,
+            lastInteraction: block.timestamp,
+            status: Status.NoDispute
+        });
+    }
 
     function _handleTransactionTransfer(
         uint _transactionID,
