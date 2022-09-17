@@ -4,28 +4,28 @@ async function main() {
   const [alice, bob, carol, dave] = await ethers.getSigners();
 
   // FIRST Mint a TL for everyone
-  const tlID = await ethers.getContractAt('TalentLayerID', "0x9FDc1ade9D4a2518eC5C5c01f683E312d1970f3C")
+  const tlID = await ethers.getContractAt('TalentLayerID', "0x05D8A2E01EB06c284ECBae607A2d0c2BE946Bf49")
 
   const aliceTlID = await tlID.walletOfOwner(alice.address)
-  if(!aliceTlID){
+  if(aliceTlID.toString() == '0'){
       await tlID.connect(alice).mint("alice.lens")
       console.log("alice.lens registered");
   }
 
   const bobTlID = await tlID.walletOfOwner(bob.address)
-  if(!bobTlID){
+  if(bobTlID.toString() == '0'){
     await tlID.connect(bob).mintWithPoh("bob.lens")
     console.log("Bob.lens registered")
   }
 
   const carolTlID = await tlID.walletOfOwner(carol.address)
-  if(!carolTlID){
+  if(carolTlID.toString() == '0'){
     await tlID.connect(carol).mintWithPoh("carol.lens")
     console.log("carol.lens registered");
   }
 
   const daveTlID = await tlID.walletOfOwner(dave.address)
-  if(!daveTlID){
+  if(daveTlID.toString() == '0'){
     await tlID.connect(dave).mint("dave.lens")
     console.log("dave.lens registered");
   }
@@ -39,7 +39,7 @@ async function main() {
   // Then Alice create a job, and others add proposals
   const jobRegistry = await ethers.getContractAt(
     "JobRegistry",
-    "0x863751792aa2DAb3554b08B5ba9B336B134ae3ed"
+    "0x89b0d7A8B7B3c23d03c471F7c28197655c3A192B"
   );
 
   const jobId = await jobRegistry.nextJobId();
