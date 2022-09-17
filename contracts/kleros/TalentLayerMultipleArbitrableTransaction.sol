@@ -7,6 +7,11 @@ import "../interfaces/IJobRegistry.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
+
+
+import "hardhat/console.sol";
+
 contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
     // *    Contract variables    * //
@@ -57,6 +62,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
     address jobRegistryAddress;
+    address talentLayerIDAddress;
 
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
@@ -109,11 +115,13 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
      */
     constructor(
         address _jobRegistryAddress,
+        address _talentLayerIDAddress,
         Arbitrator _arbitrator, 
         bytes memory _arbitratorExtraData,
         uint _feeTimeout
     ) {
         setJobRegistryAddress(_jobRegistryAddress);
+        setTalentLayerIDAddress(_talentLayerIDAddress);
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
@@ -126,8 +134,16 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         jobRegistryAddress = _jobRegistryAddress;
     }
 
+    function setTalentLayerIDAddress(address _talentLayerIDAddress) internal {
+        talentLayerIDAddress = _talentLayerIDAddress;
+    }
+
     function getProposal(uint256 _jobId, uint256 _proposalId) private view returns (IJobRegistry.Proposal memory){
         return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
+    }
+
+    function getJob(uint256 _jobId) private view returns (IJobRegistry.Job memory){
+        return IJobRegistry(jobRegistryAddress).getJob(_jobId);
     }
 
     /** @dev Create a ETH-based transaction.
@@ -151,6 +167,29 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
         IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
+
+        IJobRegistry.Job memory job = getJob(_jobId);
+
+        console.log("----------------------------- console.log ----------------------------------");
+        console.log("job.employerId: %s", job.employerId);
+        console.log("proposal.employeeId: %s", proposal.employeeId);
+        console.log("_proposalId: %s", _proposalId);
+        console.log("proposal.rateToken: %s", proposal.rateToken);
+        console.log("proposal.rateAmount: %s", proposal.rateAmount);
+
+        address sender = ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId);
+
+        console.log("sender: %s", sender);
+
+        address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
+        
+        console.log("receiver: %s", receiver);
+        
+
+        console.log("----------------------------- End of console.log ----------------------------------");
+
+
+        require(msg.sender == sender, "sender must be the owner of the job");
 
         require(
             _amount + _adminFeeAmount == msg.value,
