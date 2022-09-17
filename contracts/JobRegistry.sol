@@ -175,7 +175,7 @@ contract JobRegistry is AccessControl {
     );
 
     /// @notice incremental job Id
-    uint256 private nextJobId = 1;
+    uint256 public nextJobId = 1;
 
     /// @notice TalentLayerId address
     ITalentLayerID private tlId;
