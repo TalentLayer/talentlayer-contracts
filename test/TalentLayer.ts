@@ -282,7 +282,32 @@ describe("TalentLayer", function () {
     expect(proposalDataAfter.proposalDataUri).to.be.equal("cid2");
   });
 
-  it.skip("Alice can't validate a proposal", async function () {});
+  it("Alice can validate a proposal", async function () {
+    const bobTid = await talentLayerID.walletOfOwner(bob.address);
+    const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(bob).createProposal(10, rateToken, 1, "cid");
 
-  it("Alice can delete a proposal ", async function () {});
+    const proposalDataBefore = await jobRegistry.getProposal(10, bobTid);
+    console.log("proposalDataBefore", proposalDataBefore);
+
+    expect(proposalDataBefore.status.toString()).to.be.equal("0");
+
+    await jobRegistry.connect(alice).validateProposal(10, bobTid);
+
+    const proposalDataAfter = await jobRegistry.getProposal(10, bobTid);
+    expect(proposalDataAfter.status.toString()).to.be.equal("1");
+  });
+
+  it("Alice can delete a proposal ", async function () {
+    const bobTid = await talentLayerID.walletOfOwner(bob.address);
+    const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(bob).createProposal(11, rateToken, 1, "cid");
+
+    await jobRegistry.connect(alice).rejectProposal(11, bobTid);
+
+    const proposalDataAfter = await jobRegistry.getProposal(11, bobTid);
+    expect(proposalDataAfter.status.toString()).to.be.equal("2");
+  });
 });
