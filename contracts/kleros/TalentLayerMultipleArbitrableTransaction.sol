@@ -58,7 +58,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     bytes public arbitratorExtraData; // Extra data to set up the arbitration.
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
-    IJobRegistry public jobRegistry;
+    address jobRegistryAddress;
 
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
@@ -110,13 +110,23 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
      *  @param _feeTimeout Arbitration fee timeout for the parties.
      */
     constructor(
-        Arbitrator _arbitrator,
+        address _jobRegistryAddress,
+        Arbitrator _arbitrator, 
         bytes memory _arbitratorExtraData,
         uint _feeTimeout
     ) {
+        setJobRegistryAddress(_jobRegistryAddress);
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
+    }
+
+
+    /** @dev Allows changing the contract address to JobRegistry.sol
+     *  @param _jobRegistryAddress The new contract address.
+     */
+    function setJobRegistryAddress(address _jobRegistryAddress) public {
+        jobRegistryAddress = _jobRegistryAddress;
     }
 
     /** @dev Create a ETH-based transaction.
@@ -233,7 +243,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         transactions.push(_transaction);
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
 
-        jobRegistry.afterDeposit(_jobId, _proposalId, transactions.length - 1);
+        IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactions.length - 1);
 
         return transactions.length - 1;
     }
@@ -268,7 +278,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             true
         );
 
-        jobRegistry.afterFullPayment(transaction._transaction.jobId);
+        IJobRegistry(jobRegistryAddress).afterFullPayment(transaction._transaction.jobId);
     }
 
     /** @dev Reimburse sender. To be called if the good or service can't be fully provided.
