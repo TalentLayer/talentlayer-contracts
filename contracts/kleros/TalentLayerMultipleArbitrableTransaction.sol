@@ -126,116 +126,130 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     function setJobRegistryAddress(address _jobRegistryAddress) public {
         jobRegistryAddress = _jobRegistryAddress;
     }
+    /*
+
+    function getAmount(uint256 _jobId, uint256 _proposalId) private view returns (uint256){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId).rateAmount;
+    }
+
+    function getToken(uint256 _jobId, uint256 _proposalId) private view returns (address){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId).rateToken;
+    }
+
+    function getReceiver(uint256 _jobId, uint256 _proposalId) private view returns (address){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId).employeeId;
+    }
+
+    function getSender(uint256 _jobId) private view returns (address){
+        return IJobRegistry(jobRegistryAddress).getJob(_jobId).employerId;
+    }
+    */
+    function getProposal(uint256 _jobId, uint256 _proposalId) private view returns (uint256){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
+    }
+
+    function getJob(uint256 _jobId, uint256 _proposalId) private view returns (address){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
+    }
+
 
     /** @dev Create a ETH-based transaction.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _sender The recipient of the transaction.
-     *  @param _receiver The recipient of the transaction.
      *  @param _metaEvidence Link to the meta-evidence.
      *  @param _adminWallet Admin fee wallet.
      *  @param _adminFeeAmount Admin fee amount.
+     *  @param _jobId the job id in JobRegistry
+     *  @param _proposalId proposal id in JobRegistry
      *  @return transactionID The index of the transaction.
      **/
     function createETHTransaction(
         uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
         string memory _metaEvidence,
-        uint256 _amount,
         address payable _adminWallet,
         uint _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
+        Proposal storage proposal = getProposal(_jobId,_proposalId);
         require(
-            _amount + _adminFeeAmount == msg.value,
+            proposal.rateAmount + _adminFeeAmount == msg.value,
             "Fees or amounts don't match with payed amount."
         );
-        //address(this).transfer(msg.value); Need to look up
 
         return createTransaction(
             _timeoutPayment,
-            _sender,
-            _receiver,
             _metaEvidence,
-            _amount,
-            address(0),
             _adminWallet,
             _adminFeeAmount,
             _jobId,
-            _proposalId
+            _proposalId,
+            proposal
         );
     }
 
    /** @dev Create a token-based transaction.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _sender The recipient of the transaction.
-     *  @param _receiver The recipient of the transaction.
      *  @param _metaEvidence Link to the meta-evidence.
-     *  @param _tokenAddress Address of token used for transaction.
      *  @param _adminWallet Admin fee wallet.
      *  @param _adminFeeAmount Admin fee amount.
+     *  @param _jobId the job id in JobRegistry
+     *  @param _proposalId proposal id in JobRegistry
      *  @return transactionID The index of the transaction.
      **/
     function createTokenTransaction(
         uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
         string memory _metaEvidence,
-        uint256 _amount,
-        address _tokenAddress,
         address payable _adminWallet,
         uint _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
-        IERC20 token = IERC20(_tokenAddress);
+        Proposal storage proposal = getProposal(_jobId,_proposalId);
+        IERC20 token = IERC20(proposal.rateToken);
         // Transfers token from sender wallet to contract. Permit before transfer
         require(
-            token.transferFrom(msg.sender, address(this), _amount),
+            token.transferFrom(msg.sender, address(this), proposal.rateAmount),
             "Sender does not have enough approved funds."
         );
         require(
-            _adminFeeAmount + _adminFeeAmount == msg.value,
+            _adminFeeAmount == msg.value,
             "Fees don't match with payed amount"
         );
 
         return createTransaction(
             _timeoutPayment,
-            _sender,
-            _receiver,
             _metaEvidence,
-            _amount,
-            _tokenAddress,
             _adminWallet,
             _adminFeeAmount,
             _jobId,
-            _proposalId
+            _proposalId,
+            proposal
         );
     }
 
     function createTransaction(
         uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
         string memory _metaEvidence,
-        uint256 _amount,
-        address _tokenAddress,
         address payable _adminWallet,
         uint _adminFeeAmount,
-        uint256 _jobId, 
-        uint256 _proposalId
+        uint256 _jobId,
+        uint256 _proposalId, 
+        Proposal proposal
     ) private returns (uint transactionID) {
-        WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = _initTransaction(_jobId,_proposalId,_sender, _receiver);
+        Job storage job = getJob(_jobId);
 
-        _rawTransaction.amount = _amount;
+        WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
+        Transaction memory _rawTransaction = _initTransaction(job.employerId, job.employeeId);
+
+        _rawTransaction.amount = proposal.rateAmount; 
         _rawTransaction.timeoutPayment = _timeoutPayment;
 
         ExtendedTransaction memory _transaction = ExtendedTransaction({
-            token: _tokenAddress,
+            token: proposal.rateToken,
             _transaction: _rawTransaction,
-            adminFee: _adminFee
+            adminFee: _adminFee,
+            jobId: _jobId,
+            proposalId: _proposalId
         });
 
         transactions.push(_transaction);
