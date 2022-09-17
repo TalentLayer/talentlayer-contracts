@@ -19,7 +19,7 @@ abstract contract Arbitrator {
         require(msg.value >= arbitrationCost(_extraData), "Not enough ETH to cover arbitration costs.");
         _;
     }
-    modifier requireAppealFee(uint _disputeID, bytes memory _extraData) {
+    modifier requireAppealFee(uint256 _disputeID, bytes memory _extraData) {
         require(msg.value >= appealCost(_disputeID, _extraData), "Not enough ETH to cover appeal costs.");
         _;
     }
@@ -28,19 +28,19 @@ abstract contract Arbitrator {
      *  @param _disputeID ID of the dispute.
      *  @param _arbitrable The contract which created the dispute.
      */
-    event DisputeCreation(uint indexed _disputeID, Arbitrable indexed _arbitrable);
+    event DisputeCreation(uint256 indexed _disputeID, Arbitrable indexed _arbitrable);
 
     /** @dev To be raised when a dispute can be appealed.
      *  @param _disputeID ID of the dispute.
      *  @param _arbitrable The contract which created the dispute.
      */
-    event AppealPossible(uint indexed _disputeID, Arbitrable indexed _arbitrable);
+    event AppealPossible(uint256 indexed _disputeID, Arbitrable indexed _arbitrable);
 
     /** @dev To be raised when the current ruling is appealed.
      *  @param _disputeID ID of the dispute.
      *  @param _arbitrable The contract which created the dispute.
      */
-    event AppealDecision(uint indexed _disputeID, Arbitrable indexed _arbitrable);
+    event AppealDecision(uint256 indexed _disputeID, Arbitrable indexed _arbitrable);
 
     /** @dev Create a dispute. Must be called by the arbitrable contract.
      *  Must be paid at least arbitrationCost(_extraData).
@@ -48,19 +48,19 @@ abstract contract Arbitrator {
      *  @param _extraData Can be used to give additional info on the dispute to be created.
      *  @return disputeID ID of the dispute created.
      */
-    function createDispute(uint _choices, bytes memory _extraData) public requireArbitrationFee(_extraData) payable returns(uint disputeID) {}
+    function createDispute(uint256 _choices, bytes memory _extraData) public virtual requireArbitrationFee(_extraData) payable returns(uint256 disputeID) {}
 
     /** @dev Compute the cost of arbitration. It is recommended not to increase it often, as it can be highly time and gas consuming for the arbitrated contracts to cope with fee augmentation.
      *  @param _extraData Can be used to give additional info on the dispute to be created.
      *  @return fee Amount to be paid.
      */
-    function arbitrationCost(bytes memory _extraData) public virtual view returns(uint fee);
+    function arbitrationCost(bytes memory _extraData) public virtual view returns(uint256 fee);
 
     /** @dev Appeal a ruling. Note that it has to be called before the arbitrator contract calls rule.
      *  @param _disputeID ID of the dispute to be appealed.
      *  @param _extraData Can be used to give extra info on the appeal.
      */
-    function appeal(uint _disputeID, bytes memory _extraData) public requireAppealFee(_disputeID,_extraData) payable {
+    function appeal(uint256 _disputeID, bytes memory _extraData) public requireAppealFee(_disputeID,_extraData) payable {
         emit AppealDecision(_disputeID, Arbitrable(msg.sender));
     }
 
@@ -69,24 +69,24 @@ abstract contract Arbitrator {
      *  @param _extraData Can be used to give additional info on the dispute to be created.
      *  @return fee Amount to be paid.
      */
-    function appealCost(uint _disputeID, bytes memory _extraData) public virtual view returns(uint fee);
+    function appealCost(uint256 _disputeID, bytes memory _extraData) public virtual view returns(uint256 fee);
 
     /** @dev Compute the start and end of the dispute's current or next appeal period, if possible.
      *  @param _disputeID ID of the dispute.
      *  @return start The start of the period.
      *  @return end The end of the period.
      */
-    function appealPeriod(uint _disputeID) public view returns(uint start, uint end) {}
+    function appealPeriod(uint256 _disputeID) public view returns(uint256 start, uint256 end) {}
 
     /** @dev Return the status of a dispute.
      *  @param _disputeID ID of the dispute to rule.
      *  @return status The status of the dispute.
      */
-    function disputeStatus(uint _disputeID) public virtual view returns(DisputeStatus status);
+    function disputeStatus(uint256 _disputeID) public virtual view returns(DisputeStatus status);
 
     /** @dev Return the current ruling of a dispute. This is useful for parties to know if they should appeal.
      *  @param _disputeID ID of the dispute.
      *  @return ruling The ruling which has been given or the one which will be given if there is no appeal.
      */
-    function currentRuling(uint _disputeID) public virtual view returns(uint ruling);
+    function currentRuling(uint256 _disputeID) public virtual view returns(uint256 ruling);
 }

@@ -7,7 +7,7 @@ import "../interfaces/IJobRegistry.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract MultipleArbitrableTransaction is IArbitrable {
+contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
     // *    Contract variables    * //
     // **************************** //
