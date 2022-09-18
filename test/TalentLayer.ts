@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { Contract, ContractFactory } from "ethers";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+//import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 describe("TalentLayer", function () {
   let deployer: SignerWithAddress,
@@ -68,8 +68,8 @@ describe("TalentLayer", function () {
     );
 
     // Deploy ERC20 Token
-    Token = await ethers.getContractFactory("ERC20");
-    token = await Token.deploy("0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10");
+    //Token = await ethers.getContractFactory("ERC20");
+    //token = await Token.deploy("0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10");
 
     // Grant escrow role 
     const escrowRole = await jobRegistry.ESCROW_ROLE()
@@ -346,7 +346,7 @@ describe("TalentLayer", function () {
     await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
     await jobRegistry.connect(bob).createProposal(12, rateToken, rateAmount, "cid");
 
-    await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
+    await talentLayerMultipleArbitrableTransaction.connect(alice).createTransaction(
       3600*24*7,
       '_metaEvidence',
       carol.address,
@@ -367,7 +367,7 @@ describe("TalentLayer", function () {
     expect(escrowBalance).to.be.equal(rateAmount + adminFeeAmount)
   });
 
-  it("Alice can validate a proposal by sending Token funds to escrow", async function () {
+  /*it("Alice can validate a proposal by sending Token funds to escrow", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
     const rateAmount = 100;
@@ -375,7 +375,7 @@ describe("TalentLayer", function () {
     await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
     await jobRegistry.connect(bob).createProposal(13, rateToken, rateAmount, "cid");
 
-    await talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
+    await talentLayerMultipleArbitrableTransaction.connect(alice).createTransaction(
       3600*24*7,
       '_metaEvidence',
       carol.address,
@@ -394,7 +394,7 @@ describe("TalentLayer", function () {
 
     const escrowBalance = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
     expect(escrowBalance).to.be.equal(rateAmount + adminFeeAmount)
-  });
+  });*/
 
   it("Alice can pay Bob, first 30%, then the remaining 70%", async function () {
     const bobBalanceStep0 = await ethers.provider.getBalance(bob.address)
