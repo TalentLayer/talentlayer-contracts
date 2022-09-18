@@ -98,6 +98,18 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint _amount
     );
 
+    /// @notice Emitted after a job is finished
+    /// @param id The job ID
+    /// @param proposalId the proposal ID
+    /// @param employeeId the talentLayerId of the employee
+    /// @param transactionId the escrow transaction ID
+    event JobProposalConfirmedWithDeposit(
+        uint256 id,
+        uint256 proposalId,
+        uint256 employeeId,
+        uint256 transactionId
+    );
+
     // **************************** //
     // *    Arbitrable functions  * //
     // *    Modifying the state   * //
@@ -242,6 +254,13 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
 
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactions.length - 1);
+
+        emit JobProposalConfirmedWithDeposit(
+            _jobId,
+            _proposalId,
+            _proposalId,
+            transactions.length - 1
+        );
 
         return transactions.length - 1;
     }

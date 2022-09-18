@@ -162,18 +162,6 @@ contract JobRegistry is AccessControl {
     /// @param employeeId the talentLayerId of the employee
     event ProposalRejected(uint256 jobId, uint256 employeeId);
 
-    /// @notice Emitted after a job is finished
-    /// @param id The job ID
-    /// @param proposalId the proposal ID
-    /// @param employeeId the talentLayerId of the employee
-    /// @param transactionId the escrow transaction ID
-    event JobProposalConfirmedWithDeposit(
-        uint256 id,
-        uint256 proposalId,
-        uint256 employeeId,
-        uint256 transactionId
-    );
-
     /// @notice incremental job Id
     uint256 public nextJobId = 1;
 
@@ -452,13 +440,6 @@ contract JobRegistry is AccessControl {
         job.employeeId = proposal.employeeId;
         job.transactionId = _transactionId;
         proposal.status = ProposalStatus.Validated;
-
-        emit JobProposalConfirmedWithDeposit(
-            _jobId,
-            _proposalId,
-            job.employeeId,
-            job.transactionId
-        );
     }
 
     /**
