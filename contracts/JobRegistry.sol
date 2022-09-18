@@ -163,7 +163,7 @@ contract JobRegistry is AccessControl {
     event ProposalRejected(uint256 jobId, uint256 employeeId);
 
     /// @notice incremental job Id
-    uint256 private nextJobId = 1;
+    uint256 public nextJobId = 1;
 
     /// @notice TalentLayerId address
     ITalentLayerID private tlId;
@@ -372,7 +372,7 @@ contract JobRegistry is AccessControl {
 
         proposal.status = ProposalStatus.Validated;
 
-        emit ProposalValidated(_jobId, senderId);
+        emit ProposalValidated(_jobId, _proposalId);
     }
 
     /**
@@ -395,7 +395,7 @@ contract JobRegistry is AccessControl {
 
         proposal.status = ProposalStatus.Rejected;
 
-        emit ProposalRejected(_jobId, senderId);
+        emit ProposalRejected(_jobId, _proposalId);
     }
 
     /**
@@ -449,6 +449,13 @@ contract JobRegistry is AccessControl {
     function afterFullPayment(uint256 _jobId) external onlyRole(ESCROW_ROLE) {
         Job storage job = jobs[_jobId];
         job.status = Status.Finished;
+
+        emit JobFinished(
+            _jobId,
+            job.employerId,
+            job.employeeId,
+            job.jobDataUri
+        );
     }
 
     /**
