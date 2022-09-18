@@ -148,8 +148,6 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
 
     /** @dev Create a ETH-based transaction.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _sender The recipient of the transaction.
-     *  @param _receiver The recipient of the transaction.
      *  @param _metaEvidence Link to the meta-evidence.
      *  @param _adminWallet Admin fee wallet.
      *  @param _adminFeeAmount Admin fee amount.
@@ -157,101 +155,93 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
      **/
     function createETHTransaction(
         uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
         string memory _metaEvidence,
-        uint256 _amount,
         address payable _adminWallet,
         uint256 _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
-        //broken
-        //IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
+        IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
 
         IJobRegistry.Job memory job = getJob(_jobId);
 
         address payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
-    
-        //proposal broken
-        //address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
-        address payable receiver = _receiver; //remove when proposal is fixed.
+        address payable receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId));
 
         require(sender != receiver, "Sender and receiver must be different");
         require(msg.sender == sender, "Sender must be the owner of the job");
 
-        require(sender == _sender, "Passed sender must be the same as the fetched sender");
-        require(receiver == _receiver, "Passed receiver must be the same as the fetched receiver");
-
         require(
-            _amount + _adminFeeAmount == msg.value,
+            proposal.rateAmount + _adminFeeAmount == msg.value,
             "Fees or amounts don't match with payed amount."
         );
 
         //address(this).transfer(msg.value); Not needed
 
         //uncomment when proposal is fixed
-        //require(proposal.rateToken == address(0), "Token must be ETH");
+        require(proposal.rateToken == address(0), "Token must be ETH");
         
         return createTransaction(
             _timeoutPayment,
             sender,
             receiver,
             _metaEvidence,
-            _amount,
-            address(0), //remove when proposal is fixed
-            //proposal.rateToken,          uncomment when proposal is fixed
             _adminWallet,
             _adminFeeAmount,
             _jobId,
-            _proposalId
+            _proposalId,
+            proposal
         );
     }
 
    /** @dev Create a token-based transaction.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _sender The recipient of the transaction.
-     *  @param _receiver The recipient of the transaction.
      *  @param _metaEvidence Link to the meta-evidence.
-     *  @param _tokenAddress Address of token used for transaction.
      *  @param _adminWallet Admin fee wallet.
      *  @param _adminFeeAmount Admin fee amount.
      *  @return transactionID The index of the transaction.
      **/
     function createTokenTransaction(
         uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
         string memory _metaEvidence,
-        uint256 _amount,
-        address _tokenAddress,
         address payable _adminWallet,
         uint _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
-        IERC20 token = IERC20(_tokenAddress);
+        IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
+        IJobRegistry.Job memory job = getJob(_jobId);
+
+        address payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
+        address payable receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId));
+
+        require(sender != receiver, "Sender and receiver must be different");
+        require(msg.sender == sender, "Sender must be the owner of the job");
+        require(proposal.rateToken != address(0), "Token must not be ETH");
+
+        IERC20 token = IERC20(proposal.rateToken);
         // Transfers token from sender wallet to contract. Permit before transfer
+
         require(
-            token.transferFrom(msg.sender, address(this), _amount),
+            token.transferFrom(sender, address(this), proposal.rateAmount), //change _amount to proposal.rateAmount when proposal is fixed
             "Sender does not have enough approved funds."
         );
+
         require(
-            _adminFeeAmount + _adminFeeAmount == msg.value,
+            proposal.rateAmount + _adminFeeAmount == msg.value,
             "Fees don't match with payed amount"
         );
 
         return createTransaction(
             _timeoutPayment,
-            _sender,
-            _receiver,
+            sender,
+            receiver,
             _metaEvidence,
-            _amount,
-            _tokenAddress,
             _adminWallet,
             _adminFeeAmount,
             _jobId,
-            _proposalId
+            _proposalId,
+            proposal
         );
     }
 
@@ -260,31 +250,30 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         address payable _sender,
         address payable _receiver,
         string memory _metaEvidence,
-        uint256 _amount,
-        address _tokenAddress,
         address payable _adminWallet,
         uint _adminFeeAmount,
         uint256 _jobId, 
-        uint256 _proposalId
+        uint256 _proposalId,
+        IJobRegistry.Proposal memory proposal
     ) private returns (uint transactionID) {
         WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
         Transaction memory _rawTransaction = _initTransaction(_sender, _receiver);
-
-        _rawTransaction.amount = _amount;
+        
+        _rawTransaction.amount = proposal.rateAmount;
         _rawTransaction.timeoutPayment = _timeoutPayment;
-
+        
         ExtendedTransaction memory _transaction = ExtendedTransaction({
-            token: _tokenAddress,
+            token: proposal.rateToken,
             _transaction: _rawTransaction,
             adminFee: _adminFee,
             jobId: _jobId
         });
-
+        
         transactions.push(_transaction);
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
-
+        
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactions.length - 1);
-
+        
         return transactions.length - 1;
     }
 
