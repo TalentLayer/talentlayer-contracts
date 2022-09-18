@@ -384,7 +384,7 @@ contract JobRegistry is AccessControl {
 
         proposal.status = ProposalStatus.Validated;
 
-        emit ProposalValidated(_jobId, senderId);
+        emit ProposalValidated(_jobId, _proposalId);
     }
 
     /**
@@ -407,7 +407,7 @@ contract JobRegistry is AccessControl {
 
         proposal.status = ProposalStatus.Rejected;
 
-        emit ProposalRejected(_jobId, senderId);
+        emit ProposalRejected(_jobId, _proposalId);
     }
 
     /**
