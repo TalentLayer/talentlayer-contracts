@@ -69,7 +69,7 @@ describe("TalentLayer", function () {
     // Deploy SimpleERC20 Token
     SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
     simpleERC20 = await SimpleERC20.deploy();
-    await simpleERC20.transfer(alice.address, 1000);
+    await simpleERC20.transfer(alice.address, 10000);
 
     // Grant escrow role 
     const escrowRole = await jobRegistry.ESCROW_ROLE()
@@ -367,35 +367,6 @@ describe("TalentLayer", function () {
     expect(escrowBalance).to.be.equal(rateAmount + adminFeeAmount)
   });
 
-  it("Alice can validate a proposal by sending Token funds to escrow", async function () {
-    const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    const rateToken = simpleERC20;
-    const rateAmount = 100;
-    const adminFeeAmount = 10;
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
-    await jobRegistry.connect(bob).createProposal(13, rateToken, rateAmount, "cid");
-
-    await talentLayerMultipleArbitrableTransaction.connect(alice).createTransaction(
-      3600*24*7,
-      '_metaEvidence',
-      carol.address,
-      adminFeeAmount,
-      13,
-      bobTid, 
-      {'value': rateAmount + adminFeeAmount}
-    )
-
-    const proposalDataAfter = await jobRegistry.getProposal(13, bobTid)
-    const jobDataAfter = await jobRegistry.getJob(13)
-    expect(proposalDataAfter.status.toString()).to.be.equal("1")
-    expect(jobDataAfter.status.toString()).to.be.equal("1")
-    expect(jobDataAfter.transactionId.toString()).to.be.equal("0")
-    expect(jobDataAfter.employeeId.toString()).to.be.equal(bobTid)
-
-    const escrowBalance = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
-    expect(escrowBalance).to.be.equal(rateAmount + adminFeeAmount)
-  });
-
   it("Alice can pay Bob, first 30%, then the remaining 70%", async function () {
     const bobBalanceStep0 = await ethers.provider.getBalance(bob.address)
 
@@ -428,5 +399,34 @@ describe("TalentLayer", function () {
 
     expect(await talentLayerReview.reviewDataUri(2)).to.be.equal("cidReview3");
     expect(await talentLayerReview.reviewDataUri(3)).to.be.equal("cidReview4");
+  });
+
+  it("Alice can validate a proposal by sending Token funds to escrow", async function () {
+    const bobTid = await talentLayerID.walletOfOwner(bob.address);
+    const rateToken = simpleERC20.address;
+    const rateAmount = 100;
+    const adminFeeAmount = 10;
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(bob).createProposal(13, rateToken, rateAmount, "cid");
+    
+
+    await simpleERC20.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, rateAmount + adminFeeAmount); 
+
+
+    await talentLayerMultipleArbitrableTransaction.connect(alice).createTransaction(
+      3600*24*7,
+      '_metaEvidence',
+      carol.address,
+      adminFeeAmount,
+      13,
+      bobTid, 
+      {'value': rateAmount + adminFeeAmount}
+    )
+
+    const proposalDataAfter = await jobRegistry.getProposal(13, bobTid)
+    const jobDataAfter = await jobRegistry.getJob(13)
+    expect(proposalDataAfter.status.toString()).to.be.equal("1")
+    expect(jobDataAfter.status.toString()).to.be.equal("1")
+    expect(jobDataAfter.transactionId.toString()).to.be.equal("1")
   });
 });

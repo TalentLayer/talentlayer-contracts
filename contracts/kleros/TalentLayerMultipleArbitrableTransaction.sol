@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
 
-
 import "hardhat/console.sol";
 
 contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
@@ -63,6 +62,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
     address jobRegistryAddress;
     address talentLayerIDAddress;
+    JobRegistry jobRegistry;
 
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
@@ -146,6 +146,13 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         return IJobRegistry(jobRegistryAddress).getJob(_jobId);
     }
 
+    struct JobRegistry{
+        IJobRegistry.Proposal proposal;
+        IJobRegistry.Job job;
+        address payable sender;
+        address payable receiver;
+    }
+
     function createTransaction(
         uint _timeoutPayment,
         string memory _metaEvidence,
@@ -154,46 +161,47 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint256 _jobId,
         uint256 _proposalId
     ) public payable returns (uint transactionID) {
-        IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
-        IJobRegistry.Job memory job = getJob(_jobId);
+        /*JobRegistry memory proposal = getProposal(_jobId, _proposalId);
+        JobRegistry memory job = getJob(_jobId);
+        address payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
+        address payable receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId));
+*/
+        jobRegistry.proposal = getProposal(_jobId, _proposalId);
+        jobRegistry.job = getJob(_jobId);
+        jobRegistry.sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(jobRegistry.job.employerId));
+        jobRegistry.receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(jobRegistry.proposal.employeeId));
 
-        address memory payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
-        address memory payable receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId));
-
-        require(sender != receiver, "Sender and receiver must be different");
-        require(msg.sender == sender, "Sender must be the owner of the job");
+        require(jobRegistry.sender != jobRegistry.receiver, "Sender and receiver must be different");
+        require(msg.sender == jobRegistry.sender, "Sender must be the owner of the job");
         
 
-        if(proposal.rateToken != address(0)){ 
-            //erc20 specific
-            IERC20 token = IERC20(proposal.rateToken);
-             // Transfers token from sender wallet to contract. Permit before transfer
+        if(jobRegistry.proposal.rateToken != address(0)){ 
 
+            IERC20 token = IERC20(jobRegistry.proposal.rateToken);
+             // Transfers token from sender wallet to contract. Permit before transfer
             require(
-                 token.transferFrom(sender, address(this), proposal.rateAmount), //change _amount to proposal.rateAmount when proposal is fixed
+                 token.transferFrom(jobRegistry.sender, address(this), jobRegistry.proposal.rateAmount), 
                  "Sender does not have enough approved funds."
             );
         }
 
         require(
-            proposal.rateAmount + _adminFeeAmount == msg.value,
+            jobRegistry.proposal.rateAmount + _adminFeeAmount == msg.value,
             "Fees don't match with payed amount"
         );
-
-        WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = _initTransaction(sender, receiver);
         
-        _rawTransaction.amount = proposal.rateAmount;
-        _rawTransaction.timeoutPayment = _timeoutPayment;
+        WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
+        Transaction memory _rawTransaction = _initTransaction(jobRegistry.sender, jobRegistry.receiver, jobRegistry.proposal.rateAmount, _timeoutPayment);
         
         ExtendedTransaction memory _transaction = ExtendedTransaction({
-            token: proposal.rateToken,
+            token: jobRegistry.proposal.rateToken,
             _transaction: _rawTransaction,
             adminFee: _adminFee,
             jobId: _jobId
         });
         
         transactions.push(_transaction);
+
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
         
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactions.length - 1);
@@ -531,13 +539,15 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
 
     function _initTransaction(
         address payable _sender,
-        address payable _receiver
+        address payable _receiver,
+        uint256 _rateAmount,
+        uint _timeoutPayment
     ) private view returns (Transaction memory) {
         return Transaction({
             sender: _sender,
             receiver: _receiver,
-            amount: 0,
-            timeoutPayment: 0,
+            amount: _rateAmount,
+            timeoutPayment: _timeoutPayment,
             disputeId: 0,
             senderFee: 0,
             receiverFee: 0,
