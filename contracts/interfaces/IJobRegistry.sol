@@ -10,6 +10,12 @@ interface IJobRegistry {
         Opened
     }
     
+    enum ProposalStatus {
+        Pending,
+        Validated,
+        Rejected
+    }
+    
     struct Job {
         Status status;
         uint256 employerId;
@@ -21,10 +27,13 @@ interface IJobRegistry {
     }
 
     struct Proposal {
+        ProposalStatus status;
         uint256 employeeId;
         address rateToken;
         uint256 rateAmount;
+        string proposalDataUri;
     }
+
 
     function getJob(uint256 _jobId) external view returns (Job memory);
 
