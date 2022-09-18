@@ -14,14 +14,29 @@ https://www.talentlayer.org/
 ## Deployed on Kovan
 
 - TalentLayerId: 0x6A5BF452108DA389B7B38284E871f538671Ad375
-- JobRegistry: 0x24cEd045b50cF811862B1c33dC6B1fbC8358F521
+- JobRegistry: 0xF1F55da2bd610760A0Cbbd138Ad0B385ccB9b9f0
 - TalentLayerReview: 0x863751792aa2dab3554b08b5ba9b336b134ae3ed
 
 ## Deployed on Goerli
 
-- TalentLayerId: 0x9FDc1ade9D4a2518eC5C5c01f683E312d1970f3C
-- JobRegistry: 0x863751792aa2DAb3554b08B5ba9B336B134ae3ed
-- TalentLayerReview: 0x7A534501a6e63448EBC691f27B27B76d4F9b7E17
-- Mock ProofOfHumanity: 0x24cEd045b50cF811862B1c33dC6B1fbC8358F521
-- TalentLayerArbitrator: 0xe62C28709E4F19Bae592a716b891A9B76bf897E4
-- TalentLayerMultipleArbitrableTransaction: 0x481649C323D37d8Cd70C94b3557aFF3d5fa0b3C7
+- TalentLayerId: 0x7dBC788370F7A6479414b8831b3990B587f41195
+- JobRegistry: 0xC324C667D6f77f2B1D11E8BB1662f8Bdf1d0400c
+- TalentLayerReview: 0x281d8BC91ABEd65d1AC7581B0cE8fCE4B51e6713
+- Mock ProofOfHumanity: 0xF1F55da2bd610760A0Cbbd138Ad0B385ccB9b9f0
+- TalentLayerArbitrator: 0x448BDaa117ae85E0419C0d965EF639Edb770bE52
+- TalentLayerMultipleArbitrableTransaction: 0x6B3B0a38cf06F41Db60BED9912CA36F30133f99F
+
+## Playground
+
+- npx hardhat run scripts/playground/1-mint-ID.ts --network goerli
+- npx hardhat run scripts/playground/2-create-job.ts --network goerli
+- npx hardhat run scripts/playground/3-make-proposal.ts --network goerli
+- npx hardhat run scripts/playground/4-update-proposal.ts --network goerli
+- npx hardhat run scripts/playground/5-reject-proposal.ts --network goerli
+- npx hardhat run scripts/playground/6-accept-proposal.ts --network goerli
+- npx hardhat run scripts/playground/7-pay.ts --network goerli
+
+
+
+
+
