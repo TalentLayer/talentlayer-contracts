@@ -146,62 +146,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         return IJobRegistry(jobRegistryAddress).getJob(_jobId);
     }
 
-    /** @dev Create a ETH-based transaction.
-     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _metaEvidence Link to the meta-evidence.
-     *  @param _adminWallet Admin fee wallet.
-     *  @param _adminFeeAmount Admin fee amount.
-     *  @return transactionID The index of the transaction.
-     **/
-    function createETHTransaction(
-        uint _timeoutPayment,
-        string memory _metaEvidence,
-        address payable _adminWallet,
-        uint256 _adminFeeAmount,
-        uint256 _jobId,
-        uint256 _proposalId
-    ) public payable returns (uint transactionID) {
-        IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
-
-        IJobRegistry.Job memory job = getJob(_jobId);
-
-        address payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
-        address payable receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId));
-
-        require(sender != receiver, "Sender and receiver must be different");
-        require(msg.sender == sender, "Sender must be the owner of the job");
-
-        require(
-            proposal.rateAmount + _adminFeeAmount == msg.value,
-            "Fees or amounts don't match with payed amount."
-        );
-
-        //address(this).transfer(msg.value); Not needed
-
-        //uncomment when proposal is fixed
-        require(proposal.rateToken == address(0), "Token must be ETH");
-        
-        return createTransaction(
-            _timeoutPayment,
-            sender,
-            receiver,
-            _metaEvidence,
-            _adminWallet,
-            _adminFeeAmount,
-            _jobId,
-            _proposalId,
-            proposal
-        );
-    }
-
-   /** @dev Create a token-based transaction.
-     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _metaEvidence Link to the meta-evidence.
-     *  @param _adminWallet Admin fee wallet.
-     *  @param _adminFeeAmount Admin fee amount.
-     *  @return transactionID The index of the transaction.
-     **/
-    function createTokenTransaction(
+    function createTransaction(
         uint _timeoutPayment,
         string memory _metaEvidence,
         address payable _adminWallet,
@@ -217,22 +162,25 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
 
         require(sender != receiver, "Sender and receiver must be different");
         require(msg.sender == sender, "Sender must be the owner of the job");
-        require(proposal.rateToken != address(0), "Token must not be ETH");
+        
 
-        IERC20 token = IERC20(proposal.rateToken);
-        // Transfers token from sender wallet to contract. Permit before transfer
+        if(proposal.rateToken != address(0)){ 
+            //erc20 specific
+            IERC20 token = IERC20(proposal.rateToken);
+             // Transfers token from sender wallet to contract. Permit before transfer
 
-        require(
-            token.transferFrom(sender, address(this), proposal.rateAmount), //change _amount to proposal.rateAmount when proposal is fixed
-            "Sender does not have enough approved funds."
-        );
+            require(
+                 token.transferFrom(sender, address(this), proposal.rateAmount), //change _amount to proposal.rateAmount when proposal is fixed
+                 "Sender does not have enough approved funds."
+            );
+        }
 
         require(
             proposal.rateAmount + _adminFeeAmount == msg.value,
             "Fees don't match with payed amount"
         );
 
-        return createTransaction(
+        return _createTransaction(
             _timeoutPayment,
             sender,
             receiver,
@@ -245,7 +193,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         );
     }
 
-    function createTransaction(
+
+    function _createTransaction(
         uint _timeoutPayment,
         address payable _sender,
         address payable _receiver,
