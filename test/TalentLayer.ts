@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { Contract, ContractFactory } from "ethers";
-//import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 describe("TalentLayer", function () {
   let deployer: SignerWithAddress,
@@ -16,14 +15,14 @@ describe("TalentLayer", function () {
     TalentLayerMultipleArbitrableTransaction: ContractFactory,
     TalentLayerArbitrator: ContractFactory,
     MockProofOfHumanity: ContractFactory,
-    Token: ContractFactory,
+    SimpleERC20: ContractFactory,
     jobRegistry: Contract,
     talentLayerID: Contract,
     talentLayerReview: Contract,
     talentLayerMultipleArbitrableTransaction: Contract,
     talentLayerArbitrator: Contract,
     mockProofOfHumanity: Contract,
-    token: Contract;
+    simpleERC20: Contract;
 
   before(async function () {
     [deployer, alice, bob, carol, dave] = await ethers.getSigners();
@@ -67,9 +66,10 @@ describe("TalentLayer", function () {
       3600*24*30
     );
 
-    // Deploy ERC20 Token
-    //Token = await ethers.getContractFactory("ERC20");
-    //token = await Token.deploy("0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10");
+    // Deploy SimpleERC20 Token
+    SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
+    simpleERC20 = await SimpleERC20.deploy();
+    await simpleERC20.transfer(alice.address, 1000);
 
     // Grant escrow role 
     const escrowRole = await jobRegistry.ESCROW_ROLE()
@@ -367,9 +367,9 @@ describe("TalentLayer", function () {
     expect(escrowBalance).to.be.equal(rateAmount + adminFeeAmount)
   });
 
-  /*it("Alice can validate a proposal by sending Token funds to escrow", async function () {
+  it("Alice can validate a proposal by sending Token funds to escrow", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
+    const rateToken = simpleERC20;
     const rateAmount = 100;
     const adminFeeAmount = 10;
     await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
@@ -394,7 +394,7 @@ describe("TalentLayer", function () {
 
     const escrowBalance = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
     expect(escrowBalance).to.be.equal(rateAmount + adminFeeAmount)
-  });*/
+  });
 
   it("Alice can pay Bob, first 30%, then the remaining 70%", async function () {
     const bobBalanceStep0 = await ethers.provider.getBalance(bob.address)
