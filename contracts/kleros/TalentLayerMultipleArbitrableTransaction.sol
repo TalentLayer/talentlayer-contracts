@@ -157,8 +157,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         IJobRegistry.Proposal memory proposal = getProposal(_jobId, _proposalId);
         IJobRegistry.Job memory job = getJob(_jobId);
 
-        address payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
-        address payable receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId));
+        address memory payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
+        address memory payable receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId));
 
         require(sender != receiver, "Sender and receiver must be different");
         require(msg.sender == sender, "Sender must be the owner of the job");
@@ -180,33 +180,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             "Fees don't match with payed amount"
         );
 
-        return _createTransaction(
-            _timeoutPayment,
-            sender,
-            receiver,
-            _metaEvidence,
-            _adminWallet,
-            _adminFeeAmount,
-            _jobId,
-            _proposalId,
-            proposal
-        );
-    }
-
-
-    function _createTransaction(
-        uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
-        string memory _metaEvidence,
-        address payable _adminWallet,
-        uint _adminFeeAmount,
-        uint256 _jobId, 
-        uint256 _proposalId,
-        IJobRegistry.Proposal memory proposal
-    ) private returns (uint transactionID) {
         WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = _initTransaction(_sender, _receiver);
+        Transaction memory _rawTransaction = _initTransaction(sender, receiver);
         
         _rawTransaction.amount = proposal.rateAmount;
         _rawTransaction.timeoutPayment = _timeoutPayment;
@@ -225,6 +200,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         
         return transactions.length - 1;
     }
+
 
 
     /** @dev Pay receiver. To be called if the good or service is provided.
