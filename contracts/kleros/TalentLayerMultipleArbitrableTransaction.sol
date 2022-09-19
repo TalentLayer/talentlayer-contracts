@@ -164,7 +164,16 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         address payable sender;
         address payable receiver;
     }
-
+    
+    /** @dev Create a transaction.
+     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
+     *  @param _metaEvidence Link to the meta-evidence.
+     *  @param _adminWallet Admin fee wallet.
+     *  @param _adminFeeAmount Admin fee amount.
+     *  @param _jobId Job of transaction
+     *  @param _proposalId the proposal related to the transaction
+     *  @return transactionID The index of the transaction.
+     **/
     function createTransaction(
         uint _timeoutPayment,
         string memory _metaEvidence,
