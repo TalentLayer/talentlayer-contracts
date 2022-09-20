@@ -9,8 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
 
-import "hardhat/console.sol";
-
 contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
     // *    Contract variables    * //
@@ -181,12 +179,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
-    ) public payable returns (uint transactionID) {
-        /*JobRegistry memory proposal = getProposal(_jobId, _proposalId);
-        JobRegistry memory job = getJob(_jobId);
-        address payable sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId));
-        address payable receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId));
-*/
+    ) external payable returns (uint transactionID) {
         jobRegistry.proposal = getProposal(_jobId, _proposalId);
         jobRegistry.job = getJob(_jobId);
         jobRegistry.sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(jobRegistry.job.employerId));
