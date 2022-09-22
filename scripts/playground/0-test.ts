@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import talentLayerContractsAdresses from "../../talent.config_localhost.json";
+import { getConfig, Network, NetworkConfig } from "../config";
 
 async function main() {
   const [alice, bob, carol] = await ethers.getSigners();
@@ -7,12 +8,11 @@ async function main() {
 
   const tlID = await ethers.getContractAt(
     "TalentLayerID",
-    talentLayerContractsAdresses.talentLayerID
+    talentLayerContractsAdresses.TalentLayerID
   );
 
   console.log(
-    "eveything is working fine the TalentLayer Adress is",
-    talentLayerContractsAdresses.talentLayerID
+    `"on ${Network.LOCAL} network, the TalentLayerID contract is deployed at ${talentLayerContractsAdresses.TalentLayerID}"`
   );
 }
 

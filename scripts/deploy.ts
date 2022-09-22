@@ -62,11 +62,11 @@ task("deploy")
       }
       console.log("talentLayerID address:", talentLayerID.address);
 
-      remove(network.name as any as Network, ConfigProperty.talentLayerID);
+      remove(network.name as any as Network, ConfigProperty.TalentLayerID);
 
       set(
         network.name as any as Network,
-        ConfigProperty.talentLayerID,
+        ConfigProperty.TalentLayerID,
         talentLayerID.address
       );
 
