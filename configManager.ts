@@ -3,7 +3,7 @@ const fs = require("fs");
 
 export enum ConfigProperty {
   MockProofOfHumanity = "MockProofOfHumanity",
-  talentLayerID = "talentLayerID",
+  TalentLayerID = "TalentLayerID",
   JobRegistry = "JobRegistry",
   Reviewscontract = "Reviewscontract",
   TalentLayerArbitrator = "TalentLayerArbitrator",
