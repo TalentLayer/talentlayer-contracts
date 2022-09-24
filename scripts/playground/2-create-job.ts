@@ -6,6 +6,7 @@ const hre = require("hardhat");
 async function main() {
   const network = await hre.network.name;
   console.log(network);
+  console.log("Create job Test start");
 
   const [alice] = await ethers.getSigners();
   const jobRegistry = await ethers.getContractAt(

@@ -16,6 +16,17 @@ async function main() {
     subgraphNetwork.xdai.TalentLayerMultipleArbitrableTransaction.address =
       config.TalentLayerMultipleArbitrableTransaction;
   }
+  if (network == "goerli") {
+    subgraphNetwork.goerli.TalentLayerID.address = config.talentLayerIdAddress;
+    subgraphNetwork.goerli.TalentLayerReview.address =
+      config.talentLayerReviewAddress;
+    subgraphNetwork.goerli.JobRegistry.address = config.jobRegistryAddress;
+    subgraphNetwork.goerli.TalentLayerMultipleArbitrableTransaction.address =
+      config.TalentLayerMultipleArbitrableTransaction;
+    subgraphNetwork.goerli.proofOfHumanityAddress.address =
+      config.proofOfHumanityAddress;
+  }
+
   saveJSON(subgraphNetwork);
 }
 
