@@ -1,7 +1,8 @@
 {
-  "TalentLayerMultipleArbitrableTransaction": "0xE2B89f75D1e0946DAfC2Eb7E00C5aad0967D7dD7",
-  "TalentLayerID": "0x561E841EecBf144DE62dd3c195dD16511A5056A6",
-  "JobRegistry": "0xcf919848E542f8F64B9a8eA1AfB0C500F36D848c",
-  "Reviewscontract": "0x322c25E2E47f927fFfE83BaE4BBc9eEdeD781d5c",
-  "TalentLayerArbitrator": "0xF0753aD489EE0aC1A38F1FCDf7e2d380B7813c0e"
+  "proofOfHumanityAddress": "0xA463D7A8DBF8Ca2Ab9dC9D404Fb710527Ac3C3A7",
+  "talentLayerIdAddress": "0x48C45A025D154b40AffB41bc3bDEecb689edE7E6",
+  "jobRegistryAddress": "0x1eC0abD9539638FDb05EeD904Ca6F617BfBD6DCC",
+  "talentLayerReviewAddress": "0xdA1DA2364707Bdd242be34b9D8c2D8cf504B52f4",
+  "TalentLayerArbitrator": "0x5B5C32217dc6c13828F75221949fC6D1Bd6C6A08",
+  "TalentLayerMultipleArbitrableTransaction": "0xEa46171E156D3f578c97E98C62bB86Cf94CA101F"
 }

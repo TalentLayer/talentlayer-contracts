@@ -2,10 +2,10 @@ import { Network } from "./scripts/config";
 const fs = require("fs");
 
 export enum ConfigProperty {
-  MockProofOfHumanity = "MockProofOfHumanity",
-  TalentLayerID = "TalentLayerID",
-  JobRegistry = "JobRegistry",
-  Reviewscontract = "Reviewscontract",
+  MockProofOfHumanity = "proofOfHumanityAddress",
+  TalentLayerID = "talentLayerIdAddress",
+  JobRegistry = "jobRegistryAddress",
+  Reviewscontract = "talentLayerReviewAddress",
   TalentLayerArbitrator = "TalentLayerArbitrator",
   TalentLayerMultipleArbitrableTransaction = "TalentLayerMultipleArbitrableTransaction",
 }
@@ -23,6 +23,11 @@ const saveJSON = (network: Network, json = "") => {
 export const get = (network: Network, property: ConfigProperty) => {
   const obj = JSON.parse(loadJSON(network));
   return obj[property] || "Not found";
+};
+
+export const getConfig = (network: any) => {
+  const obj = JSON.parse(loadJSON(network));
+  return obj || "Not found";
 };
 
 export const set = (

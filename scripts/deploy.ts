@@ -1,7 +1,7 @@
 import { formatEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
 import { getConfig, Network, NetworkConfig } from "./config";
-import { set, ConfigProperty, remove } from "../configManager";
+import { set, ConfigProperty } from "../configManager";
 
 // npx hardhat deploy --use-pohmock --verify --network goerli
 task("deploy")
@@ -45,8 +45,18 @@ task("deploy")
           mockProofOfHumanity.address
         );
         pohAddress = mockProofOfHumanity.address;
+        set(
+          network.name as any as Network,
+          ConfigProperty.MockProofOfHumanity,
+          pohAddress
+        );
       } else {
         pohAddress = networkConfig.proofOfHumanityAddress;
+        set(
+          network.name as any as Network,
+          ConfigProperty.MockProofOfHumanity,
+          pohAddress
+        );
       }
 
       // Deploy ID contract
@@ -61,8 +71,6 @@ task("deploy")
         });
       }
       console.log("talentLayerID address:", talentLayerID.address);
-
-      remove(network.name as any as Network, ConfigProperty.TalentLayerID);
 
       set(
         network.name as any as Network,
@@ -83,7 +91,6 @@ task("deploy")
       }
       console.log("Job Registry address:", jobRegistry.address);
 
-      remove(network.name as any as Network, ConfigProperty.JobRegistry);
       set(
         network.name as any as Network,
         ConfigProperty.JobRegistry,
@@ -112,8 +119,6 @@ task("deploy")
       }
       console.log("Reviews contract address:", talentLayerReview.address);
 
-      remove(network.name as any as Network, ConfigProperty.Reviewscontract);
-
       set(
         network.name as any as Network,
         ConfigProperty.Reviewscontract,
@@ -140,10 +145,6 @@ task("deploy")
         talentLayerArbitrator.address
       );
 
-      remove(
-        network.name as any as Network,
-        ConfigProperty.TalentLayerArbitrator
-      );
       set(
         network.name as any as Network,
         ConfigProperty.TalentLayerArbitrator,

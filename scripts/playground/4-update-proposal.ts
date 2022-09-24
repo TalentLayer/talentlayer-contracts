@@ -1,11 +1,17 @@
 import { ethers } from "hardhat";
+import { get, ConfigProperty } from "../../configManager";
+import { Network } from "../config";
+const hre = require("hardhat");
 
 // Then Alice create a job, and others add proposals
 async function main() {
+  const network = await hre.network.name;
+  console.log(network);
+
   const [alice, bob, carol, dave] = await ethers.getSigners();
   const jobRegistry = await ethers.getContractAt(
     "JobRegistry",
-    "0x1eC0abD9539638FDb05EeD904Ca6F617BfBD6DCC"
+    get(network as Network, ConfigProperty.JobRegistry)
   );
 
   let jobId = await jobRegistry.nextJobId();
