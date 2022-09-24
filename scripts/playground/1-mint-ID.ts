@@ -6,6 +6,7 @@ const hre = require("hardhat");
 async function main() {
   const network = await hre.network.name;
   console.log(network);
+  console.log("Mint test ID start");
 
   const [alice, bob, carol] = await ethers.getSigners();
   console.log({ alice: alice.address, bob: bob.address, carol: carol.address });
