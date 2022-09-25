@@ -2,6 +2,7 @@ import { formatEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
 import { getConfig, Network, NetworkConfig } from "./config";
 import { set, ConfigProperty } from "../configManager";
+import { Arbitrator } from "../typechain-types";
 
 // npx hardhat deploy --use-pohmock --verify --network goerli
 task("deploy")
@@ -90,7 +91,6 @@ task("deploy")
         });
       }
       console.log("Job Registry address:", jobRegistry.address);
-
       set(
         network.name as any as Network,
         ConfigProperty.JobRegistry,
@@ -163,6 +163,7 @@ task("deploy")
         number
       ] = [
         jobRegistry.address,
+        talentLayerID.address,
         talentLayerArbitrator.address,
         [],
         3600 * 24 * 30,
@@ -190,7 +191,7 @@ task("deploy")
         ConfigProperty.TalentLayerMultipleArbitrableTransaction,
         talentLayerMultipleArbitrableTransaction.address
       );
-
+      
       // Grant escrow role
       const escrowRole = await jobRegistry.ESCROW_ROLE();
       await jobRegistry.grantRole(

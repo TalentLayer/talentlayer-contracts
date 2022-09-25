@@ -457,13 +457,6 @@ contract JobRegistry is AccessControl {
     function afterFullPayment(uint256 _jobId) external onlyRole(ESCROW_ROLE) {
         Job storage job = jobs[_jobId];
         job.status = Status.Finished;
-
-        emit JobFinished(
-            _jobId,
-            job.employerId,
-            job.employeeId,
-            job.jobDataUri
-        );
     }
 
     /**
