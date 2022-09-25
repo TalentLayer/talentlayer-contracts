@@ -7,6 +7,8 @@ import "../interfaces/IJobRegistry.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
+
 contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
     // *    Contract variables    * //
@@ -34,8 +36,6 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     }
 
     struct Transaction {
-        uint256 jobId; 
-        uint256 proposalId; 
         address payable sender;
         address payable receiver;
         uint amount;
@@ -51,6 +51,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         address token;
         Transaction _transaction;
         WalletFee adminFee;
+        uint256 jobId;
     }
 
     ExtendedTransaction[] public transactions;
@@ -58,6 +59,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     uint public feeTimeout; // Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
     address jobRegistryAddress;
+    address talentLayerIDAddress;
+    JobRegistry jobRegistry;
 
     mapping(uint256 => uint256) public disputeIDtoTransactionID; // One-to-one relationship between the dispute and the transaction.
 
@@ -110,6 +113,10 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         uint256 transactionId
     );
 
+    /// @notice Emitted after a job is finished
+    /// @param _jobId The job ID
+    event PaymentCompleted(uint256 _jobId);
+
     // **************************** //
     // *    Arbitrable functions  * //
     // *    Modifying the state   * //
@@ -122,11 +129,13 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
      */
     constructor(
         address _jobRegistryAddress,
+        address _talentLayerIDAddress,
         Arbitrator _arbitrator, 
         bytes memory _arbitratorExtraData,
         uint _feeTimeout
     ) {
         setJobRegistryAddress(_jobRegistryAddress);
+        setTalentLayerIDAddress(_talentLayerIDAddress);
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
@@ -135,124 +144,80 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     /** @dev Allows changing the contract address to JobRegistry.sol
      *  @param _jobRegistryAddress The new contract address.
      */
-    function setJobRegistryAddress(address _jobRegistryAddress) public {
+    function setJobRegistryAddress(address _jobRegistryAddress) internal {
         jobRegistryAddress = _jobRegistryAddress;
     }
 
-    /** @dev Create a ETH-based transaction.
+    function setTalentLayerIDAddress(address _talentLayerIDAddress) internal {
+        talentLayerIDAddress = _talentLayerIDAddress;
+    }
+
+    function getProposal(uint256 _jobId, uint256 _proposalId) private view returns (IJobRegistry.Proposal memory){
+        return IJobRegistry(jobRegistryAddress).getProposal(_jobId, _proposalId);
+    }
+
+    function getJob(uint256 _jobId) private view returns (IJobRegistry.Job memory){
+        return IJobRegistry(jobRegistryAddress).getJob(_jobId);
+    }
+
+    struct JobRegistry{
+        IJobRegistry.Proposal proposal;
+        IJobRegistry.Job job;
+        address payable sender;
+        address payable receiver;
+    }
+    
+    /** @dev Create a transaction.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _sender The recipient of the transaction.
-     *  @param _receiver The recipient of the transaction.
      *  @param _metaEvidence Link to the meta-evidence.
      *  @param _adminWallet Admin fee wallet.
      *  @param _adminFeeAmount Admin fee amount.
+     *  @param _jobId Job of transaction
+     *  @param _proposalId the proposal related to the transaction
      *  @return transactionID The index of the transaction.
      **/
-    function createETHTransaction(
-        uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
-        string memory _metaEvidence,
-        uint256 _amount,
-        address payable _adminWallet,
-        uint _adminFeeAmount,
-        uint256 _jobId,
-        uint256 _proposalId
-    ) public payable returns (uint transactionID) {
-        require(
-            _amount + _adminFeeAmount == msg.value,
-            "Fees or amounts don't match with payed amount."
-        );
-        //address(this).transfer(msg.value); Need to look up
-
-        return createTransaction(
-            _timeoutPayment,
-            _sender,
-            _receiver,
-            _metaEvidence,
-            _amount,
-            address(0),
-            _adminWallet,
-            _adminFeeAmount,
-            _jobId,
-            _proposalId
-        );
-    }
-
-   /** @dev Create a token-based transaction.
-     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
-     *  @param _sender The recipient of the transaction.
-     *  @param _receiver The recipient of the transaction.
-     *  @param _metaEvidence Link to the meta-evidence.
-     *  @param _tokenAddress Address of token used for transaction.
-     *  @param _adminWallet Admin fee wallet.
-     *  @param _adminFeeAmount Admin fee amount.
-     *  @return transactionID The index of the transaction.
-     **/
-    function createTokenTransaction(
-        uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
-        string memory _metaEvidence,
-        uint256 _amount,
-        address _tokenAddress,
-        address payable _adminWallet,
-        uint _adminFeeAmount,
-        uint256 _jobId,
-        uint256 _proposalId
-    ) public payable returns (uint transactionID) {
-        IERC20 token = IERC20(_tokenAddress);
-        // Transfers token from sender wallet to contract. Permit before transfer
-        require(
-            token.transferFrom(msg.sender, address(this), _amount),
-            "Sender does not have enough approved funds."
-        );
-        require(
-            _adminFeeAmount + _adminFeeAmount == msg.value,
-            "Fees don't match with payed amount"
-        );
-
-        return createTransaction(
-            _timeoutPayment,
-            _sender,
-            _receiver,
-            _metaEvidence,
-            _amount,
-            _tokenAddress,
-            _adminWallet,
-            _adminFeeAmount,
-            _jobId,
-            _proposalId
-        );
-    }
-
     function createTransaction(
         uint _timeoutPayment,
-        address payable _sender,
-        address payable _receiver,
         string memory _metaEvidence,
-        uint256 _amount,
-        address _tokenAddress,
         address payable _adminWallet,
         uint _adminFeeAmount,
-        uint256 _jobId, 
+        uint256 _jobId,
         uint256 _proposalId
-    ) private returns (uint transactionID) {
+    ) external payable returns (uint transactionID) {
+        jobRegistry.proposal = getProposal(_jobId, _proposalId);
+        jobRegistry.job = getJob(_jobId);
+        jobRegistry.sender = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(jobRegistry.job.employerId));
+        jobRegistry.receiver = payable(ITalentLayerID(talentLayerIDAddress).ownerOf(jobRegistry.proposal.employeeId));
+        
+        require(jobRegistry.sender != jobRegistry.receiver, "Sender and receiver must be different");
+        require(msg.sender == jobRegistry.sender, "Sender must be the owner of the job");
+
+        if(jobRegistry.proposal.rateToken != address(0)){ 
+            IERC20 token = IERC20(jobRegistry.proposal.rateToken);
+             // Transfers token from sender wallet to contract. Permit before transfer
+            require(
+                 token.transferFrom(jobRegistry.sender, address(this), jobRegistry.proposal.rateAmount), 
+                 "Sender does not have enough approved funds."
+            );
+        }
+
+        require(
+            jobRegistry.proposal.rateAmount + _adminFeeAmount == msg.value,
+            "Fees don't match with payed amount"
+        );
+        
         WalletFee memory _adminFee = WalletFee(_adminWallet, _adminFeeAmount);
-        Transaction memory _rawTransaction = _initTransaction(_jobId,_proposalId,_sender, _receiver);
-
-        _rawTransaction.amount = _amount;
-        _rawTransaction.timeoutPayment = _timeoutPayment;
-
+        Transaction memory _rawTransaction = _initTransaction(jobRegistry.sender, jobRegistry.receiver, jobRegistry.proposal.rateAmount, _timeoutPayment);
+        
         ExtendedTransaction memory _transaction = ExtendedTransaction({
-            token: _tokenAddress,
+            token: jobRegistry.proposal.rateToken,
             _transaction: _rawTransaction,
-            adminFee: _adminFee
+            adminFee: _adminFee,
+            jobId: _jobId
         });
-
+        
         transactions.push(_transaction);
         emit MetaEvidence(transactions.length - 1, _metaEvidence);
-
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactions.length - 1);
 
         emit JobProposalConfirmedWithDeposit(
@@ -262,9 +227,9 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             transactions.length - 1
         );
 
+
         return transactions.length - 1;
     }
-
 
     /** @dev Pay receiver. To be called if the good or service is provided.
      *  @param _transactionID The index of the transaction.
@@ -295,8 +260,12 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             true
         );
 
-        if(transaction._transaction.amount == 0){
-            IJobRegistry(jobRegistryAddress).afterFullPayment(transaction._transaction.jobId);
+        if (transaction._transaction.amount == 0) {
+            IJobRegistry(jobRegistryAddress).afterFullPayment(
+                transaction._transaction.jobId
+            );
+
+            emit PaymentCompleted(transaction._transaction.jobId);
         }
     }
 
@@ -336,7 +305,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     function executeTransaction(uint _transactionID) public {
         ExtendedTransaction storage transaction = transactions[_transactionID];
         require(
-            block.timestamp - transaction._transaction.lastInteraction >= transaction._transaction.timeoutPayment,
+            block.timestamp - transaction._transaction.lastInteraction >=
+                transaction._transaction.timeoutPayment,
             "The timeout has not passed yet."
         );
         require(
@@ -366,7 +336,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             "The transaction is not waiting on the receiver."
         );
         require(
-            block.timestamp - transaction._transaction.lastInteraction >= feeTimeout,
+            block.timestamp - transaction._transaction.lastInteraction >=
+                feeTimeout,
             "Timeout time has not passed yet."
         );
 
@@ -387,7 +358,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             "The transaction is not waiting on the sender."
         );
         require(
-            block.timestamp - transaction._transaction.lastInteraction >= feeTimeout,
+            block.timestamp - transaction._transaction.lastInteraction >=
+                feeTimeout,
             "Timeout time has not passed yet."
         );
 
@@ -478,8 +450,12 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     function raiseDispute(uint _transactionID, uint _arbitrationCost) internal {
         ExtendedTransaction storage transaction = transactions[_transactionID];
         transaction._transaction.status = Status.DisputeCreated;
-        transaction._transaction.disputeId = arbitrator.createDispute{value: _arbitrationCost}(AMOUNT_OF_CHOICES, arbitratorExtraData);
-        disputeIDtoTransactionID[transaction._transaction.disputeId] = _transactionID;
+        transaction._transaction.disputeId = arbitrator.createDispute{
+            value: _arbitrationCost
+        }(AMOUNT_OF_CHOICES, arbitratorExtraData);
+        disputeIDtoTransactionID[
+            transaction._transaction.disputeId
+        ] = _transactionID;
         emit Dispute(
             arbitrator,
             transaction._transaction.disputeId,
@@ -489,14 +465,16 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
 
         // Refund sender if it overpaid.
         if (transaction._transaction.senderFee > _arbitrationCost) {
-            uint extraFeeSender = transaction._transaction.senderFee - _arbitrationCost;
+            uint extraFeeSender = transaction._transaction.senderFee -
+                _arbitrationCost;
             transaction._transaction.senderFee = _arbitrationCost;
             transaction._transaction.sender.transfer(extraFeeSender);
         }
 
         // Refund receiver if it overpaid.
         if (transaction._transaction.receiverFee > _arbitrationCost) {
-            uint extraFeeReceiver = transaction._transaction.receiverFee - _arbitrationCost;
+            uint extraFeeReceiver = transaction._transaction.receiverFee -
+                _arbitrationCost;
             transaction._transaction.receiverFee = _arbitrationCost;
             transaction._transaction.receiver.transfer(extraFeeReceiver);
         }
@@ -531,7 +509,10 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     function appeal(uint _transactionID) public payable {
         ExtendedTransaction storage transaction = transactions[_transactionID];
 
-        arbitrator.appeal{value: msg.value}(transaction._transaction.disputeId, arbitratorExtraData);
+        arbitrator.appeal{value: msg.value}(
+            transaction._transaction.disputeId,
+            arbitratorExtraData
+        );
     }
 
     /** @dev Give a ruling for a dispute. Must be called by the arbitrator.
@@ -567,16 +548,20 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         // Give the arbitration fee back.
         // Note that we use send to prevent a party from blocking the execution.
         if (_ruling == SENDER_WINS) {
-            transaction._transaction.sender.transfer(transaction._transaction.senderFee + transaction._transaction.amount);
+            transaction._transaction.sender.transfer(
+                transaction._transaction.senderFee +
+                    transaction._transaction.amount
+            );
             performTransactionFee(transaction, "reimburse");
         } else if (_ruling == RECEIVER_WINS) {
             transaction._transaction.receiver.transfer(
-                transaction._transaction.receiverFee + transaction._transaction.amount
+                transaction._transaction.receiverFee +
+                    transaction._transaction.amount
             );
             performTransactionFee(transaction, "pay");
         } else {
-            uint split_amount = (transaction._transaction.senderFee + transaction._transaction.amount) /
-                2;
+            uint split_amount = (transaction._transaction.senderFee +
+                transaction._transaction.amount) / 2;
             transaction._transaction.sender.transfer(split_amount);
             transaction._transaction.receiver.transfer(split_amount);
             performTransactionFee(transaction, "reimburse");
@@ -593,18 +578,16 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
 
     function _initTransaction(
-        uint256 _jobId,
-        uint256 _proposalId,
         address payable _sender,
-        address payable _receiver
+        address payable _receiver,
+        uint256 _rateAmount,
+        uint _timeoutPayment
     ) private view returns (Transaction memory) {
         return Transaction({
-            jobId: _jobId,
-            proposalId: _proposalId,
             sender: _sender,
             receiver: _receiver,
-            amount: 0,
-            timeoutPayment: 0,
+            amount: _rateAmount,
+            timeoutPayment: _timeoutPayment,
             disputeId: 0,
             senderFee: 0,
             receiverFee: 0,
@@ -621,7 +604,6 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         bool isToken,
         string memory feeMode,
         bool emitPayment
-
     ) private {
         ExtendedTransaction storage transaction = transactions[_transactionID];
         if (isToken) {
@@ -634,7 +616,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         }
         transaction._transaction.amount = finalAmount;
 
-        // TODO: we should be done only one time 
+        // TODO: we should be done only one time
         // performTransactionFee(transaction, feeMode);
 
         if (emitPayment) {
@@ -642,8 +624,10 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         }
     }
 
-
-    function performTransactionFee(ExtendedTransaction memory transaction, string memory mode) private {
+    function performTransactionFee(
+        ExtendedTransaction memory transaction,
+        string memory mode
+    ) private {
         if (compareStrings(mode, "pay")) {
             transaction.adminFee.wallet.transfer(transaction.adminFee.fee);
         } else {
@@ -651,10 +635,14 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         }
     }
 
-    function compareStrings(string memory a, string memory b) private pure returns (bool) {
-        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    function compareStrings(string memory a, string memory b)
+        private
+        pure
+        returns (bool)
+    {
+        return (keccak256(abi.encodePacked((a))) ==
+            keccak256(abi.encodePacked((b))));
     }
-
 
     // **************************** //
     // *     Constant getters     * //
@@ -663,7 +651,11 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     /** @dev Getter to know the count of transactions.
      *  @return countTransactions The count of transactions.
      */
-    function getCountTransactions() public view returns (uint256 countTransactions){
+    function getCountTransactions()
+        public
+        view
+        returns (uint256 countTransactions)
+    {
         return transactions.length;
     }
 
@@ -673,7 +665,11 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
      *  @param _address The specified address.
      *  @return transactionIDs The transaction IDs.
      */
-    function getTransactionIDsByAddress(address _address) public view returns (uint256[] memory transactionIDs) {
+    function getTransactionIDsByAddress(address _address)
+        public
+        view
+        returns (uint256[] memory transactionIDs)
+    {
         uint256 count = 0;
         for (uint256 i = 0; i < transactions.length; i++) {
             if (
