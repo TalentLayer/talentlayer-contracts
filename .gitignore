@@ -4,6 +4,7 @@ coverage
 coverage.json
 typechain
 typechain-types
+msc.config_localhost.json
 
 #Hardhat files
 cache

@@ -1,11 +1,19 @@
 import { ethers } from "hardhat";
+import { get, ConfigProperty } from "../../configManager";
+import { Network } from "../config";
+const hre = require("hardhat");
 
 async function main() {
+  const network = await hre.network.name;
+  console.log(network);
+  console.log("Mint test ID start");
+
   const [alice, bob, carol] = await ethers.getSigners();
   console.log({ alice: alice.address, bob: bob.address, carol: carol.address });
+
   const tlID = await ethers.getContractAt(
     "TalentLayerID",
-    "0x48C45A025D154b40AffB41bc3bDEecb689edE7E6"
+    get(network as Network, ConfigProperty.TalentLayerID)
   );
 
   await tlID.connect(alice).mint("alice.lens");
