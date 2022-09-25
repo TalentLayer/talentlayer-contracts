@@ -172,7 +172,7 @@ contract JobRegistry is AccessControl {
     mapping(uint256 => Job) public jobs;
 
     /// @notice proposals mappings index by job ID and employee TID
-    mapping(uint256 => mapping (uint256 => Proposal)) public proposals;
+    mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     // @notice
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
@@ -196,7 +196,11 @@ contract JobRegistry is AccessControl {
         return jobs[_jobId];
     }
 
-    function getProposal(uint256 _jobId, uint256 _proposalId) external view returns (Proposal memory) {
+    function getProposal(uint256 _jobId, uint256 _proposalId)
+        external
+        view
+        returns (Proposal memory)
+    {
         return proposals[_jobId][_proposalId];
     }
 
@@ -432,10 +436,14 @@ contract JobRegistry is AccessControl {
      * @param _proposalId The choosed proposal id for this job
      * @param _transactionId The escrow transaction Id
      */
-    function afterDeposit(uint256 _jobId, uint256 _proposalId, uint256 _transactionId) external onlyRole(ESCROW_ROLE) {
+    function afterDeposit(
+        uint256 _jobId,
+        uint256 _proposalId,
+        uint256 _transactionId
+    ) external onlyRole(ESCROW_ROLE) {
         Job storage job = jobs[_jobId];
         Proposal storage proposal = proposals[_jobId][_proposalId];
-         
+
         job.status = Status.Confirmed;
         job.employeeId = proposal.employeeId;
         job.transactionId = _transactionId;
@@ -449,13 +457,6 @@ contract JobRegistry is AccessControl {
     function afterFullPayment(uint256 _jobId) external onlyRole(ESCROW_ROLE) {
         Job storage job = jobs[_jobId];
         job.status = Status.Finished;
-
-        emit JobFinished(
-            _jobId,
-            job.employerId,
-            job.employeeId,
-            job.jobDataUri
-        );
     }
 
     /**
