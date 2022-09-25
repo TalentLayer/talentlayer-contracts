@@ -36,7 +36,10 @@ https://www.talentlayer.org/
 - npx hardhat run scripts/playground/6-accept-proposal.ts --network goerli
 - npx hardhat run scripts/playground/7-pay.ts --network goerli
 
-
-
-
-
+- npx hardhat run scripts/playground/1-mint-ID.ts --network localhost
+- npx hardhat run scripts/playground/2-create-job.ts --network localhost
+- npx hardhat run scripts/playground/3-make-proposal.ts --network localhost
+- npx hardhat run scripts/playground/4-update-proposal.ts --network localhost
+- npx hardhat run scripts/playground/5-reject-proposal.ts --network localhost
+- npx hardhat run scripts/playground/6-accept-proposal.ts --network localhost
+- npx hardhat run scripts/playground/7-pay.ts --network localhost
