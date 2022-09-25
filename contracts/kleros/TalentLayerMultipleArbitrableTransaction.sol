@@ -123,6 +123,8 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
     // **************************** //
 
     /** @dev Constructor.
+     *  @param _jobRegistryAddress Address of the jobRegistry.
+     *  @param _talentLayerIDAddress Address of the talentLayerId contract.
      *  @param _arbitrator The arbitrator of the contract.
      *  @param _arbitratorExtraData Extra data for the arbitrator.
      *  @param _feeTimeout Arbitration fee timeout for the parties.
@@ -227,7 +229,6 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
             transactions.length - 1
         );
 
-
         return transactions.length - 1;
     }
 
@@ -262,10 +263,10 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
 
         if (transaction._transaction.amount == 0) {
             IJobRegistry(jobRegistryAddress).afterFullPayment(
-                transaction._transaction.jobId
+                transaction.jobId
             );
 
-            emit PaymentCompleted(transaction._transaction.jobId);
+            emit PaymentCompleted(transaction.jobId);
         }
     }
 
