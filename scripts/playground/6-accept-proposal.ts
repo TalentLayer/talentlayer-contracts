@@ -1,17 +1,25 @@
 import { ethers } from "hardhat";
+import { get, ConfigProperty } from "../../configManager";
+import { Network } from "../config";
+const hre = require("hardhat");
 
 // Alice accept the Carol proposal
 async function main() {
-  const [alice, bob, carol, dave] = await ethers.getSigners();
+  const network = await hre.network.name;
+  console.log(network);
 
+  const [alice, bob, carol, dave] = await ethers.getSigners();
   const jobRegistry = await ethers.getContractAt(
     "JobRegistry",
-    "0x1eC0abD9539638FDb05EeD904Ca6F617BfBD6DCC"
+    get(network as Network, ConfigProperty.JobRegistry)
   );
 
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
     "TalentLayerMultipleArbitrableTransaction",
-    "0x7f606e9868283A46c050515eD70ac13B46dB845b"
+    get(
+      network as Network,
+      ConfigProperty.TalentLayerMultipleArbitrableTransaction
+    )
   );
   const rateToken = "0x0000000000000000000000000000000000000000";
   const rateAmount = 100;

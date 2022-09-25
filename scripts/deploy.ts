@@ -1,7 +1,8 @@
 import { formatEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
-import { Arbitrator } from "../typechain-types";
 import { getConfig, Network, NetworkConfig } from "./config";
+import { set, ConfigProperty } from "../configManager";
+import { Arbitrator } from "../typechain-types";
 
 // npx hardhat deploy --use-pohmock --verify --network goerli
 task("deploy")
@@ -45,8 +46,18 @@ task("deploy")
           mockProofOfHumanity.address
         );
         pohAddress = mockProofOfHumanity.address;
+        set(
+          network.name as any as Network,
+          ConfigProperty.MockProofOfHumanity,
+          pohAddress
+        );
       } else {
         pohAddress = networkConfig.proofOfHumanityAddress;
+        set(
+          network.name as any as Network,
+          ConfigProperty.MockProofOfHumanity,
+          pohAddress
+        );
       }
 
       // Deploy ID contract
@@ -62,6 +73,12 @@ task("deploy")
       }
       console.log("talentLayerID address:", talentLayerID.address);
 
+      set(
+        network.name as any as Network,
+        ConfigProperty.TalentLayerID,
+        talentLayerID.address
+      );
+
       // Deploy Job Registry Contract
       const JobRegistry = await ethers.getContractFactory("JobRegistry");
       const jobRegistryArgs: [string] = [talentLayerID.address];
@@ -74,6 +91,11 @@ task("deploy")
         });
       }
       console.log("Job Registry address:", jobRegistry.address);
+      set(
+        network.name as any as Network,
+        ConfigProperty.JobRegistry,
+        jobRegistry.address
+      );
 
       // Deploy Review contract
       const TalentLayerReview = await ethers.getContractFactory(
@@ -97,6 +119,12 @@ task("deploy")
       }
       console.log("Reviews contract address:", talentLayerReview.address);
 
+      set(
+        network.name as any as Network,
+        ConfigProperty.Reviewscontract,
+        talentLayerReview.address
+      );
+
       // Deploy TalentLayerArbitrator
       const TalentLayerArbitrator = await ethers.getContractFactory(
         "TalentLayerArbitrator"
@@ -117,13 +145,18 @@ task("deploy")
         talentLayerArbitrator.address
       );
 
+      set(
+        network.name as any as Network,
+        ConfigProperty.TalentLayerArbitrator,
+        talentLayerArbitrator.address
+      );
+
       // Deploy TalentLayerMultipleArbitrableTransaction
       const TalentLayerMultipleArbitrableTransaction =
         await ethers.getContractFactory(
           "TalentLayerMultipleArbitrableTransaction"
         );
       const talentLayerMultipleArbitrableTransactionArgs: [
-        string,
         string,
         string,
         any,
@@ -153,6 +186,12 @@ task("deploy")
         talentLayerMultipleArbitrableTransaction.address
       );
 
+      set(
+        network.name as any as Network,
+        ConfigProperty.TalentLayerMultipleArbitrableTransaction,
+        talentLayerMultipleArbitrableTransaction.address
+      );
+      
       // Grant escrow role
       const escrowRole = await jobRegistry.ESCROW_ROLE();
       await jobRegistry.grantRole(

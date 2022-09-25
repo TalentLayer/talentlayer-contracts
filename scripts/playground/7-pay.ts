@@ -1,16 +1,24 @@
 import { ethers } from "hardhat";
+import { get, ConfigProperty } from "../../configManager";
+import { Network } from "../config";
+const hre = require("hardhat");
 
 // Then Alice create a job, and others add proposals
 async function main() {
-  const [alice] = await ethers.getSigners();
+  const network = await hre.network.name;
+  console.log(network);
 
+  const [alice] = await ethers.getSigners();
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
     "TalentLayerMultipleArbitrableTransaction",
-    "0x45E8F869Fd316741A9316f39bF09AD03Df88496f"
+    get(
+      network as Network,
+      ConfigProperty.TalentLayerMultipleArbitrableTransaction
+    )
   );
 
-  await talentLayerMultipleArbitrableTransaction.connect(alice).pay(0, 30)
-  await talentLayerMultipleArbitrableTransaction.connect(alice).pay(0, 70)
+  await talentLayerMultipleArbitrableTransaction.connect(alice).pay(0, 30);
+  await talentLayerMultipleArbitrableTransaction.connect(alice).pay(0, 70);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

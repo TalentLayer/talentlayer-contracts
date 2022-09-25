@@ -6,16 +6,18 @@ const hre = require("hardhat");
 async function main() {
   const network = await hre.network.name;
   console.log(network);
-  console.log("Create job Test start");
 
-  const [alice] = await ethers.getSigners();
-  const jobRegistry = await ethers.getContractAt(
-    "JobRegistry",
-    get(network as Network, ConfigProperty.JobRegistry)
+  const [alice, bob, carol] = await ethers.getSigners();
+  console.log({ alice: alice.address, bob: bob.address, carol: carol.address });
+
+  const tlID = await ethers.getContractAt(
+    "TalentLayerID",
+    get(network as Network, ConfigProperty.TalentLayerID)
   );
 
-  await jobRegistry.connect(alice).createOpenJobFromEmployer("ipfs://ssss");
-  console.log("Open Job created");
+  console.log(
+    `"on ${network} network, the TalentLayerID contract is deployed at ${tlID.address}"`
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
