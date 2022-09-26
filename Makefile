@@ -19,13 +19,16 @@ copy-configuration:
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 else
 copy-configuration: 
-	cp talent.config_localhost.json ../talentlayer-id-subgraph/talent.config.localhost.json
-	cp talent.config_localhost.json ../talentlayer-id-dapp/talent.config.localhost.json
+	cp "$(CONTRACTS_FOLDER)/talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)/src/autoconfig/talent.config_$(DEPLOY_NETWORK).json"
+	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 endif
+
+
 
 
 #--------------PLAYGROUND LOCAL----------------#
 
+ifeq ($(OS),Windows_NT)
 setup-fakedata:
 	timeout 20
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
@@ -33,6 +36,15 @@ setup-fakedata:
 	npx hardhat run scripts/playground/2-create-job.ts --network $(DEPLOY_NETWORK)
 	timeout 30
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
+else
+setup-fakedata:
+	sleep 20
+	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+	sleep 30
+	npx hardhat run scripts/playground/2-create-job.ts --network $(DEPLOY_NETWORK)
+	sleep 30
+	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
+endif
 
 update-proposal:
 	npx hardhat run scripts/playground/4-update-proposal.ts --network $(DEPLOY_NETWORK)
