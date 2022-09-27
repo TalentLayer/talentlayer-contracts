@@ -9,22 +9,23 @@ async function main() {
   const subgraphNetwork = JSON.parse(loadJSON());
 
   if (network == "localhost") {
-    subgraphNetwork.xdai.TalentLayerID.address = config.talentLayerIdAddress;
-    subgraphNetwork.xdai.TalentLayerReview.address =
+    subgraphNetwork.localhost.TalentLayerID.address =
+      config.talentLayerIdAddress;
+    subgraphNetwork.localhost.TalentLayerReview.address =
       config.talentLayerReviewAddress;
-    subgraphNetwork.xdai.JobRegistry.address = config.jobRegistryAddress;
-    subgraphNetwork.xdai.TalentLayerMultipleArbitrableTransaction.address =
+    subgraphNetwork.localhost.JobRegistry.address = config.jobRegistryAddress;
+    subgraphNetwork.localhost.TalentLayerMultipleArbitrableTransaction.address =
       config.TalentLayerMultipleArbitrableTransaction;
   }
   if (network == "goerli") {
+    subgraphNetwork.goerli.proofOfHumanityAddress.address =
+      config.proofOfHumanityAddress;
     subgraphNetwork.goerli.TalentLayerID.address = config.talentLayerIdAddress;
     subgraphNetwork.goerli.TalentLayerReview.address =
       config.talentLayerReviewAddress;
     subgraphNetwork.goerli.JobRegistry.address = config.jobRegistryAddress;
     subgraphNetwork.goerli.TalentLayerMultipleArbitrableTransaction.address =
       config.TalentLayerMultipleArbitrableTransaction;
-    subgraphNetwork.goerli.proofOfHumanityAddress.address =
-      config.proofOfHumanityAddress;
   }
 
   saveJSON(subgraphNetwork);

@@ -192,7 +192,7 @@ task("deploy")
         ConfigProperty.TalentLayerMultipleArbitrableTransaction,
         talentLayerMultipleArbitrableTransaction.address
       );
-      
+
       // Grant escrow role
       const escrowRole = await jobRegistry.ESCROW_ROLE();
       await jobRegistry.grantRole(
