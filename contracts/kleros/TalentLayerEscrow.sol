@@ -8,7 +8,7 @@ import "hardhat/console.sol";
 import "../interfaces/IJobRegistry.sol";
 import "../interfaces/ITalentLayerID.sol";
 
-contract EscrowMock {
+contract TalentLayerEscrow {
 
     // =========================== Enum ==============================
 
