@@ -12,7 +12,7 @@ describe("TalentLayer", function () {
     JobRegistry: ContractFactory,
     TalentLayerID: ContractFactory,
     TalentLayerReview: ContractFactory,
-    TalentLayerMultipleArbitrableTransaction: ContractFactory,
+    TalentLayerEscrow: ContractFactory,
     TalentLayerArbitrator: ContractFactory,
     MockProofOfHumanity: ContractFactory,
     SimpleERC20: ContractFactory,
@@ -58,8 +58,8 @@ describe("TalentLayer", function () {
 
     // Deploy TalentLayerMultipleArbitrableTransaction
     // TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("TalentLayerMultipleArbitrableTransaction");
-    TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("EscrowMock");
-    escrow = await TalentLayerMultipleArbitrableTransaction.deploy(
+    TalentLayerEscrow = await ethers.getContractFactory("TalentLayerEscrow");
+    escrow = await TalentLayerEscrow.deploy(
       jobRegistry.address,
       talentLayerID.address
       // ,
