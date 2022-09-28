@@ -47,11 +47,23 @@ contract TalentLayerEscrow {
 
     // =========================== User functions ==============================
     
-    // function createETHTransaction(
+    function createETHTransaction(
+        uint256 _jobId,
+        uint256 _proposalId
+    ) external payable {
+        IJobRegistry.Proposal memory proposal = _getProposal(_jobId, _proposalId);
+        IJobRegistry.Job memory job = _getJob(_jobId);
+        address sender = ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId);
+        address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
 
-    // ) external payable returns (uint256 transactionId) {
-    //     return _createTransaction(msg.sender, address(this), address(0), msg.value);
-    // }
+        require(msg.sender == sender, "Access denied.");
+        require(msg.value == proposal.rateAmount, "Non-matching funds");
+        require(proposal.rateToken == address(0), "Non-matching token");
+
+        uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount);
+        IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactionId); 
+        // _deposit(sender, proposal.rateToken, proposal.rateAmount); 
+    }
 
     function createTokenTransaction(
         uint256 _jobId,
@@ -144,10 +156,14 @@ contract TalentLayerEscrow {
         address _token,
         uint256 _amount
     ) private {
-        require(
-            IERC20(_token).transfer(_receiver, _amount), 
-            "Transfer must not fail"
-        );
+        if(_token == address(0)){
+            payable(_receiver).transfer(_amount);
+        } else {
+            require(
+                IERC20(_token).transfer(_receiver, _amount), 
+                "Transfer must not fail"
+            );
+        }
     }
 
     function _getProposal(
