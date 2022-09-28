@@ -21,8 +21,6 @@ contract TalentLayerEscrow {
         uint256 amount;
     }
 
-
-
     // =========================== Events ==============================
 
     // =========================== Declarations ==============================
@@ -40,21 +38,22 @@ contract TalentLayerEscrow {
         _setTalentLayerIDAddress(_talentLayerIDAddress);
     }
 
-
     // =========================== View functions ==============================
 
     
 
     // =========================== User functions ==============================
-    
+
     function createETHTransaction(
         uint256 _jobId,
         uint256 _proposalId
     ) external payable {
-        IJobRegistry.Proposal memory proposal = _getProposal(_jobId, _proposalId);
-        IJobRegistry.Job memory job = _getJob(_jobId);
-        address sender = ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId);
-        address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
+        IJobRegistry.Proposal memory proposal;
+        IJobRegistry.Job memory job;
+        address sender;
+        address receiver;
+
+        (proposal, job, sender, receiver) = _getTalentLayerData(_jobId, _proposalId);
 
         require(msg.sender == sender, "Access denied.");
         require(msg.value == proposal.rateAmount, "Non-matching funds");
@@ -62,23 +61,23 @@ contract TalentLayerEscrow {
 
         uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount);
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactionId); 
-        // _deposit(sender, proposal.rateToken, proposal.rateAmount); 
     }
 
     function createTokenTransaction(
         uint256 _jobId,
         uint256 _proposalId
     ) external {
-        IJobRegistry.Proposal memory proposal = _getProposal(_jobId, _proposalId);
-        IJobRegistry.Job memory job = _getJob(_jobId);
-        address sender = ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId);
-        address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
+        IJobRegistry.Proposal memory proposal;
+        IJobRegistry.Job memory job;
+        address sender;
+        address receiver;
+
+        (proposal, job, sender, receiver) = _getTalentLayerData(_jobId, _proposalId);
 
         uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount);
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactionId); 
         _deposit(sender, proposal.rateToken, proposal.rateAmount); 
     }
-
 
     function release(
         uint256 _transactionId,
@@ -106,10 +105,7 @@ contract TalentLayerEscrow {
         _release(transaction.sender, transaction.token, _amount);
     }
 
-
-
     // =========================== Private functions ==============================
-
 
     function _setJobRegistryAddress(
         address _jobRegistryAddress
@@ -166,6 +162,22 @@ contract TalentLayerEscrow {
         }
     }
 
+    function _getTalentLayerData(
+        uint256 _jobId, 
+        uint256 _proposalId
+    ) private returns (
+        IJobRegistry.Proposal memory proposal, 
+        IJobRegistry.Job memory job, 
+        address sender, 
+        address receiver
+    ) {
+        IJobRegistry.Proposal memory proposal = _getProposal(_jobId, _proposalId);
+        IJobRegistry.Job memory job = _getJob(_jobId);
+        address sender = ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId);
+        address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
+        return (proposal, job, sender, receiver);
+    }
+
     function _getProposal(
         uint256 _jobId, uint256 _proposalId
     ) private view returns (IJobRegistry.Proposal memory){
@@ -177,5 +189,4 @@ contract TalentLayerEscrow {
     ) private view returns (IJobRegistry.Job memory){
         return IJobRegistry(jobRegistryAddress).getJob(_jobId);
     }
-
 }
