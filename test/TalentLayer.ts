@@ -415,14 +415,14 @@ describe("TalentLayer", function () {
 
 
   describe("Escrow Contract", function() {
-    describe("Successful transaction using a token", function () {
+    describe("Successful transaction using an ERC20 token", function () {
       const amountBob = 100;
       const amountCarol = 200;
       const jobId = 12;
       const transactionIdA = 0;
       const transactionIdB = 1;
-      let proposalIdBob = 0;
-      let proposalIdCarol = 0;
+      let proposalIdBob = 0; //Will be set later
+      let proposalIdCarol = 0; //Will be set later
       
       
       it("Should be possible for alice to create a job", async function( ) {
@@ -494,6 +494,94 @@ describe("TalentLayer", function () {
       it("Should allow bob to reimburse Alice for the tokens that is left in the escrow", async function() {
         const transaction = await escrow.connect(bob).reimburse(transactionIdA, amountBob/4);
         expect(transaction).to.changeTokenBalances(token, [escrow.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
+      });
+
+      it("Should not allow to release more from Alice to Bob", async function () {
+        expect(
+          escrow.connect(alice).release(transactionIdA, 10)
+        ).to.be.revertedWith("Insufficient funds.");
+      });
+    });
+    describe("Successful transaction using ETH", function () {
+      const amountBob = 100;
+      const amountCarol = 200;
+      const jobId = 13;
+      const transactionIdA = 2;
+      const transactionIdB = 3;
+      let proposalIdBob = 0; //Will be set later
+      let proposalIdCarol = 0; //Will be set later
+      const ethAddress = "0x0000000000000000000000000000000000000000";
+      
+      
+      it("Should be possible for alice to create a job", async function( ) {
+        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+      });
+
+      it("Should be possible for bob to register a proposal", async function( ) {
+        proposalIdBob = await talentLayerID.walletOfOwner(bob.address);
+        await jobRegistry.connect(bob).createProposal(jobId, ethAddress, amountBob, "cid");
+      });
+
+      it("Should be possible for carol to register a proposal", async function( ) {
+        proposalIdCarol = await talentLayerID.walletOfOwner(carol.address);
+        await jobRegistry.connect(carol).createProposal(jobId, ethAddress, amountCarol, "cid");
+      });
+
+      it("Should accept a deposit of funds from Alice for Bob's proposal", async function () {
+        // await token.connect(alice).approve(escrow.address, amountBob); 
+        const transaction = await escrow.connect(alice).createETHTransaction(jobId, proposalIdBob, {value: amountBob});
+        expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [amountBob, -amountBob, 0]);
+      });
+
+      it("The deposit should validate the proposal", async function () {
+        const proposal = await jobRegistry.getProposal(jobId, proposalIdBob);
+        expect(proposal.status.toString()).to.be.equal("1");
+      });
+
+      it("The deposit should update the job", async function () {
+        const job = await jobRegistry.getJob(jobId);
+        expect(job.status.toString()).to.be.equal("1");
+        expect(job.transactionId).to.be.equal(transactionIdA);
+        expect(job.employeeId).to.be.equal(proposalIdBob);
+      });
+
+      it("Should NOT accept a deposit of funds from Alice for Carol's proposal", async function () {
+        await token.connect(alice).approve(escrow.address, amountCarol);
+        const transaction = await escrow.connect(alice).createETHTransaction(jobId, proposalIdCarol, {value: amountCarol});
+        expect(transaction).to.changeEtherBalances([escrow.address, alice, carol], [0, 0, 0]);
+      });
+
+      it("Carol should not be allowed to release escrow from Alice to Bob", async function () {
+        expect ( 
+          escrow.connect(carol).release(transactionIdA, 10)
+        ).to.be.revertedWith("Access denied.");
+      });
+
+      it("Should release half of escrow from Alice to Bob", async function () {
+        const transaction = await escrow.connect(alice).release(transactionIdA, amountBob/2);
+        expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [-amountBob/2, 0, amountBob/2]);
+      });
+
+      it("Should release a quarter of the escrow from Alice to Bob", async function () {
+        const transaction = await escrow.connect(alice).release(transactionIdA, amountBob/4);
+        expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [-amountBob/4, 0, amountBob/4]);
+      });
+
+      it("Should not allow carol to reimburse Alice for the escrow from alice to bob", async function() {
+        expect (
+          escrow.connect(carol).reimburse(transactionIdA, amountBob/4)
+        ).to.revertedWith("Access denied.");
+      });
+
+      it("Should not allow bob to reimburse Alice for more tokens then is left in the escrow", async function() {
+        expect (
+          escrow.connect(bob).reimburse(transactionIdA, amountBob)
+        ).to.revertedWith("Insufficient funds.");
+      });
+
+      it("Should allow bob to reimburse Alice for the tokens that is left in the escrow", async function() {
+        const transaction = await escrow.connect(bob).reimburse(transactionIdA, amountBob/4);
+        expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
       });
 
       it("Should not allow to release more from Alice to Bob", async function () {
