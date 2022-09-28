@@ -102,8 +102,11 @@ contract TalentLayerEscrow {
         (proposal, job, sender, receiver) = _getTalentLayerData(_jobId, _proposalId);
 
         require(msg.sender == sender, "Access denied.");
-        require(msg.value == proposal.rateAmount, "Non-matching funds");
-        require(proposal.rateToken == address(0), "Non-matching token");
+        require(msg.value == proposal.rateAmount, "Non-matching funds.");
+        require(proposal.rateToken == address(0), "Proposal token no ETH.");
+
+        require(job.status == IJobRegistry.Status.Opened, "Job status not open.");
+        require(proposal.status == IJobRegistry.ProposalStatus.Pending, "Proposal status not pending.");
 
         uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _jobId);
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactionId); 
@@ -138,6 +141,9 @@ contract TalentLayerEscrow {
         address receiver;
 
         (proposal, job, sender, receiver) = _getTalentLayerData(_jobId, _proposalId);
+
+        require(job.status == IJobRegistry.Status.Opened, "Job status not open.");
+        require(proposal.status == IJobRegistry.ProposalStatus.Pending, "Proposal status not pending.");
 
         uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _jobId);
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactionId); 
