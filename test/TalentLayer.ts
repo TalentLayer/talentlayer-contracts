@@ -62,10 +62,10 @@ describe("TalentLayer", function () {
     escrow = await TalentLayerEscrow.deploy(
       jobRegistry.address,
       talentLayerID.address
-      // ,
-      // talentLayerArbitrator.address,
-      // [],
-      // 3600*24*30
+      ,
+      talentLayerArbitrator.address,
+      [],
+      3600*24*30
     );
 
     // Deploy SimpleERC20 Token
@@ -419,6 +419,7 @@ describe("TalentLayer", function () {
       const amountBob = 100;
       const amountCarol = 200;
       const jobId = 12;
+      const adminFeeAmount = 0;
       const transactionIdA = 0;
       const transactionIdB = 1;
       let proposalIdBob = 0; //Will be set later
@@ -441,7 +442,13 @@ describe("TalentLayer", function () {
 
       it("Should accept a deposit of funds from Alice for Bob's proposal", async function () {
         await token.connect(alice).approve(escrow.address, amountBob); 
-        const transaction = await escrow.connect(alice).createTokenTransaction(jobId, proposalIdBob);
+        const transaction = await escrow.connect(alice).createTokenTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdBob);
         expect(transaction).to.changeTokenBalances(token, [escrow.address, alice, bob], [amountBob, -amountBob, 0]);
       });
 
@@ -459,7 +466,13 @@ describe("TalentLayer", function () {
 
       it("Should NOT accept a deposit of funds from Alice for Carol's proposal", async function () {
         await token.connect(alice).approve(escrow.address, amountCarol);
-        const transaction = await escrow.connect(alice).createTokenTransaction(jobId, proposalIdCarol);
+        const transaction = await escrow.connect(alice).createTokenTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdCarol);
         expect(transaction).to.changeTokenBalances(token, [escrow.address, alice, carol], [0, 0, 0]);
       });
 
@@ -502,16 +515,17 @@ describe("TalentLayer", function () {
         ).to.be.revertedWith("Insufficient funds.");
       });
     });
+
     describe("Successful transaction using ETH", function () {
       const amountBob = 100;
       const amountCarol = 200;
       const jobId = 13;
+      const adminFeeAmount = 0;
       const transactionIdA = 2;
       const transactionIdB = 3;
       let proposalIdBob = 0; //Will be set later
       let proposalIdCarol = 0; //Will be set later
       const ethAddress = "0x0000000000000000000000000000000000000000";
-      
       
       it("Should be possible for alice to create a job", async function( ) {
         await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
@@ -529,7 +543,14 @@ describe("TalentLayer", function () {
 
       it("Should accept a deposit of funds from Alice for Bob's proposal", async function () {
         // await token.connect(alice).approve(escrow.address, amountBob); 
-        const transaction = await escrow.connect(alice).createETHTransaction(jobId, proposalIdBob, {value: amountBob});
+        const transaction = await escrow.connect(alice).createETHTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdBob, 
+          {value: amountBob});
         expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [amountBob, -amountBob, 0]);
       });
 
@@ -547,7 +568,14 @@ describe("TalentLayer", function () {
 
       it("Should NOT accept a deposit of funds from Alice for Carol's proposal", async function () {
         await token.connect(alice).approve(escrow.address, amountCarol);
-        const transaction = await escrow.connect(alice).createETHTransaction(jobId, proposalIdCarol, {value: amountCarol});
+        const transaction = await escrow.connect(alice).createETHTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdCarol, 
+          {value: amountCarol});
         expect(transaction).to.changeEtherBalances([escrow.address, alice, carol], [0, 0, 0]);
       });
 

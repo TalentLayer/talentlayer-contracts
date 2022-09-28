@@ -7,6 +7,8 @@ import "hardhat/console.sol";
 
 import "../interfaces/IJobRegistry.sol";
 import "../interfaces/ITalentLayerID.sol";
+import "./IArbitrable.sol";
+import "./Arbitrator.sol";
 
 contract TalentLayerEscrow {
 
@@ -22,7 +24,6 @@ contract TalentLayerEscrow {
     }
 
     // =========================== Events ==============================
-
     // =========================== Declarations ==============================
     Transaction[] private transactions; //transactions stored in array with index = id
     address private jobRegistryAddress; //contract address to JobRegistry.sol
@@ -33,13 +34,22 @@ contract TalentLayerEscrow {
     /** @dev Called on contract deployment
      *  @param _jobRegistryAddress Contract address to JobRegistry.sol
      *  @param _talentLayerIDAddress Contract address to TalentLayerID.sol
+     *  @param _arbitrator The arbitrator of the contract.
+     *  @param _arbitratorExtraData Extra data for the arbitrator.
+     *  @param _feeTimeout Arbitration fee timeout for the parties.
      */
     constructor(
         address _jobRegistryAddress,
-        address _talentLayerIDAddress
+        address _talentLayerIDAddress,
+        Arbitrator _arbitrator, 
+        bytes memory _arbitratorExtraData,
+        uint _feeTimeout
     ) {
         _setJobRegistryAddress(_jobRegistryAddress);
         _setTalentLayerIDAddress(_talentLayerIDAddress);
+        // arbitrator = _arbitrator;
+        // arbitratorExtraData = _arbitratorExtraData;
+        // feeTimeout = _feeTimeout;
     }
 
     // =========================== View functions ==============================
@@ -47,12 +57,20 @@ contract TalentLayerEscrow {
     
 
     // =========================== User functions ==============================
-
     /*  @dev Validates a proposal for a job by locking ETH into escrow.
+     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
+     *  @param _metaEvidence Link to the meta-evidence.
+     *  @param _adminWallet Admin fee wallet.
+     *  @param _adminFeeAmount Admin fee amount.
+     *  @param _jobId Job of transaction
      *  @param _jobId Id of the job that the sender created and the proposal was made for.
      *  @param _proposalId Id of the proposal that the transaction validates. 
      */
     function createETHTransaction(
+        uint _timeoutPayment,
+        string memory _metaEvidence,
+        address _adminWallet,
+        uint _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) external payable {
@@ -72,10 +90,18 @@ contract TalentLayerEscrow {
     }
 
     /*  @dev Validates a proposal for a job by locking ERC20 into escrow.
+     *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
+     *  @param _metaEvidence Link to the meta-evidence.
+     *  @param _adminWallet Admin fee wallet.
+     *  @param _adminFeeAmount Admin fee amount.
      *  @param _jobId Id of the job that the sender created and the proposal was made for.
      *  @param _proposalId Id of the proposal that the transaction validates. 
      */
     function createTokenTransaction(
+        uint _timeoutPayment,
+        string memory _metaEvidence,
+        address _adminWallet,
+        uint _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) external {
