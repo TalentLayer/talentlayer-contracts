@@ -15,21 +15,25 @@ contract TalentLayerEscrow {
     // =========================== Struct ==============================
 
     struct Transaction {
-        address sender;
-        address receiver;
-        address token;
-        uint256 amount;
+        address sender; //pays recipient using the escrow
+        address receiver; //intended recipient of the escrow
+        address token; //token of the escrow
+        uint256 amount; //amount locked into escrow
     }
 
     // =========================== Events ==============================
 
     // =========================== Declarations ==============================
-    Transaction[] private transactions;
-    address private jobRegistryAddress;
-    address private talentLayerIDAddress;
+    Transaction[] private transactions; //transactions stored in array with index = id
+    address private jobRegistryAddress; //contract address to JobRegistry.sol
+    address private talentLayerIDAddress; //contract address to TalentLayerID.sol
 
     // =========================== Constructor ==============================
 
+    /** @dev Called on contract deployment
+     *  @param _jobRegistryAddress Contract address to JobRegistry.sol
+     *  @param _talentLayerIDAddress Contract address to TalentLayerID.sol
+     */
     constructor(
         address _jobRegistryAddress,
         address _talentLayerIDAddress
@@ -44,6 +48,10 @@ contract TalentLayerEscrow {
 
     // =========================== User functions ==============================
 
+    /*  @dev Validates a proposal for a job by locking ETH into escrow.
+     *  @param _jobId Id of the job that the sender created and the proposal was made for.
+     *  @param _proposalId Id of the proposal that the transaction validates. 
+     */
     function createETHTransaction(
         uint256 _jobId,
         uint256 _proposalId
@@ -63,6 +71,10 @@ contract TalentLayerEscrow {
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactionId); 
     }
 
+    /*  @dev Validates a proposal for a job by locking ERC20 into escrow.
+     *  @param _jobId Id of the job that the sender created and the proposal was made for.
+     *  @param _proposalId Id of the proposal that the transaction validates. 
+     */
     function createTokenTransaction(
         uint256 _jobId,
         uint256 _proposalId
@@ -79,6 +91,10 @@ contract TalentLayerEscrow {
         _deposit(sender, proposal.rateToken, proposal.rateAmount); 
     }
 
+    /*  @dev Allows the sender to release locked-in escrow value to the intended recipient.
+     *  @param _transactionId Id of the transaction to release escrow value for.
+     *  @param _amount Value to be released. Should not be more than amount locked in.
+     */
     function release(
         uint256 _transactionId,
         uint256 _amount
@@ -92,6 +108,10 @@ contract TalentLayerEscrow {
         _release(transaction.receiver, transaction.token, _amount);
     }
 
+    /*  @dev Allows the intended receiver to return locked-in escrow value back to the sender.
+     *  @param _transactionId Id of the transaction to reimburse escrow value for.
+     *  @param _amount Value to be reimbursed. Should not be more than amount locked in.
+     */
     function reimburse(
         uint256 _transactionId,
         uint256 _amount
