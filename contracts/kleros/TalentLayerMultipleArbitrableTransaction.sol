@@ -10,7 +10,7 @@ import "../interfaces/ITalentLayerID.sol";
 import "./IArbitrable.sol";
 import "./Arbitrator.sol";
 
-contract TalentLayerEscrow {
+contract TalentLayerMultipleArbitrableTransaction {
 
     // =========================== Enum ==============================
 
