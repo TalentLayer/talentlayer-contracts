@@ -87,10 +87,10 @@ contract TalentLayerMultipleArbitrableTransaction {
      *  @param _proposalId Id of the proposal that the transaction validates. 
      */
     function createETHTransaction(
-        uint _timeoutPayment,
+        uint256 _timeoutPayment,
         string memory _metaEvidence,
         address _adminWallet,
-        uint _adminFeeAmount,
+        uint256 _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) external payable {
@@ -102,8 +102,8 @@ contract TalentLayerMultipleArbitrableTransaction {
         (proposal, job, sender, receiver) = _getTalentLayerData(_jobId, _proposalId);
 
         require(msg.sender == sender, "Access denied.");
-        require(msg.value == proposal.rateAmount, "Non-matching funds.");
-        require(proposal.rateToken == address(0), "Proposal token no ETH.");
+        require(msg.value == proposal.rateAmount + _adminFeeAmount, "Non-matching funds.");
+        require(proposal.rateToken == address(0), "Proposal token not ETH.");
 
         require(job.status == IJobRegistry.Status.Opened, "Job status not open.");
         require(proposal.status == IJobRegistry.ProposalStatus.Pending, "Proposal status not pending.");
@@ -128,10 +128,10 @@ contract TalentLayerMultipleArbitrableTransaction {
      *  @param _proposalId Id of the proposal that the transaction validates. 
      */
     function createTokenTransaction(
-        uint _timeoutPayment,
+        uint256 _timeoutPayment,
         string memory _metaEvidence,
         address _adminWallet,
-        uint _adminFeeAmount,
+        uint256 _adminFeeAmount,
         uint256 _jobId,
         uint256 _proposalId
     ) external {
@@ -165,6 +165,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         uint256 _transactionId,
         uint256 _amount
     ) external {
+        require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
         require(transaction.sender == msg.sender, "Access denied.");
@@ -183,6 +184,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         uint256 _transactionId,
         uint256 _amount
     ) external {
+        require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
         require(transaction.receiver == msg.sender, "Access denied.");
