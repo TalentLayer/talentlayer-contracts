@@ -12,14 +12,14 @@ describe("TalentLayer", function () {
     JobRegistry: ContractFactory,
     TalentLayerID: ContractFactory,
     TalentLayerReview: ContractFactory,
-    TalentLayerEscrow: ContractFactory,
+    TalentLayerMultipleArbitrableTransaction: ContractFactory,
     TalentLayerArbitrator: ContractFactory,
     MockProofOfHumanity: ContractFactory,
     SimpleERC20: ContractFactory,
     jobRegistry: Contract,
     talentLayerID: Contract,
     talentLayerReview: Contract,
-    escrow: Contract,
+    talentLayerMultipleArbitrableTransaction: Contract,
     talentLayerArbitrator: Contract,
     mockProofOfHumanity: Contract,
     token: Contract;
@@ -57,9 +57,8 @@ describe("TalentLayer", function () {
     talentLayerArbitrator = await TalentLayerArbitrator.deploy(0);
 
     // Deploy TalentLayerMultipleArbitrableTransaction
-    // TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("TalentLayerMultipleArbitrableTransaction");
-    TalentLayerEscrow = await ethers.getContractFactory("TalentLayerEscrow");
-    escrow = await TalentLayerEscrow.deploy(
+    TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("TalentLayerMultipleArbitrableTransaction");
+    talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
       jobRegistry.address,
       talentLayerID.address
       ,
@@ -74,7 +73,7 @@ describe("TalentLayer", function () {
 
     // Grant escrow role 
     const escrowRole = await jobRegistry.ESCROW_ROLE();
-    await jobRegistry.grantRole(escrowRole, escrow.address);
+    await jobRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address);
   });
 
   it("Alice, Bob and Carol can mint a talentLayerId", async function () {
@@ -426,8 +425,8 @@ describe("TalentLayer", function () {
       });
 
       it("Alice can NOT deposit tokens to escrow yet.", async function( ) {
-        await token.connect(alice).approve(escrow.address, amountBob); 
-        expect(escrow.connect(alice).createTokenTransaction(
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob); 
+        expect(talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
           3600*24*7,
           '_metaEvidence',
           dave.address,
@@ -448,18 +447,18 @@ describe("TalentLayer", function () {
       });
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
-        await token.connect(alice).approve(escrow.address, amountBob); 
-        const transaction = await escrow.connect(alice).createTokenTransaction(
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob); 
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
           3600*24*7,
           '_metaEvidence',
           dave.address,
           adminFeeAmount,
           jobId, 
           proposalIdBob);
-        await expect(transaction).to.changeTokenBalances(token, [escrow.address, alice, bob], [amountBob, -amountBob, 0]);
+        await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [amountBob, -amountBob, 0]);
       
         await expect(transaction).to.emit(
-          escrow, "JobProposalConfirmedWithDeposit"
+          talentLayerMultipleArbitrableTransaction, "JobProposalConfirmedWithDeposit"
         ).withArgs(
           jobId, proposalIdBob, proposalIdBob, transactionId
         );
@@ -478,8 +477,8 @@ describe("TalentLayer", function () {
       });
 
       it("Alice can NOT deposit funds for Carol's proposal.", async function () {
-        await token.connect(alice).approve(escrow.address, amountCarol);
-        await expect(escrow.connect(alice).createTokenTransaction(
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountCarol);
+        await expect(talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
           3600*24*7,
           '_metaEvidence',
           dave.address,
@@ -491,43 +490,43 @@ describe("TalentLayer", function () {
 
       it("Carol should not be allowed to release escrow the job.", async function () {
         await expect ( 
-          escrow.connect(carol).release(transactionId, 10)
+          talentLayerMultipleArbitrableTransaction.connect(carol).release(transactionId, 10)
         ).to.be.revertedWith("Access denied.");
       });
 
       it("Alice can release half of the escrow to bob.", async function () {
-        const transaction = await escrow.connect(alice).release(transactionId, amountBob/2);
-        await expect(transaction).to.changeTokenBalances(token, [escrow.address, alice, bob], [-amountBob/2, 0, amountBob/2]);
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, amountBob/2);
+        await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/2, 0, amountBob/2]);
       });
 
       it("Alice can release a quarter of the escrow to Bob.", async function () {
-        const transaction = await escrow.connect(alice).release(transactionId, amountBob/4);
-        await expect(transaction).to.changeTokenBalances(token, [escrow.address, alice, bob], [-amountBob/4, 0, amountBob/4]);
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, amountBob/4);
+        await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, 0, amountBob/4]);
       });
 
       it("Carol can NOT reimburse alice.", async function() {
         await expect (
-          escrow.connect(carol).reimburse(transactionId, amountBob/4)
+          talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, amountBob/4)
         ).to.revertedWith("Access denied.");
       });
 
       it("Bob can NOT reimburse alice for more than what is left in escrow.", async function() {
         await expect (
-          escrow.connect(bob).reimburse(transactionId, amountBob)
+          talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob)
         ).to.revertedWith("Insufficient funds.");
       });
 
       it("Bob can reimburse alice for what is left in the escrow, an emit will be sent.", async function() {
-        const transaction = await escrow.connect(bob).reimburse(transactionId, amountBob/4);
-        await expect(transaction).to.changeTokenBalances(token, [escrow.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob/4);
+        await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
         await expect(transaction)
-          .to.emit(escrow, "PaymentCompleted")
+          .to.emit(talentLayerMultipleArbitrableTransaction, "PaymentCompleted")
           .withArgs(jobId);
       });
 
       it("Alice can not release escrow because there is none left. ", async function () {
         await expect(
-          escrow.connect(alice).release(transactionId, 1)
+          talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, 1)
         ).to.be.revertedWith("Insufficient funds.");
       });
     });
@@ -547,8 +546,8 @@ describe("TalentLayer", function () {
       });
 
       it("Alice can NOT deposit eth to escrow yet.", async function( ) {
-        await token.connect(alice).approve(escrow.address, amountBob); 
-        await expect(escrow.connect(alice).createETHTransaction(
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob); 
+        await expect(talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
           3600*24*7,
           '_metaEvidence',
           dave.address,
@@ -569,7 +568,7 @@ describe("TalentLayer", function () {
       });
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
-        const transaction = await escrow.connect(alice).createETHTransaction(
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
           3600*24*7,
           '_metaEvidence',
           dave.address,
@@ -577,10 +576,10 @@ describe("TalentLayer", function () {
           jobId, 
           proposalIdBob, 
           {value: amountBob});
-        await expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [amountBob, -amountBob, 0]);
+        await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [amountBob, -amountBob, 0]);
 
         await expect(transaction).to.emit(
-          escrow, "JobProposalConfirmedWithDeposit"
+          talentLayerMultipleArbitrableTransaction, "JobProposalConfirmedWithDeposit"
         ).withArgs(
           jobId, proposalIdBob, proposalIdBob, transactionId
         );
@@ -599,8 +598,8 @@ describe("TalentLayer", function () {
       });
 
       it("Alice can NOT deposit funds for Carol's proposal, and NO event should emit.", async function () {
-        await token.connect(alice).approve(escrow.address, amountCarol);
-        expect(escrow.connect(alice).createETHTransaction(
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountCarol);
+        expect(talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
           3600*24*7,
           '_metaEvidence',
           dave.address,
@@ -613,43 +612,43 @@ describe("TalentLayer", function () {
 
       it("Carol should not be allowed to release escrow the job.", async function () {
         await expect ( 
-          escrow.connect(carol).release(transactionId, 10)
+          talentLayerMultipleArbitrableTransaction.connect(carol).release(transactionId, 10)
         ).to.be.revertedWith("Access denied.");
       });
 
       it("Alice can release half of the escrow to bob.", async function () {
-        const transaction = await escrow.connect(alice).release(transactionId, amountBob/2);
-        await expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [-amountBob/2, 0, amountBob/2]);
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, amountBob/2);
+        await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/2, 0, amountBob/2]);
       });
 
       it("Alice can release a quarter of the escrow to Bob.", async function () {
-        const transaction = await escrow.connect(alice).release(transactionId, amountBob/4);
-        await expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [-amountBob/4, 0, amountBob/4]);
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, amountBob/4);
+        await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, 0, amountBob/4]);
       });
 
       it("Carol can NOT reimburse alice.", async function() {
         await expect (
-          escrow.connect(carol).reimburse(transactionId, amountBob/4)
+          talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, amountBob/4)
         ).to.revertedWith("Access denied.");
       });
 
       it("Bob can NOT reimburse alice for more than what is left in escrow.", async function() {
         await expect (
-          escrow.connect(bob).reimburse(transactionId, amountBob)
+          talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob)
         ).to.revertedWith("Insufficient funds.");
       });
 
       it("Bob can reimburse alice for what is left in the escrow, an emit will be sent.", async function() {
-        const transaction = await escrow.connect(bob).reimburse(transactionId, amountBob/4);
-        await expect(transaction).to.changeEtherBalances([escrow.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob/4);
+        await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
         await expect(transaction)
-          .to.emit(escrow, "PaymentCompleted")
+          .to.emit(talentLayerMultipleArbitrableTransaction, "PaymentCompleted")
           .withArgs(jobId);
       });
 
       it("Alice can not release escrow because there is none left.", async function () {
         await expect(
-          escrow.connect(alice).release(transactionId, 10)
+          talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, 10)
         ).to.be.revertedWith("Insufficient funds.");
       });
     });
