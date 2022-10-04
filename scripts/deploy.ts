@@ -11,7 +11,8 @@ task("deploy")
   .setAction(async (args, { ethers, run, network }) => {
     try {
       const { verify, usePohmock } = args;
-      const [alice, bob, carol, dave] = await ethers.getSigners();
+      const [alice, bob, carol, dave] = await ethers.getSigners(); // getSigners() returns an array of accounts
+
       const chainId = network.config.chainId
         ? network.config.chainId
         : Network.LOCAL;
@@ -26,14 +27,15 @@ task("deploy")
       console.log("  at", alice.address);
       console.log("  ETH", formatEther(await alice.getBalance()));
 
-      await run("compile");
+      await run("compile"); // compile contracts
 
       let pohAddress, mockProofOfHumanity;
       if (usePohmock) {
         // Deploy Mock proof of humanity contract
         const MockProofOfHumanity = await ethers.getContractFactory(
           "MockProofOfHumanity"
-        );
+        ); // getContractFactory() returns a factory for a contract
+
         mockProofOfHumanity = await MockProofOfHumanity.deploy();
         if (verify) {
           await mockProofOfHumanity.deployTransaction.wait(5);
@@ -191,6 +193,18 @@ task("deploy")
         network.name as any as Network,
         ConfigProperty.TalentLayerMultipleArbitrableTransaction,
         talentLayerMultipleArbitrableTransaction.address
+      );
+
+      // Deploy ERC20 contract
+      const SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
+      const simpleERC20 = await SimpleERC20.deploy();
+
+      console.log("simpleERC20 address:", simpleERC20.address);
+
+      set(
+        network.name as any as Network,
+        ConfigProperty.SimpleERC20,
+        simpleERC20.address
       );
 
       // Grant escrow role
