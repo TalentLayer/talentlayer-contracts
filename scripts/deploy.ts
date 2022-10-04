@@ -28,12 +28,12 @@ task("deploy")
 
       await run("compile");
 
-      let pohAddress, mockProofOfHumanity;
-      if (usePohmock) {
-        // Deploy Mock proof of humanity contract
-        const MockProofOfHumanity = await ethers.getContractFactory(
-          "MockProofOfHumanity"
-        ); // getContractFactory() returns a factory for a contract
+        let pohAddress, mockProofOfHumanity;
+        if (usePohmock) {
+          // Deploy Mock proof of humanity contract
+          const MockProofOfHumanity = await ethers.getContractFactory(
+              "MockProofOfHumanity"
+          );
 
         mockProofOfHumanity = await MockProofOfHumanity.deploy();
         if (verify) {
