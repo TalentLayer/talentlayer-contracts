@@ -16,6 +16,7 @@ async function main() {
     subgraphNetwork.localhost.JobRegistry.address = config.jobRegistryAddress;
     subgraphNetwork.localhost.TalentLayerMultipleArbitrableTransaction.address =
       config.TalentLayerMultipleArbitrableTransaction;
+    subgraphNetwork.localhost.SimpleERC20.address = config.SimpleERC20;
   }
   if (network == "goerli") {
     subgraphNetwork.goerli.proofOfHumanityAddress.address =

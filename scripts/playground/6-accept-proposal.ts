@@ -22,11 +22,11 @@ async function main() {
     )
   );
 
-  //TODO: Set correct ERC20 address
-  const erc20 = await ethers.getContractAt(
-    "ERC20",
-    "0xba401cdac1a3b6aeede21c9c4a483be6c29f88c5",
+  const ERC20 = await ethers.getContractAt(
+    "SimpleERC20",
+    get(network as Network, ConfigProperty.SimpleERC20)
   );
+  console.log("ERC20", ERC20.address);
 
   const adminWallet = "0x0000000000000000000000000000000000000000";
   const rateAmount = 100;
@@ -35,18 +35,20 @@ async function main() {
   const value = rateAmount + adminFeeAmount;
 
   let jobId = await jobRegistry.nextJobId();
-
   jobId = jobId.sub(1);
-
   console.log("jobId", jobId.toString());
 
-  /*TODO: Deploy test ERC20
-  - Give balance to Alice
-  - Approve transaction from Alice to escrow contract
-  */
+  //get balance alice wallet
+  const balanceAlice = await ERC20.balanceOf(alice.address);
+  await ERC20.transfer(alice.address, 10000);
+  console.log("balanceAlice", balanceAlice.toString());
+  await ERC20.approve(talentLayerMultipleArbitrableTransaction.address, value);
 
-  // If token payment => Need to approve token allowance first
-  await erc20.approve(talentLayerMultipleArbitrableTransaction.address, value);
+  const aliceAllowance = await ERC20.allowance(
+    alice.address,
+    talentLayerMultipleArbitrableTransaction.address
+  );
+  console.log("Alice allowance : ", aliceAllowance);
 
   await talentLayerMultipleArbitrableTransaction
     .connect(alice)
@@ -62,8 +64,8 @@ async function main() {
 
   //TODO: Simple check - can be deleted
   const transactionCount = await talentLayerMultipleArbitrableTransaction
-      .connect(alice)
-      .getCountTransactions();
+    .connect(alice)
+    .getCountTransactions();
   console.log("TransactionCount ", transactionCount);
 }
 
