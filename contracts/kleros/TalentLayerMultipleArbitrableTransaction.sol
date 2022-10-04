@@ -72,8 +72,10 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
      *  @param _transactionID The index of the transaction.
      *  @param _amount The amount paid.
      *  @param _party The party that paid.
+     *  @param _jobId The id of the concerned job.
+     *  @param _token The address of the token used for the payment.
      */
-    event Payment(uint indexed _transactionID, uint _amount, address _party);
+    event Payment(uint indexed _transactionID, uint _amount, address _party, uint _jobId, address _token);
 
     /** @dev Indicate that a party has to pay a fee or would otherwise be considered as losing.
      *  @param _transactionID The index of the transaction.
@@ -621,7 +623,7 @@ contract TalentLayerMultipleArbitrableTransaction is IArbitrable {
         // performTransactionFee(transaction, feeMode);
 
         if (emitPayment) {
-            emit Payment(_transactionID, amount, msg.sender);
+            emit Payment(_transactionID, amount, msg.sender, transaction.jobId, transaction.token);
         }
     }
 
