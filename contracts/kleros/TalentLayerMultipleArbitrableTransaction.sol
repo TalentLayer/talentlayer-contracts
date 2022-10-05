@@ -3,8 +3,6 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import "hardhat/console.sol";
-
 import "../interfaces/IJobRegistry.sol";
 import "../interfaces/ITalentLayerID.sol";
 import "./IArbitrable.sol";
