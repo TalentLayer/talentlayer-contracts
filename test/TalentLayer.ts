@@ -60,8 +60,7 @@ describe("TalentLayer", function () {
     TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("TalentLayerMultipleArbitrableTransaction");
     talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
       jobRegistry.address,
-      talentLayerID.address
-      ,
+      talentLayerID.address,
       talentLayerArbitrator.address,
       [],
       3600*24*30
