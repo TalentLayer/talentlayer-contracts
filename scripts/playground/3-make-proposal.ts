@@ -14,18 +14,23 @@ async function main() {
     get(network as Network, ConfigProperty.JobRegistry)
   );
 
+  const simpleERC20 = await ethers.getContractAt(
+    "SimpleERC20",
+    get(network as Network, ConfigProperty.SimpleERC20)
+  );
+
   let jobId = await jobRegistry.nextJobId();
   jobId = jobId.sub(1);
   console.log("jobId", jobId.toString());
 
   //Bob make a proposal
-  const rateTokenBob = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
+  const rateTokenBob = simpleERC20.address;
   await jobRegistry
     .connect(bob)
     .createProposal(jobId, rateTokenBob, 10, "ipfs://bob");
 
   //Carol make a proposal
-  const rateTokenCarol = "0xba401cdac1a3b6aeede21c9c4a483be6c29f88c5";
+  const rateTokenCarol = simpleERC20.address;
   await jobRegistry
     .connect(carol)
     .createProposal(jobId, rateTokenCarol, 200, "ipfs://carol");

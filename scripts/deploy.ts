@@ -11,8 +11,7 @@ task("deploy")
   .setAction(async (args, { ethers, run, network }) => {
     try {
       const { verify, usePohmock } = args;
-      const [alice, bob, carol, dave] = await ethers.getSigners(); // getSigners() returns an array of accounts
-
+      const [alice, bob, carol, dave] = await ethers.getSigners();
       const chainId = network.config.chainId
         ? network.config.chainId
         : Network.LOCAL;
@@ -27,15 +26,14 @@ task("deploy")
       console.log("  at", alice.address);
       console.log("  ETH", formatEther(await alice.getBalance()));
 
-      await run("compile"); // compile contracts
+      await run("compile");
 
       let pohAddress, mockProofOfHumanity;
       if (usePohmock) {
         // Deploy Mock proof of humanity contract
         const MockProofOfHumanity = await ethers.getContractFactory(
           "MockProofOfHumanity"
-        ); // getContractFactory() returns a factory for a contract
-
+        );
         mockProofOfHumanity = await MockProofOfHumanity.deploy();
         if (verify) {
           await mockProofOfHumanity.deployTransaction.wait(5);
