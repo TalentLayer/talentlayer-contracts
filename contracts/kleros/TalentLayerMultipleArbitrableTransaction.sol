@@ -75,7 +75,7 @@ contract TalentLayerMultipleArbitrableTransaction {
 
     // =========================== User functions ==============================
     
-    /*  @dev Validates a proposal for a job by locking ETH into escrow.
+    /**  @dev Validates a proposal for a job by locking ETH into escrow.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
      *  @param _metaEvidence Link to the meta-evidence.
      *  @param _adminWallet Admin fee wallet.
@@ -117,7 +117,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         );
     }
 
-    /*  @dev Validates a proposal for a job by locking ERC20 into escrow.
+    /**  @dev Validates a proposal for a job by locking ERC20 into escrow.
      *  @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
      *  @param _metaEvidence Link to the meta-evidence.
      *  @param _adminWallet Admin fee wallet.
@@ -155,7 +155,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         );
     }
 
-    /*  @dev Allows the sender to release locked-in escrow value to the intended recipient.
+    /**  @dev Allows the sender to release locked-in escrow value to the intended recipient.
      *  @param _transactionId Id of the transaction to release escrow value for.
      *  @param _amount Value to be released. Should not be more than amount locked in.
      */
@@ -174,7 +174,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         _distributeMessage(transaction.jobId, transaction.amount);
     }
 
-    /*  @dev Allows the intended receiver to return locked-in escrow value back to the sender.
+    /**  @dev Allows the intended receiver to return locked-in escrow value back to the sender.
      *  @param _transactionId Id of the transaction to reimburse escrow value for.
      *  @param _amount Value to be reimbursed. Should not be more than amount locked in.
      */
