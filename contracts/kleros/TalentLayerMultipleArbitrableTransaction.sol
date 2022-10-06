@@ -102,6 +102,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         require(msg.sender == sender, "Access denied.");
         require(msg.value == proposal.rateAmount + _adminFeeAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
+        require(proposal.employeeId == _proposalId, "Incorrect proposal ID.");
 
         require(job.status == IJobRegistry.Status.Opened, "Job status not open.");
         require(proposal.status == IJobRegistry.ProposalStatus.Pending, "Proposal status not pending.");
@@ -112,7 +113,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         emit JobProposalConfirmedWithDeposit(
             _jobId,
             _proposalId,
-            _proposalId,
+            proposal.employeeId,
             transactionId
         );
     }
@@ -142,7 +143,8 @@ contract TalentLayerMultipleArbitrableTransaction {
 
         require(job.status == IJobRegistry.Status.Opened, "Job status not open.");
         require(proposal.status == IJobRegistry.ProposalStatus.Pending, "Proposal status not pending.");
-
+        require(proposal.employeeId == _proposalId, "Incorrect proposal ID.");
+        
         uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _jobId);
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactionId); 
         _deposit(sender, proposal.rateToken, proposal.rateAmount); 
@@ -150,7 +152,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         emit JobProposalConfirmedWithDeposit(
             _jobId,
             _proposalId,
-            _proposalId,
+            proposal.employeeId,
             transactionId
         );
     }
