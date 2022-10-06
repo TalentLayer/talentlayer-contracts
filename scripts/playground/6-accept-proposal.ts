@@ -21,8 +21,8 @@ async function main() {
       ConfigProperty.TalentLayerMultipleArbitrableTransaction
     )
   );
-  const rateToken = "0x0000000000000000000000000000000000000000";
-  const rateAmount = 100;
+  // const rateToken = "0x0000000000000000000000000000000000000000";
+  const rateAmount = 200;
   const adminFeeAmount = 10;
 
   let jobId = await jobRegistry.nextJobId();
@@ -32,15 +32,12 @@ async function main() {
   await talentLayerMultipleArbitrableTransaction
     .connect(alice)
     .createETHTransaction(
-      3600 * 24 * 7,
-      alice.address,
-      carol.address,
+      3600 * 24 * 7, 
       "_metaEvidence",
-      rateAmount,
-      bob.address,
+      dave.address, //admin address, not used yet.
       adminFeeAmount,
       jobId,
-      3,
+      3, //proposalId/talentLayerId of carol.
       { value: rateAmount + adminFeeAmount }
     );
 }

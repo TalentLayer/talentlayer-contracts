@@ -22,7 +22,7 @@ describe("TalentLayer", function () {
     talentLayerMultipleArbitrableTransaction: Contract,
     talentLayerArbitrator: Contract,
     mockProofOfHumanity: Contract,
-    simpleERC20: Contract;
+    token: Contract;
 
   before(async function () {
     [deployer, alice, bob, carol, dave] = await ethers.getSigners();
@@ -68,12 +68,11 @@ describe("TalentLayer", function () {
 
     // Deploy SimpleERC20 Token
     SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
-    simpleERC20 = await SimpleERC20.deploy();
-    await simpleERC20.transfer(alice.address, 10000);
+    token = await SimpleERC20.deploy();
 
     // Grant escrow role 
-    const escrowRole = await jobRegistry.ESCROW_ROLE()
-    await jobRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address)
+    const escrowRole = await jobRegistry.ESCROW_ROLE();
+    await jobRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address);
   });
 
   it("Alice, Bob and Carol can mint a talentLayerId", async function () {
@@ -338,95 +337,319 @@ describe("TalentLayer", function () {
     expect(proposalDataAfter.status.toString()).to.be.equal("2");
   });
 
-  it("Alice can validate a proposal by sending ETH funds to escrow", async function () {
-    const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    const rateToken = "0x0000000000000000000000000000000000000000";
-    const rateAmount = 100;
-    const adminFeeAmount = 10;
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
-    await jobRegistry.connect(bob).createProposal(12, rateToken, rateAmount, "cid");
+  describe("SimpleERC20 contract.", function () {
+    describe("Deployment", function () {
+      // it("Should be accessible", async function () {
+      //   await loadFixture(deployTokenFixture);
+      //   expect(await token.ping()).to.equal(1);
+      // });
 
-    await talentLayerMultipleArbitrableTransaction.connect(alice).createTransaction(
-      3600*24*7,
-      '_metaEvidence',
-      carol.address,
-      adminFeeAmount,
-      12,
-      bobTid, 
-      {'value': rateAmount + adminFeeAmount}
-    )
+      it("Should set the right deployer", async function () {
+        expect(await token.owner()).to.equal(deployer.address);
+      });
 
-    const proposalDataAfter = await jobRegistry.getProposal(12, bobTid)
-    const jobDataAfter = await jobRegistry.getJob(12)
-    expect(proposalDataAfter.status.toString()).to.be.equal("1")
-    expect(jobDataAfter.status.toString()).to.be.equal("1")
-    expect(jobDataAfter.transactionId.toString()).to.be.equal("0")
-    expect(jobDataAfter.employeeId.toString()).to.be.equal(bobTid)
+      it("Should assign the total supply of tokens to the deployer", async function() {
+        // await loadFixture(deployTokenFixture);
+        const deployerBalance = await token.balanceOf(deployer.address);
+        const totalSupply = await token.totalSupply();
+        expect(totalSupply).to.equal(deployerBalance);
+      });
 
-    const escrowBalance = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
-    expect(escrowBalance).to.be.equal(rateAmount + adminFeeAmount)
+      it("Should transfer 1000 tokens to alice", async function() {
+        // await loadFixture(deployTokenFixture);
+      expect(
+          token.transfer(alice.address, 1000)
+        ).to.changeTokenBalances(token, [deployer, alice], [-1000,1000]);
+      });
+    });
+
+    describe("Token transactions.", function () {
+      it("Should transfer tokens between accounts", async function () {
+        // await loadFixture(deployTokenFixture);
+        
+        // Transfer 50 tokens from deployer to alice
+        expect(
+           token.transfer(alice.address, 50)
+        ).to.changeTokenBalances(token, [deployer, alice], [-50,50]);
+
+        // Transfer 50 tokens from alice to bob
+        expect(
+           token.connect(alice).transfer(bob.address, 50)
+           ).to.changeTokenBalances(token, [alice, bob], [-50,50]);
+      });
+
+      it("Should emit Transfer events.", async function () {
+        // await loadFixture(deployTokenFixture);
+
+        // Transfer 50 tokens from deployer to alice
+        expect(token.transfer(alice.address, 50))
+          .to.emit(token, "Transfer")
+          .withArgs(deployer.address, alice.address, 50);
+
+        // Transfer 50 tokens from alice to bob
+        expect(token.connect(alice).transfer(bob.address, 50))
+          .to.emit(token, "Transfer")
+          .withArgs(alice.address, bob.address, 50);
+      });
+
+      it("Should revert when sender doesn't have enough tokens.", async function () {
+        // await loadFixture(deployTokenFixture);
+
+        const initialdeployerBalance = await token.balanceOf(deployer.address);
+
+        // Try to send 1 token from dave (0 tokens) to deployer (1000 tokens).
+        expect(
+          token.connect(dave).transfer(deployer.address, 1)
+        ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+
+        // deployer balance shouldn't have changed.
+        expect(await token.balanceOf(deployer.address)).to.equal(
+          initialdeployerBalance);
+      });
+    });
   });
 
-  it("Alice can pay Bob, first 30%, then the remaining 70%", async function () {
-    const bobBalanceStep0 = await ethers.provider.getBalance(bob.address)
+  describe("Escrow Contract.", function() {
+    describe("Successful use of Escrow for a job using an ERC20 token.", function () {
+      const amountBob = 100;
+      const amountCarol = 200;
+      const jobId = 12;
+      const adminFeeAmount = 0;
+      const transactionId = 0;
+      let proposalIdBob = 0; //Will be set later
+      let proposalIdCarol = 0; //Will be set later
+      
+      it("Alice can create a job.", async function( ) {
+        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+      });
 
-    // First 30% pay
-    await talentLayerMultipleArbitrableTransaction.connect(alice).pay(0, 30)
-
-    const escrowBalanceStep1 = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
-    expect(escrowBalanceStep1).to.be.equal(80)
-
-    const jobDataStep1 = await jobRegistry.getJob(12)
-    expect(jobDataStep1.status.toString()).to.be.equal("1")
-
-    const bobBalanceStep1 = await ethers.provider.getBalance(bob.address)
-    expect(bobBalanceStep1).to.be.equal(bobBalanceStep0.add(30))
-
-    // Last 70% pay
-    await talentLayerMultipleArbitrableTransaction.connect(alice).pay(0, 70)
-    const escrowBalanceStep2 = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
-    expect(escrowBalanceStep2).to.be.equal(10)
-
-    const bobBalanceStep2 = await ethers.provider.getBalance(bob.address)
-    expect(bobBalanceStep2).to.be.equal(bobBalanceStep1.add(70))
-
-    const jobDataStep2 = await jobRegistry.getJob(12)
-    expect(jobDataStep2.status.toString()).to.be.equal("2")
-
-    // What an amazing job, let's review each others
-    await talentLayerReview.connect(alice).addReview(12, "cidReview3", 5);
-    await talentLayerReview.connect(bob).addReview(12, "cidReview4", 5);
-
-    expect(await talentLayerReview.reviewDataUri(2)).to.be.equal("cidReview3");
-    expect(await talentLayerReview.reviewDataUri(3)).to.be.equal("cidReview4");
-  });
-
-  it("Alice can validate a proposal by sending Token funds to escrow", async function () {
-    const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    const rateToken = simpleERC20.address;
-    const rateAmount = 100;
-    const adminFeeAmount = 10;
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
-    await jobRegistry.connect(bob).createProposal(13, rateToken, rateAmount, "cid");
+      it("Alice can NOT deposit tokens to escrow yet.", async function( ) {
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob); 
+        expect(talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdBob
+        )).to.be.reverted;
+      });
     
+      it("Bob can register a proposal.", async function( ) {
+        proposalIdBob = await talentLayerID.walletOfOwner(bob.address);
+        await jobRegistry.connect(bob).createProposal(jobId, token.address, amountBob, "cid");
+      });
 
-    await simpleERC20.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, rateAmount + adminFeeAmount); 
+      it("Carol can register a proposal.", async function( ) {
+        proposalIdCarol = await talentLayerID.walletOfOwner(carol.address);
+        await jobRegistry.connect(carol).createProposal(jobId, token.address, amountCarol, "cid");
+      });
 
+      it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob); 
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdBob);
+        await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [amountBob, -amountBob, 0]);
+      
+        await expect(transaction).to.emit(
+          talentLayerMultipleArbitrableTransaction, "JobProposalConfirmedWithDeposit"
+        ).withArgs(
+          jobId, proposalIdBob, proposalIdBob, transactionId
+        );
+      });
 
-    await talentLayerMultipleArbitrableTransaction.connect(alice).createTransaction(
-      3600*24*7,
-      '_metaEvidence',
-      carol.address,
-      adminFeeAmount,
-      13,
-      bobTid, 
-      {'value': rateAmount + adminFeeAmount}
-    )
+      it("The deposit should also validate the proposal.", async function () {
+        const proposal = await jobRegistry.getProposal(jobId, proposalIdBob);
+        await expect(proposal.status.toString()).to.be.equal("1");
+      });
 
-    const proposalDataAfter = await jobRegistry.getProposal(13, bobTid)
-    const jobDataAfter = await jobRegistry.getJob(13)
-    expect(proposalDataAfter.status.toString()).to.be.equal("1")
-    expect(jobDataAfter.status.toString()).to.be.equal("1")
-    expect(jobDataAfter.transactionId.toString()).to.be.equal("1")
+      it("The deposit should also update the job with transactionId, proposalId, and status.", async function () {
+        const job = await jobRegistry.getJob(jobId);
+        await expect(job.status.toString()).to.be.equal("1");
+        await expect(job.transactionId.toString()).to.be.equal("0");
+        await expect(job.employeeId.toString()).to.be.equal(proposalIdBob);
+      });
+
+      it("Alice can NOT deposit funds for Carol's proposal.", async function () {
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountCarol);
+        await expect(talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdCarol)
+        ).to.be.reverted;
+      });
+
+      it("Carol should not be allowed to release escrow the job.", async function () {
+        await expect ( 
+          talentLayerMultipleArbitrableTransaction.connect(carol).release(transactionId, 10)
+        ).to.be.revertedWith("Access denied.");
+      });
+
+      it("Alice can release half of the escrow to bob.", async function () {
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, amountBob/2);
+        await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/2, 0, amountBob/2]);
+      });
+
+      it("Alice can release a quarter of the escrow to Bob.", async function () {
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, amountBob/4);
+        await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, 0, amountBob/4]);
+      });
+
+      it("Carol can NOT reimburse alice.", async function() {
+        await expect (
+          talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, amountBob/4)
+        ).to.revertedWith("Access denied.");
+      });
+
+      it("Bob can NOT reimburse alice for more than what is left in escrow.", async function() {
+        await expect (
+          talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob)
+        ).to.revertedWith("Insufficient funds.");
+      });
+
+      it("Bob can reimburse alice for what is left in the escrow, an emit will be sent.", async function() {
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob/4);
+        await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
+        await expect(transaction)
+          .to.emit(talentLayerMultipleArbitrableTransaction, "PaymentCompleted")
+          .withArgs(jobId);
+      });
+
+      it("Alice can not release escrow because there is none left. ", async function () {
+        await expect(
+          talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, 1)
+        ).to.be.revertedWith("Insufficient funds.");
+      });
+    });
+
+    describe("Successful use of Escrow for a job using ETH.", function () {
+      const amountBob = 100;
+      const amountCarol = 200;
+      const jobId = 13;
+      const adminFeeAmount = 0;
+      const transactionId = 1;
+      let proposalIdBob = 0; //Will be set later
+      let proposalIdCarol = 0; //Will be set later
+      const ethAddress = "0x0000000000000000000000000000000000000000";
+
+      it("Alice can create a job.", async function( ) {
+        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+      });
+
+      it("Alice can NOT deposit eth to escrow yet.", async function( ) {
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob); 
+        await expect(talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdBob
+        )).to.be.reverted;
+      });
+
+      it("Bob can register a proposal.", async function( ) {
+        proposalIdBob = await talentLayerID.walletOfOwner(bob.address);
+        await jobRegistry.connect(bob).createProposal(jobId, ethAddress, amountBob, "cid");
+      });
+
+      it("Carol can register a proposal.", async function( ) {
+        proposalIdCarol = await talentLayerID.walletOfOwner(carol.address);
+        await jobRegistry.connect(carol).createProposal(jobId, ethAddress, amountCarol, "cid");
+      });
+
+      it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdBob, 
+          {value: amountBob});
+        await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [amountBob, -amountBob, 0]);
+
+        await expect(transaction).to.emit(
+          talentLayerMultipleArbitrableTransaction, "JobProposalConfirmedWithDeposit"
+        ).withArgs(
+          jobId, proposalIdBob, proposalIdBob, transactionId
+        );
+      });
+
+      it("The deposit should also validate the proposal.", async function () {
+        const proposal = await jobRegistry.getProposal(jobId, proposalIdBob);
+        await expect(proposal.status.toString()).to.be.equal("1");
+      });
+
+      it("The deposit should also update the job with transactionId, proposalId, and status.", async function () {
+        const job = await jobRegistry.getJob(jobId);
+        await expect(job.status.toString()).to.be.equal("1");
+        await expect(job.transactionId).to.be.equal(transactionId);
+        await expect(job.employeeId).to.be.equal(proposalIdBob);
+      });
+
+      it("Alice can NOT deposit funds for Carol's proposal, and NO event should emit.", async function () {
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountCarol);
+        expect(talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
+          3600*24*7,
+          '_metaEvidence',
+          dave.address,
+          adminFeeAmount,
+          jobId, 
+          proposalIdCarol, 
+          {value: amountCarol})
+        ).to.be.reverted;
+      });
+
+      it("Carol should not be allowed to release escrow the job.", async function () {
+        await expect ( 
+          talentLayerMultipleArbitrableTransaction.connect(carol).release(transactionId, 10)
+        ).to.be.revertedWith("Access denied.");
+      });
+
+      it("Alice can release half of the escrow to bob.", async function () {
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, amountBob/2);
+        await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/2, 0, amountBob/2]);
+      });
+
+      it("Alice can release a quarter of the escrow to Bob.", async function () {
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, amountBob/4);
+        await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, 0, amountBob/4]);
+      });
+
+      it("Carol can NOT reimburse alice.", async function() {
+        await expect (
+          talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, amountBob/4)
+        ).to.revertedWith("Access denied.");
+      });
+
+      it("Bob can NOT reimburse alice for more than what is left in escrow.", async function() {
+        await expect (
+          talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob)
+        ).to.revertedWith("Insufficient funds.");
+      });
+
+      it("Bob can reimburse alice for what is left in the escrow, an emit will be sent.", async function() {
+        const transaction = await talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob/4);
+        await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
+        await expect(transaction)
+          .to.emit(talentLayerMultipleArbitrableTransaction, "PaymentCompleted")
+          .withArgs(jobId);
+      });
+
+      it("Alice can not release escrow because there is none left.", async function () {
+        await expect(
+          talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, 10)
+        ).to.be.revertedWith("Insufficient funds.");
+      });
+    });
   });
 });
