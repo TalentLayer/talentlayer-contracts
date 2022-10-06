@@ -395,6 +395,12 @@ contract JobRegistry is AccessControl {
             proposal.status != ProposalStatus.Validated,
             "Proposal has already been validated"
         );
+
+        require(
+            proposal.status != ProposalStatus.Rejected,
+            "Proposal has already been rejected"
+        );
+
         require(senderId == job.employerId, "You're not the employer");
 
         proposal.status = ProposalStatus.Rejected;
