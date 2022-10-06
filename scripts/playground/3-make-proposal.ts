@@ -25,7 +25,8 @@ async function main() {
     .createProposal(jobId, rateTokenBob, 10, "ipfs://bob");
 
   //Carol make a proposal
-  const rateTokenCarol = "0xba401cdac1a3b6aeede21c9c4a483be6c29f88c5";
+  // const rateTokenCarol = "0xba401cdac1a3b6aeede21c9c4a483be6c29f88c5";
+  const rateTokenCarol = "0x0000000000000000000000000000000000000000";
   await jobRegistry
     .connect(carol)
     .createProposal(jobId, rateTokenCarol, 200, "ipfs://carol");
