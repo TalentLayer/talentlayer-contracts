@@ -25,13 +25,11 @@ contract TalentLayerMultipleArbitrableTransaction {
     // =========================== Events ==============================
     
     /// @notice Emitted after a job is finished
-    /// @param id The job ID
-    /// @param proposalId the proposal ID
-    /// @param employeeId the talentLayerId of the employee
-    /// @param transactionId the escrow transaction ID
+    /// @param jobId The associated job ID
+    /// @param employeeId The talentLayerId of the associated employee
+    /// @param transactionId The associated escrow transaction ID
     event JobProposalConfirmedWithDeposit(
-        uint256 id,
-        uint256 proposalId,
+        uint256 jobId,
         uint256 employeeId,
         uint256 transactionId
     );
@@ -112,7 +110,6 @@ contract TalentLayerMultipleArbitrableTransaction {
 
         emit JobProposalConfirmedWithDeposit(
             _jobId,
-            _proposalId,
             proposal.employeeId,
             transactionId
         );
@@ -151,7 +148,6 @@ contract TalentLayerMultipleArbitrableTransaction {
 
         emit JobProposalConfirmedWithDeposit(
             _jobId,
-            _proposalId,
             proposal.employeeId,
             transactionId
         );
