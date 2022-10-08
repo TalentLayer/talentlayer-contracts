@@ -4,5 +4,6 @@
   "jobRegistryAddress": "0x7f606e9868283A46c050515eD70ac13B46dB845b",
   "talentLayerReviewAddress": "0xF0A74A1c6721E3D32aE45098e46e3C6e42CA94b5",
   "TalentLayerArbitrator": "0x8564BD74CFdcE620F6C89C6d5326614B24CDcbae",
-  "TalentLayerMultipleArbitrableTransaction": "0x2f9E87f44a9931632144c0CDe7a822071998baE1"
+  "TalentLayerMultipleArbitrableTransaction": "0x2f9E87f44a9931632144c0CDe7a822071998baE1",
+  "SimpleERC20": "0xf6597b08A75A9427F0C332601a196C379c3A27cE"
 }

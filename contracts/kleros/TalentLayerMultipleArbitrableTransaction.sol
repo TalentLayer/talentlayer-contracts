@@ -12,6 +12,12 @@ contract TalentLayerMultipleArbitrableTransaction {
 
     // =========================== Enum ==============================
 
+    /// @notice Enum payment type
+    enum PaymentType {
+        Release,
+        Reimburse
+    }
+
     // =========================== Struct ==============================
 
     struct Transaction {
@@ -32,6 +38,18 @@ contract TalentLayerMultipleArbitrableTransaction {
         uint256 jobId,
         uint256 employeeId,
         uint256 transactionId
+    );
+
+    /// @notice Emitted after each payment
+    ///  @param _paymentType Whether the payment is a release or a reimbursement.
+    ///  @param _amount The amount paid.
+    ///  @param _token The address of the token used for the payment.
+    ///  @param _jobId The id of the concerned job.
+    event Payment(
+        PaymentType _paymentType,
+        uint256 _amount,
+        address _token,
+        uint256 _jobId
     );
 
     /// @notice Emitted after a job is finished
@@ -169,6 +187,9 @@ contract TalentLayerMultipleArbitrableTransaction {
 
         transaction.amount -= _amount;
         _release(transaction.receiver, transaction.token, _amount);
+
+        emit Payment(PaymentType.Release, _amount, transaction.token, transaction.jobId);
+
         _distributeMessage(transaction.jobId, transaction.amount);
     }
 
@@ -188,6 +209,9 @@ contract TalentLayerMultipleArbitrableTransaction {
 
         transaction.amount -= _amount;
         _release(transaction.sender, transaction.token, _amount);
+
+        emit Payment(PaymentType.Reimburse, _amount, transaction.token, transaction.jobId);
+
         _distributeMessage(transaction.jobId, transaction.amount);
     }
 
