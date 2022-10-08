@@ -2,15 +2,15 @@ import { formatEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
 import { getConfig, Network, NetworkConfig } from "./config";
 import { set, ConfigProperty } from "../configManager";
-import { Arbitrator } from "../typechain-types";
 
 // npx hardhat deploy --use-pohmock --verify --network goerli
 task("deploy")
   .addFlag("usePohmock", "deploy a mock of POH")
+  .addFlag("useTestErc20", "deploy a mock ERC20 contract")
   .addFlag("verify", "verify contracts on etherscan")
   .setAction(async (args, { ethers, run, network }) => {
     try {
-      const { verify, usePohmock } = args;
+      const { verify, usePohmock, useTestErc20 } = args;
       const [alice, bob, carol, dave] = await ethers.getSigners();
       const chainId = network.config.chainId
         ? network.config.chainId
@@ -192,6 +192,20 @@ task("deploy")
         ConfigProperty.TalentLayerMultipleArbitrableTransaction,
         talentLayerMultipleArbitrableTransaction.address
       );
+
+      if (useTestErc20) {
+        // Deploy ERC20 contract
+        const SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
+        const simpleERC20 = await SimpleERC20.deploy();
+
+        console.log("simpleERC20 address:", simpleERC20.address);
+
+        set(
+            network.name as any as Network,
+            ConfigProperty.SimpleERC20,
+            simpleERC20.address
+        );
+      }
 
       // Grant escrow role
       const escrowRole = await jobRegistry.ESCROW_ROLE();
