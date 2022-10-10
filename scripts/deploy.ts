@@ -79,6 +79,17 @@ task("deploy")
         talentLayerID.address
       );
 
+      // Deploy Plateform ID contract
+      const PlatformID = await ethers.getContractFactory("PlatformID");
+      const platformID = await PlatformID.deploy();
+      if (verify) {
+        await platformID.deployTransaction.wait(5);
+        await run("verify:verify", {
+          address: platformID.address,
+        });
+      }
+      console.log("plateformID address:", platformID.address);
+
       // Deploy Job Registry Contract
       const JobRegistry = await ethers.getContractFactory("JobRegistry");
       const jobRegistryArgs: [string] = [talentLayerID.address];
@@ -201,9 +212,9 @@ task("deploy")
         console.log("simpleERC20 address:", simpleERC20.address);
 
         set(
-            network.name as any as Network,
-            ConfigProperty.SimpleERC20,
-            simpleERC20.address
+          network.name as any as Network,
+          ConfigProperty.SimpleERC20,
+          simpleERC20.address
         );
       }
 
