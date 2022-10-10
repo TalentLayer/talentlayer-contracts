@@ -5,27 +5,20 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
-import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 
 /**
- * @title TalentLayer ID Contract
- * @author TalentLayer Team @ ETHCC22 Hackathon
+ * @title PLateform ID Contract
+ * @author TalentLayer Team
  */
 contract TalentLayerID is ERC721A, Ownable {
-    /// Proof of Humanity registry
-    IProofOfHumanity public pohRegistry;
+    /// Platform token id to Platform name mapping
+    mapping(uint256 => string) public name;
 
-    /// TalentLayer token id to handle mapping
-    mapping(uint256 => string) public handles;
-
-    /// Taken handles
-    mapping(string => bool) public takenHandles;
-
-    /// Token ID to Proof of Humanity address mapping
-    mapping(uint256 => address) public talentIdPohAddresses;
+    /// name Platform name
+    mapping(string => bool) public takenNames;
 
     /// Token ID to IPFS URI mapping
-    mapping(uint256 => string) public profilesDataUri;
+    mapping(uint256 => string) public platformUri;
 
     /// Account recovery merkle root
     bytes32 public recoveryRoot;
