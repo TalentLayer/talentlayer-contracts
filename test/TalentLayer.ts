@@ -92,24 +92,27 @@ describe("TalentLayer", function () {
   });
 
   it("Alice, Bob and Carol can mint a talentLayerId", async function () {
-    await talentLayerID.connect(alice).mintWithPoh("alice");
-    await talentLayerID.connect(bob).mintWithPoh("bob");
+    await talentLayerID.connect(alice).mintWithPoh("alice", 1);
+    await talentLayerID.connect(bob).mintWithPoh("bob", 1);
 
     expect(
-      talentLayerID.connect(carol).mintWithPoh("carol")
+      talentLayerID.connect(carol).mintWithPoh("carol", 1)
     ).to.be.revertedWith(
       "You need to use an address registered on Proof of Humanity"
     );
-    await talentLayerID.connect(carol).mint("carol");
+    await talentLayerID.connect(carol).mint("carol", 1);
 
     expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal("1");
     expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal("2");
     expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal("3");
+
+    const carolUserId = await talentLayerID.walletOfOwner(carol.address);
+    expect(await talentLayerID.userIdToPlatformId(carolUserId)).to.be.equal("1");
   });
 
   it("Carol can activate POH on her talentLayerID", async function () {
     expect(
-      talentLayerID.connect(carol).mintWithPoh("carol")
+      talentLayerID.connect(carol).mintWithPoh("carol", 1)
     ).to.be.revertedWith("You're address is not registerd for poh");
     await mockProofOfHumanity.addSubmissionManually([carol.address]);
     await talentLayerID.connect(carol).activatePoh(3);

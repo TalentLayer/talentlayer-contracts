@@ -27,6 +27,9 @@ contract TalentLayerID is ERC721A, Ownable {
     /// Token ID to IPFS URI mapping
     mapping(uint256 => string) public profilesDataUri;
 
+    /// User ID to platform ID
+    mapping(uint256 => uint256) public userIdToPlatformId;
+
     /// Account recovery merkle root
     bytes32 public recoveryRoot;
 
@@ -65,6 +68,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _owner Address to check
      * @return uint256 the id of the NFT
      */
+    //TODO: Changer le nom de cette fonction
     function walletOfOwner(address _owner) public view returns (uint256) {
         uint256 ownedTokenId;
         uint256 currentTokenId = _startTokenId();
@@ -93,17 +97,19 @@ contract TalentLayerID is ERC721A, Ownable {
     /**
      * Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
      * @param _handle Handle for the user
+     * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(string memory _handle) public canMint(_handle) {
+    function mint(string memory _handle, uint256 _platformId) public canMint(_handle) {
         _safeMint(msg.sender, 1);
-        _afterMint(_handle, false);
+        _afterMint(_handle, false, _platformId);
     }
 
     /**
      * Allows a user to mint a new TalentLayerID with Proof of Humanity.
      * @param _handle Handle for the user
+     * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(string memory _handle) public canMint(_handle) {
+    function mintWithPoh(string memory _handle, uint256 _platformId) public canMint(_handle) {
         require(
             pohRegistry.isRegistered(msg.sender),
             "You need to use an address registered on Proof of Humanity"
@@ -111,7 +117,7 @@ contract TalentLayerID is ERC721A, Ownable {
         _safeMint(msg.sender, 1);
         uint256 userTokenId = _nextTokenId() - 1;
         talentIdPohAddresses[userTokenId] = msg.sender;
-        _afterMint(_handle, true);
+        _afterMint(_handle, true, _platformId);
     }
 
     /**
@@ -214,13 +220,15 @@ contract TalentLayerID is ERC721A, Ownable {
     /**
      * Update handle address mapping and emit event after mint.
      * @param _handle Handle for the user
+     * @param _platformId Platform ID from which UserId wad minted
      */
-    function _afterMint(string memory _handle, bool _poh) private {
+    function _afterMint(string memory _handle, bool _poh, uint256 _platformId) private {
         uint256 userTokenId = _nextTokenId() - 1;
         handles[userTokenId] = _handle;
         takenHandles[_handle] = true;
+        userIdToPlatformId[userTokenId]= _platformId;
 
-        emit Mint(msg.sender, userTokenId, _handle, _poh);
+        emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId);
     }
 
     // =========================== Internal functions ==============================
@@ -314,12 +322,14 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _user Address of the owner of the TalentLayerID
      * @param _tokenId TalentLayer ID for the user
      * @param _handle Handle for the user
+     * @param _platformId Platform ID from which UserId wad minted
      */
     event Mint(
         address indexed _user,
         uint256 _tokenId,
         string _handle,
-        bool _withPoh
+        bool _withPoh,
+        uint256 _platformId
     );
 
     /**
