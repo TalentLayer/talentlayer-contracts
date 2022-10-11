@@ -11,7 +11,7 @@ describe("TalentLayer", function () {
     dave: SignerWithAddress,
     JobRegistry: ContractFactory,
     TalentLayerID: ContractFactory,
-    PlatformID: ContractFactory,
+    TalentLayerPlatformID: ContractFactory,
     TalentLayerReview: ContractFactory,
     TalentLayerMultipleArbitrableTransaction: ContractFactory,
     TalentLayerArbitrator: ContractFactory,
@@ -19,7 +19,7 @@ describe("TalentLayer", function () {
     SimpleERC20: ContractFactory,
     jobRegistry: Contract,
     talentLayerID: Contract,
-    platformID: Contract,
+    talentLayerPlatformID: Contract,
     talentLayerReview: Contract,
     talentLayerMultipleArbitrableTransaction: Contract,
     talentLayerArbitrator: Contract,
@@ -42,8 +42,10 @@ describe("TalentLayer", function () {
     talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs);
 
     // Deploy PlateformID
-    PlatformID = await ethers.getContractFactory("PlatformID");
-    platformID = await PlatformID.deploy();
+    TalentLayerPlatformID = await ethers.getContractFactory(
+      "TalentLayerPlatformID"
+    );
+    talentLayerPlatformID = await TalentLayerPlatformID.deploy();
 
     // Deploy JobRegistry
     JobRegistry = await ethers.getContractFactory("JobRegistry");
@@ -778,25 +780,31 @@ describe("TalentLayer", function () {
 
   describe("Platform Id contract test", function () {
     it("Alice can mint a Plateform Id", async function () {
-      await platformID.connect(alice).mint("PlatId");
+      await talentLayerPlatformID.connect(alice).mint("PlatId");
       expect(
-        await platformID.getPlatformIdFromAddress(alice.address)
+        await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
       ).to.be.equal("1");
     });
 
     it("Alice can check the number of id minted", async function () {
-      await platformID.connect(alice).numberMinted(alice.address);
-      expect(await platformID.numberMinted(alice.address)).to.be.equal("1");
+      await talentLayerPlatformID.connect(alice).numberMinted(alice.address);
+      expect(
+        await talentLayerPlatformID.numberMinted(alice.address)
+      ).to.be.equal("1");
     });
 
     it("Alice can update the plateform Data", async function () {
-      await platformID.connect(alice).updateProfileData("1", "newPlatId");
-      expect(await platformID.platformUri("1")).to.be.equal("newPlatId");
+      await talentLayerPlatformID
+        .connect(alice)
+        .updateProfileData("1", "newPlatId");
+      expect(await talentLayerPlatformID.platformUri("1")).to.be.equal(
+        "newPlatId"
+      );
     });
 
     it("Alice should not be able to transfer her Plateform Id to Bob", async function () {
       expect(
-        platformID.transferFrom(alice.address, bob.address, 1)
+        talentLayerPlatformID.transferFrom(alice.address, bob.address, 1)
       ).to.be.revertedWith("Not allowed");
     });
   });
