@@ -9,14 +9,14 @@ describe("TalentLayer", function () {
     bob: SignerWithAddress,
     carol: SignerWithAddress,
     dave: SignerWithAddress,
-    JobRegistry: ContractFactory,
+    ServiceRegistry: ContractFactory,
     TalentLayerID: ContractFactory,
     TalentLayerReview: ContractFactory,
     TalentLayerMultipleArbitrableTransaction: ContractFactory,
     TalentLayerArbitrator: ContractFactory,
     MockProofOfHumanity: ContractFactory,
     SimpleERC20: ContractFactory,
-    jobRegistry: Contract,
+    serviceRegistry: Contract,
     talentLayerID: Contract,
     talentLayerReview: Contract,
     talentLayerMultipleArbitrableTransaction: Contract,
@@ -39,9 +39,9 @@ describe("TalentLayer", function () {
     const talentLayerIDArgs: [string] = [mockProofOfHumanity.address];
     talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs);
 
-    // Deploy JobRegistry
-    JobRegistry = await ethers.getContractFactory("JobRegistry");
-    jobRegistry = await JobRegistry.deploy(talentLayerID.address);
+    // Deploy ServiceRegistry
+    ServiceRegistry = await ethers.getContractFactory("ServiceRegistry");
+    serviceRegistry = await ServiceRegistry.deploy(talentLayerID.address);
 
     // Deploy TalentLayerReview
     TalentLayerReview = await ethers.getContractFactory("TalentLayerReview");
@@ -49,7 +49,7 @@ describe("TalentLayer", function () {
       "TalentLayer Review",
       "TLR",
       talentLayerID.address,
-      jobRegistry.address
+      serviceRegistry.address
     );
 
     // Deploy TalentLayerArbitrator
@@ -59,7 +59,7 @@ describe("TalentLayer", function () {
     // Deploy TalentLayerMultipleArbitrableTransaction
     TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory("TalentLayerMultipleArbitrableTransaction");
     talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
-      jobRegistry.address,
+      serviceRegistry.address,
       talentLayerID.address,
       talentLayerArbitrator.address,
       [],
@@ -71,8 +71,8 @@ describe("TalentLayer", function () {
     token = await SimpleERC20.deploy();
 
     // Grant escrow role 
-    const escrowRole = await jobRegistry.ESCROW_ROLE();
-    await jobRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address);
+    const escrowRole = await serviceRegistry.ESCROW_ROLE();
+    await serviceRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address);
   });
 
   it("Alice, Bob and Carol can mint a talentLayerId", async function () {
@@ -103,58 +103,58 @@ describe("TalentLayer", function () {
     );
   });
 
-  it("Alice, the employer, can initiate a new job with Bob, the employee", async function () {
+  it("Alice, the buyer, can initiate a new service with Bob, the seller", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await jobRegistry.connect(alice).createJobFromEmployer(bobTid, "cid");
-    const jobData = await jobRegistry.jobs(1);
+    await serviceRegistry.connect(alice).createServiceFromBuyer(bobTid, "cid");
+    const serviceData = await serviceRegistry.services(1);
 
-    expect(jobData.status.toString()).to.be.equal("0");
-    expect(jobData.employerId.toString()).to.be.equal("1");
-    expect(jobData.initiatorId.toString()).to.be.equal("1");
-    expect(jobData.employeeId.toString()).to.be.equal("2");
-    expect(jobData.jobDataUri).to.be.equal("cid");
+    expect(serviceData.status.toString()).to.be.equal("0");
+    expect(serviceData.buyerId.toString()).to.be.equal("1");
+    expect(serviceData.initiatorId.toString()).to.be.equal("1");
+    expect(serviceData.sellerId.toString()).to.be.equal("2");
+    expect(serviceData.serviceDataUri).to.be.equal("cid");
   });
 
-  it("Alice can't create a new job with a talentLayerId 0", async function () {
+  it("Alice can't create a new service with a talentLayerId 0", async function () {
     expect(
-      jobRegistry.connect(alice).createJobFromEmployer(0, "cid")
-    ).to.be.revertedWith("Employee 0 is not a valid TalentLayerId");
+      serviceRegistry.connect(alice).createServiceFromBuyer(0, "cid")
+    ).to.be.revertedWith("Seller 0 is not a valid TalentLayerId");
     expect(
-      jobRegistry.connect(alice).createJobFromEmployee(0, "cid")
-    ).to.be.revertedWith("Employer 0 is not a valid TalentLayerId");
+      serviceRegistry.connect(alice).createServiceFromSeller(0, "cid")
+    ).to.be.revertedWith("Buyer 0 is not a valid TalentLayerId");
   });
 
-  it("Bob, the employee, can confrim the job, Alice can't, Carol can't", async function () {
-    expect(jobRegistry.connect(alice).confirmJob(1)).to.be.revertedWith(
-      "Only the user who didn't initate the job can confirm it"
+  it("Bob, the seller, can confrim the service, Alice can't, Carol can't", async function () {
+    expect(serviceRegistry.connect(alice).confirmService(1)).to.be.revertedWith(
+      "Only the user who didn't initate the service can confirm it"
     );
-    expect(jobRegistry.connect(carol).confirmJob(1)).to.be.revertedWith(
-      "You're not an actor of this job"
+    expect(serviceRegistry.connect(carol).confirmService(1)).to.be.revertedWith(
+      "You're not an actor of this service"
     );
-    await jobRegistry.connect(bob).confirmJob(1);
-    const jobData = await jobRegistry.jobs(1);
-    expect(jobData.status.toString()).to.be.equal("1");
-    expect(jobRegistry.connect(bob).confirmJob(1)).to.be.revertedWith(
-      "Job has already been confirmed"
+    await serviceRegistry.connect(bob).confirmService(1);
+    const serviceData = await serviceRegistry.services(1);
+    expect(serviceData.status.toString()).to.be.equal("1");
+    expect(serviceRegistry.connect(bob).confirmService(1)).to.be.revertedWith(
+      "Service has already been confirmed"
     );
   });
 
   it("Bob can't write a review yet", async function () {
     expect(
       talentLayerReview.connect(bob).addReview(1, "cidReview", 3)
-    ).to.be.revertedWith("The job is not finished yet");
+    ).to.be.revertedWith("The service is not finished yet");
   });
 
-  it("Carol can't write a review as she's not linked to this job", async function () {
+  it("Carol can't write a review as she's not linked to this service", async function () {
     expect(
       talentLayerReview.connect(carol).addReview(1, "cidReview", 5)
-    ).to.be.revertedWith("You're not an actor of this job");
+    ).to.be.revertedWith("You're not an actor of this service");
   });
 
-  it("Alice can say that the job is finished", async function () {
-    await jobRegistry.connect(alice).finishJob(1);
-    const jobData = await jobRegistry.jobs(1);
-    expect(jobData.status.toString()).to.be.equal("2");
+  it("Alice can say that the service is finished", async function () {
+    await serviceRegistry.connect(alice).finishService(1);
+    const serviceData = await serviceRegistry.services(1);
+    expect(serviceData.status.toString()).to.be.equal("2");
   });
 
   it("Alice and Bob can write a review now and we can get review data", async function () {
@@ -165,7 +165,7 @@ describe("TalentLayer", function () {
     expect(await talentLayerReview.reviewDataUri(1)).to.be.equal("cidReview2");
   });
 
-  it("Alice and Bob can't write a review for the same Job", async function () {
+  it("Alice and Bob can't write a review for the same Service", async function () {
     expect(
       talentLayerReview.connect(alice).addReview(1, "cidReview", 0)
     ).to.be.revertedWith("ReviewAlreadyMinted()");
@@ -174,138 +174,138 @@ describe("TalentLayer", function () {
     ).to.be.revertedWith("ReviewAlreadyMinted()");
   });
 
-  it("Carol, a new employer, can initiate a new job with Bob, the employee", async function () {
+  it("Carol, a new buyer, can initiate a new service with Bob, the seller", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await jobRegistry.connect(carol).createJobFromEmployer(bobTid, "cid2");
-    const jobData = await jobRegistry.jobs(2);
+    await serviceRegistry.connect(carol).createServiceFromBuyer(bobTid, "cid2");
+    const serviceData = await serviceRegistry.services(2);
 
-    expect(jobData.status.toString()).to.be.equal("0");
-    expect(jobData.employerId.toString()).to.be.equal("3");
-    expect(jobData.initiatorId.toString()).to.be.equal("3");
-    expect(jobData.employeeId.toString()).to.be.equal("2");
-    expect(jobData.jobDataUri).to.be.equal("cid2");
+    expect(serviceData.status.toString()).to.be.equal("0");
+    expect(serviceData.buyerId.toString()).to.be.equal("3");
+    expect(serviceData.initiatorId.toString()).to.be.equal("3");
+    expect(serviceData.sellerId.toString()).to.be.equal("2");
+    expect(serviceData.serviceDataUri).to.be.equal("cid2");
   });
 
-  it("Bob can reject Carol new job as he's not agree with the job details", async function () {
-    await jobRegistry.connect(bob).rejectJob(2);
-    const jobData = await jobRegistry.jobs(2);
-    expect(jobData.status.toString()).to.be.equal("3");
-    expect(jobRegistry.connect(bob).confirmJob(1)).to.be.revertedWith(
-      "You can't finish this job"
+  it("Bob can reject Carol new service as he's not agree with the service details", async function () {
+    await serviceRegistry.connect(bob).rejectService(2);
+    const serviceData = await serviceRegistry.services(2);
+    expect(serviceData.status.toString()).to.be.equal("3");
+    expect(serviceRegistry.connect(bob).confirmService(1)).to.be.revertedWith(
+      "You can't finish this service"
     );
   });
 
-  it("Bob can post another job with fixed job details, and Carol confirmed it", async function () {
+  it("Bob can post another service with fixed service details, and Carol confirmed it", async function () {
     const carolId = await talentLayerID.walletOfOwner(carol.address);
-    await jobRegistry.connect(bob).createJobFromEmployee(carolId, "cid3");
-    let jobData = await jobRegistry.jobs(3);
+    await serviceRegistry.connect(bob).createServiceFromSeller(carolId, "cid3");
+    let serviceData = await serviceRegistry.services(3);
 
-    expect(jobData.status.toString()).to.be.equal("0");
-    expect(jobData.employerId.toString()).to.be.equal("3");
-    expect(jobData.initiatorId.toString()).to.be.equal("2");
-    expect(jobData.employeeId.toString()).to.be.equal("2");
-    expect(jobData.jobDataUri).to.be.equal("cid3");
+    expect(serviceData.status.toString()).to.be.equal("0");
+    expect(serviceData.buyerId.toString()).to.be.equal("3");
+    expect(serviceData.initiatorId.toString()).to.be.equal("2");
+    expect(serviceData.sellerId.toString()).to.be.equal("2");
+    expect(serviceData.serviceDataUri).to.be.equal("cid3");
 
-    await jobRegistry.connect(carol).confirmJob(3);
-    jobData = await jobRegistry.jobs(3);
+    await serviceRegistry.connect(carol).confirmService(3);
+    serviceData = await serviceRegistry.services(3);
 
-    expect(jobData.status.toString()).to.be.equal("1");
+    expect(serviceData.status.toString()).to.be.equal("1");
   });
 
-  it("Dave, who doesn't have TalentLayerID, can't create a job", async function () {
+  it("Dave, who doesn't have TalentLayerID, can't create a service", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     expect(
-      jobRegistry.connect(dave).createJobFromEmployer(bobTid, "cid")
+      serviceRegistry.connect(dave).createServiceFromBuyer(bobTid, "cid")
     ).to.be.revertedWith("You sould have a TalentLayerId");
   });
 
-  it("Alice the employer can create an Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
-    const jobData = await jobRegistry.jobs(4);
+  it("Alice the buyer can create an Open service", async function () {
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
+    const serviceData = await serviceRegistry.services(4);
 
-    expect(jobData.status.toString()).to.be.equal("4");
-    expect(jobData.employerId.toString()).to.be.equal("1");
-    expect(jobData.initiatorId.toString()).to.be.equal("1");
-    expect(jobData.employeeId.toString()).to.be.equal("0");
-    expect(jobData.jobDataUri).to.be.equal("cid");
+    expect(serviceData.status.toString()).to.be.equal("4");
+    expect(serviceData.buyerId.toString()).to.be.equal("1");
+    expect(serviceData.initiatorId.toString()).to.be.equal("1");
+    expect(serviceData.sellerId.toString()).to.be.equal("0");
+    expect(serviceData.serviceDataUri).to.be.equal("cid");
   });
 
-  it("Alice can assign an employee to a Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+  it("Alice can assign an seller to a Open service", async function () {
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await jobRegistry.connect(alice).assignEmployeeToJob(5, bobTid);
-    const jobData = await jobRegistry.jobs(5);
+    await serviceRegistry.connect(alice).assignSellerToService(5, bobTid);
+    const serviceData = await serviceRegistry.services(5);
 
-    expect(jobData.status.toString()).to.be.equal("0");
-    expect(jobData.employeeId.toString()).to.be.equal(bobTid);
+    expect(serviceData.status.toString()).to.be.equal("0");
+    expect(serviceData.sellerId.toString()).to.be.equal(bobTid);
   });
 
-  it("Bob can confirm the Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+  it("Bob can confirm the Open service", async function () {
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await jobRegistry.connect(alice).assignEmployeeToJob(6, bobTid);
-    await jobRegistry.connect(bob).confirmJob(6);
-    const jobData = await jobRegistry.jobs(6);
+    await serviceRegistry.connect(alice).assignSellerToService(6, bobTid);
+    await serviceRegistry.connect(bob).confirmService(6);
+    const serviceData = await serviceRegistry.services(6);
 
-    expect(jobData.status.toString()).to.be.equal("1");
+    expect(serviceData.status.toString()).to.be.equal("1");
   });
 
-  it("Bob can reject an Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+  it("Bob can reject an Open service", async function () {
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const carolId = await talentLayerID.walletOfOwner(carol.address);
-    await jobRegistry.connect(alice).assignEmployeeToJob(7, bobTid);
-    await jobRegistry.connect(bob).rejectJob(7);
-    const jobData = await jobRegistry.jobs(7);
+    await serviceRegistry.connect(alice).assignSellerToService(7, bobTid);
+    await serviceRegistry.connect(bob).rejectService(7);
+    const serviceData = await serviceRegistry.services(7);
 
-    expect(jobData.status.toString()).to.be.equal("3");
+    expect(serviceData.status.toString()).to.be.equal("3");
 
-    await jobRegistry.connect(alice).assignEmployeeToJob(7, carolId);
-    await jobRegistry.connect(carol).confirmJob(7);
-    const jobDataNewAssignement = await jobRegistry.jobs(7);
+    await serviceRegistry.connect(alice).assignSellerToService(7, carolId);
+    await serviceRegistry.connect(carol).confirmService(7);
+    const serviceDataNewAssignement = await serviceRegistry.services(7);
 
-    expect(jobDataNewAssignement.status.toString()).to.be.equal("1");
+    expect(serviceDataNewAssignement.status.toString()).to.be.equal("1");
   });
 
-  it("Bob can create a proposal for an Open job", async function () {
+  it("Bob can create a proposal for an Open service", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
 
     // Proposal data check before the proposal
-    const proposalDataBefore = await jobRegistry.getProposal(8, bobTid);
-    expect(proposalDataBefore.employeeId.toString()).to.be.equal("0");
+    const proposalDataBefore = await serviceRegistry.getProposal(8, bobTid);
+    expect(proposalDataBefore.sellerId.toString()).to.be.equal("0");
 
-    await jobRegistry.connect(bob).createProposal(8, rateToken, 1, "cid");
+    await serviceRegistry.connect(bob).createProposal(8, rateToken, 1, "cid");
 
-    const jobData = await jobRegistry.jobs(8);
-    const proposalDataAfter = await jobRegistry.getProposal(8, bobTid);
+    const serviceData = await serviceRegistry.services(8);
+    const proposalDataAfter = await serviceRegistry.getProposal(8, bobTid);
 
-    // Job data check
-    expect(jobData.status.toString()).to.be.equal("4");
-    expect(jobData.employerId.toString()).to.be.equal("1");
+    // Service data check
+    expect(serviceData.status.toString()).to.be.equal("4");
+    expect(serviceData.buyerId.toString()).to.be.equal("1");
 
     // Proposal data check after the proposal
 
     expect(proposalDataAfter.rateToken).to.be.equal(rateToken);
     expect(proposalDataAfter.rateAmount.toString()).to.be.equal("1");
     expect(proposalDataAfter.proposalDataUri).to.be.equal("cid");
-    expect(proposalDataAfter.employeeId.toString()).to.be.equal("2");
+    expect(proposalDataAfter.sellerId.toString()).to.be.equal("2");
     expect(proposalDataAfter.status.toString()).to.be.equal("0");
   });
 
   it("Bob can update a proposal ", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
-    await jobRegistry.connect(bob).createProposal(9, rateToken, 1, "cid");
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
+    await serviceRegistry.connect(bob).createProposal(9, rateToken, 1, "cid");
 
-    const proposalDataBefore = await jobRegistry.getProposal(9, bobTid);
+    const proposalDataBefore = await serviceRegistry.getProposal(9, bobTid);
     expect(proposalDataBefore.rateAmount.toString()).to.be.equal("1");
 
-    await jobRegistry.connect(bob).updateProposal(9, rateToken, 2, "cid2");
+    await serviceRegistry.connect(bob).updateProposal(9, rateToken, 2, "cid2");
 
-    const proposalDataAfter = await jobRegistry.getProposal(9, bobTid);
+    const proposalDataAfter = await serviceRegistry.getProposal(9, bobTid);
     expect(proposalDataAfter.rateAmount.toString()).to.be.equal("2");
     expect(proposalDataAfter.proposalDataUri).to.be.equal("cid2");
   });
@@ -313,27 +313,27 @@ describe("TalentLayer", function () {
   it("Alice can validate a proposal", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
-    await jobRegistry.connect(bob).createProposal(10, rateToken, 1, "cid");
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
+    await serviceRegistry.connect(bob).createProposal(10, rateToken, 1, "cid");
 
-    const proposalDataBefore = await jobRegistry.getProposal(10, bobTid);
+    const proposalDataBefore = await serviceRegistry.getProposal(10, bobTid);
     expect(proposalDataBefore.status.toString()).to.be.equal("0");
 
-    await jobRegistry.connect(alice).validateProposal(10, bobTid);
+    await serviceRegistry.connect(alice).validateProposal(10, bobTid);
 
-    const proposalDataAfter = await jobRegistry.getProposal(10, bobTid);
+    const proposalDataAfter = await serviceRegistry.getProposal(10, bobTid);
     expect(proposalDataAfter.status.toString()).to.be.equal("1");
   });
 
   it("Alice can delete a proposal ", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
-    await jobRegistry.connect(bob).createProposal(11, rateToken, 1, "cid");
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
+    await serviceRegistry.connect(bob).createProposal(11, rateToken, 1, "cid");
 
-    await jobRegistry.connect(alice).rejectProposal(11, bobTid);
+    await serviceRegistry.connect(alice).rejectProposal(11, bobTid);
 
-    const proposalDataAfter = await jobRegistry.getProposal(11, bobTid);
+    const proposalDataAfter = await serviceRegistry.getProposal(11, bobTid);
     expect(proposalDataAfter.status.toString()).to.be.equal("2");
   });
 
@@ -410,17 +410,17 @@ describe("TalentLayer", function () {
   });
 
   describe("Escrow Contract.", function() {
-    describe("Successful use of Escrow for a job using an ERC20 token.", function () {
+    describe("Successful use of Escrow for a service using an ERC20 token.", function () {
       const amountBob = 100;
       const amountCarol = 200;
-      const jobId = 12;
+      const serviceId = 12;
       const adminFeeAmount = 0;
       const transactionId = 0;
       let proposalIdBob = 0; //Will be set later
       let proposalIdCarol = 0; //Will be set later
       
-      it("Alice can create a job.", async function( ) {
-        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+      it("Alice can create a service.", async function( ) {
+        await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
       });
 
       it("Alice can NOT deposit tokens to escrow yet.", async function( ) {
@@ -430,19 +430,19 @@ describe("TalentLayer", function () {
           '_metaEvidence',
           dave.address,
           adminFeeAmount,
-          jobId, 
+          serviceId, 
           proposalIdBob
         )).to.be.reverted;
       });
     
       it("Bob can register a proposal.", async function( ) {
         proposalIdBob = await talentLayerID.walletOfOwner(bob.address);
-        await jobRegistry.connect(bob).createProposal(jobId, token.address, amountBob, "cid");
+        await serviceRegistry.connect(bob).createProposal(serviceId, token.address, amountBob, "cid");
       });
 
       it("Carol can register a proposal.", async function( ) {
         proposalIdCarol = await talentLayerID.walletOfOwner(carol.address);
-        await jobRegistry.connect(carol).createProposal(jobId, token.address, amountCarol, "cid");
+        await serviceRegistry.connect(carol).createProposal(serviceId, token.address, amountCarol, "cid");
       });
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
@@ -452,27 +452,27 @@ describe("TalentLayer", function () {
           '_metaEvidence',
           dave.address,
           adminFeeAmount,
-          jobId, 
+          serviceId, 
           proposalIdBob);
         await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [amountBob, -amountBob, 0]);
       
         await expect(transaction).to.emit(
-          talentLayerMultipleArbitrableTransaction, "JobProposalConfirmedWithDeposit"
+          talentLayerMultipleArbitrableTransaction, "ServiceProposalConfirmedWithDeposit"
         ).withArgs(
-          jobId, proposalIdBob, proposalIdBob, transactionId
+          serviceId, proposalIdBob, proposalIdBob, transactionId
         );
       });
 
       it("The deposit should also validate the proposal.", async function () {
-        const proposal = await jobRegistry.getProposal(jobId, proposalIdBob);
+        const proposal = await serviceRegistry.getProposal(serviceId, proposalIdBob);
         await expect(proposal.status.toString()).to.be.equal("1");
       });
 
-      it("The deposit should also update the job with transactionId, proposalId, and status.", async function () {
-        const job = await jobRegistry.getJob(jobId);
-        await expect(job.status.toString()).to.be.equal("1");
-        await expect(job.transactionId.toString()).to.be.equal("0");
-        await expect(job.employeeId.toString()).to.be.equal(proposalIdBob);
+      it("The deposit should also update the service with transactionId, proposalId, and status.", async function () {
+        const service = await serviceRegistry.getService(serviceId);
+        await expect(service.status.toString()).to.be.equal("1");
+        await expect(service.transactionId.toString()).to.be.equal("0");
+        await expect(service.sellerId.toString()).to.be.equal(proposalIdBob);
       });
 
       it("Alice can NOT deposit funds for Carol's proposal.", async function () {
@@ -482,12 +482,12 @@ describe("TalentLayer", function () {
           '_metaEvidence',
           dave.address,
           adminFeeAmount,
-          jobId, 
+          serviceId, 
           proposalIdCarol)
         ).to.be.reverted;
       });
 
-      it("Carol should not be allowed to release escrow the job.", async function () {
+      it("Carol should not be allowed to release escrow the service.", async function () {
         await expect ( 
           talentLayerMultipleArbitrableTransaction.connect(carol).release(transactionId, 10)
         ).to.be.revertedWith("Access denied.");
@@ -520,7 +520,7 @@ describe("TalentLayer", function () {
         await expect(transaction).to.changeTokenBalances(token, [talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
         await expect(transaction)
           .to.emit(talentLayerMultipleArbitrableTransaction, "PaymentCompleted")
-          .withArgs(jobId);
+          .withArgs(serviceId);
       });
 
       it("Alice can not release escrow because there is none left. ", async function () {
@@ -530,18 +530,18 @@ describe("TalentLayer", function () {
       });
     });
 
-    describe("Successful use of Escrow for a job using ETH.", function () {
+    describe("Successful use of Escrow for a service using ETH.", function () {
       const amountBob = 100;
       const amountCarol = 200;
-      const jobId = 13;
+      const serviceId = 13;
       const adminFeeAmount = 0;
       const transactionId = 1;
       let proposalIdBob = 0; //Will be set later
       let proposalIdCarol = 0; //Will be set later
       const ethAddress = "0x0000000000000000000000000000000000000000";
 
-      it("Alice can create a job.", async function( ) {
-        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+      it("Alice can create a service.", async function( ) {
+        await serviceRegistry.connect(alice).createOpenServiceFromBuyer("cid");
       });
 
       it("Alice can NOT deposit eth to escrow yet.", async function( ) {
@@ -551,19 +551,19 @@ describe("TalentLayer", function () {
           '_metaEvidence',
           dave.address,
           adminFeeAmount,
-          jobId, 
+          serviceId, 
           proposalIdBob
         )).to.be.reverted;
       });
 
       it("Bob can register a proposal.", async function( ) {
         proposalIdBob = await talentLayerID.walletOfOwner(bob.address);
-        await jobRegistry.connect(bob).createProposal(jobId, ethAddress, amountBob, "cid");
+        await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, amountBob, "cid");
       });
 
       it("Carol can register a proposal.", async function( ) {
         proposalIdCarol = await talentLayerID.walletOfOwner(carol.address);
-        await jobRegistry.connect(carol).createProposal(jobId, ethAddress, amountCarol, "cid");
+        await serviceRegistry.connect(carol).createProposal(serviceId, ethAddress, amountCarol, "cid");
       });
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
@@ -572,28 +572,28 @@ describe("TalentLayer", function () {
           '_metaEvidence',
           dave.address,
           adminFeeAmount,
-          jobId, 
+          serviceId, 
           proposalIdBob, 
           {value: amountBob});
         await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [amountBob, -amountBob, 0]);
 
         await expect(transaction).to.emit(
-          talentLayerMultipleArbitrableTransaction, "JobProposalConfirmedWithDeposit"
+          talentLayerMultipleArbitrableTransaction, "ServiceProposalConfirmedWithDeposit"
         ).withArgs(
-          jobId, proposalIdBob, proposalIdBob, transactionId
+          serviceId, proposalIdBob, proposalIdBob, transactionId
         );
       });
 
       it("The deposit should also validate the proposal.", async function () {
-        const proposal = await jobRegistry.getProposal(jobId, proposalIdBob);
+        const proposal = await serviceRegistry.getProposal(serviceId, proposalIdBob);
         await expect(proposal.status.toString()).to.be.equal("1");
       });
 
-      it("The deposit should also update the job with transactionId, proposalId, and status.", async function () {
-        const job = await jobRegistry.getJob(jobId);
-        await expect(job.status.toString()).to.be.equal("1");
-        await expect(job.transactionId).to.be.equal(transactionId);
-        await expect(job.employeeId).to.be.equal(proposalIdBob);
+      it("The deposit should also update the service with transactionId, proposalId, and status.", async function () {
+        const service = await serviceRegistry.getService(serviceId);
+        await expect(service.status.toString()).to.be.equal("1");
+        await expect(service.transactionId).to.be.equal(transactionId);
+        await expect(service.sellerId).to.be.equal(proposalIdBob);
       });
 
       it("Alice can NOT deposit funds for Carol's proposal, and NO event should emit.", async function () {
@@ -603,13 +603,13 @@ describe("TalentLayer", function () {
           '_metaEvidence',
           dave.address,
           adminFeeAmount,
-          jobId, 
+          serviceId, 
           proposalIdCarol, 
           {value: amountCarol})
         ).to.be.reverted;
       });
 
-      it("Carol should not be allowed to release escrow the job.", async function () {
+      it("Carol should not be allowed to release escrow the service.", async function () {
         await expect ( 
           talentLayerMultipleArbitrableTransaction.connect(carol).release(transactionId, 10)
         ).to.be.revertedWith("Access denied.");
@@ -642,7 +642,7 @@ describe("TalentLayer", function () {
         await expect(transaction).to.changeEtherBalances([talentLayerMultipleArbitrableTransaction.address, alice, bob], [-amountBob/4, amountBob/4, 0]);
         await expect(transaction)
           .to.emit(talentLayerMultipleArbitrableTransaction, "PaymentCompleted")
-          .withArgs(jobId);
+          .withArgs(serviceId);
       });
 
       it("Alice can not release escrow because there is none left.", async function () {

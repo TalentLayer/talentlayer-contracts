@@ -4,7 +4,7 @@ const fs = require("fs");
 export enum ConfigProperty {
   MockProofOfHumanity = "proofOfHumanityAddress",
   TalentLayerID = "talentLayerIdAddress",
-  JobRegistry = "jobRegistryAddress",
+  ServiceRegistry = "serviceRegistryAddress",
   Reviewscontract = "talentLayerReviewAddress",
   TalentLayerArbitrator = "TalentLayerArbitrator",
   TalentLayerMultipleArbitrableTransaction = "TalentLayerMultipleArbitrableTransaction",

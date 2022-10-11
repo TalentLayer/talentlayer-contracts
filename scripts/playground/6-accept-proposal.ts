@@ -9,9 +9,9 @@ async function main() {
   console.log(network);
 
   const [alice, bob, carol, dave] = await ethers.getSigners();
-  const jobRegistry = await ethers.getContractAt(
-    "JobRegistry",
-    get(network as Network, ConfigProperty.JobRegistry)
+  const serviceRegistry = await ethers.getContractAt(
+    "ServiceRegistry",
+    get(network as Network, ConfigProperty.ServiceRegistry)
   );
 
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
@@ -25,9 +25,9 @@ async function main() {
   const rateAmount = 200;
   const adminFeeAmount = 10;
 
-  let jobId = await jobRegistry.nextJobId();
-  jobId = jobId.sub(1);
-  console.log("jobId", jobId.toString());
+  let serviceId = await serviceRegistry.nextServiceId();
+  serviceId = serviceId.sub(1);
+  console.log("serviceId", serviceId.toString());
 
   await talentLayerMultipleArbitrableTransaction
     .connect(alice)
@@ -36,7 +36,7 @@ async function main() {
       "_metaEvidence",
       dave.address, //admin address, not used yet.
       adminFeeAmount,
-      jobId,
+      serviceId,
       3, //proposalId/talentLayerId of carol.
       { value: rateAmount + adminFeeAmount }
     );

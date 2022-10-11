@@ -13,7 +13,7 @@ async function main() {
       config.talentLayerIdAddress;
     subgraphNetwork.localhost.TalentLayerReview.address =
       config.talentLayerReviewAddress;
-    subgraphNetwork.localhost.JobRegistry.address = config.jobRegistryAddress;
+    subgraphNetwork.localhost.ServiceRegistry.address = config.serviceRegistryAddress;
     subgraphNetwork.localhost.TalentLayerMultipleArbitrableTransaction.address =
       config.TalentLayerMultipleArbitrableTransaction;
   }
@@ -23,7 +23,7 @@ async function main() {
     subgraphNetwork.goerli.TalentLayerID.address = config.talentLayerIdAddress;
     subgraphNetwork.goerli.TalentLayerReview.address =
       config.talentLayerReviewAddress;
-    subgraphNetwork.goerli.JobRegistry.address = config.jobRegistryAddress;
+    subgraphNetwork.goerli.ServiceRegistry.address = config.serviceRegistryAddress;
     subgraphNetwork.goerli.TalentLayerMultipleArbitrableTransaction.address =
       config.TalentLayerMultipleArbitrableTransaction;
   }
