@@ -107,7 +107,9 @@ describe("TalentLayer", function () {
     expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal("3");
 
     const carolUserId = await talentLayerID.walletOfOwner(carol.address);
-    expect(await talentLayerID.userIdToPlatformId(carolUserId)).to.be.equal("1");
+    expect(await talentLayerID.userIdToPlatformId(carolUserId)).to.be.equal(
+      "1"
+    );
   });
 
   it("Carol can activate POH on her talentLayerID", async function () {
@@ -814,6 +816,12 @@ describe("TalentLayer", function () {
     it("Alice should not be able to mint a new Plateform ID", async function () {
       expect(
         talentLayerPlatformID.connect(alice).mint("SecPlatId")
+      ).to.be.revertedWith("You already have a Platform ID");
+    });
+
+    it("Alice should not be able to mint a Plateform ID with the same name", async function () {
+      expect(
+        talentLayerPlatformID.connect(alice).mint("PlatId")
       ).to.be.revertedWith("You already have a Platform ID");
     });
   });
