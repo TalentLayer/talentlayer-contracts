@@ -79,16 +79,21 @@ task("deploy")
         talentLayerID.address
       );
 
-      // Deploy Plateform ID contract
-      const PlatformID = await ethers.getContractFactory("PlatformID");
-      const platformID = await PlatformID.deploy();
+      // Deploy TalentLayerPlatformID contract
+      const TalentLayerPlatformID = await ethers.getContractFactory(
+        "TalentLayerPlatformID"
+      );
+      const talentLayerPlatformID = await TalentLayerPlatformID.deploy();
       if (verify) {
-        await platformID.deployTransaction.wait(5);
+        await talentLayerPlatformID.deployTransaction.wait(5);
         await run("verify:verify", {
-          address: platformID.address,
+          address: talentLayerPlatformID.address,
         });
       }
-      console.log("plateformID address:", platformID.address);
+      console.log(
+        "TalentLayerPlatformID address:",
+        talentLayerPlatformID.address
+      );
 
       // Deploy Job Registry Contract
       const JobRegistry = await ethers.getContractFactory("JobRegistry");
