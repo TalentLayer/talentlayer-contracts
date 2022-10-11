@@ -38,6 +38,7 @@ contract JobRegistry is AccessControl {
     /// @param proposals all proposals for this job
     /// @param countProposals the total number of proposal for this job
     /// @param transactionId the escrow transaction ID linked to the job
+    /// @param platformId the platform ID linked to the job
     struct Job {
         Status status;
         uint256 employerId;
@@ -46,6 +47,7 @@ contract JobRegistry is AccessControl {
         string jobDataUri;
         uint256 countProposals;
         uint256 transactionId;
+        uint256 platformId;
     }
 
     /// @notice Proposal information struct
@@ -70,6 +72,7 @@ contract JobRegistry is AccessControl {
     /// @param employeeId the talentLayerId of the employee
     /// @param initiatorId the talentLayerId of the user who initialized the job
     /// @param jobDataUri token Id to IPFS URI mapping
+    /// @param platformId platform ID on which the Job token was minted
     /// @param status job status
     event JobCreated(
         uint256 id,
@@ -77,6 +80,7 @@ contract JobRegistry is AccessControl {
         uint256 employeeId,
         uint256 initiatorId,
         string jobDataUri,
+        uint256 platformId,
         Status status
     );
 
@@ -210,12 +214,18 @@ contract JobRegistry is AccessControl {
      * @notice Allows an employer to initiate a new Job with an employee
      * @param _employeeId Handle for the user
      * @param _jobDataUri token Id to IPFS URI mapping
+     * @param _platformId platform ID on which the Job token was minted
      */
     function createJobFromEmployer(
         uint256 _employeeId,
-        string calldata _jobDataUri
+        string calldata _jobDataUri,
+        uint256 _platformId
     ) public returns (uint256) {
         require(_employeeId > 0, "Employee 0 is not a valid TalentLayerId");
+        require(
+            _platformId > 0,
+            "Platform 0 is not a valid TalentLayerPlatformId"
+        );
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
             _createJob(
@@ -223,7 +233,8 @@ contract JobRegistry is AccessControl {
                 senderId,
                 senderId,
                 _employeeId,
-                _jobDataUri
+                _jobDataUri,
+                _platformId
             );
     }
 
@@ -231,12 +242,18 @@ contract JobRegistry is AccessControl {
      * @notice Allows an employee to initiate a new Job with an employer
      * @param _employerId Handle for the user
      * @param _jobDataUri token Id to IPFS URI mapping
+     * @param _platformId platform ID on which the Job token was minted
      */
     function createJobFromEmployee(
         uint256 _employerId,
-        string calldata _jobDataUri
+        string calldata _jobDataUri,
+        uint256 _platformId
     ) public returns (uint256) {
         require(_employerId > 0, "Employer 0 is not a valid TalentLayerId");
+        require(
+            _platformId > 0,
+            "Platform 0 is not a valid TalentLayerPlatformId"
+        );
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
             _createJob(
@@ -244,20 +261,34 @@ contract JobRegistry is AccessControl {
                 senderId,
                 _employerId,
                 senderId,
-                _jobDataUri
+                _jobDataUri,
+                _platformId
             );
     }
 
     /**
      * @notice Allows an employer to initiate an open job
      * @param _jobDataUri token Id to IPFS URI mapping
+     * @param _platformId platform ID on which the Job token was minted
      */
-    function createOpenJobFromEmployer(string calldata _jobDataUri)
-        public
-        returns (uint256)
-    {
+    function createOpenJobFromEmployer(
+        string calldata _jobDataUri,
+        uint256 _platformId
+    ) public returns (uint256) {
+        require(
+            _platformId > 0,
+            "Platform 0 is not a valid TalentLayerPlatformId"
+        );
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        return _createJob(Status.Opened, senderId, senderId, 0, _jobDataUri);
+        return
+            _createJob(
+                Status.Opened,
+                senderId,
+                senderId,
+                0,
+                _jobDataUri,
+                _platformId
+            );
     }
 
     /**
@@ -556,7 +587,8 @@ contract JobRegistry is AccessControl {
         uint256 _senderId,
         uint256 _employerId,
         uint256 _employeeId,
-        string calldata _jobDataUri
+        string calldata _jobDataUri,
+        uint256 _platformId
     ) private returns (uint256) {
         require(
             _employeeId != _employerId,
@@ -577,6 +609,7 @@ contract JobRegistry is AccessControl {
         job.employeeId = _employeeId;
         job.initiatorId = _senderId;
         job.jobDataUri = _jobDataUri;
+        job.platformId = _platformId;
 
         emit JobCreated(
             id,
@@ -584,6 +617,7 @@ contract JobRegistry is AccessControl {
             _employeeId,
             _senderId,
             _jobDataUri,
+            _platformId,
             _status
         );
 
