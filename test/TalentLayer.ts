@@ -807,5 +807,11 @@ describe("TalentLayer", function () {
         talentLayerPlatformID.transferFrom(alice.address, bob.address, 1)
       ).to.be.revertedWith("Not allowed");
     });
+
+    it("Alice should not be able to mint a new Plateform ID", async function () {
+      expect(
+        talentLayerPlatformID.connect(alice).mint("SecPlatId")
+      ).to.be.revertedWith("You already have a Platform ID");
+    });
   });
 });

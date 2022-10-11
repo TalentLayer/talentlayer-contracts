@@ -47,6 +47,9 @@ setup-fakedata:
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 endif
 
+mint-platformid:
+	npx hardhat run scripts/playground/1.2-mint-PlatformID.ts --network $(DEPLOY_NETWORK)
+
 update-proposal:
 	npx hardhat run scripts/playground/4-update-proposal.ts --network $(DEPLOY_NETWORK)
 

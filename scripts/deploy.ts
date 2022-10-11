@@ -95,6 +95,12 @@ task("deploy")
         talentLayerPlatformID.address
       );
 
+      set(
+        network.name as any as Network,
+        ConfigProperty.TalentLayerPlatformID,
+        talentLayerPlatformID.address
+      );
+
       // Deploy Job Registry Contract
       const JobRegistry = await ethers.getContractFactory("JobRegistry");
       const jobRegistryArgs: [string] = [talentLayerID.address];

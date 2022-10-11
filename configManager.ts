@@ -9,6 +9,7 @@ export enum ConfigProperty {
   TalentLayerArbitrator = "TalentLayerArbitrator",
   TalentLayerMultipleArbitrableTransaction = "TalentLayerMultipleArbitrableTransaction",
   SimpleERC20 = "SimpleERC20",
+  TalentLayerPlatformID = "TalentLayerPlatformID",
 }
 
 const loadJSON = (network: Network) => {
