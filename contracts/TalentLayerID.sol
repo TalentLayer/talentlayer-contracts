@@ -99,7 +99,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(string memory _handle, uint256 _platformId) public canMint(_handle) {
+    function mint(string memory _handle, uint256 _platformId) public canMint(_handle, _platformId) {
         _safeMint(msg.sender, 1);
         _afterMint(_handle, false, _platformId);
     }
@@ -109,7 +109,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(string memory _handle, uint256 _platformId) public canMint(_handle) {
+    function mintWithPoh(string memory _handle, uint256 _platformId) public canMint(_handle, _platformId) {
         require(
             pohRegistry.isRegistered(msg.sender),
             "You need to use an address registered on Proof of Humanity"
@@ -304,7 +304,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * Check if user is able to mint a new TalentLayerID.
      * @param _handle Handle for the user
      */
-    modifier canMint(string memory _handle) {
+    modifier canMint(string memory _handle, uint256 _platformId) {
         require(
             numberMinted(msg.sender) == 0,
             "You already have a TalentLayerID"
@@ -312,6 +312,7 @@ contract TalentLayerID is ERC721A, Ownable {
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
+        require(_platformId > 0, "Platform 0 is not a valid TalentLayer Platform ID");
         _;
     }
 
