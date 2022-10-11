@@ -147,13 +147,17 @@ contract PlatformID is ERC721A, Ownable {
         address from,
         address to,
         uint256 tokenId
-    ) public virtual override(ERC721A) {}
+    ) public virtual override(ERC721A) {
+        revert("Not allowed");
+    }
 
     function safeTransferFrom(
         address from,
         address to,
         uint256 tokenId
-    ) public virtual override(ERC721A) {}
+    ) public virtual override(ERC721A) {
+        revert("Not allowed");
+    }
 
     function tokenURI(uint256 tokenId)
         public
