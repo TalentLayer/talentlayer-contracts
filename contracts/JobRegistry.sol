@@ -196,7 +196,7 @@ contract JobRegistry is AccessControl {
      * @param _jobId Job identifier
      */
     function getJob(uint256 _jobId) external view returns (Job memory) {
-        require(_jobId < nextJobId, "This job does'nt exist");
+        require(_jobId < nextJobId, "This job doesn't exist");
         return jobs[_jobId];
     }
 
