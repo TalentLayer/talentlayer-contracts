@@ -31,7 +31,9 @@ endif
 
 ifeq ($(OS),Windows_NT)
 setup-fakedata:
-	timeout 20
+	timeout 5
+	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
+	timeout 5
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
 	timeout 30
 	npx hardhat run scripts/playground/2-create-job.ts --network $(DEPLOY_NETWORK)
@@ -39,7 +41,9 @@ setup-fakedata:
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 else
 setup-fakedata:
-	sleep 20
+	sleep 5
+	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
+	sleep 5
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
 	sleep 30
 	npx hardhat run scripts/playground/2-create-job.ts --network $(DEPLOY_NETWORK)
@@ -47,8 +51,6 @@ setup-fakedata:
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 endif
 
-mint-platformid:
-	npx hardhat run scripts/playground/1.2-mint-PlatformID.ts --network $(DEPLOY_NETWORK)
 
 update-proposal:
 	npx hardhat run scripts/playground/4-update-proposal.ts --network $(DEPLOY_NETWORK)
