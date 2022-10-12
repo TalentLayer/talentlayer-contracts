@@ -8,21 +8,43 @@ async function main() {
   console.log(network);
   console.log("Mint test ID start");
 
-  const [alice, bob, carol] = await ethers.getSigners();
-  console.log({ alice: alice.address, bob: bob.address, carol: carol.address });
+  const [alice, bob, carol, dave] = await ethers.getSigners();
+  console.log({
+    alice: alice.address,
+    bob: bob.address,
+    carol: carol.address,
+    dave: dave.address,
+  });
 
-  const tlID = await ethers.getContractAt(
+  const talentLayerIdContract = await ethers.getContractAt(
     "TalentLayerID",
     get(network as Network, ConfigProperty.TalentLayerID)
   );
 
-  await tlID.connect(alice).mint("alice.lens");
+  const platformIdContrat = await ethers.getContractAt(
+    "TalentLayerPlatformID",
+    get(network as Network, ConfigProperty.TalentLayerPlatformID)
+  );
+
+  await platformIdContrat.connect(dave).mint("platName");
+
+  const daveTalentLayerIdPLatform =
+    await platformIdContrat.getPlatformIdFromAddress(dave.address);
+  console.log("Dave talentLayerIdPLatform", daveTalentLayerIdPLatform);
+
+  await talentLayerIdContract
+    .connect(alice)
+    .mint("alice.lens", daveTalentLayerIdPLatform);
   console.log("alice.lens registered");
 
-  await tlID.connect(bob).mintWithPoh("bob.lens");
+  await talentLayerIdContract
+    .connect(bob)
+    .mintWithPoh("bob.lens", daveTalentLayerIdPLatform);
   console.log("Bob.lens registered");
 
-  await tlID.connect(carol).mintWithPoh("carol.lens");
+  await talentLayerIdContract
+    .connect(carol)
+    .mintWithPoh("carol.lens", daveTalentLayerIdPLatform);
   console.log("carol.lens registered");
 }
 

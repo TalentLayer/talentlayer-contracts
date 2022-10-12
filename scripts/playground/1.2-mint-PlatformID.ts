@@ -16,10 +16,21 @@ async function main() {
   );
 
   await platformIdContrat.connect(alice).mint("HireVibes");
-  await platformIdContrat.connect(alice).updateProfileData(1, "newCid");
 
-  const platformName = await platformIdContrat.names(1);
-  const platformCid = await platformIdContrat.platformUri(1);
+  const aliceTalentLayerIdPLatform =
+    await platformIdContrat.getPlatformIdFromAddress(alice.address);
+  console.log("Alice talentLayerIdPLatform", aliceTalentLayerIdPLatform);
+
+  await platformIdContrat
+    .connect(alice)
+    .updateProfileData(aliceTalentLayerIdPLatform, "newCid");
+
+  const platformName = await platformIdContrat.names(
+    aliceTalentLayerIdPLatform
+  );
+  const platformCid = await platformIdContrat.platformUri(
+    aliceTalentLayerIdPLatform
+  );
 
   console.log("platformName", platformName);
   console.log("platformName", platformCid);
