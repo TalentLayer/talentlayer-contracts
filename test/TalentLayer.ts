@@ -126,7 +126,7 @@ describe("TalentLayer", function () {
 
   it("Alice, the employer, can initiate a new job with Bob, the employee", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await jobRegistry.connect(alice).createJobFromEmployer(bobTid, "cid");
+    await jobRegistry.connect(alice).createJobFromEmployer(bobTid, "cid", "1");
     const jobData = await jobRegistry.jobs(1);
 
     expect(jobData.status.toString()).to.be.equal("0");
@@ -134,14 +134,15 @@ describe("TalentLayer", function () {
     expect(jobData.initiatorId.toString()).to.be.equal("1");
     expect(jobData.employeeId.toString()).to.be.equal("2");
     expect(jobData.jobDataUri).to.be.equal("cid");
+    expect(jobData.platformId).to.be.equal(1);
   });
 
   it("Alice can't create a new job with a talentLayerId 0", async function () {
     expect(
-      jobRegistry.connect(alice).createJobFromEmployer(0, "cid")
+      jobRegistry.connect(alice).createJobFromEmployer(0, "cid", 1)
     ).to.be.revertedWith("Employee 0 is not a valid TalentLayerId");
     expect(
-      jobRegistry.connect(alice).createJobFromEmployee(0, "cid")
+      jobRegistry.connect(alice).createJobFromEmployee(0, "cid", 1)
     ).to.be.revertedWith("Employer 0 is not a valid TalentLayerId");
   });
 
@@ -198,7 +199,7 @@ describe("TalentLayer", function () {
 
   it("Carol, a new employer, can initiate a new job with Bob, the employee", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await jobRegistry.connect(carol).createJobFromEmployer(bobTid, "cid2");
+    await jobRegistry.connect(carol).createJobFromEmployer(bobTid, "cid2", 1);
     const jobData = await jobRegistry.jobs(2);
 
     expect(jobData.status.toString()).to.be.equal("0");
@@ -219,7 +220,7 @@ describe("TalentLayer", function () {
 
   it("Bob can post another job with fixed job details, and Carol confirmed it", async function () {
     const carolId = await talentLayerID.walletOfOwner(carol.address);
-    await jobRegistry.connect(bob).createJobFromEmployee(carolId, "cid3");
+    await jobRegistry.connect(bob).createJobFromEmployee(carolId, "cid3", 1);
     let jobData = await jobRegistry.jobs(3);
 
     expect(jobData.status.toString()).to.be.equal("0");
@@ -227,6 +228,7 @@ describe("TalentLayer", function () {
     expect(jobData.initiatorId.toString()).to.be.equal("2");
     expect(jobData.employeeId.toString()).to.be.equal("2");
     expect(jobData.jobDataUri).to.be.equal("cid3");
+    expect(jobData.platformId).to.be.equal(1);
 
     await jobRegistry.connect(carol).confirmJob(3);
     jobData = await jobRegistry.jobs(3);
@@ -237,12 +239,12 @@ describe("TalentLayer", function () {
   it("Dave, who doesn't have TalentLayerID, can't create a job", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     expect(
-      jobRegistry.connect(dave).createJobFromEmployer(bobTid, "cid")
+      jobRegistry.connect(dave).createJobFromEmployer(bobTid, "cid", 1)
     ).to.be.revertedWith("You sould have a TalentLayerId");
   });
 
   it("Alice the employer can create an Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
     const jobData = await jobRegistry.jobs(4);
 
     expect(jobData.status.toString()).to.be.equal("4");
@@ -250,10 +252,11 @@ describe("TalentLayer", function () {
     expect(jobData.initiatorId.toString()).to.be.equal("1");
     expect(jobData.employeeId.toString()).to.be.equal("0");
     expect(jobData.jobDataUri).to.be.equal("cid");
+    expect(jobData.platformId).to.be.equal(1);
   });
 
   it("Alice can assign an employee to a Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     await jobRegistry.connect(alice).assignEmployeeToJob(5, bobTid);
     const jobData = await jobRegistry.jobs(5);
@@ -263,7 +266,7 @@ describe("TalentLayer", function () {
   });
 
   it("Bob can confirm the Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     await jobRegistry.connect(alice).assignEmployeeToJob(6, bobTid);
     await jobRegistry.connect(bob).confirmJob(6);
@@ -273,7 +276,7 @@ describe("TalentLayer", function () {
   });
 
   it("Bob can reject an Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const carolId = await talentLayerID.walletOfOwner(carol.address);
     await jobRegistry.connect(alice).assignEmployeeToJob(7, bobTid);
@@ -292,7 +295,7 @@ describe("TalentLayer", function () {
   it("Bob can create a proposal for an Open job", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
 
     // Proposal data check before the proposal
     const proposalDataBefore = await jobRegistry.getProposal(8, bobTid);
@@ -319,7 +322,7 @@ describe("TalentLayer", function () {
   it("Bob can update a proposal ", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
     await jobRegistry.connect(bob).createProposal(9, rateToken, 1, "cid");
 
     const proposalDataBefore = await jobRegistry.getProposal(9, bobTid);
@@ -335,7 +338,7 @@ describe("TalentLayer", function () {
   it("Alice can validate a proposal", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
     await jobRegistry.connect(bob).createProposal(10, rateToken, 1, "cid");
 
     const proposalDataBefore = await jobRegistry.getProposal(10, bobTid);
@@ -350,7 +353,7 @@ describe("TalentLayer", function () {
   it("Alice can delete a proposal ", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
     await jobRegistry.connect(bob).createProposal(11, rateToken, 1, "cid");
 
     await jobRegistry.connect(alice).rejectProposal(11, bobTid);
@@ -447,7 +450,7 @@ describe("TalentLayer", function () {
       let proposalIdCarol = 0; //Will be set later
 
       it("Alice can create a job.", async function () {
-        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
       });
 
       it("Alice can NOT deposit tokens to escrow yet.", async function () {
@@ -623,7 +626,7 @@ describe("TalentLayer", function () {
       const ethAddress = "0x0000000000000000000000000000000000000000";
 
       it("Alice can create a job.", async function () {
-        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid");
+        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
       });
 
       it("Alice can NOT deposit eth to escrow yet.", async function () {

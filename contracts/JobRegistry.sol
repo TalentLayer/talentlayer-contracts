@@ -71,20 +71,25 @@ contract JobRegistry is AccessControl {
     /// @param employerId the talentLayerId of the employer
     /// @param employeeId the talentLayerId of the employee
     /// @param initiatorId the talentLayerId of the user who initialized the job
-    /// @param jobDataUri token Id to IPFS URI mapping
     /// @param platformId platform ID on which the Job token was minted
-    /// @param status job status
+    /// @dev Events "JobCreated" & "JobDataCreated" are split to avoid "stack too deep" error
     event JobCreated(
         uint256 id,
         uint256 employerId,
         uint256 employeeId,
         uint256 initiatorId,
-        string jobDataUri,
-        uint256 platformId,
-        Status status
+        uint256 platformId
     );
 
     /// @notice Emitted after a new job is created
+    /// @param id The job ID (incremental)
+    /// @param jobDataUri token Id to IPFS URI mapping
+    event JobDataCreated(
+        uint256 id,
+        string jobDataUri
+    );
+
+    /// @notice Emitted after an employee is assigned to a job
     /// @param id The job ID
     /// @param employeeId the talentLayerId of the employee
     /// @param status job status
@@ -142,7 +147,7 @@ contract JobRegistry is AccessControl {
         uint256 rateAmount
     );
 
-    /// @notice Emitted after an existing proposal has been update
+    /// @notice Emitted after an existing proposal has been updated
     /// @param jobId The job id
     /// @param employeeId The talentLayerId of the employee who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
@@ -616,9 +621,12 @@ contract JobRegistry is AccessControl {
             _employerId,
             _employeeId,
             _senderId,
-            _jobDataUri,
-            _platformId,
-            _status
+            _platformId
+        );
+
+        emit JobDataCreated(
+            id,
+            _jobDataUri
         );
 
         return id;
