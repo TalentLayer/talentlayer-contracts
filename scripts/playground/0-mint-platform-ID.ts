@@ -31,7 +31,7 @@ async function main() {
   );
 
   console.log("platformName", platformName);
-  console.log("platformName", platformCid);
+  console.log("platformCid", platformCid);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
