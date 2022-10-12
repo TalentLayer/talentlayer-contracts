@@ -26,8 +26,6 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID)
   );
 
-  await platformIdContrat.connect(dave).mint("platName");
-
   const daveTalentLayerIdPLatform =
     await platformIdContrat.getPlatformIdFromAddress(dave.address);
   console.log("Dave talentLayerIdPLatform", daveTalentLayerIdPLatform);
