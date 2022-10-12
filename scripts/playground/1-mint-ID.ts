@@ -26,6 +26,7 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID)
   );
 
+  // Dave is a TalentLayer Platform and a TalentLayer User
   const daveTalentLayerIdPLatform =
     await platformIdContrat.getPlatformIdFromAddress(dave.address);
   console.log("Dave talentLayerIdPLatform", daveTalentLayerIdPLatform);
