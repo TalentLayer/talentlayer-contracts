@@ -44,9 +44,9 @@ contract TalentLayerPlatformID is ERC721A, Ownable {
     }
 
     /**
-     * Allows getting the Platform ID of one address
-     * @param _owner Address to check
-     * @return uint256 the id of the NFT
+     * Allows getting the Platform ID from an address
+     * @param _owner Platform Address to check
+     * @return uint256 the Platform Id associated to this address
      */
     function getPlatformIdFromAddress(address _owner)
         public
