@@ -8,13 +8,24 @@ async function main() {
   console.log(network);
   console.log("Create job Test start");
 
-  const [alice] = await ethers.getSigners();
+  const [alice, bob, carol, dave] = await ethers.getSigners();
   const jobRegistry = await ethers.getContractAt(
     "JobRegistry",
     get(network as Network, ConfigProperty.JobRegistry)
   );
 
-  await jobRegistry.connect(alice).createOpenJobFromEmployer("ipfs://ssss");
+  const platformIdContrat = await ethers.getContractAt(
+    "TalentLayerPlatformID",
+    get(network as Network, ConfigProperty.TalentLayerPlatformID)
+  );
+
+  const daveTalentLayerIdPLatform =
+    await platformIdContrat.getPlatformIdFromAddress(dave.address);
+  console.log("Dave talentLayerIdPLatform", daveTalentLayerIdPLatform);
+
+  await jobRegistry
+    .connect(alice)
+    .createOpenJobFromEmployer("ipfs://ssss", daveTalentLayerIdPLatform);
   console.log("Open Job created");
 }
 
