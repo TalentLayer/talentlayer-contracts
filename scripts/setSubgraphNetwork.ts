@@ -16,6 +16,8 @@ async function main() {
     subgraphNetwork.localhost.JobRegistry.address = config.jobRegistryAddress;
     subgraphNetwork.localhost.TalentLayerMultipleArbitrableTransaction.address =
       config.TalentLayerMultipleArbitrableTransaction;
+    subgraphNetwork.localhost.TalentLayerPlatformID.address =
+      config.TalentLayerPlatformID;
   }
   if (network == "goerli") {
     subgraphNetwork.goerli.proofOfHumanityAddress.address =
@@ -26,6 +28,8 @@ async function main() {
     subgraphNetwork.goerli.JobRegistry.address = config.jobRegistryAddress;
     subgraphNetwork.goerli.TalentLayerMultipleArbitrableTransaction.address =
       config.TalentLayerMultipleArbitrableTransaction;
+    subgraphNetwork.localhost.TalentLayerPlatformID.address =
+      config.TalentLayerPlatformID;
   }
 
   saveJSON(subgraphNetwork);
