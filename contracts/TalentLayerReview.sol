@@ -46,6 +46,9 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     // Mapping to save NFT minted for a jobId and employeeId
     mapping(uint256 => uint256) public nftMintedByJobAndemployeeId;
 
+    // Mapping from Review ID to Platform ID
+    mapping(uint256 => uint256) public reviewIdToPlatformId;
+
     error ReviewAlreadyMinted();
 
     ITalentLayerID private tlId;
@@ -241,7 +244,8 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 jobId,
         uint256 to,
         uint256 _rating,
-        string calldata reviewUri
+        string calldata reviewUri,
+        uint256 _platformId
     ) internal virtual {
         require(to != 0, "TalentLayerReview: mint to invalid address");
         require(
@@ -252,9 +256,10 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         _balances[to] += 1;
         _owners[_totalSupply] = to;
         reviewDataUri[_totalSupply] = reviewUri;
+        reviewIdToPlatformId[_totalSupply] = _platformId;
         _totalSupply = _totalSupply + 1;
 
-        emit Mint(jobId, to, _totalSupply, _rating, reviewUri);
+        emit Mint(jobId, to, _totalSupply, _rating, reviewUri, _platformId);
     }
 
     function _burn(uint256 tokenId) internal virtual {}
@@ -334,13 +339,15 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 indexed _toId,
         uint256 indexed _tokenId,
         uint256 _rating,
-        string _reviewUri
+        string _reviewUri,
+        uint256 _platformId
     );
 
     function addReview(
         uint256 _jobId,
         string calldata _reviewUri,
-        uint256 _rating
+        uint256 _rating,
+        uint256 _platformId
     ) public {
         IJobRegistry.Job memory job = jobRegistry.getJob(_jobId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
@@ -351,6 +358,9 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         require(
             job.status == IJobRegistry.Status.Finished,
             "The job is not finished yet"
+        );
+        require(
+            _platformId > 0, "Platform 0 is not a valid TalentLayer Platform ID"
         );
 
         uint256 toId;
@@ -370,6 +380,6 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
             }
         }
 
-        _mint(_jobId, toId, _rating, _reviewUri);
+        _mint(_jobId, toId, _rating, _reviewUri, _platformId);
     }
 }
