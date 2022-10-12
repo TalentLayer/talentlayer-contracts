@@ -162,13 +162,13 @@ describe("TalentLayer", function () {
 
   it("Bob can't write a review yet", async function () {
     expect(
-      talentLayerReview.connect(bob).addReview(1, "cidReview", 3)
+      talentLayerReview.connect(bob).addReview(1, "cidReview", 3, 1)
     ).to.be.revertedWith("The job is not finished yet");
   });
 
   it("Carol can't write a review as she's not linked to this job", async function () {
     expect(
-      talentLayerReview.connect(carol).addReview(1, "cidReview", 5)
+      talentLayerReview.connect(carol).addReview(1, "cidReview", 5, 1)
     ).to.be.revertedWith("You're not an actor of this job");
   });
 
@@ -179,11 +179,12 @@ describe("TalentLayer", function () {
   });
 
   it("Alice and Bob can write a review now and we can get review data", async function () {
-    await talentLayerReview.connect(alice).addReview(1, "cidReview1", 2);
-    await talentLayerReview.connect(bob).addReview(1, "cidReview2", 4);
+    await talentLayerReview.connect(alice).addReview(1, "cidReview1", 2, 1);
+    await talentLayerReview.connect(bob).addReview(1, "cidReview2", 4, 1);
 
     expect(await talentLayerReview.reviewDataUri(0)).to.be.equal("cidReview1");
     expect(await talentLayerReview.reviewDataUri(1)).to.be.equal("cidReview2");
+    expect(await talentLayerReview.reviewIdToPlatformId(1)).to.be.equal(1);
   });
 
   it("Alice and Bob can't write a review for the same Job", async function () {
