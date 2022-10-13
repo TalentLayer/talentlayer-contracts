@@ -63,3 +63,6 @@ accept-proposal:
 pay-proposal:
 	npx hardhat run scripts/playground/7-pay.ts --network $(DEPLOY_NETWORK)
 
+reviews:
+	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)
+
