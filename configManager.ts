@@ -6,10 +6,10 @@ export enum ConfigProperty {
   TalentLayerID = "talentLayerIdAddress",
   JobRegistry = "jobRegistryAddress",
   Reviewscontract = "talentLayerReviewAddress",
-  TalentLayerArbitrator = "TalentLayerArbitratorAddress",
-  TalentLayerMultipleArbitrableTransaction = "TalentLayerMultipleArbitrableTransactionAddress",
-  SimpleERC20 = "SimpleERC20Address",
-  TalentLayerPlatformID = "TalentLayerPlatformIdAddress",
+  TalentLayerArbitrator = "talentLayerArbitratorAddress",
+  TalentLayerMultipleArbitrableTransaction = "talentLayerMultipleArbitrableTransactionAddress",
+  SimpleERC20 = "simpleERC20Address",
+  TalentLayerPlatformID = "talentLayerPlatformIdAddress",
 }
 
 const loadJSON = (network: Network) => {
