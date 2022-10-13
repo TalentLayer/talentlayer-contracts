@@ -27,9 +27,11 @@ async function main() {
   await talentLayerReview
     .connect(alice)
     .addReview(1, "cidReviewFromAliceToCarol", 5, daveTalentLayerIdPlatform);
+  console.log("Alice reviewed Carol");
   await talentLayerReview
     .connect(carol)
     .addReview(1, "cidReviewFromCarolToAlice", 3, daveTalentLayerIdPlatform);
+  console.log("Carol reviewed Alice");
 }
 
 // We recommend this pattern to be able to use async/await everywhere
