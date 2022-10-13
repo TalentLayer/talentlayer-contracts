@@ -15,9 +15,9 @@ async function main() {
       config.talentLayerReviewAddress;
     subgraphNetwork.localhost.JobRegistry.address = config.jobRegistryAddress;
     subgraphNetwork.localhost.TalentLayerMultipleArbitrableTransaction.address =
-      config.TalentLayerMultipleArbitrableTransaction;
+      config.talentLayerMultipleArbitrableTransactionAddress;
     subgraphNetwork.localhost.TalentLayerPlatformID.address =
-      config.TalentLayerPlatformID;
+      config.talentLayerPlatformIdAddress;
   }
   if (network == "goerli") {
     subgraphNetwork.goerli.proofOfHumanityAddress.address =
