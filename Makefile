@@ -50,6 +50,17 @@ setup-fakedata:
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 endif
 
+mint-platformid:
+	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
+
+mint-id:
+	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+
+create-job:
+	npx hardhat run scripts/playground/2-create-job.ts --network $(DEPLOY_NETWORK)
+
+make-proposal:
+	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 
 update-proposal:
 	npx hardhat run scripts/playground/4-update-proposal.ts --network $(DEPLOY_NETWORK)
