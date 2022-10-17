@@ -7,7 +7,7 @@ import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 
 /**
- * @title PLateform ID Contract
+ * @title Platform ID Contract
  * @author TalentLayer Team
  */
 contract TalentLayerPlatformID is ERC721A, Ownable {

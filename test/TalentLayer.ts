@@ -41,7 +41,7 @@ describe("TalentLayer", function () {
     const talentLayerIDArgs: [string] = [mockProofOfHumanity.address];
     talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs);
 
-    // Deploy PlateformID
+    // Deploy PlatformId
     TalentLayerPlatformID = await ethers.getContractFactory(
       "TalentLayerPlatformID"
     );
@@ -788,7 +788,7 @@ describe("TalentLayer", function () {
   });
 
   describe("Platform Id contract test", function () {
-    it("Alice can mint a Plateform Id", async function () {
+    it("Alice can mint a PlatformId Id", async function () {
       await talentLayerPlatformID.connect(alice).mint("PlatId");
       expect(
         await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
@@ -802,7 +802,7 @@ describe("TalentLayer", function () {
       ).to.be.equal("1");
     });
 
-    it("Alice can update the plateform Data", async function () {
+    it("Alice can update the platform Data", async function () {
       await talentLayerPlatformID
         .connect(alice)
         .updateProfileData("1", "newPlatId");
@@ -811,19 +811,19 @@ describe("TalentLayer", function () {
       );
     });
 
-    it("Alice should not be able to transfer her Plateform Id to Bob", async function () {
+    it("Alice should not be able to transfer her PlatformId Id to Bob", async function () {
       expect(
         talentLayerPlatformID.transferFrom(alice.address, bob.address, 1)
       ).to.be.revertedWith("Not allowed");
     });
 
-    it("Alice should not be able to mint a new Plateform ID", async function () {
+    it("Alice should not be able to mint a new PlatformId ID", async function () {
       expect(
         talentLayerPlatformID.connect(alice).mint("SecPlatId")
       ).to.be.revertedWith("You already have a Platform ID");
     });
 
-    it("Alice should not be able to mint a Plateform ID with the same name", async function () {
+    it("Alice should not be able to mint a PlatformId ID with the same name", async function () {
       expect(
         talentLayerPlatformID.connect(alice).mint("PlatId")
       ).to.be.revertedWith("You already have a Platform ID");
