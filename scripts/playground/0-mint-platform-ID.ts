@@ -6,7 +6,7 @@ const hre = require("hardhat");
 async function main() {
   const network = await hre.network.name;
   console.log(network);
-  console.log("Mint HireVibes plateform ID start");
+  console.log("Mint HireVibes platform ID start");
 
   const [alice, bob, carol, dave] = await ethers.getSigners();
 
