@@ -33,17 +33,17 @@ async function main() {
 
   await talentLayerIdContract
     .connect(alice)
-    .mint("alice.lens", daveTalentLayerIdPLatform);
+    .mint(daveTalentLayerIdPLatform, "alice.lens");
   console.log("alice.lens registered");
 
   await talentLayerIdContract
     .connect(bob)
-    .mintWithPoh("bob.lens", daveTalentLayerIdPLatform);
+    .mintWithPoh(daveTalentLayerIdPLatform, "bob.lens");
   console.log("Bob.lens registered");
 
   await talentLayerIdContract
     .connect(carol)
-    .mintWithPoh("carol.lens", daveTalentLayerIdPLatform);
+    .mintWithPoh(daveTalentLayerIdPLatform, "carol.lens");
   console.log("carol.lens registered");
 }
 

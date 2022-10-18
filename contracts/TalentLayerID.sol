@@ -123,7 +123,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(string memory _handle, uint256 _platformId) public canMint(_handle, _platformId) {
+    function mintWithPoh(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
         require(
             pohRegistry.isRegistered(msg.sender),
             "You need to use an address registered on Proof of Humanity"
@@ -194,8 +194,8 @@ contract TalentLayerID is ERC721A, Ownable {
             "Your old address was not linked to Proof of Humanity"
         );
         require(
-            keccak256(abi.encodePacked(handles[_tokenId])) ==
-                keccak256(abi.encodePacked(_handle)),
+            keccak256(abi.encodePacked(profiles[_tokenId].handle)) ==
+            keccak256(abi.encodePacked(_handle)),
             "Invalid handle"
         );
         require(
