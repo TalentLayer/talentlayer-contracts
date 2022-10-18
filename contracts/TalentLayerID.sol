@@ -18,11 +18,13 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /// @notice TalentLayer Profile information struct
     /// @param profileId the talentLayerId of the profile
+    /// @param handle the handle of the profile
     /// @param pohAddress the proof of humanity address of the profile
     /// @param platformId the TalentLayer Platform Id linked to the profile
     /// @param dataUri the IPFS URI of the profile metadata
-    struct TalentLayerProfile {
-        uint256 profileId;
+    struct Profile {
+        uint256 id;
+        string handle;
         address pohAddress;
         uint256 platformId;
         string dataUri;
@@ -36,14 +38,11 @@ contract TalentLayerID is ERC721A, Ownable {
     /// TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
-    /// TalentLayer token id to handle mapping
-    mapping(uint256 => string) public handles;
-
     /// Taken handles
     mapping(string => bool) public takenHandles;
 
-    /// Token ID to TalentLayerProfile struct
-    mapping(uint256 => TalentLayerProfile) public profiles;
+    /// Token ID to Profile struct
+    mapping(uint256 => Profile) public profiles;
 
     /// Account recovery merkle root
     bytes32 public recoveryRoot;
@@ -147,7 +146,7 @@ contract TalentLayerID is ERC721A, Ownable {
         );
         profiles[_tokenId].pohAddress = msg.sender;
 
-        emit PohActivated(msg.sender, _tokenId, handles[_tokenId]);
+        emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handle);
     }
 
     /**
@@ -213,7 +212,7 @@ contract TalentLayerID is ERC721A, Ownable {
         );
 
         hasBeenRecovered[_oldAddress] = true;
-        handles[_tokenId] = _handle;
+        profiles[_tokenId].handle = _handle;
         profiles[_tokenId].pohAddress = msg.sender;
         _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
 
@@ -239,10 +238,10 @@ contract TalentLayerID is ERC721A, Ownable {
      */
     function _afterMint(string memory _handle, bool _poh, uint256 _platformId) private {
         uint256 userTokenId = _nextTokenId() - 1;
-        handles[userTokenId] = _handle;
+        profiles[userTokenId].handle = _handle;
         takenHandles[_handle] = true;
-        TalentLayerProfile storage talentLayerProfile = profiles[userTokenId];
-        talentLayerProfile.platformId = _platformId;
+        Profile storage profile = profiles[userTokenId];
+        profile.platformId = _platformId;
 
         emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId);
     }
@@ -281,7 +280,7 @@ contract TalentLayerID is ERC721A, Ownable {
     }
 
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
-        string memory username = handles[id];
+        string memory username = profiles[id].handle;
 
         bytes memory image = abi.encodePacked(
             "data:image/svg+xml;base64,",
