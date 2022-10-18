@@ -26,7 +26,7 @@ contract TalentLayerPlatformID is ERC721A, Ownable {
     /// Addresses that have successfully recovered their account
     mapping(address => bool) public hasBeenRecovered;
 
-    constructor() ERC721A("PlatformID", "PID") {}
+    constructor() ERC721A("TalentLayerPlatformID", "TPID") {}
 
     // =========================== View functions ==============================
 
@@ -139,6 +139,16 @@ contract TalentLayerPlatformID is ERC721A, Ownable {
         returns (uint256)
     {
         return 1;
+    }
+
+    // =========================== External functions ==============================
+
+    /**
+    * Check whether the TalentLayer Platform Id is valid.
+    * @param _platformId TalentLayer Platform ID
+    */
+    function isValid(uint256 _platformId) external view {
+        require(_platformId > 0 && _platformId <= totalSupply(), "Platform 0 is not a valid TalentLayer Platform ID");
     }
 
     // =========================== Overrides ==============================

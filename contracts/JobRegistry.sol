@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
+import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
@@ -177,6 +178,9 @@ contract JobRegistry is AccessControl {
     /// @notice TalentLayerId address
     ITalentLayerID private tlId;
 
+    /// TalentLayer Platform ID registry
+    ITalentLayerPlatformID public talentLayerPlatformIdContract;
+
     /// @notice jobs mappings index by ID
     mapping(uint256 => Job) public jobs;
 
@@ -189,8 +193,9 @@ contract JobRegistry is AccessControl {
     /**
      * @param _talentLayerIdAddress TalentLayerId address
      */
-    constructor(address _talentLayerIdAddress) {
+    constructor(address _talentLayerIdAddress, address _talentLayerPlatformIdAddress) {
         tlId = ITalentLayerID(_talentLayerIdAddress);
+        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -217,83 +222,74 @@ contract JobRegistry is AccessControl {
 
     /**
      * @notice Allows an employer to initiate a new Job with an employee
+     * @param _platformId platform ID on which the Job token was minted
      * @param _employeeId Handle for the user
      * @param _jobDataUri token Id to IPFS URI mapping
-     * @param _platformId platform ID on which the Job token was minted
      */
     function createJobFromEmployer(
+        uint256 _platformId,
         uint256 _employeeId,
-        string calldata _jobDataUri,
-        uint256 _platformId
+        string calldata _jobDataUri
     ) public returns (uint256) {
         require(_employeeId > 0, "Employee 0 is not a valid TalentLayerId");
-        require(
-            _platformId > 0,
-            "Platform 0 is not a valid TalentLayerPlatformId"
-        );
+        talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
-            _createJob(
-                Status.Filled,
-                senderId,
-                senderId,
-                _employeeId,
-                _jobDataUri,
-                _platformId
-            );
+        _createJob(
+            Status.Filled,
+            senderId,
+            senderId,
+            _employeeId,
+            _jobDataUri,
+            _platformId
+        );
     }
 
     /**
      * @notice Allows an employee to initiate a new Job with an employer
+     * @param _platformId platform ID on which the Job token was minted
      * @param _employerId Handle for the user
      * @param _jobDataUri token Id to IPFS URI mapping
-     * @param _platformId platform ID on which the Job token was minted
      */
     function createJobFromEmployee(
+        uint256 _platformId,
         uint256 _employerId,
-        string calldata _jobDataUri,
-        uint256 _platformId
+        string calldata _jobDataUri
     ) public returns (uint256) {
         require(_employerId > 0, "Employer 0 is not a valid TalentLayerId");
-        require(
-            _platformId > 0,
-            "Platform 0 is not a valid TalentLayerPlatformId"
-        );
+        talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
-            _createJob(
-                Status.Filled,
-                senderId,
-                _employerId,
-                senderId,
-                _jobDataUri,
-                _platformId
-            );
+        _createJob(
+            Status.Filled,
+            senderId,
+            _employerId,
+            senderId,
+            _jobDataUri,
+            _platformId
+        );
     }
 
     /**
      * @notice Allows an employer to initiate an open job
-     * @param _jobDataUri token Id to IPFS URI mapping
      * @param _platformId platform ID on which the Job token was minted
+     * @param _jobDataUri token Id to IPFS URI mapping
      */
     function createOpenJobFromEmployer(
-        string calldata _jobDataUri,
-        uint256 _platformId
+        uint256 _platformId,
+        string calldata _jobDataUri
     ) public returns (uint256) {
-        require(
-            _platformId > 0,
-            "Platform 0 is not a valid TalentLayerPlatformId"
-        );
+        talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
-            _createJob(
-                Status.Opened,
-                senderId,
-                senderId,
-                0,
-                _jobDataUri,
-                _platformId
-            );
+        _createJob(
+            Status.Opened,
+            senderId,
+            senderId,
+            0,
+            _jobDataUri,
+            _platformId
+        );
     }
 
     /**

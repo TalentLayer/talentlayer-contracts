@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {IJobRegistry} from "./interfaces/IJobRegistry.sol";
+import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     using Address for address;
@@ -54,16 +55,21 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     ITalentLayerID private tlId;
     IJobRegistry private jobRegistry;
 
+    /// TalentLayer Platform ID registry
+    ITalentLayerPlatformID public talentLayerPlatformIdContract;
+
     constructor(
         string memory name_,
         string memory symbol_,
         address _talentLayerIdAddress,
-        address _jobRegistryAddress
+        address _jobRegistryAddress,
+        address _talentLayerPlatformIdAddress
     ) {
         _name = name_;
         _symbol = symbol_;
         tlId = ITalentLayerID(_talentLayerIdAddress);
         jobRegistry = IJobRegistry(_jobRegistryAddress);
+        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -359,9 +365,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
             job.status == IJobRegistry.Status.Finished,
             "The job is not finished yet"
         );
-        require(
-            _platformId > 0, "Platform 0 is not a valid TalentLayer Platform ID"
-        );
+        talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
         if (senderId == job.employerId) {
