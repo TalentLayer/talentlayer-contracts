@@ -25,7 +25,7 @@ async function main() {
 
   await jobRegistry
     .connect(alice)
-    .createOpenJobFromEmployer("ipfs://ssss", daveTalentLayerIdPLatform);
+    .createOpenJobFromEmployer(daveTalentLayerIdPLatform, "ipfs://ssss");
   console.log("Open Job created");
 }
 
