@@ -17,8 +17,8 @@ async function main() {
     )
   );
 
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, 30);
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, 70);
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, 140);
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, 60);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

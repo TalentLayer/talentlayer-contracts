@@ -42,6 +42,8 @@
     "@openzeppelin/contracts": "^4.7.1",
     "dotenv": "^16.0.1",
     "erc721a": "^4.2.0",
-    "hardhat-contract-sizer": "^2.6.1"
+    "hardhat-contract-sizer": "^2.6.1",
+    "ipfs-http-client": "^55.0.0",
+    "ipfs-utils": "^9.0.7"
   }
 }

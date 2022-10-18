@@ -6,27 +6,32 @@ const hre = require("hardhat");
 async function main() {
   const network = await hre.network.name;
   console.log(network);
-  console.log("Create job Test start");
+  console.log("Mint HireVibes platform ID start");
 
   const [alice, bob, carol, dave] = await ethers.getSigners();
-  const jobRegistry = await ethers.getContractAt(
-    "JobRegistry",
-    get(network as Network, ConfigProperty.JobRegistry)
-  );
 
   const platformIdContrat = await ethers.getContractAt(
     "TalentLayerPlatformID",
     get(network as Network, ConfigProperty.TalentLayerPlatformID)
   );
 
+  await platformIdContrat.connect(dave).mint("HireVibes");
+
   const daveTalentLayerIdPLatform =
     await platformIdContrat.getPlatformIdFromAddress(dave.address);
-  console.log("Dave talentLayerIdPLatform", daveTalentLayerIdPLatform);
+  console.log("Alice talentLayerIdPLatform", daveTalentLayerIdPLatform);
 
-  await jobRegistry
-    .connect(alice)
-    .createOpenJobFromEmployer(daveTalentLayerIdPLatform, "ipfs://ssss");
-  console.log("Open Job created");
+  await platformIdContrat
+    .connect(dave)
+    .updateProfileData(daveTalentLayerIdPLatform, "newCid");
+
+  const platformName = await platformIdContrat.names(daveTalentLayerIdPLatform);
+  const platformCid = await platformIdContrat.platformUri(
+    daveTalentLayerIdPLatform
+  );
+
+  console.log("platformName", platformName);
+  console.log("platformCid", platformCid);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

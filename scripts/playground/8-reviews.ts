@@ -3,15 +3,16 @@ import { get, ConfigProperty } from "../../configManager";
 import { Network } from "../config";
 const hre = require("hardhat");
 
+// Then Alice create a job, and others add proposals
 async function main() {
   const network = await hre.network.name;
   console.log(network);
-  console.log("Create job Test start");
 
   const [alice, bob, carol, dave] = await ethers.getSigners();
-  const jobRegistry = await ethers.getContractAt(
-    "JobRegistry",
-    get(network as Network, ConfigProperty.JobRegistry)
+
+  const talentLayerReview = await ethers.getContractAt(
+    "TalentLayerReview",
+    get(network as Network, ConfigProperty.Reviewscontract)
   );
 
   const platformIdContrat = await ethers.getContractAt(
@@ -19,14 +20,18 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID)
   );
 
-  const daveTalentLayerIdPLatform =
+  const daveTalentLayerIdPlatform =
     await platformIdContrat.getPlatformIdFromAddress(dave.address);
-  console.log("Dave talentLayerIdPLatform", daveTalentLayerIdPLatform);
+  console.log("Dave talentLayerIdPLatform", daveTalentLayerIdPlatform);
 
-  await jobRegistry
+  await talentLayerReview
     .connect(alice)
-    .createOpenJobFromEmployer(daveTalentLayerIdPLatform, "ipfs://ssss");
-  console.log("Open Job created");
+    .addReview(1, "cidReviewFromAliceToCarol", 5, daveTalentLayerIdPlatform);
+  console.log("Alice reviewed Carol");
+  await talentLayerReview
+    .connect(carol)
+    .addReview(1, "cidReviewFromCarolToAlice", 3, daveTalentLayerIdPlatform);
+  console.log("Carol reviewed Alice");
 }
 
 // We recommend this pattern to be able to use async/await everywhere
