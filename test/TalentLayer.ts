@@ -36,16 +36,19 @@ describe("TalentLayer", function () {
     mockProofOfHumanity = await MockProofOfHumanity.deploy();
     mockProofOfHumanity.addSubmissionManually([alice.address, bob.address]);
 
-    // Deploy TalenLayerID
-    TalentLayerID = await ethers.getContractFactory("TalentLayerID");
-    const talentLayerIDArgs: [string] = [mockProofOfHumanity.address];
-    talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs);
-
     // Deploy PlatformId
     TalentLayerPlatformID = await ethers.getContractFactory(
       "TalentLayerPlatformID"
     );
     talentLayerPlatformID = await TalentLayerPlatformID.deploy();
+
+    // Deploy TalenLayerID
+    TalentLayerID = await ethers.getContractFactory("TalentLayerID");
+    const talentLayerIDArgs: [string, string] = [
+      mockProofOfHumanity.address,
+      talentLayerPlatformID.address,
+    ];
+    talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs);
 
     // Deploy JobRegistry
     JobRegistry = await ethers.getContractFactory("JobRegistry");
@@ -92,15 +95,15 @@ describe("TalentLayer", function () {
   });
 
   it("Alice, Bob and Carol can mint a talentLayerId", async function () {
-    await talentLayerID.connect(alice).mintWithPoh("alice", 1);
-    await talentLayerID.connect(bob).mintWithPoh("bob", 1);
+    await talentLayerID.connect(alice).mintWithPoh(1, "alice");
+    await talentLayerID.connect(bob).mintWithPoh(1, "bob");
 
     expect(
-      talentLayerID.connect(carol).mintWithPoh("carol", 1)
+      talentLayerID.connect(carol).mintWithPoh(1, "carol")
     ).to.be.revertedWith(
       "You need to use an address registered on Proof of Humanity"
     );
-    await talentLayerID.connect(carol).mint("carol", 1);
+    await talentLayerID.connect(carol).mint(1, "carol");
 
     expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal("1");
     expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal("2");
