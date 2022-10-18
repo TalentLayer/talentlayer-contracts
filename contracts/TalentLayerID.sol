@@ -6,14 +6,35 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
+import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /**
  * @title TalentLayer ID Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
 contract TalentLayerID is ERC721A, Ownable {
+
+    // =========================== Structs ==============================
+
+    /// @notice TalentLayer Profile information struct
+    /// @param profileId the talentLayerId of the profile
+    /// @param pohAddress the proof of humanity address of the profile
+    /// @param platformId the TalentLayer Platform Id linked to the profile
+    /// @param dataUri the IPFS URI of the profile metadata
+    struct TalentLayerProfile {
+        uint256 profileId;
+        address pohAddress;
+        uint256 platformId;
+        string dataUri;
+    }
+
+    // =========================== Mappings ==============================
+
     /// Proof of Humanity registry
     IProofOfHumanity public pohRegistry;
+
+    /// TalentLayer Platform ID registry
+    ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
     /// TalentLayer token id to handle mapping
     mapping(uint256 => string) public handles;
@@ -21,14 +42,8 @@ contract TalentLayerID is ERC721A, Ownable {
     /// Taken handles
     mapping(string => bool) public takenHandles;
 
-    /// Token ID to Proof of Humanity address mapping
-    mapping(uint256 => address) public talentIdPohAddresses;
-
-    /// Token ID to IPFS URI mapping
-    mapping(uint256 => string) public profilesDataUri;
-
-    /// User ID to platform ID
-    mapping(uint256 => uint256) public userIdToPlatformId;
+    /// Token ID to TalentLayerProfile struct
+    mapping(uint256 => TalentLayerProfile) public profiles;
 
     /// Account recovery merkle root
     bytes32 public recoveryRoot;
@@ -39,8 +54,9 @@ contract TalentLayerID is ERC721A, Ownable {
     /**
      * @param _pohAddress Proof of Humanity registry address
      */
-    constructor(address _pohAddress) ERC721A("TalentLayerID", "TID") {
+    constructor(address _pohAddress, address _talentLayerPlatformIdAddress) ERC721A("TalentLayerID", "TID") {
         pohRegistry = IProofOfHumanity(_pohAddress);
+        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
     }
 
     // =========================== View functions ==============================
@@ -60,7 +76,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @return true if Proof of Humanity address is registered, false otherwise
      */
     function isTokenPohRegistered(uint256 _tokenId) public view returns (bool) {
-        return pohRegistry.isRegistered(talentIdPohAddresses[_tokenId]);
+        return pohRegistry.isRegistered(profiles[_tokenId].pohAddress);
     }
 
     /**
@@ -68,7 +84,6 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _owner Address to check
      * @return uint256 the id of the NFT
      */
-    //TODO: Changer le nom de cette fonction
     function walletOfOwner(address _owner) public view returns (uint256) {
         uint256 ownedTokenId;
         uint256 currentTokenId = _startTokenId();
@@ -99,7 +114,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(string memory _handle, uint256 _platformId) public canMint(_handle, _platformId) {
+    function mint(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
         _safeMint(msg.sender, 1);
         _afterMint(_handle, false, _platformId);
     }
@@ -116,7 +131,7 @@ contract TalentLayerID is ERC721A, Ownable {
         );
         _safeMint(msg.sender, 1);
         uint256 userTokenId = _nextTokenId() - 1;
-        talentIdPohAddresses[userTokenId] = msg.sender;
+        profiles[userTokenId].pohAddress = msg.sender;
         _afterMint(_handle, true, _platformId);
     }
 
@@ -130,7 +145,7 @@ contract TalentLayerID is ERC721A, Ownable {
             pohRegistry.isRegistered(msg.sender),
             "You're address is not registerd for poh"
         );
-        talentIdPohAddresses[_tokenId] = msg.sender;
+        profiles[_tokenId].pohAddress = msg.sender;
 
         emit PohActivated(msg.sender, _tokenId, handles[_tokenId]);
     }
@@ -144,7 +159,7 @@ contract TalentLayerID is ERC721A, Ownable {
     function updateProfileData(uint256 _tokenId, string memory _newCid) public {
         require(ownerOf(_tokenId) == msg.sender);
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
-        profilesDataUri[_tokenId] = _newCid;
+        profiles[_tokenId].dataUri = _newCid;
 
         emit CidUpdated(_tokenId, _newCid);
     }
@@ -176,7 +191,7 @@ contract TalentLayerID is ERC721A, Ownable {
         );
         require(numberMinted(msg.sender) == 0, "You already have a token");
         require(
-            talentIdPohAddresses[_tokenId] == address(0),
+            profiles[_tokenId].pohAddress == address(0),
             "Your old address was not linked to Proof of Humanity"
         );
         require(
@@ -199,7 +214,7 @@ contract TalentLayerID is ERC721A, Ownable {
 
         hasBeenRecovered[_oldAddress] = true;
         handles[_tokenId] = _handle;
-        talentIdPohAddresses[_tokenId] = msg.sender;
+        profiles[_tokenId].pohAddress = msg.sender;
         _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
 
         emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
@@ -226,7 +241,8 @@ contract TalentLayerID is ERC721A, Ownable {
         uint256 userTokenId = _nextTokenId() - 1;
         handles[userTokenId] = _handle;
         takenHandles[_handle] = true;
-        userIdToPlatformId[userTokenId]= _platformId;
+        TalentLayerProfile storage talentLayerProfile = profiles[userTokenId];
+        talentLayerProfile.platformId = _platformId;
 
         emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId);
     }
@@ -312,7 +328,7 @@ contract TalentLayerID is ERC721A, Ownable {
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
-        require(_platformId > 0, "Platform 0 is not a valid TalentLayer Platform ID");
+        talentLayerPlatformIdContract.isValid(_platformId);
         _;
     }
 
