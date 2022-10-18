@@ -205,7 +205,7 @@ contract TalentLayerPlatformID is ERC721A, Ownable {
                                 platformName,
                                 '", "image":"',
                                 image,
-                                unicode'", "description": "Platform ID"}'
+                                unicode'", "description": "Talent Layer Platform ID"}'
                             )
                         )
                     )
