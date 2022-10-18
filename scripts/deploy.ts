@@ -60,9 +60,34 @@ task("deploy")
         );
       }
 
+      // Deploy TalentLayerPlatformID contract
+      const TalentLayerPlatformID = await ethers.getContractFactory(
+        "TalentLayerPlatformID"
+      );
+      const talentLayerPlatformID = await TalentLayerPlatformID.deploy();
+      if (verify) {
+        await talentLayerPlatformID.deployTransaction.wait(5);
+        await run("verify:verify", {
+          address: talentLayerPlatformID.address,
+        });
+      }
+      console.log(
+        "TalentLayerPlatformID address:",
+        talentLayerPlatformID.address
+      );
+
+      set(
+        network.name as any as Network,
+        ConfigProperty.TalentLayerPlatformID,
+        talentLayerPlatformID.address,
+      );
+
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory("TalentLayerID");
-      const talentLayerIDArgs: [string] = [pohAddress];
+      const talentLayerIDArgs: [string, string] = [
+        pohAddress,
+        talentLayerPlatformID.address,
+      ];
       const talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs);
       if (verify) {
         await talentLayerID.deployTransaction.wait(5);
@@ -76,12 +101,15 @@ task("deploy")
       set(
         network.name as any as Network,
         ConfigProperty.TalentLayerID,
-        talentLayerID.address
+        talentLayerID.address,
       );
 
       // Deploy Job Registry Contract
       const JobRegistry = await ethers.getContractFactory("JobRegistry");
-      const jobRegistryArgs: [string] = [talentLayerID.address];
+      const jobRegistryArgs: [string, string] = [
+        talentLayerID.address,
+        talentLayerPlatformID.address
+      ];
       const jobRegistry = await JobRegistry.deploy(...jobRegistryArgs);
       if (verify) {
         await jobRegistry.deployTransaction.wait(5);
@@ -94,18 +122,19 @@ task("deploy")
       set(
         network.name as any as Network,
         ConfigProperty.JobRegistry,
-        jobRegistry.address
+        jobRegistry.address,
       );
 
       // Deploy Review contract
       const TalentLayerReview = await ethers.getContractFactory(
         "TalentLayerReview"
       );
-      const talentLayerReviewArgs: [string, string, string, string] = [
+      const talentLayerReviewArgs: [string, string, string, string, string] = [
         "TalentLayer Reviews",
         "TLR",
         talentLayerID.address,
         jobRegistry.address,
+        talentLayerPlatformID.address,
       ];
       const talentLayerReview = await TalentLayerReview.deploy(
         ...talentLayerReviewArgs
@@ -201,9 +230,9 @@ task("deploy")
         console.log("simpleERC20 address:", simpleERC20.address);
 
         set(
-            network.name as any as Network,
-            ConfigProperty.SimpleERC20,
-            simpleERC20.address
+          network.name as any as Network,
+          ConfigProperty.SimpleERC20,
+          simpleERC20.address
         );
       }
 
