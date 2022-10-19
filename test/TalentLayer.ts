@@ -24,7 +24,9 @@ describe("TalentLayer", function () {
     talentLayerMultipleArbitrableTransaction: Contract,
     talentLayerArbitrator: Contract,
     mockProofOfHumanity: Contract,
-    token: Contract;
+    token: Contract,
+    platformName: string,
+    platformId: string;
 
   before(async function () {
     [deployer, alice, bob, carol, dave] = await ethers.getSigners();
@@ -36,29 +38,38 @@ describe("TalentLayer", function () {
     mockProofOfHumanity = await MockProofOfHumanity.deploy();
     mockProofOfHumanity.addSubmissionManually([alice.address, bob.address]);
 
-    // Deploy TalenLayerID
-    TalentLayerID = await ethers.getContractFactory("TalentLayerID");
-    const talentLayerIDArgs: [string] = [mockProofOfHumanity.address];
-    talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs);
-
     // Deploy PlatformId
     TalentLayerPlatformID = await ethers.getContractFactory(
       "TalentLayerPlatformID"
     );
     talentLayerPlatformID = await TalentLayerPlatformID.deploy();
 
+    // Deploy TalenLayerID
+    TalentLayerID = await ethers.getContractFactory("TalentLayerID");
+    const talentLayerIDArgs: [string, string] = [
+      mockProofOfHumanity.address,
+      talentLayerPlatformID.address,
+    ];
+    talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs);
+
     // Deploy JobRegistry
     JobRegistry = await ethers.getContractFactory("JobRegistry");
-    jobRegistry = await JobRegistry.deploy(talentLayerID.address);
+    const jobRegistryArgs: [string, string] = [
+      talentLayerID.address,
+      talentLayerPlatformID.address,
+    ];
+    jobRegistry = await JobRegistry.deploy(...jobRegistryArgs);
 
     // Deploy TalentLayerReview
     TalentLayerReview = await ethers.getContractFactory("TalentLayerReview");
-    talentLayerReview = await TalentLayerReview.deploy(
+    const talentLayerReviewArgs: [string, string, string, string, string] = [
       "TalentLayer Review",
       "TLR",
       talentLayerID.address,
-      jobRegistry.address
-    );
+      jobRegistry.address,
+      talentLayerPlatformID.address,
+    ];
+    talentLayerReview = await TalentLayerReview.deploy(...talentLayerReviewArgs);
 
     // Deploy TalentLayerArbitrator
     TalentLayerArbitrator = await ethers.getContractFactory(
@@ -89,44 +100,98 @@ describe("TalentLayer", function () {
       escrowRole,
       talentLayerMultipleArbitrableTransaction.address
     );
+
+    // Alice mints a Platform Id
+    platformName ='HireVibes';
+    await talentLayerPlatformID.connect(alice).mint(platformName);
+  });
+
+  describe("Platform Id contract test", async function () {
+  it("Alice successfully minted a PlatformId Id", async function () {
+    platformId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address);
+    expect(platformId).to.be.equal("1");
+    });
+
+    it("Alice can check the number of id minted", async function () {
+      await talentLayerPlatformID.connect(alice).numberMinted(alice.address);
+      expect(
+        await talentLayerPlatformID.numberMinted(alice.address)
+      ).to.be.equal("1");
+    });
+
+    it("Alice can update the platform Data", async function () {
+      await talentLayerPlatformID
+        .connect(alice)
+        .updateProfileData("1", "newPlatId");
+      expect(await talentLayerPlatformID.platformUri("1")).to.be.equal(
+        "newPlatId"
+      );
+    });
+
+    it("Alice should not be able to transfer her PlatformId Id to Bob", async function () {
+      expect(
+        talentLayerPlatformID.transferFrom(alice.address, bob.address, 1)
+      ).to.be.revertedWith("Not allowed");
+    });
+
+    it("Alice should not be able to mint a new PlatformId ID", async function () {
+      expect(
+        talentLayerPlatformID.connect(alice).mint("SecPlatId")
+      ).to.be.revertedWith("You already have a Platform ID");
+    });
+
+    it("Alice should not be able to mint a PlatformId ID with the same name", async function () {
+      expect(
+        talentLayerPlatformID.connect(alice).mint("PlatId")
+      ).to.be.revertedWith("You already have a Platform ID");
+    });
+
+    it("Alice's PlatformID ownership data is coherent", async function () {
+      const name = await talentLayerPlatformID.names(platformId);
+      const isNameTaken = await talentLayerPlatformID.takenNames(platformName);
+      const idOwner = await talentLayerPlatformID.ownerOf(platformId);
+      expect(platformName).to.equal(name);
+      expect(isNameTaken).to.equal(true);
+      expect(platformName).to.equal(platformName);
+      expect(idOwner).to.equal(alice.address);
+    });
   });
 
   it("Alice, Bob and Carol can mint a talentLayerId", async function () {
-    await talentLayerID.connect(alice).mintWithPoh("alice", 1);
-    await talentLayerID.connect(bob).mintWithPoh("bob", 1);
+    await talentLayerID.connect(alice).mintWithPoh("1", "alice");
+    await talentLayerID.connect(bob).mintWithPoh("1", "bob");
 
     expect(
-      talentLayerID.connect(carol).mintWithPoh("carol", 1)
+      talentLayerID.connect(carol).mintWithPoh("1", "carol")
     ).to.be.revertedWith(
       "You need to use an address registered on Proof of Humanity"
     );
-    await talentLayerID.connect(carol).mint("carol", 1);
-
+    await talentLayerID.connect(carol).mint("1", "carol");
     expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal("1");
     expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal("2");
     expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal("3");
-
     const carolUserId = await talentLayerID.walletOfOwner(carol.address);
-    expect(await talentLayerID.userIdToPlatformId(carolUserId)).to.be.equal(
+    const profileData = await talentLayerID.profiles(carolUserId);
+    expect(profileData.platformId).to.be.equal(
       "1"
     );
   });
 
   it("Carol can activate POH on her talentLayerID", async function () {
     expect(
-      talentLayerID.connect(carol).mintWithPoh("carol", 1)
+      talentLayerID.connect(carol).mintWithPoh(1, "carol")
     ).to.be.revertedWith("You're address is not registerd for poh");
     await mockProofOfHumanity.addSubmissionManually([carol.address]);
     await talentLayerID.connect(carol).activatePoh(3);
+    const profileData = await talentLayerID.profiles(3);
+
     expect(await talentLayerID.isTokenPohRegistered(3)).to.be.equal(true);
-    expect(await talentLayerID.talentIdPohAddresses(3)).to.be.equal(
-      carol.address
-    );
+    expect(await profileData.pohAddress).to.be.equal(carol.address);
   });
 
   it("Alice, the employer, can initiate a new job with Bob, the employee", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await jobRegistry.connect(alice).createJobFromEmployer(bobTid, "cid", "1");
+    await jobRegistry.connect(alice).createJobFromEmployer(1, bobTid, "cid");
     const jobData = await jobRegistry.jobs(1);
 
     expect(jobData.status.toString()).to.be.equal("0");
@@ -199,7 +264,7 @@ describe("TalentLayer", function () {
 
   it("Carol, a new employer, can initiate a new job with Bob, the employee", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await jobRegistry.connect(carol).createJobFromEmployer(bobTid, "cid2", 1);
+    await jobRegistry.connect(carol).createJobFromEmployer(1, bobTid, "cid2");
     const jobData = await jobRegistry.jobs(2);
 
     expect(jobData.status.toString()).to.be.equal("0");
@@ -220,7 +285,7 @@ describe("TalentLayer", function () {
 
   it("Bob can post another job with fixed job details, and Carol confirmed it", async function () {
     const carolId = await talentLayerID.walletOfOwner(carol.address);
-    await jobRegistry.connect(bob).createJobFromEmployee(carolId, "cid3", 1);
+    await jobRegistry.connect(bob).createJobFromEmployee(1, carolId, "cid3");
     let jobData = await jobRegistry.jobs(3);
 
     expect(jobData.status.toString()).to.be.equal("0");
@@ -239,12 +304,12 @@ describe("TalentLayer", function () {
   it("Dave, who doesn't have TalentLayerID, can't create a job", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     expect(
-      jobRegistry.connect(dave).createJobFromEmployer(bobTid, "cid", 1)
+      jobRegistry.connect(dave).createJobFromEmployer(1, bobTid, "cid")
     ).to.be.revertedWith("You sould have a TalentLayerId");
   });
 
   it("Alice the employer can create an Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+    await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
     const jobData = await jobRegistry.jobs(4);
 
     expect(jobData.status.toString()).to.be.equal("4");
@@ -256,7 +321,7 @@ describe("TalentLayer", function () {
   });
 
   it("Alice can assign an employee to a Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+    await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     await jobRegistry.connect(alice).assignEmployeeToJob(5, bobTid);
     const jobData = await jobRegistry.jobs(5);
@@ -266,7 +331,7 @@ describe("TalentLayer", function () {
   });
 
   it("Bob can confirm the Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+    await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     await jobRegistry.connect(alice).assignEmployeeToJob(6, bobTid);
     await jobRegistry.connect(bob).confirmJob(6);
@@ -276,7 +341,7 @@ describe("TalentLayer", function () {
   });
 
   it("Bob can reject an Open job", async function () {
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+    await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const carolId = await talentLayerID.walletOfOwner(carol.address);
     await jobRegistry.connect(alice).assignEmployeeToJob(7, bobTid);
@@ -295,7 +360,7 @@ describe("TalentLayer", function () {
   it("Bob can create a proposal for an Open job", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+    await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
 
     // Proposal data check before the proposal
     const proposalDataBefore = await jobRegistry.getProposal(8, bobTid);
@@ -322,7 +387,7 @@ describe("TalentLayer", function () {
   it("Bob can update a proposal ", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+    await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
     await jobRegistry.connect(bob).createProposal(9, rateToken, 1, "cid");
 
     const proposalDataBefore = await jobRegistry.getProposal(9, bobTid);
@@ -338,7 +403,7 @@ describe("TalentLayer", function () {
   it("Alice can validate a proposal", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+    await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
     await jobRegistry.connect(bob).createProposal(10, rateToken, 1, "cid");
 
     const proposalDataBefore = await jobRegistry.getProposal(10, bobTid);
@@ -353,7 +418,7 @@ describe("TalentLayer", function () {
   it("Alice can delete a proposal ", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
     const rateToken = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-    await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+    await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
     await jobRegistry.connect(bob).createProposal(11, rateToken, 1, "cid");
 
     await jobRegistry.connect(alice).rejectProposal(11, bobTid);
@@ -450,7 +515,7 @@ describe("TalentLayer", function () {
       let proposalIdCarol = 0; //Will be set later
 
       it("Alice can create a job.", async function () {
-        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+        await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
       });
 
       it("Alice can NOT deposit tokens to escrow yet.", async function () {
@@ -626,7 +691,7 @@ describe("TalentLayer", function () {
       const ethAddress = "0x0000000000000000000000000000000000000000";
 
       it("Alice can create a job.", async function () {
-        await jobRegistry.connect(alice).createOpenJobFromEmployer("cid", 1);
+        await jobRegistry.connect(alice).createOpenJobFromEmployer(1, "cid");
       });
 
       it("Alice can NOT deposit eth to escrow yet.", async function () {
@@ -784,49 +849,6 @@ describe("TalentLayer", function () {
             .release(transactionId, 10)
         ).to.be.revertedWith("Insufficient funds.");
       });
-    });
-  });
-
-  describe("Platform Id contract test", function () {
-    it("Alice can mint a PlatformId Id", async function () {
-      await talentLayerPlatformID.connect(alice).mint("PlatId");
-      expect(
-        await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
-      ).to.be.equal("1");
-    });
-
-    it("Alice can check the number of id minted", async function () {
-      await talentLayerPlatformID.connect(alice).numberMinted(alice.address);
-      expect(
-        await talentLayerPlatformID.numberMinted(alice.address)
-      ).to.be.equal("1");
-    });
-
-    it("Alice can update the platform Data", async function () {
-      await talentLayerPlatformID
-        .connect(alice)
-        .updateProfileData("1", "newPlatId");
-      expect(await talentLayerPlatformID.platformUri("1")).to.be.equal(
-        "newPlatId"
-      );
-    });
-
-    it("Alice should not be able to transfer her PlatformId Id to Bob", async function () {
-      expect(
-        talentLayerPlatformID.transferFrom(alice.address, bob.address, 1)
-      ).to.be.revertedWith("Not allowed");
-    });
-
-    it("Alice should not be able to mint a new PlatformId ID", async function () {
-      expect(
-        talentLayerPlatformID.connect(alice).mint("SecPlatId")
-      ).to.be.revertedWith("You already have a Platform ID");
-    });
-
-    it("Alice should not be able to mint a PlatformId ID with the same name", async function () {
-      expect(
-        talentLayerPlatformID.connect(alice).mint("PlatId")
-      ).to.be.revertedWith("You already have a Platform ID");
     });
   });
 });
