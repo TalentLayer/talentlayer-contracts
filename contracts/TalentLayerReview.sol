@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {IJobRegistry} from "./interfaces/IJobRegistry.sol";
+import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
@@ -41,11 +41,11 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /// Token ID to IPFS URI mapping
     mapping(uint256 => string) public reviewDataUri;
 
-    // Mapping to save NFT minted for a jobId and employerId
-    mapping(uint256 => uint256) public nftMintedByJobAndemployerId;
+    // Mapping to save NFT minted for a serviceId and buyerId
+    mapping(uint256 => uint256) public nftMintedByServiceAndbuyerId;
 
-    // Mapping to save NFT minted for a jobId and employeeId
-    mapping(uint256 => uint256) public nftMintedByJobAndemployeeId;
+    // Mapping to save NFT minted for a serviceId and sellerId
+    mapping(uint256 => uint256) public nftMintedByServiceAndsellerId;
 
     // Mapping from Review ID to Platform ID
     mapping(uint256 => uint256) public reviewIdToPlatformId;
@@ -53,7 +53,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     error ReviewAlreadyMinted();
 
     ITalentLayerID private tlId;
-    IJobRegistry private jobRegistry;
+    IServiceRegistry private serviceRegistry;
 
     /// TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
@@ -62,13 +62,13 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         string memory name_,
         string memory symbol_,
         address _talentLayerIdAddress,
-        address _jobRegistryAddress,
+        address _serviceRegistryAddress,
         address _talentLayerPlatformIdAddress
     ) {
         _name = name_;
         _symbol = symbol_;
         tlId = ITalentLayerID(_talentLayerIdAddress);
-        jobRegistry = IJobRegistry(_jobRegistryAddress);
+        serviceRegistry = IServiceRegistry(_serviceRegistryAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
     }
 
@@ -247,7 +247,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     }
 
     function _mint(
-        uint256 jobId,
+        uint256 serviceId,
         uint256 to,
         uint256 _rating,
         string calldata reviewUri,
@@ -265,7 +265,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         reviewIdToPlatformId[_totalSupply] = _platformId;
         _totalSupply = _totalSupply + 1;
 
-        emit Mint(jobId, to, _totalSupply, _rating, reviewUri, _platformId);
+        emit Mint(serviceId, to, _totalSupply, _rating, reviewUri, _platformId);
     }
 
     function _burn(uint256 tokenId) internal virtual {}
@@ -341,7 +341,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     ) internal virtual {}
 
     event Mint(
-        uint256 indexed _jobId,
+        uint256 indexed _serviceId,
         uint256 indexed _toId,
         uint256 indexed _tokenId,
         uint256 _rating,
@@ -350,40 +350,40 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     );
 
     function addReview(
-        uint256 _jobId,
+        uint256 _serviceId,
         string calldata _reviewUri,
         uint256 _rating,
         uint256 _platformId
     ) public {
-        IJobRegistry.Job memory job = jobRegistry.getJob(_jobId);
+        IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(
-            senderId == job.employerId || senderId == job.employeeId,
-            "You're not an actor of this job"
+            senderId == service.buyerId || senderId == service.sellerId,
+            "You're not an actor of this service"
         );
         require(
-            job.status == IJobRegistry.Status.Finished,
-            "The job is not finished yet"
+            service.status == IServiceRegistry.Status.Finished,
+            "The service is not finished yet"
         );
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
-        if (senderId == job.employerId) {
-            toId = job.employeeId;
-            if (nftMintedByJobAndemployerId[_jobId] == senderId) {
+        if (senderId == service.buyerId) {
+            toId = service.sellerId;
+            if (nftMintedByServiceAndbuyerId[_serviceId] == senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByJobAndemployerId[_jobId] = senderId;
+                nftMintedByServiceAndbuyerId[_serviceId] = senderId;
             }
         } else {
-            toId = job.employerId;
-            if (nftMintedByJobAndemployeeId[_jobId] == senderId) {
+            toId = service.buyerId;
+            if (nftMintedByServiceAndsellerId[_serviceId] == senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByJobAndemployeeId[_jobId] = senderId;
+                nftMintedByServiceAndsellerId[_serviceId] = senderId;
             }
         }
 
-        _mint(_jobId, toId, _rating, _reviewUri, _platformId);
+        _mint(_serviceId, toId, _rating, _reviewUri, _platformId);
     }
 }
