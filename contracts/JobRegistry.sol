@@ -32,8 +32,8 @@ contract JobRegistry is AccessControl {
 
     /// @notice Job information struct
     /// @param status the current status of a job
-    /// @param employerId the talentLayerId of the employer
-    /// @param employeeId the talentLayerId of the employee
+    /// @param buyerId the talentLayerId of the buyer
+    /// @param sellerId the talentLayerId of the seller
     /// @param initiatorId the talentLayerId of the user who initialized the job
     /// @param jobDataUri token Id to IPFS URI mapping
     /// @param proposals all proposals for this job
@@ -42,8 +42,8 @@ contract JobRegistry is AccessControl {
     /// @param platformId the platform ID linked to the job
     struct Job {
         Status status;
-        uint256 employerId;
-        uint256 employeeId;
+        uint256 buyerId;
+        uint256 sellerId;
         uint256 initiatorId;
         string jobDataUri;
         uint256 countProposals;
@@ -53,13 +53,13 @@ contract JobRegistry is AccessControl {
 
     /// @notice Proposal information struct
     /// @param status the current status of a job
-    /// @param employeeId the talentLayerId of the employee
+    /// @param sellerId the talentLayerId of the seller
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token choosed
     /// @param proposalDataUri token Id to IPFS URI mapping
     struct Proposal {
         ProposalStatus status;
-        uint256 employeeId;
+        uint256 sellerId;
         address rateToken;
         uint256 rateAmount;
         string proposalDataUri;
@@ -69,15 +69,15 @@ contract JobRegistry is AccessControl {
 
     /// @notice Emitted after a new job is created
     /// @param id The job ID (incremental)
-    /// @param employerId the talentLayerId of the employer
-    /// @param employeeId the talentLayerId of the employee
+    /// @param buyerId the talentLayerId of the buyer
+    /// @param sellerId the talentLayerId of the seller
     /// @param initiatorId the talentLayerId of the user who initialized the job
     /// @param platformId platform ID on which the Job token was minted
     /// @dev Events "JobCreated" & "JobDataCreated" are split to avoid "stack too deep" error
     event JobCreated(
         uint256 id,
-        uint256 employerId,
-        uint256 employeeId,
+        uint256 buyerId,
+        uint256 sellerId,
         uint256 initiatorId,
         uint256 platformId
     );
@@ -90,58 +90,58 @@ contract JobRegistry is AccessControl {
         string jobDataUri
     );
 
-    /// @notice Emitted after an employee is assigned to a job
+    /// @notice Emitted after an seller is assigned to a job
     /// @param id The job ID
-    /// @param employeeId the talentLayerId of the employee
+    /// @param sellerId the talentLayerId of the seller
     /// @param status job status
-    event JobEmployeeAssigned(uint256 id, uint256 employeeId, Status status);
+    event JobSellerAssigned(uint256 id, uint256 sellerId, Status status);
 
     /// @notice Emitted after a job is confirmed
     /// @param id The job ID
-    /// @param employerId the talentLayerId of the employer
-    /// @param employeeId the talentLayerId of the employee
+    /// @param buyerId the talentLayerId of the buyer
+    /// @param sellerId the talentLayerId of the seller
     /// @param jobDataUri token Id to IPFS URI mapping
     event JobConfirmed(
         uint256 id,
-        uint256 employerId,
-        uint256 employeeId,
+        uint256 buyerId,
+        uint256 sellerId,
         string jobDataUri
     );
 
     /// @notice Emitted after a job is rejected
     /// @param id The job ID
-    /// @param employerId the talentLayerId of the employer
-    /// @param employeeId the talentLayerId of the employee
+    /// @param buyerId the talentLayerId of the buyer
+    /// @param sellerId the talentLayerId of the seller
     /// @param jobDataUri token Id to IPFS URI mapping
     event JobRejected(
         uint256 id,
-        uint256 employerId,
-        uint256 employeeId,
+        uint256 buyerId,
+        uint256 sellerId,
         string jobDataUri
     );
 
     /// @notice Emitted after a job is finished
     /// @param id The job ID
-    /// @param employerId the talentLayerId of the employer
-    /// @param employeeId the talentLayerId of the employee
+    /// @param buyerId the talentLayerId of the buyer
+    /// @param sellerId the talentLayerId of the seller
     /// @param jobDataUri token Id to IPFS URI mapping
     event JobFinished(
         uint256 id,
-        uint256 employerId,
-        uint256 employeeId,
+        uint256 buyerId,
+        uint256 sellerId,
         string jobDataUri
     );
 
     /// @notice Emitted after a new proposal is created
     /// @param jobId The job id
-    /// @param employeeId The talentLayerId of the employee who made the proposal
+    /// @param sellerId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token choosed
     event ProposalCreated(
         uint256 jobId,
-        uint256 employeeId,
+        uint256 sellerId,
         string proposalDataUri,
         ProposalStatus status,
         address rateToken,
@@ -150,13 +150,13 @@ contract JobRegistry is AccessControl {
 
     /// @notice Emitted after an existing proposal has been updated
     /// @param jobId The job id
-    /// @param employeeId The talentLayerId of the employee who made the proposal
+    /// @param sellerId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token choosed
     event ProposalUpdated(
         uint256 jobId,
-        uint256 employeeId,
+        uint256 sellerId,
         string proposalDataUri,
         address rateToken,
         uint256 rateAmount
@@ -164,13 +164,13 @@ contract JobRegistry is AccessControl {
 
     /// @notice Emitted after a proposal is validated
     /// @param jobId The job ID
-    /// @param employeeId the talentLayerId of the employee
-    event ProposalValidated(uint256 jobId, uint256 employeeId);
+    /// @param sellerId the talentLayerId of the seller
+    event ProposalValidated(uint256 jobId, uint256 sellerId);
 
     /// @notice Emitted after a proposal is rejected
     /// @param jobId The job ID
-    /// @param employeeId the talentLayerId of the employee
-    event ProposalRejected(uint256 jobId, uint256 employeeId);
+    /// @param sellerId the talentLayerId of the seller
+    event ProposalRejected(uint256 jobId, uint256 sellerId);
 
     /// @notice incremental job Id
     uint256 public nextJobId = 1;
@@ -184,7 +184,7 @@ contract JobRegistry is AccessControl {
     /// @notice jobs mappings index by ID
     mapping(uint256 => Job) public jobs;
 
-    /// @notice proposals mappings index by job ID and employee TID
+    /// @notice proposals mappings index by job ID and seller TID
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     // @notice
@@ -221,17 +221,17 @@ contract JobRegistry is AccessControl {
     // =========================== User functions ==============================
 
     /**
-     * @notice Allows an employer to initiate a new Job with an employee
+     * @notice Allows an buyer to initiate a new Job with an seller
      * @param _platformId platform ID on which the Job token was minted
-     * @param _employeeId Handle for the user
+     * @param _sellerId Handle for the user
      * @param _jobDataUri token Id to IPFS URI mapping
      */
-    function createJobFromEmployer(
+    function createJobFromBuyer(
         uint256 _platformId,
-        uint256 _employeeId,
+        uint256 _sellerId,
         string calldata _jobDataUri
     ) public returns (uint256) {
-        require(_employeeId > 0, "Employee 0 is not a valid TalentLayerId");
+        require(_sellerId > 0, "Seller 0 is not a valid TalentLayerId");
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
@@ -239,31 +239,31 @@ contract JobRegistry is AccessControl {
             Status.Filled,
             senderId,
             senderId,
-            _employeeId,
+            _sellerId,
             _jobDataUri,
             _platformId
         );
     }
 
     /**
-     * @notice Allows an employee to initiate a new Job with an employer
+     * @notice Allows an seller to initiate a new Job with an buyer
      * @param _platformId platform ID on which the Job token was minted
-     * @param _employerId Handle for the user
+     * @param _buyerId Handle for the user
      * @param _jobDataUri token Id to IPFS URI mapping
      */
-    function createJobFromEmployee(
+    function createJobFromSeller(
         uint256 _platformId,
-        uint256 _employerId,
+        uint256 _buyerId,
         string calldata _jobDataUri
     ) public returns (uint256) {
-        require(_employerId > 0, "Employer 0 is not a valid TalentLayerId");
+        require(_buyerId > 0, "Buyer 0 is not a valid TalentLayerId");
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
         _createJob(
             Status.Filled,
             senderId,
-            _employerId,
+            _buyerId,
             senderId,
             _jobDataUri,
             _platformId
@@ -271,11 +271,11 @@ contract JobRegistry is AccessControl {
     }
 
     /**
-     * @notice Allows an employer to initiate an open job
+     * @notice Allows an buyer to initiate an open job
      * @param _platformId platform ID on which the Job token was minted
      * @param _jobDataUri token Id to IPFS URI mapping
      */
-    function createOpenJobFromEmployer(
+    function createOpenJobFromBuyer(
         uint256 _platformId,
         string calldata _jobDataUri
     ) public returns (uint256) {
@@ -293,7 +293,7 @@ contract JobRegistry is AccessControl {
     }
 
     /**
-     * @notice Allows an employee to propose his service for a job
+     * @notice Allows an seller to propose his service for a job
      * @param _jobId The job linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token choosed
@@ -311,12 +311,12 @@ contract JobRegistry is AccessControl {
         Job storage job = jobs[_jobId];
         require(job.status == Status.Opened, "Job is not opened");
         require(
-            proposals[_jobId][senderId].employeeId != senderId,
+            proposals[_jobId][senderId].sellerId != senderId,
             "You already created a proposal for this job"
         );
         require(job.countProposals < 40, "Max proposals count reached");
         require(
-            job.employerId != senderId,
+            job.buyerId != senderId,
             "You couldn't create proposal for your own job"
         );
         require(
@@ -327,7 +327,7 @@ contract JobRegistry is AccessControl {
         job.countProposals++;
         proposals[_jobId][senderId] = Proposal({
             status: ProposalStatus.Pending,
-            employeeId: senderId,
+            sellerId: senderId,
             rateToken: _rateToken,
             rateAmount: _rateAmount,
             proposalDataUri: _proposalDataUri
@@ -344,7 +344,7 @@ contract JobRegistry is AccessControl {
     }
 
     /**
-     * @notice Allows an employee to update his own proposal for a given job
+     * @notice Allows an seller to update his own proposal for a given job
      * @param _jobId The job linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token choosed
@@ -363,7 +363,7 @@ contract JobRegistry is AccessControl {
         Proposal storage proposal = proposals[_jobId][senderId];
         require(job.status == Status.Opened, "Job is not opened");
         require(
-            proposal.employeeId == senderId,
+            proposal.sellerId == senderId,
             "This proposal doesn't exist yet"
         );
         require(
@@ -389,7 +389,7 @@ contract JobRegistry is AccessControl {
     }
 
     /**
-     * @notice Allows the employer to validate a proposal
+     * @notice Allows the buyer to validate a proposal
      * @param _jobId Job identifier
      * @param _proposalId Proposal identifier
      */
@@ -404,7 +404,7 @@ contract JobRegistry is AccessControl {
             proposal.status != ProposalStatus.Validated,
             "Proposal has already been validated"
         );
-        require(senderId == job.employerId, "You're not the employer");
+        require(senderId == job.buyerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Validated;
 
@@ -412,7 +412,7 @@ contract JobRegistry is AccessControl {
     }
 
     /**
-     * @notice Allows the employer to reject a proposal
+     * @notice Allows the buyer to reject a proposal
      * @param _jobId Job identifier
      * @param _proposalId Proposal identifier
      */
@@ -433,7 +433,7 @@ contract JobRegistry is AccessControl {
             "Proposal has already been rejected"
         );
 
-        require(senderId == job.employerId, "You're not the employer");
+        require(senderId == job.buyerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Rejected;
 
@@ -450,7 +450,7 @@ contract JobRegistry is AccessControl {
 
         require(job.status == Status.Filled, "Job has already been confirmed");
         require(
-            senderId == job.employerId || senderId == job.employeeId,
+            senderId == job.buyerId || senderId == job.sellerId,
             "You're not an actor of this job"
         );
         require(
@@ -462,8 +462,8 @@ contract JobRegistry is AccessControl {
 
         emit JobConfirmed(
             _jobId,
-            job.employerId,
-            job.employeeId,
+            job.buyerId,
+            job.sellerId,
             job.jobDataUri
         );
     }
@@ -483,13 +483,13 @@ contract JobRegistry is AccessControl {
         Proposal storage proposal = proposals[_jobId][_proposalId];
 
         job.status = Status.Confirmed;
-        job.employeeId = proposal.employeeId;
+        job.sellerId = proposal.sellerId;
         job.transactionId = _transactionId;
         proposal.status = ProposalStatus.Validated;
     }
 
     /**
-     * @notice Allow the escrow contract to upgrade the Job state after the full payment has been received by the employee
+     * @notice Allow the escrow contract to upgrade the Job state after the full payment has been received by the seller
      * @param _jobId Job identifier
      */
     function afterFullPayment(uint256 _jobId) external onlyRole(ESCROW_ROLE) {
@@ -505,7 +505,7 @@ contract JobRegistry is AccessControl {
         Job storage job = jobs[_jobId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(
-            senderId == job.employerId || senderId == job.employeeId,
+            senderId == job.buyerId || senderId == job.sellerId,
             "You're not an actor of this job"
         );
         require(
@@ -516,8 +516,8 @@ contract JobRegistry is AccessControl {
 
         emit JobRejected(
             _jobId,
-            job.employerId,
-            job.employeeId,
+            job.buyerId,
+            job.sellerId,
             job.jobDataUri
         );
     }
@@ -530,7 +530,7 @@ contract JobRegistry is AccessControl {
         Job storage job = jobs[_jobId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(
-            senderId == job.employerId || senderId == job.employeeId,
+            senderId == job.buyerId || senderId == job.sellerId,
             "You're not an actor of this job"
         );
         require(job.status == Status.Confirmed, "You can't finish this job");
@@ -538,18 +538,18 @@ contract JobRegistry is AccessControl {
 
         emit JobFinished(
             _jobId,
-            job.employerId,
-            job.employeeId,
+            job.buyerId,
+            job.sellerId,
             job.jobDataUri
         );
     }
 
     /**
-     * @notice Allows the employer to assign an employee to the job
+     * @notice Allows the buyer to assign an seller to the job
      * @param _jobId Job identifier
-     * @param _employeeId Handle for the user
+     * @param _sellerId Handle for the user
      */
-    function assignEmployeeToJob(uint256 _jobId, uint256 _employeeId) public {
+    function assignSellerToJob(uint256 _jobId, uint256 _sellerId) public {
         Job storage job = jobs[_jobId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
 
@@ -559,19 +559,19 @@ contract JobRegistry is AccessControl {
         );
 
         require(
-            senderId == job.employerId,
-            "You're not an employer of this job"
+            senderId == job.buyerId,
+            "You're not an buyer of this job"
         );
 
         require(
-            _employeeId != job.employerId,
-            "Employee and employer can't be the same"
+            _sellerId != job.buyerId,
+            "Seller and buyer can't be the same"
         );
 
-        job.employeeId = _employeeId;
+        job.sellerId = _sellerId;
         job.status = Status.Filled;
 
-        emit JobEmployeeAssigned(_jobId, _employeeId, job.status);
+        emit JobSellerAssigned(_jobId, _sellerId, job.status);
     }
 
     // =========================== Private functions ==============================
@@ -579,21 +579,21 @@ contract JobRegistry is AccessControl {
     /**
      * @notice Update handle address mapping and emit event after mint.
      * @param _senderId the talentLayerId of the msg.sender address
-     * @param _employerId the talentLayerId of the employer
-     * @param _employeeId the talentLayerId of the employee
+     * @param _buyerId the talentLayerId of the buyer
+     * @param _sellerId the talentLayerId of the seller
      * @param _jobDataUri token Id to IPFS URI mapping
      */
     function _createJob(
         Status _status,
         uint256 _senderId,
-        uint256 _employerId,
-        uint256 _employeeId,
+        uint256 _buyerId,
+        uint256 _sellerId,
         string calldata _jobDataUri,
         uint256 _platformId
     ) private returns (uint256) {
         require(
-            _employeeId != _employerId,
-            "Employee and employer can't be the same"
+            _sellerId != _buyerId,
+            "Seller and buyer can't be the same"
         );
         require(_senderId > 0, "You sould have a TalentLayerId");
         require(
@@ -606,16 +606,16 @@ contract JobRegistry is AccessControl {
 
         Job storage job = jobs[id];
         job.status = _status;
-        job.employerId = _employerId;
-        job.employeeId = _employeeId;
+        job.buyerId = _buyerId;
+        job.sellerId = _sellerId;
         job.initiatorId = _senderId;
         job.jobDataUri = _jobDataUri;
         job.platformId = _platformId;
 
         emit JobCreated(
             id,
-            _employerId,
-            _employeeId,
+            _buyerId,
+            _sellerId,
             _senderId,
             _platformId
         );

@@ -32,11 +32,11 @@ contract TalentLayerMultipleArbitrableTransaction {
     
     /// @notice Emitted after a job is finished
     /// @param jobId The associated job ID
-    /// @param employeeId The talentLayerId of the associated employee
+    /// @param sellerId The talentLayerId of the associated seller
     /// @param transactionId The associated escrow transaction ID
     event JobProposalConfirmedWithDeposit(
         uint256 jobId,
-        uint256 employeeId,
+        uint256 sellerId,
         uint256 transactionId
     );
 
@@ -118,7 +118,7 @@ contract TalentLayerMultipleArbitrableTransaction {
         require(msg.sender == sender, "Access denied.");
         require(msg.value == proposal.rateAmount + _adminFeeAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
-        require(proposal.employeeId == _proposalId, "Incorrect proposal ID.");
+        require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
 
         require(job.status == IJobRegistry.Status.Opened, "Job status not open.");
         require(proposal.status == IJobRegistry.ProposalStatus.Pending, "Proposal status not pending.");
@@ -128,7 +128,7 @@ contract TalentLayerMultipleArbitrableTransaction {
 
         emit JobProposalConfirmedWithDeposit(
             _jobId,
-            proposal.employeeId,
+            proposal.sellerId,
             transactionId
         );
     }
@@ -158,7 +158,7 @@ contract TalentLayerMultipleArbitrableTransaction {
 
         require(job.status == IJobRegistry.Status.Opened, "Job status not open.");
         require(proposal.status == IJobRegistry.ProposalStatus.Pending, "Proposal status not pending.");
-        require(proposal.employeeId == _proposalId, "Incorrect proposal ID.");
+        require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
         
         uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _jobId);
         IJobRegistry(jobRegistryAddress).afterDeposit(_jobId, _proposalId, transactionId); 
@@ -166,7 +166,7 @@ contract TalentLayerMultipleArbitrableTransaction {
 
         emit JobProposalConfirmedWithDeposit(
             _jobId,
-            proposal.employeeId,
+            proposal.sellerId,
             transactionId
         );
     }
@@ -296,8 +296,8 @@ contract TalentLayerMultipleArbitrableTransaction {
     ) {
         IJobRegistry.Proposal memory proposal = _getProposal(_jobId, _proposalId);
         IJobRegistry.Job memory job = _getJob(_jobId);
-        address sender = ITalentLayerID(talentLayerIDAddress).ownerOf(job.employerId);
-        address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.employeeId);
+        address sender = ITalentLayerID(talentLayerIDAddress).ownerOf(job.buyerId);
+        address receiver = ITalentLayerID(talentLayerIDAddress).ownerOf(proposal.sellerId);
         return (proposal, job, sender, receiver);
     }
 
