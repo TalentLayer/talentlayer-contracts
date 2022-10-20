@@ -3,7 +3,7 @@ import { get, ConfigProperty } from "../../configManager";
 import { Network } from "../config";
 const hre = require("hardhat");
 
-// Then Alice create a job, and others add proposals
+// Then Alice create a service, and others add proposals
 async function main() {
   const network = await hre.network.name;
   console.log(network);

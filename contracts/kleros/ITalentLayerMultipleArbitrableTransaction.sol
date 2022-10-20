@@ -7,7 +7,7 @@ interface ITalentLayerMultipleArbitrableTransaction{
         address receiver; //intended recipient of the escrow
         address token; //token of the escrow
         uint256 amount; //amount locked into escrow
-        uint256 jobId; //the jobId related to the transaction
+        uint256 serviceId; //the serviceId related to the transaction
     }
 
     function createTokenTransaction(
@@ -15,7 +15,7 @@ interface ITalentLayerMultipleArbitrableTransaction{
         string memory _metaEvidence,
         address _adminWallet,
         uint256 _adminFeeAmount,
-        uint256 _jobId,
+        uint256 _serviceId,
         uint256 _proposalId
     ) external;
 
@@ -24,7 +24,7 @@ interface ITalentLayerMultipleArbitrableTransaction{
         string memory _metaEvidence,
         address _adminWallet,
         uint256 _adminFeeAmount,
-        uint256 _jobId,
+        uint256 _serviceId,
         uint256 _proposalId
     ) external payable;
 

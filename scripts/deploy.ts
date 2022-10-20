@@ -104,25 +104,25 @@ task("deploy")
         talentLayerID.address,
       );
 
-      // Deploy Job Registry Contract
-      const JobRegistry = await ethers.getContractFactory("JobRegistry");
-      const jobRegistryArgs: [string, string] = [
+      // Deploy Service Registry Contract
+      const ServiceRegistry = await ethers.getContractFactory("ServiceRegistry");
+      const serviceRegistryArgs: [string, string] = [
         talentLayerID.address,
         talentLayerPlatformID.address
       ];
-      const jobRegistry = await JobRegistry.deploy(...jobRegistryArgs);
+      const serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs);
       if (verify) {
-        await jobRegistry.deployTransaction.wait(5);
+        await serviceRegistry.deployTransaction.wait(5);
         await run("verify:verify", {
-          address: jobRegistry.address,
-          constructorArguments: jobRegistryArgs,
+          address: serviceRegistry.address,
+          constructorArguments: serviceRegistryArgs,
         });
       }
-      console.log("Job Registry address:", jobRegistry.address);
+      console.log("Service Registry address:", serviceRegistry.address);
       set(
         network.name as any as Network,
-        ConfigProperty.JobRegistry,
-        jobRegistry.address,
+        ConfigProperty.ServiceRegistry,
+        serviceRegistry.address,
       );
 
       // Deploy Review contract
@@ -133,7 +133,7 @@ task("deploy")
         "TalentLayer Reviews",
         "TLR",
         talentLayerID.address,
-        jobRegistry.address,
+        serviceRegistry.address,
         talentLayerPlatformID.address,
       ];
       const talentLayerReview = await TalentLayerReview.deploy(
@@ -192,7 +192,7 @@ task("deploy")
         any,
         number
       ] = [
-        jobRegistry.address,
+        serviceRegistry.address,
         talentLayerID.address,
         talentLayerArbitrator.address,
         [],
@@ -237,8 +237,8 @@ task("deploy")
       }
 
       // Grant escrow role
-      const escrowRole = await jobRegistry.ESCROW_ROLE();
-      await jobRegistry.grantRole(
+      const escrowRole = await serviceRegistry.ESCROW_ROLE();
+      await serviceRegistry.grantRole(
         escrowRole,
         talentLayerMultipleArbitrableTransaction.address
       );
