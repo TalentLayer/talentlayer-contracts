@@ -5,20 +5,20 @@ import postToIPFS from "../ipfs";
 
 const hre = require("hardhat");
 
-// Then Alice create a job, and others add proposals
+// Then Alice create a service, and others add proposals
 async function main() {
   const network = await hre.network.name;
   console.log(network);
 
   const [alice, bob, carol, dave] = await ethers.getSigners();
-  const jobRegistry = await ethers.getContractAt(
-    "JobRegistry",
-    get(network as Network, ConfigProperty.JobRegistry)
+  const serviceRegistry = await ethers.getContractAt(
+    "ServiceRegistry",
+    get(network as Network, ConfigProperty.ServiceRegistry)
   );
 
-  let jobId = await jobRegistry.nextJobId();
-  jobId = jobId.sub(1);
-  console.log("jobId", jobId.toString());
+  let serviceId = await serviceRegistry.nextServiceId();
+  serviceId = serviceId.sub(1);
+  console.log("serviceId", serviceId.toString());
 
   //Bob make a proposal
 
@@ -43,16 +43,16 @@ async function main() {
   console.log("uri", bobUri);
 
   const rateTokenBob = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
-  await jobRegistry
+  await serviceRegistry
     .connect(bob)
-    .createProposal(jobId, rateTokenBob, 10, bobUri);
+    .createProposal(serviceId, rateTokenBob, 10, bobUri);
 
   // Carol make a proposal
   // const rateTokenCarol = "0xba401cdac1a3b6aeede21c9c4a483be6c29f88c5";
   const rateTokenCarol = "0x0000000000000000000000000000000000000000";
-  await jobRegistry
+  await serviceRegistry
     .connect(carol)
-    .createProposal(jobId, rateTokenCarol, 200, carolUri);
+    .createProposal(serviceId, rateTokenCarol, 200, carolUri);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

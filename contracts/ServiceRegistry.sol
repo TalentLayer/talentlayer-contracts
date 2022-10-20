@@ -6,13 +6,13 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
- * @title JobRegistry Contract
+ * @title ServiceRegistry Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
-contract JobRegistry is AccessControl {
+contract ServiceRegistry is AccessControl {
     // =========================== Enum ==============================
 
-    /// @notice Enum job status
+    /// @notice Enum service status
     enum Status {
         Filled,
         Confirmed,
@@ -21,7 +21,7 @@ contract JobRegistry is AccessControl {
         Opened
     }
 
-    /// @notice Enum job status
+    /// @notice Enum service status
     enum ProposalStatus {
         Pending,
         Validated,
@@ -30,29 +30,29 @@ contract JobRegistry is AccessControl {
 
     // =========================== Struct ==============================
 
-    /// @notice Job information struct
-    /// @param status the current status of a job
+    /// @notice Service information struct
+    /// @param status the current status of a service
     /// @param buyerId the talentLayerId of the buyer
     /// @param sellerId the talentLayerId of the seller
-    /// @param initiatorId the talentLayerId of the user who initialized the job
-    /// @param jobDataUri token Id to IPFS URI mapping
-    /// @param proposals all proposals for this job
-    /// @param countProposals the total number of proposal for this job
-    /// @param transactionId the escrow transaction ID linked to the job
-    /// @param platformId the platform ID linked to the job
-    struct Job {
+    /// @param initiatorId the talentLayerId of the user who initialized the service
+    /// @param serviceDataUri token Id to IPFS URI mapping
+    /// @param proposals all proposals for this service
+    /// @param countProposals the total number of proposal for this service
+    /// @param transactionId the escrow transaction ID linked to the service
+    /// @param platformId the platform ID linked to the service
+    struct Service {
         Status status;
         uint256 buyerId;
         uint256 sellerId;
         uint256 initiatorId;
-        string jobDataUri;
+        string serviceDataUri;
         uint256 countProposals;
         uint256 transactionId;
         uint256 platformId;
     }
 
     /// @notice Proposal information struct
-    /// @param status the current status of a job
+    /// @param status the current status of a service
     /// @param sellerId the talentLayerId of the seller
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token choosed
@@ -67,14 +67,14 @@ contract JobRegistry is AccessControl {
 
     // =========================== Events ==============================
 
-    /// @notice Emitted after a new job is created
-    /// @param id The job ID (incremental)
+    /// @notice Emitted after a new service is created
+    /// @param id The service ID (incremental)
     /// @param buyerId the talentLayerId of the buyer
     /// @param sellerId the talentLayerId of the seller
-    /// @param initiatorId the talentLayerId of the user who initialized the job
-    /// @param platformId platform ID on which the Job token was minted
-    /// @dev Events "JobCreated" & "JobDataCreated" are split to avoid "stack too deep" error
-    event JobCreated(
+    /// @param initiatorId the talentLayerId of the user who initialized the service
+    /// @param platformId platform ID on which the Service token was minted
+    /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
+    event ServiceCreated(
         uint256 id,
         uint256 buyerId,
         uint256 sellerId,
@@ -82,65 +82,65 @@ contract JobRegistry is AccessControl {
         uint256 platformId
     );
 
-    /// @notice Emitted after a new job is created
-    /// @param id The job ID (incremental)
-    /// @param jobDataUri token Id to IPFS URI mapping
-    event JobDataCreated(
+    /// @notice Emitted after a new service is created
+    /// @param id The service ID (incremental)
+    /// @param serviceDataUri token Id to IPFS URI mapping
+    event ServiceDataCreated(
         uint256 id,
-        string jobDataUri
+        string serviceDataUri
     );
 
-    /// @notice Emitted after an seller is assigned to a job
-    /// @param id The job ID
+    /// @notice Emitted after an seller is assigned to a service
+    /// @param id The service ID
     /// @param sellerId the talentLayerId of the seller
-    /// @param status job status
-    event JobSellerAssigned(uint256 id, uint256 sellerId, Status status);
+    /// @param status service status
+    event ServiceSellerAssigned(uint256 id, uint256 sellerId, Status status);
 
-    /// @notice Emitted after a job is confirmed
-    /// @param id The job ID
+    /// @notice Emitted after a service is confirmed
+    /// @param id The service ID
     /// @param buyerId the talentLayerId of the buyer
     /// @param sellerId the talentLayerId of the seller
-    /// @param jobDataUri token Id to IPFS URI mapping
-    event JobConfirmed(
+    /// @param serviceDataUri token Id to IPFS URI mapping
+    event ServiceConfirmed(
         uint256 id,
         uint256 buyerId,
         uint256 sellerId,
-        string jobDataUri
+        string serviceDataUri
     );
 
-    /// @notice Emitted after a job is rejected
-    /// @param id The job ID
+    /// @notice Emitted after a service is rejected
+    /// @param id The service ID
     /// @param buyerId the talentLayerId of the buyer
     /// @param sellerId the talentLayerId of the seller
-    /// @param jobDataUri token Id to IPFS URI mapping
-    event JobRejected(
+    /// @param serviceDataUri token Id to IPFS URI mapping
+    event ServiceRejected(
         uint256 id,
         uint256 buyerId,
         uint256 sellerId,
-        string jobDataUri
+        string serviceDataUri
     );
 
-    /// @notice Emitted after a job is finished
-    /// @param id The job ID
+    /// @notice Emitted after a service is finished
+    /// @param id The service ID
     /// @param buyerId the talentLayerId of the buyer
     /// @param sellerId the talentLayerId of the seller
-    /// @param jobDataUri token Id to IPFS URI mapping
-    event JobFinished(
+    /// @param serviceDataUri token Id to IPFS URI mapping
+    event ServiceFinished(
         uint256 id,
         uint256 buyerId,
         uint256 sellerId,
-        string jobDataUri
+        string serviceDataUri
     );
 
     /// @notice Emitted after a new proposal is created
-    /// @param jobId The job id
+    /// @param serviceId The service id
     /// @param sellerId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token choosed
     event ProposalCreated(
-        uint256 jobId,
+        uint256 serviceId,
         uint256 sellerId,
         string proposalDataUri,
         ProposalStatus status,
@@ -149,13 +149,13 @@ contract JobRegistry is AccessControl {
     );
 
     /// @notice Emitted after an existing proposal has been updated
-    /// @param jobId The job id
+    /// @param serviceId The service id
     /// @param sellerId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token choosed
     event ProposalUpdated(
-        uint256 jobId,
+        uint256 serviceId,
         uint256 sellerId,
         string proposalDataUri,
         address rateToken,
@@ -163,17 +163,17 @@ contract JobRegistry is AccessControl {
     );
 
     /// @notice Emitted after a proposal is validated
-    /// @param jobId The job ID
+    /// @param serviceId The service ID
     /// @param sellerId the talentLayerId of the seller
-    event ProposalValidated(uint256 jobId, uint256 sellerId);
+    event ProposalValidated(uint256 serviceId, uint256 sellerId);
 
     /// @notice Emitted after a proposal is rejected
-    /// @param jobId The job ID
+    /// @param serviceId The service ID
     /// @param sellerId the talentLayerId of the seller
-    event ProposalRejected(uint256 jobId, uint256 sellerId);
+    event ProposalRejected(uint256 serviceId, uint256 sellerId);
 
-    /// @notice incremental job Id
-    uint256 public nextJobId = 1;
+    /// @notice incremental service Id
+    uint256 public nextServiceId = 1;
 
     /// @notice TalentLayerId address
     ITalentLayerID private tlId;
@@ -181,10 +181,10 @@ contract JobRegistry is AccessControl {
     /// TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
-    /// @notice jobs mappings index by ID
-    mapping(uint256 => Job) public jobs;
+    /// @notice services mappings index by ID
+    mapping(uint256 => Service) public services;
 
-    /// @notice proposals mappings index by job ID and seller TID
+    /// @notice proposals mappings index by service ID and seller TID
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     // @notice
@@ -202,105 +202,105 @@ contract JobRegistry is AccessControl {
     // =========================== View functions ==============================
 
     /**
-     * @notice Return the whole job data information
-     * @param _jobId Job identifier
+     * @notice Return the whole service data information
+     * @param _serviceId Service identifier
      */
-    function getJob(uint256 _jobId) external view returns (Job memory) {
-        require(_jobId < nextJobId, "This job doesn't exist");
-        return jobs[_jobId];
+    function getService(uint256 _serviceId) external view returns (Service memory) {
+        require(_serviceId < nextServiceId, "This service doesn't exist");
+        return services[_serviceId];
     }
 
-    function getProposal(uint256 _jobId, uint256 _proposalId)
+    function getProposal(uint256 _serviceId, uint256 _proposalId)
         external
         view
         returns (Proposal memory)
     {
-        return proposals[_jobId][_proposalId];
+        return proposals[_serviceId][_proposalId];
     }
 
     // =========================== User functions ==============================
 
     /**
-     * @notice Allows an buyer to initiate a new Job with an seller
-     * @param _platformId platform ID on which the Job token was minted
+     * @notice Allows an buyer to initiate a new Service with an seller
+     * @param _platformId platform ID on which the Service token was minted
      * @param _sellerId Handle for the user
-     * @param _jobDataUri token Id to IPFS URI mapping
+     * @param _serviceDataUri token Id to IPFS URI mapping
      */
-    function createJobFromBuyer(
+    function createServiceFromBuyer(
         uint256 _platformId,
         uint256 _sellerId,
-        string calldata _jobDataUri
+        string calldata _serviceDataUri
     ) public returns (uint256) {
         require(_sellerId > 0, "Seller 0 is not a valid TalentLayerId");
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
-        _createJob(
+        _createService(
             Status.Filled,
             senderId,
             senderId,
             _sellerId,
-            _jobDataUri,
+            _serviceDataUri,
             _platformId
         );
     }
 
     /**
-     * @notice Allows an seller to initiate a new Job with an buyer
-     * @param _platformId platform ID on which the Job token was minted
+     * @notice Allows an seller to initiate a new Service with an buyer
+     * @param _platformId platform ID on which the Service token was minted
      * @param _buyerId Handle for the user
-     * @param _jobDataUri token Id to IPFS URI mapping
+     * @param _serviceDataUri token Id to IPFS URI mapping
      */
-    function createJobFromSeller(
+    function createServiceFromSeller(
         uint256 _platformId,
         uint256 _buyerId,
-        string calldata _jobDataUri
+        string calldata _serviceDataUri
     ) public returns (uint256) {
         require(_buyerId > 0, "Buyer 0 is not a valid TalentLayerId");
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
-        _createJob(
+        _createService(
             Status.Filled,
             senderId,
             _buyerId,
             senderId,
-            _jobDataUri,
+            _serviceDataUri,
             _platformId
         );
     }
 
     /**
-     * @notice Allows an buyer to initiate an open job
-     * @param _platformId platform ID on which the Job token was minted
-     * @param _jobDataUri token Id to IPFS URI mapping
+     * @notice Allows an buyer to initiate an open service
+     * @param _platformId platform ID on which the Service token was minted
+     * @param _serviceDataUri token Id to IPFS URI mapping
      */
-    function createOpenJobFromBuyer(
+    function createOpenServiceFromBuyer(
         uint256 _platformId,
-        string calldata _jobDataUri
+        string calldata _serviceDataUri
     ) public returns (uint256) {
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return
-        _createJob(
+        _createService(
             Status.Opened,
             senderId,
             senderId,
             0,
-            _jobDataUri,
+            _serviceDataUri,
             _platformId
         );
     }
 
     /**
-     * @notice Allows an seller to propose his service for a job
-     * @param _jobId The job linked to the new proposal
+     * @notice Allows an seller to propose his service for a service
+     * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token choosed
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function createProposal(
-        uint256 _jobId,
+        uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
@@ -308,24 +308,24 @@ contract JobRegistry is AccessControl {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You sould have a TalentLayerId");
 
-        Job storage job = jobs[_jobId];
-        require(job.status == Status.Opened, "Job is not opened");
+        Service storage service = services[_serviceId];
+        require(service.status == Status.Opened, "Service is not opened");
         require(
-            proposals[_jobId][senderId].sellerId != senderId,
-            "You already created a proposal for this job"
+            proposals[_serviceId][senderId].sellerId != senderId,
+            "You already created a proposal for this service"
         );
-        require(job.countProposals < 40, "Max proposals count reached");
+        require(service.countProposals < 40, "Max proposals count reached");
         require(
-            job.buyerId != senderId,
-            "You couldn't create proposal for your own job"
+            service.buyerId != senderId,
+            "You couldn't create proposal for your own service"
         );
         require(
             bytes(_proposalDataUri).length > 0,
             "Should provide a valid IPFS URI"
         );
 
-        job.countProposals++;
-        proposals[_jobId][senderId] = Proposal({
+        service.countProposals++;
+        proposals[_serviceId][senderId] = Proposal({
             status: ProposalStatus.Pending,
             sellerId: senderId,
             rateToken: _rateToken,
@@ -334,7 +334,7 @@ contract JobRegistry is AccessControl {
         });
 
         emit ProposalCreated(
-            _jobId,
+            _serviceId,
             senderId,
             _proposalDataUri,
             ProposalStatus.Pending,
@@ -344,14 +344,14 @@ contract JobRegistry is AccessControl {
     }
 
     /**
-     * @notice Allows an seller to update his own proposal for a given job
-     * @param _jobId The job linked to the new proposal
+     * @notice Allows an seller to update his own proposal for a given service
+     * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token choosed
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function updateProposal(
-        uint256 _jobId,
+        uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
@@ -359,9 +359,9 @@ contract JobRegistry is AccessControl {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You sould have a TalentLayerId");
 
-        Job storage job = jobs[_jobId];
-        Proposal storage proposal = proposals[_jobId][senderId];
-        require(job.status == Status.Opened, "Job is not opened");
+        Service storage service = services[_serviceId];
+        Proposal storage proposal = proposals[_serviceId][senderId];
+        require(service.status == Status.Opened, "Service is not opened");
         require(
             proposal.sellerId == senderId,
             "This proposal doesn't exist yet"
@@ -380,7 +380,7 @@ contract JobRegistry is AccessControl {
         proposal.proposalDataUri = _proposalDataUri;
 
         emit ProposalUpdated(
-            _jobId,
+            _serviceId,
             senderId,
             _proposalDataUri,
             _rateToken,
@@ -390,38 +390,38 @@ contract JobRegistry is AccessControl {
 
     /**
      * @notice Allows the buyer to validate a proposal
-     * @param _jobId Job identifier
+     * @param _serviceId Service identifier
      * @param _proposalId Proposal identifier
      */
-    function validateProposal(uint256 _jobId, uint256 _proposalId) public {
+    function validateProposal(uint256 _serviceId, uint256 _proposalId) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You sould have a TalentLayerId");
 
-        Job storage job = jobs[_jobId];
-        Proposal storage proposal = proposals[_jobId][_proposalId];
+        Service storage service = services[_serviceId];
+        Proposal storage proposal = proposals[_serviceId][_proposalId];
 
         require(
             proposal.status != ProposalStatus.Validated,
             "Proposal has already been validated"
         );
-        require(senderId == job.buyerId, "You're not the buyer");
+        require(senderId == service.buyerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Validated;
 
-        emit ProposalValidated(_jobId, _proposalId);
+        emit ProposalValidated(_serviceId, _proposalId);
     }
 
     /**
      * @notice Allows the buyer to reject a proposal
-     * @param _jobId Job identifier
+     * @param _serviceId Service identifier
      * @param _proposalId Proposal identifier
      */
-    function rejectProposal(uint256 _jobId, uint256 _proposalId) public {
+    function rejectProposal(uint256 _serviceId, uint256 _proposalId) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You sould have a TalentLayerId");
 
-        Job storage job = jobs[_jobId];
-        Proposal storage proposal = proposals[_jobId][_proposalId];
+        Service storage service = services[_serviceId];
+        Proposal storage proposal = proposals[_serviceId][_proposalId];
 
         require(
             proposal.status != ProposalStatus.Validated,
@@ -433,145 +433,145 @@ contract JobRegistry is AccessControl {
             "Proposal has already been rejected"
         );
 
-        require(senderId == job.buyerId, "You're not the buyer");
+        require(senderId == service.buyerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Rejected;
 
-        emit ProposalRejected(_jobId, _proposalId);
+        emit ProposalRejected(_serviceId, _proposalId);
     }
 
     /**
-     * @notice Allows the user who didn't initiate the job to confirm it. They now consent both to be reviewed each other at the end of job.
-     * @param _jobId Job identifier
+     * @notice Allows the user who didn't initiate the service to confirm it. They now consent both to be reviewed each other at the end of service.
+     * @param _serviceId Service identifier
      */
-    function confirmJob(uint256 _jobId) public {
-        Job storage job = jobs[_jobId];
+    function confirmService(uint256 _serviceId) public {
+        Service storage service = services[_serviceId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
 
-        require(job.status == Status.Filled, "Job has already been confirmed");
+        require(service.status == Status.Filled, "Service has already been confirmed");
         require(
-            senderId == job.buyerId || senderId == job.sellerId,
-            "You're not an actor of this job"
+            senderId == service.buyerId || senderId == service.sellerId,
+            "You're not an actor of this service"
         );
         require(
-            senderId != job.initiatorId,
-            "Only the user who didn't initate the job can confirm it"
+            senderId != service.initiatorId,
+            "Only the user who didn't initate the service can confirm it"
         );
 
-        job.status = Status.Confirmed;
+        service.status = Status.Confirmed;
 
-        emit JobConfirmed(
-            _jobId,
-            job.buyerId,
-            job.sellerId,
-            job.jobDataUri
+        emit ServiceConfirmed(
+            _serviceId,
+            service.buyerId,
+            service.sellerId,
+            service.serviceDataUri
         );
     }
 
     /**
-     * @notice Allow the escrow contract to upgrade the Job state after a deposit has been done
-     * @param _jobId Job identifier
-     * @param _proposalId The choosed proposal id for this job
+     * @notice Allow the escrow contract to upgrade the Service state after a deposit has been done
+     * @param _serviceId Service identifier
+     * @param _proposalId The choosed proposal id for this service
      * @param _transactionId The escrow transaction Id
      */
     function afterDeposit(
-        uint256 _jobId,
+        uint256 _serviceId,
         uint256 _proposalId,
         uint256 _transactionId
     ) external onlyRole(ESCROW_ROLE) {
-        Job storage job = jobs[_jobId];
-        Proposal storage proposal = proposals[_jobId][_proposalId];
+        Service storage service = services[_serviceId];
+        Proposal storage proposal = proposals[_serviceId][_proposalId];
 
-        job.status = Status.Confirmed;
-        job.sellerId = proposal.sellerId;
-        job.transactionId = _transactionId;
+        service.status = Status.Confirmed;
+        service.sellerId = proposal.sellerId;
+        service.transactionId = _transactionId;
         proposal.status = ProposalStatus.Validated;
     }
 
     /**
-     * @notice Allow the escrow contract to upgrade the Job state after the full payment has been received by the seller
-     * @param _jobId Job identifier
+     * @notice Allow the escrow contract to upgrade the Service state after the full payment has been received by the seller
+     * @param _serviceId Service identifier
      */
-    function afterFullPayment(uint256 _jobId) external onlyRole(ESCROW_ROLE) {
-        Job storage job = jobs[_jobId];
-        job.status = Status.Finished;
+    function afterFullPayment(uint256 _serviceId) external onlyRole(ESCROW_ROLE) {
+        Service storage service = services[_serviceId];
+        service.status = Status.Finished;
     }
 
     /**
-     * @notice Allows the user who didn't initiate the job to reject it
-     * @param _jobId Job identifier
+     * @notice Allows the user who didn't initiate the service to reject it
+     * @param _serviceId Service identifier
      */
-    function rejectJob(uint256 _jobId) public {
-        Job storage job = jobs[_jobId];
+    function rejectService(uint256 _serviceId) public {
+        Service storage service = services[_serviceId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(
-            senderId == job.buyerId || senderId == job.sellerId,
-            "You're not an actor of this job"
+            senderId == service.buyerId || senderId == service.sellerId,
+            "You're not an actor of this service"
         );
         require(
-            job.status == Status.Filled || job.status == Status.Opened,
-            "You can't reject this job"
+            service.status == Status.Filled || service.status == Status.Opened,
+            "You can't reject this service"
         );
-        job.status = Status.Rejected;
+        service.status = Status.Rejected;
 
-        emit JobRejected(
-            _jobId,
-            job.buyerId,
-            job.sellerId,
-            job.jobDataUri
+        emit ServiceRejected(
+            _serviceId,
+            service.buyerId,
+            service.sellerId,
+            service.serviceDataUri
         );
     }
 
     /**
-     * @notice Allows any part of a job to update his state to finished
-     * @param _jobId Job identifier
+     * @notice Allows any part of a service to update his state to finished
+     * @param _serviceId Service identifier
      */
-    function finishJob(uint256 _jobId) public {
-        Job storage job = jobs[_jobId];
+    function finishService(uint256 _serviceId) public {
+        Service storage service = services[_serviceId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(
-            senderId == job.buyerId || senderId == job.sellerId,
-            "You're not an actor of this job"
+            senderId == service.buyerId || senderId == service.sellerId,
+            "You're not an actor of this service"
         );
-        require(job.status == Status.Confirmed, "You can't finish this job");
-        job.status = Status.Finished;
+        require(service.status == Status.Confirmed, "You can't finish this service");
+        service.status = Status.Finished;
 
-        emit JobFinished(
-            _jobId,
-            job.buyerId,
-            job.sellerId,
-            job.jobDataUri
+        emit ServiceFinished(
+            _serviceId,
+            service.buyerId,
+            service.sellerId,
+            service.serviceDataUri
         );
     }
 
     /**
-     * @notice Allows the buyer to assign an seller to the job
-     * @param _jobId Job identifier
+     * @notice Allows the buyer to assign an seller to the service
+     * @param _serviceId Service identifier
      * @param _sellerId Handle for the user
      */
-    function assignSellerToJob(uint256 _jobId, uint256 _sellerId) public {
-        Job storage job = jobs[_jobId];
+    function assignSellerToService(uint256 _serviceId, uint256 _sellerId) public {
+        Service storage service = services[_serviceId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
 
         require(
-            job.status == Status.Opened || job.status == Status.Rejected,
-            "Job has to be Opened or Rejected"
+            service.status == Status.Opened || service.status == Status.Rejected,
+            "Service has to be Opened or Rejected"
         );
 
         require(
-            senderId == job.buyerId,
-            "You're not an buyer of this job"
+            senderId == service.buyerId,
+            "You're not an buyer of this service"
         );
 
         require(
-            _sellerId != job.buyerId,
+            _sellerId != service.buyerId,
             "Seller and buyer can't be the same"
         );
 
-        job.sellerId = _sellerId;
-        job.status = Status.Filled;
+        service.sellerId = _sellerId;
+        service.status = Status.Filled;
 
-        emit JobSellerAssigned(_jobId, _sellerId, job.status);
+        emit ServiceSellerAssigned(_serviceId, _sellerId, service.status);
     }
 
     // =========================== Private functions ==============================
@@ -581,14 +581,14 @@ contract JobRegistry is AccessControl {
      * @param _senderId the talentLayerId of the msg.sender address
      * @param _buyerId the talentLayerId of the buyer
      * @param _sellerId the talentLayerId of the seller
-     * @param _jobDataUri token Id to IPFS URI mapping
+     * @param _serviceDataUri token Id to IPFS URI mapping
      */
-    function _createJob(
+    function _createService(
         Status _status,
         uint256 _senderId,
         uint256 _buyerId,
         uint256 _sellerId,
-        string calldata _jobDataUri,
+        string calldata _serviceDataUri,
         uint256 _platformId
     ) private returns (uint256) {
         require(
@@ -597,22 +597,22 @@ contract JobRegistry is AccessControl {
         );
         require(_senderId > 0, "You sould have a TalentLayerId");
         require(
-            bytes(_jobDataUri).length > 0,
+            bytes(_serviceDataUri).length > 0,
             "Should provide a valid IPFS URI"
         );
 
-        uint256 id = nextJobId;
-        nextJobId++;
+        uint256 id = nextServiceId;
+        nextServiceId++;
 
-        Job storage job = jobs[id];
-        job.status = _status;
-        job.buyerId = _buyerId;
-        job.sellerId = _sellerId;
-        job.initiatorId = _senderId;
-        job.jobDataUri = _jobDataUri;
-        job.platformId = _platformId;
+        Service storage service = services[id];
+        service.status = _status;
+        service.buyerId = _buyerId;
+        service.sellerId = _sellerId;
+        service.initiatorId = _senderId;
+        service.serviceDataUri = _serviceDataUri;
+        service.platformId = _platformId;
 
-        emit JobCreated(
+        emit ServiceCreated(
             id,
             _buyerId,
             _sellerId,
@@ -620,9 +620,9 @@ contract JobRegistry is AccessControl {
             _platformId
         );
 
-        emit JobDataCreated(
+        emit ServiceDataCreated(
             id,
-            _jobDataUri
+            _serviceDataUri
         );
 
         return id;
