@@ -35,7 +35,7 @@ setup-fakedata:
 	timeout 5
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
 	timeout 5
-	npx hardhat run scripts/playground/2-create-job.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
 	timeout 5
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 else
@@ -45,7 +45,7 @@ setup-fakedata:
 	sleep 5
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
 	sleep 5
-	npx hardhat run scripts/playground/2-create-job.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
 	sleep 5
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 endif
@@ -56,8 +56,8 @@ mint-platformid:
 mint-id:
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
 
-create-job:
-	npx hardhat run scripts/playground/2-create-job.ts --network $(DEPLOY_NETWORK)
+create-service:
+	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
 
 make-proposal:
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
