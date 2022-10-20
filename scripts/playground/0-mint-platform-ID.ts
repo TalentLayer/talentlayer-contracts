@@ -15,6 +15,10 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID)
   );
 
+  const mintRole = await platformIdContrat.MINT_ROLE();
+  await platformIdContrat.connect(alice).grantRole(
+    mintRole,
+    dave.address);
   await platformIdContrat.connect(dave).mint("HireVibes");
 
   const daveTalentLayerIdPLatform =
