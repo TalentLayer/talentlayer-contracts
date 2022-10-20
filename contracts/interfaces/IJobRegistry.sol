@@ -18,8 +18,8 @@ interface IJobRegistry {
     
     struct Job {
         Status status;
-        uint256 employerId;
-        uint256 employeeId;
+        uint256 buyerId;
+        uint256 sellerId;
         uint256 initiatorId;
         string jobDataUri;
         uint256 countProposals;
@@ -28,7 +28,7 @@ interface IJobRegistry {
 
     struct Proposal {
         ProposalStatus status;
-        uint256 employeeId;
+        uint256 sellerId;
         address rateToken;
         uint256 rateAmount;
         string proposalDataUri;

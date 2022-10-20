@@ -41,11 +41,11 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /// Token ID to IPFS URI mapping
     mapping(uint256 => string) public reviewDataUri;
 
-    // Mapping to save NFT minted for a jobId and employerId
-    mapping(uint256 => uint256) public nftMintedByJobAndemployerId;
+    // Mapping to save NFT minted for a jobId and buyerId
+    mapping(uint256 => uint256) public nftMintedByJobAndbuyerId;
 
-    // Mapping to save NFT minted for a jobId and employeeId
-    mapping(uint256 => uint256) public nftMintedByJobAndemployeeId;
+    // Mapping to save NFT minted for a jobId and sellerId
+    mapping(uint256 => uint256) public nftMintedByJobAndsellerId;
 
     // Mapping from Review ID to Platform ID
     mapping(uint256 => uint256) public reviewIdToPlatformId;
@@ -358,7 +358,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         IJobRegistry.Job memory job = jobRegistry.getJob(_jobId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(
-            senderId == job.employerId || senderId == job.employeeId,
+            senderId == job.buyerId || senderId == job.sellerId,
             "You're not an actor of this job"
         );
         require(
@@ -368,19 +368,19 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
-        if (senderId == job.employerId) {
-            toId = job.employeeId;
-            if (nftMintedByJobAndemployerId[_jobId] == senderId) {
+        if (senderId == job.buyerId) {
+            toId = job.sellerId;
+            if (nftMintedByJobAndbuyerId[_jobId] == senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByJobAndemployerId[_jobId] = senderId;
+                nftMintedByJobAndbuyerId[_jobId] = senderId;
             }
         } else {
-            toId = job.employerId;
-            if (nftMintedByJobAndemployeeId[_jobId] == senderId) {
+            toId = job.buyerId;
+            if (nftMintedByJobAndsellerId[_jobId] == senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByJobAndemployeeId[_jobId] = senderId;
+                nftMintedByJobAndsellerId[_jobId] = senderId;
             }
         }
 
