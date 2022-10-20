@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
@@ -10,23 +10,41 @@ import {ERC721A} from "./libs/ERC721A.sol";
  * @title Platform ID Contract
  * @author TalentLayer Team
  */
-contract TalentLayerPlatformID is ERC721A, Ownable {
-    /// Platform token id to Platform name mapping
+contract TalentLayerPlatformID is ERC721A, AccessControl {
+    /**
+     * @notice Platform token id to Platform name mapping
+     */
     mapping(uint256 => string) public names;
 
-    /// Taken Platform name
+    /**
+     * @notice Taken Platform name
+     */
     mapping(string => bool) public takenNames;
 
-    /// Token ID to IPFS URI mapping
+    /**
+     * @notice Token ID to IPFS URI mapping
+     */
     mapping(uint256 => string) public platformUri;
 
-    /// Account recovery merkle root
+    /**
+     * @notice Account recovery merkle root
+     */
     bytes32 public recoveryRoot;
 
-    /// Addresses that have successfully recovered their account
+    /**
+     * @notice Addresses that have successfully recovered their account
+     */
     mapping(address => bool) public hasBeenRecovered;
 
-    constructor() ERC721A("TalentLayerPlatformID", "TPID") {}
+    /**
+     * @notice Role granting Minting permission
+     */
+    bytes32 public constant MINT_ROLE = keccak256("MINT_ROLE");
+
+
+    constructor() ERC721A("TalentLayerPlatformID", "TPID") {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     // =========================== View functions ==============================
 
@@ -79,9 +97,10 @@ contract TalentLayerPlatformID is ERC721A, Ownable {
 
     /**
      * Allows a platform to mint a new Platform Id without the need of Proof of Humanity.
+     * @notice You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      */
-    function mint(string memory _platformName) public canMint(_platformName) {
+    function mint(string memory _platformName) public canMint(_platformName) onlyRole(MINT_ROLE) {
         _safeMint(msg.sender, 1);
         _afterMint(_platformName);
     }
@@ -108,7 +127,7 @@ contract TalentLayerPlatformID is ERC721A, Ownable {
      * Set new Platform ID recovery root.
      * @param _newRoot New merkle root
      */
-    function updateRecoveryRoot(bytes32 _newRoot) public onlyOwner {
+    function updateRecoveryRoot(bytes32 _newRoot) public onlyRole(DEFAULT_ADMIN_ROLE) {
         recoveryRoot = _newRoot;
     }
 
@@ -152,6 +171,13 @@ contract TalentLayerPlatformID is ERC721A, Ownable {
     }
 
     // =========================== Overrides ==============================
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721A, AccessControl) returns (bool) {
+        return ERC721A.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
+    }
 
     function transferFrom(
         address from,
