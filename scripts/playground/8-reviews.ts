@@ -24,7 +24,7 @@ async function main() {
   const aliceReviewCarol = await postToIPFS(
     JSON.stringify({
       content: "Alice review Carol",
-      rating: 5,
+      rating: 4,
     })
   );
   console.log("aliceReviewCarolIpfsUri", aliceReviewCarol);

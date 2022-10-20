@@ -32,7 +32,7 @@ async function main() {
       role: "developer",
       rateToken: "0x00",
       rateAmount: 1,
-      recipient: "0x00",
+      recipient: "",
     })
   );
 
