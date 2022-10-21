@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 import { get, ConfigProperty } from "../../configManager";
 import { Network } from "../config";
 const hre = require("hardhat");
+import postToIPFS from "../ipfs";
 
 async function main() {
   const network = await hre.network.name;
@@ -23,9 +24,23 @@ async function main() {
     await platformIdContrat.getPlatformIdFromAddress(dave.address);
   console.log("Dave talentLayerIdPLatform", daveTalentLayerIdPLatform);
 
+  const aliceCreateJobData = await postToIPFS(
+    JSON.stringify({
+      title: "Full Stack Developer Job",
+      about: "Looking for Full Stack Developer",
+      keywords: "BlockChain",
+      role: "developer",
+      rateToken: "0x00",
+      rateAmount: 1,
+      recipient: "",
+    })
+  );
+
+  console.log("AliceJobDataUri", aliceCreateJobData);
+
   await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, "ipfs://ssss");
+    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateJobData);
   console.log("Open Service created");
 }
 
