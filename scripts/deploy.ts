@@ -226,6 +226,9 @@ task("deploy")
         // Deploy ERC20 contract
         const SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
         const simpleERC20 = await SimpleERC20.deploy();
+        await simpleERC20.transfer(bob.address, 500);
+        await simpleERC20.transfer(carol.address, 500);
+        await simpleERC20.transfer(dave.address, 500);
 
         console.log("simpleERC20 address:", simpleERC20.address);
 
