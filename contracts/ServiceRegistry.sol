@@ -306,7 +306,7 @@ contract ServiceRegistry is AccessControl {
         string calldata _proposalDataUri
     ) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(senderId > 0, "You sould have a TalentLayerId");
+        require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -357,7 +357,7 @@ contract ServiceRegistry is AccessControl {
         string calldata _proposalDataUri
     ) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(senderId > 0, "You sould have a TalentLayerId");
+        require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][senderId];
@@ -395,7 +395,7 @@ contract ServiceRegistry is AccessControl {
      */
     function validateProposal(uint256 _serviceId, uint256 _proposalId) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(senderId > 0, "You sould have a TalentLayerId");
+        require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
@@ -418,7 +418,7 @@ contract ServiceRegistry is AccessControl {
      */
     function rejectProposal(uint256 _serviceId, uint256 _proposalId) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(senderId > 0, "You sould have a TalentLayerId");
+        require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
@@ -591,11 +591,11 @@ contract ServiceRegistry is AccessControl {
         string calldata _serviceDataUri,
         uint256 _platformId
     ) private returns (uint256) {
+        require(_senderId > 0, "You should have a TalentLayerId");
         require(
             _sellerId != _buyerId,
             "Seller and buyer can't be the same"
         );
-        require(_senderId > 0, "You sould have a TalentLayerId");
         require(
             bytes(_serviceDataUri).length > 0,
             "Should provide a valid IPFS URI"
