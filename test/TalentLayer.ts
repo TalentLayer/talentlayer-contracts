@@ -101,6 +101,12 @@ describe("TalentLayer", function () {
       talentLayerMultipleArbitrableTransaction.address
     );
 
+    // Grant Platform Id Mint role to Alice
+    const mintRole = await talentLayerPlatformID.MINT_ROLE();
+    await talentLayerPlatformID.connect(deployer).grantRole(
+      mintRole,
+      alice.address);
+
     // Alice mints a Platform Id
     platformName ='HireVibes';
     await talentLayerPlatformID.connect(alice).mint(platformName);
