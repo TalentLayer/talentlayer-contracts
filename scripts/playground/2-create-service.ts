@@ -30,7 +30,7 @@ async function main() {
       about: "Looking for Full Stack Developer",
       keywords: "BlockChain",
       role: "developer",
-      rateToken: "0x00",
+      rateToken: "0x0000000000000000000000000000000000000000",
       rateAmount: 1,
       recipient: "",
     })

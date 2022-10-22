@@ -16,6 +16,11 @@ async function main() {
     get(network as Network, ConfigProperty.ServiceRegistry)
   );
 
+  const simpleERC20 = await ethers.getContractAt(
+    "SimpleERC20",
+    get(network as Network, ConfigProperty.SimpleERC20)
+  );
+
   let serviceId = await serviceRegistry.nextServiceId();
   serviceId = serviceId.sub(1);
   console.log("serviceId", serviceId.toString());
@@ -42,7 +47,7 @@ async function main() {
 
   console.log("uri", bobUri);
 
-  const rateTokenBob = "0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10";
+  const rateTokenBob = simpleERC20.address;
   await serviceRegistry
     .connect(bob)
     .createProposal(serviceId, rateTokenBob, 10, bobUri);
