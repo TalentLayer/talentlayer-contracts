@@ -62,7 +62,9 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     currency: "USD",
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     enabled: process.env.REPORT_GAS ? true : false,
+    showTimeSpent:true,
     excludeContracts: [],
     src: "./contracts",
   },
@@ -76,6 +78,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       accounts: {
         mnemonic,
+        count: 100
       },
       chainId: Network.LOCAL,
     },
