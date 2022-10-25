@@ -67,8 +67,8 @@ const config: HardhatUserConfig = {
     showTimeSpent:true,
     excludeContracts: [],
     src: "./contracts",
-    noColors: true,
-    outputFile: "./reports/LoadTest",
+    // noColors: true,
+    // outputFile: "./reports/LoadTest",
   },
   contractSizer: {
     alphaSort: true,
@@ -93,7 +93,7 @@ const config: HardhatUserConfig = {
     artifacts: "./artifacts",
     cache: "./cache",
     sources: "./contracts",
-    tests: "./test",
+    tests: "./test/batch",
   },
   solidity: {
     compilers: [
