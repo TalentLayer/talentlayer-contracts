@@ -111,7 +111,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformId Token ID to update
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(uint256 _platformId, string memory _newCid)
+    function updatePlatformData(uint256 _platformId, string memory _newCid)
         public
     {
         require(ownerOf(_platformId) == msg.sender);
