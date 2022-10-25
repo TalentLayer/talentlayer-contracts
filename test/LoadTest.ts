@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 import { Contract, ContractFactory } from "ethers";
 
-describe("Stress tests", function () {
+describe("Load test", function () {
 	let deployer: SignerWithAddress,
 		platform: SignerWithAddress,
 		ServiceRegistry: ContractFactory,
@@ -18,15 +18,20 @@ describe("Stress tests", function () {
 		platformId: string,
 		signers: SignerWithAddress[];
 
-	const AMOUNT_OF_SERVICES_PER_BUYER: number = 2,
-		AMOUNT_OF_BUYERS: number = 10,
+	//Each buyer creates a given amount of open services. Each seller creates a proposal for all services.
+	//Buyers and sellers are two distinct sets of TalentLayerIDs.
+	//50 services per buyer with 20 buyers creates a total of 1000 services, and 40 sellers will then create 10000 proposals each, a total of 40000 proposals.
+	//100 accounts currently created, set in hardhat.config. Needs to be at least amount_of_buyers + amount_of_sellers + 2 (for deployer and platform).
+	//VALUE will currently make no difference because no transaction takes place.
+	const AMOUNT_OF_SERVICES_PER_BUYER: number = 50,
+		AMOUNT_OF_BUYERS: number = 20,
 		AMOUNT_OF_SERVICES: number = AMOUNT_OF_BUYERS * AMOUNT_OF_SERVICES_PER_BUYER,
 		AMOUNT_OF_PROPOSALS_PER_SELLER: number = AMOUNT_OF_SERVICES,
-		AMOUNT_OF_SELLERS: number = 10,
+		AMOUNT_OF_SELLERS: number = 40,
 		AMOUNT_OF_PROPOSALS: number = AMOUNT_OF_PROPOSALS_PER_SELLER * AMOUNT_OF_SELLERS,
 		AMOUNT_OF_SIGNERS: number = AMOUNT_OF_BUYERS + AMOUNT_OF_SELLERS,
 		TOKEN: string = "0x0000000000000000000000000000000000000000",
-		VALUE: number = 10,
+		VALUE: number = 10, 
 		MOCK_DATA: string = "mock_data";
 
 
