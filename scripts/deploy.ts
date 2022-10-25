@@ -3,7 +3,7 @@ import { task } from "hardhat/config";
 import { getConfig, Network, NetworkConfig } from "./config";
 import { set, ConfigProperty } from "../configManager";
 
-// npx hardhat deploy --use-pohmock --verify --network goerli
+// npx hardhat deploy --use-pohmock --use-test-erc20  --verify --network goerli
 task("deploy")
   .addFlag("usePohmock", "deploy a mock of POH")
   .addFlag("useTestErc20", "deploy a mock ERC20 contract")
@@ -47,14 +47,14 @@ task("deploy")
         );
         pohAddress = mockProofOfHumanity.address;
         set(
-          network.name as any as Network,
+          (network.name as any) as Network,
           ConfigProperty.MockProofOfHumanity,
           pohAddress
         );
       } else {
         pohAddress = networkConfig.proofOfHumanityAddress;
         set(
-          network.name as any as Network,
+          (network.name as any) as Network,
           ConfigProperty.MockProofOfHumanity,
           pohAddress
         );
@@ -77,9 +77,9 @@ task("deploy")
       );
 
       set(
-        network.name as any as Network,
+        (network.name as any) as Network,
         ConfigProperty.TalentLayerPlatformID,
-        talentLayerPlatformID.address,
+        talentLayerPlatformID.address
       );
 
       // Deploy ID contract
@@ -99,18 +99,22 @@ task("deploy")
       console.log("talentLayerID address:", talentLayerID.address);
 
       set(
-        network.name as any as Network,
+        (network.name as any) as Network,
         ConfigProperty.TalentLayerID,
-        talentLayerID.address,
+        talentLayerID.address
       );
 
       // Deploy Service Registry Contract
-      const ServiceRegistry = await ethers.getContractFactory("ServiceRegistry");
+      const ServiceRegistry = await ethers.getContractFactory(
+        "ServiceRegistry"
+      );
       const serviceRegistryArgs: [string, string] = [
         talentLayerID.address,
-        talentLayerPlatformID.address
+        talentLayerPlatformID.address,
       ];
-      const serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs);
+      const serviceRegistry = await ServiceRegistry.deploy(
+        ...serviceRegistryArgs
+      );
       if (verify) {
         await serviceRegistry.deployTransaction.wait(5);
         await run("verify:verify", {
@@ -120,9 +124,9 @@ task("deploy")
       }
       console.log("Service Registry address:", serviceRegistry.address);
       set(
-        network.name as any as Network,
+        (network.name as any) as Network,
         ConfigProperty.ServiceRegistry,
-        serviceRegistry.address,
+        serviceRegistry.address
       );
 
       // Deploy Review contract
@@ -149,7 +153,7 @@ task("deploy")
       console.log("Reviews contract address:", talentLayerReview.address);
 
       set(
-        network.name as any as Network,
+        (network.name as any) as Network,
         ConfigProperty.Reviewscontract,
         talentLayerReview.address
       );
@@ -175,16 +179,15 @@ task("deploy")
       );
 
       set(
-        network.name as any as Network,
+        (network.name as any) as Network,
         ConfigProperty.TalentLayerArbitrator,
         talentLayerArbitrator.address
       );
 
       // Deploy TalentLayerMultipleArbitrableTransaction
-      const TalentLayerMultipleArbitrableTransaction =
-        await ethers.getContractFactory(
-          "TalentLayerMultipleArbitrableTransaction"
-        );
+      const TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory(
+        "TalentLayerMultipleArbitrableTransaction"
+      );
       const talentLayerMultipleArbitrableTransactionArgs: [
         string,
         string,
@@ -198,10 +201,9 @@ task("deploy")
         [],
         3600 * 24 * 30,
       ];
-      const talentLayerMultipleArbitrableTransaction =
-        await TalentLayerMultipleArbitrableTransaction.deploy(
-          ...talentLayerMultipleArbitrableTransactionArgs
-        );
+      const talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
+        ...talentLayerMultipleArbitrableTransactionArgs
+      );
       if (verify) {
         await talentLayerMultipleArbitrableTransaction.deployTransaction.wait(
           5
@@ -217,7 +219,7 @@ task("deploy")
       );
 
       set(
-        network.name as any as Network,
+        (network.name as any) as Network,
         ConfigProperty.TalentLayerMultipleArbitrableTransaction,
         talentLayerMultipleArbitrableTransaction.address
       );
@@ -226,11 +228,14 @@ task("deploy")
         // Deploy ERC20 contract
         const SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
         const simpleERC20 = await SimpleERC20.deploy();
+        await simpleERC20.transfer(bob.address, 500);
+        await simpleERC20.transfer(carol.address, 500);
+        await simpleERC20.transfer(dave.address, 500);
 
         console.log("simpleERC20 address:", simpleERC20.address);
 
         set(
-          network.name as any as Network,
+          (network.name as any) as Network,
           ConfigProperty.SimpleERC20,
           simpleERC20.address
         );
