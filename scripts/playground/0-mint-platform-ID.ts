@@ -16,9 +16,7 @@ async function main() {
   );
 
   const mintRole = await platformIdContrat.MINT_ROLE();
-  await platformIdContrat.connect(alice).grantRole(
-    mintRole,
-    dave.address);
+  await platformIdContrat.connect(alice).grantRole(mintRole, dave.address);
   await platformIdContrat.connect(dave).mint("HireVibes");
 
   const daveTalentLayerIdPLatform =
@@ -29,10 +27,12 @@ async function main() {
     .connect(dave)
     .updateProfileData(daveTalentLayerIdPLatform, "newCid");
 
-  const platformName = await platformIdContrat.names(daveTalentLayerIdPLatform);
-  const platformCid = await platformIdContrat.platformUri(
+  const davePlatformData = await platformIdContrat.platforms(
     daveTalentLayerIdPLatform
   );
+
+  const platformName = davePlatformData.name;
+  const platformCid = davePlatformData.dataUri;
 
   console.log("platformName", platformName);
   console.log("platformCid", platformCid);
