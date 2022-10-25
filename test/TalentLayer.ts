@@ -69,7 +69,9 @@ describe("TalentLayer", function () {
       serviceRegistry.address,
       talentLayerPlatformID.address,
     ];
-    talentLayerReview = await TalentLayerReview.deploy(...talentLayerReviewArgs);
+    talentLayerReview = await TalentLayerReview.deploy(
+      ...talentLayerReviewArgs
+    );
 
     // Deploy TalentLayerArbitrator
     TalentLayerArbitrator = await ethers.getContractFactory(
@@ -103,19 +105,21 @@ describe("TalentLayer", function () {
 
     // Grant Platform Id Mint role to Alice
     const mintRole = await talentLayerPlatformID.MINT_ROLE();
-    await talentLayerPlatformID.connect(deployer).grantRole(
-      mintRole,
-      alice.address);
+    await talentLayerPlatformID
+      .connect(deployer)
+      .grantRole(mintRole, alice.address);
 
     // Alice mints a Platform Id
-    platformName ='HireVibes';
+    platformName = "HireVibes";
     await talentLayerPlatformID.connect(alice).mint(platformName);
   });
 
   describe("Platform Id contract test", async function () {
-  it("Alice successfully minted a PlatformId Id", async function () {
-    platformId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address);
-    expect(platformId).to.be.equal("1");
+    it("Alice successfully minted a PlatformId Id", async function () {
+      platformId = await talentLayerPlatformID.getPlatformIdFromAddress(
+        alice.address
+      );
+      expect(platformId).to.be.equal("1");
     });
 
     it("Alice can check the number of id minted", async function () {
@@ -129,9 +133,14 @@ describe("TalentLayer", function () {
       await talentLayerPlatformID
         .connect(alice)
         .updateProfileData("1", "newPlatId");
-      expect(await talentLayerPlatformID.platformUri("1")).to.be.equal(
-        "newPlatId"
+
+      const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(
+        alice.address
       );
+      const alicePlatformData = await talentLayerPlatformID.platforms(
+        aliceUserId
+      );
+      expect(alicePlatformData.dataUri).to.be.equal("newPlatId");
     });
 
     it("Alice should not be able to transfer her PlatformId Id to Bob", async function () {
@@ -153,13 +162,47 @@ describe("TalentLayer", function () {
     });
 
     it("Alice's PlatformID ownership data is coherent", async function () {
-      const name = await talentLayerPlatformID.names(platformId);
+      const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(
+        alice.address
+      );
+      const alicePlatformData = await talentLayerPlatformID.platforms(
+        aliceUserId
+      );
+      const name = alicePlatformData.name;
       const isNameTaken = await talentLayerPlatformID.takenNames(platformName);
       const idOwner = await talentLayerPlatformID.ownerOf(platformId);
       expect(platformName).to.equal(name);
       expect(isNameTaken).to.equal(true);
       expect(platformName).to.equal(platformName);
       expect(idOwner).to.equal(alice.address);
+    });
+
+    it("Alice's shoul be able to set up and update platform fees", async function () {
+      const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(
+        alice.address
+      );
+      const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE();
+
+      await talentLayerPlatformID.grantRole(adminRole, alice.address);
+      await talentLayerPlatformID
+        .connect(alice)
+        .updatePlatformfees(aliceUserId, 1);
+
+      const alicePlatformData = await talentLayerPlatformID.platforms(
+        aliceUserId
+      );
+
+      expect(alicePlatformData.fees).to.be.equal(1);
+
+      await talentLayerPlatformID
+        .connect(alice)
+        .updatePlatformfees(aliceUserId, 6);
+
+      const newAlicePlatformData = await talentLayerPlatformID.platforms(
+        aliceUserId
+      );
+
+      expect(newAlicePlatformData.fees).to.be.equal(6);
     });
   });
 
@@ -178,9 +221,7 @@ describe("TalentLayer", function () {
     expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal("3");
     const carolUserId = await talentLayerID.walletOfOwner(carol.address);
     const profileData = await talentLayerID.profiles(carolUserId);
-    expect(profileData.platformId).to.be.equal(
-      "1"
-    );
+    expect(profileData.platformId).to.be.equal("1");
   });
 
   it("Carol can activate POH on her talentLayerID", async function () {
@@ -197,7 +238,9 @@ describe("TalentLayer", function () {
 
   it("Alice, the buyer, can initiate a new service with Bob, the seller", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await serviceRegistry.connect(alice).createServiceFromBuyer(1, bobTid, "cid");
+    await serviceRegistry
+      .connect(alice)
+      .createServiceFromBuyer(1, bobTid, "cid");
     const serviceData = await serviceRegistry.services(1);
 
     expect(serviceData.status.toString()).to.be.equal("0");
@@ -270,7 +313,9 @@ describe("TalentLayer", function () {
 
   it("Carol, a new buyer, can initiate a new service with Bob, the seller", async function () {
     const bobTid = await talentLayerID.walletOfOwner(bob.address);
-    await serviceRegistry.connect(carol).createServiceFromBuyer(1, bobTid, "cid2");
+    await serviceRegistry
+      .connect(carol)
+      .createServiceFromBuyer(1, bobTid, "cid2");
     const serviceData = await serviceRegistry.services(2);
 
     expect(serviceData.status.toString()).to.be.equal("0");
@@ -291,7 +336,9 @@ describe("TalentLayer", function () {
 
   it("Bob can post another service with fixed service details, and Carol confirmed it", async function () {
     const carolId = await talentLayerID.walletOfOwner(carol.address);
-    await serviceRegistry.connect(bob).createServiceFromSeller(1, carolId, "cid3");
+    await serviceRegistry
+      .connect(bob)
+      .createServiceFromSeller(1, carolId, "cid3");
     let serviceData = await serviceRegistry.services(3);
 
     expect(serviceData.status.toString()).to.be.equal("0");
@@ -521,7 +568,9 @@ describe("TalentLayer", function () {
       let proposalIdCarol = 0; //Will be set later
 
       it("Alice can create a service.", async function () {
-        await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, "cid");
+        await serviceRegistry
+          .connect(alice)
+          .createOpenServiceFromBuyer(1, "cid");
       });
 
       it("Alice can NOT deposit tokens to escrow yet.", async function () {
@@ -585,7 +634,10 @@ describe("TalentLayer", function () {
       });
 
       it("The deposit should also validate the proposal.", async function () {
-        const proposal = await serviceRegistry.getProposal(serviceId, proposalIdBob);
+        const proposal = await serviceRegistry.getProposal(
+          serviceId,
+          proposalIdBob
+        );
         await expect(proposal.status.toString()).to.be.equal("1");
       });
 
@@ -697,7 +749,9 @@ describe("TalentLayer", function () {
       const ethAddress = "0x0000000000000000000000000000000000000000";
 
       it("Alice can create a service.", async function () {
-        await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, "cid");
+        await serviceRegistry
+          .connect(alice)
+          .createOpenServiceFromBuyer(1, "cid");
       });
 
       it("Alice can NOT deposit eth to escrow yet.", async function () {
@@ -758,7 +812,10 @@ describe("TalentLayer", function () {
       });
 
       it("The deposit should also validate the proposal.", async function () {
-        const proposal = await serviceRegistry.getProposal(serviceId, proposalIdBob);
+        const proposal = await serviceRegistry.getProposal(
+          serviceId,
+          proposalIdBob
+        );
         await expect(proposal.status.toString()).to.be.equal("1");
       });
 
