@@ -137,13 +137,13 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @notice You need to have DEFAULT_ADMIN_ROLE to use this function
      * @param _platformfees Platform fees to update
      */
-    function updatePlatformfees(uint256 _platformId, uint256 _platformfees)
+    function updatePlatformfees(uint256 _platformId, uint256 _platformFees)
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(_platformfees > 0, "Should provide a valid fees");
+        require(_platformFees > 0 && 10000, "Should provide a valid fees");
 
-        platforms[_platformId].fees = _platformfees;
+        platforms[_platformId].fees = _platformFees;
     }
 
     // =========================== Owner functions ==============================
