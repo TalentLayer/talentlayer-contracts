@@ -67,6 +67,8 @@ const config: HardhatUserConfig = {
     showTimeSpent:true,
     excludeContracts: [],
     src: "./contracts",
+    noColors: true,
+    outputFile: "./reports/LoadTest"
   },
   contractSizer: {
     alphaSort: true,
