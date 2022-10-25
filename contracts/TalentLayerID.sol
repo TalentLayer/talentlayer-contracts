@@ -13,7 +13,6 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
 contract TalentLayerID is ERC721A, Ownable {
-
     // =========================== Structs ==============================
 
     /// @notice TalentLayer Profile information struct
@@ -53,9 +52,13 @@ contract TalentLayerID is ERC721A, Ownable {
     /**
      * @param _pohAddress Proof of Humanity registry address
      */
-    constructor(address _pohAddress, address _talentLayerPlatformIdAddress) ERC721A("TalentLayerID", "TID") {
+    constructor(address _pohAddress, address _talentLayerPlatformIdAddress)
+        ERC721A("TalentLayerID", "TID")
+    {
         pohRegistry = IProofOfHumanity(_pohAddress);
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
+        talentLayerPlatformIdContract = ITalentLayerPlatformID(
+            _talentLayerPlatformIdAddress
+        );
     }
 
     // =========================== View functions ==============================
@@ -113,7 +116,10 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
+    function mint(uint256 _platformId, string memory _handle)
+        public
+        canMint(_handle, _platformId)
+    {
         _safeMint(msg.sender, 1);
         _afterMint(_handle, false, _platformId);
     }
@@ -123,7 +129,10 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
+    function mintWithPoh(uint256 _platformId, string memory _handle)
+        public
+        canMint(_handle, _platformId)
+    {
         require(
             pohRegistry.isRegistered(msg.sender),
             "You need to use an address registered on Proof of Humanity"
@@ -195,7 +204,7 @@ contract TalentLayerID is ERC721A, Ownable {
         );
         require(
             keccak256(abi.encodePacked(profiles[_tokenId].handle)) ==
-            keccak256(abi.encodePacked(_handle)),
+                keccak256(abi.encodePacked(_handle)),
             "Invalid handle"
         );
         require(
@@ -236,12 +245,16 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function _afterMint(string memory _handle, bool _poh, uint256 _platformId) private {
+    function _afterMint(
+        string memory _handle,
+        bool _poh,
+        uint256 _platformId
+    ) private {
         uint256 userTokenId = _nextTokenId() - 1;
-        profiles[userTokenId].handle = _handle;
-        takenHandles[_handle] = true;
         Profile storage profile = profiles[userTokenId];
         profile.platformId = _platformId;
+        profile.handle = _handle;
+        takenHandles[_handle] = true;
 
         emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId);
     }
