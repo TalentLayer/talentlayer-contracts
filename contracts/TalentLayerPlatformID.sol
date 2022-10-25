@@ -141,7 +141,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(_platformFees > 0 && 10000, "Should provide a valid fees");
+        require(_platformFees > 0 && < 10000, "Should provide a valid fees");
 
         platforms[_platformId].fees = _platformFees;
     }
