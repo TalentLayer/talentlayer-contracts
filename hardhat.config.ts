@@ -68,7 +68,7 @@ const config: HardhatUserConfig = {
     excludeContracts: [],
     src: "./contracts",
     noColors: true,
-    outputFile: "./reports/LoadTest"
+    outputFile: "./reports/LoadTest",
   },
   contractSizer: {
     alphaSort: true,
@@ -117,6 +117,9 @@ const config: HardhatUserConfig = {
       },
     ],
   },
+  mocha: {
+    timeout: 1000000,
+  }
 };
 
 export default config;
