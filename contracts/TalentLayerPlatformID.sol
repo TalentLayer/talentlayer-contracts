@@ -125,7 +125,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function updatePlatformfees(uint256 _platformId, uint8 _platformFees) public {
         require(ownerOf(_platformId) == msg.sender);
-        require(_platformFees < 1000, "Should provide a valid fees");
+        require(_platformFees < 10000, "Should provide a valid fees");
 
         platforms[_platformId].fees = _platformFees;
     }
