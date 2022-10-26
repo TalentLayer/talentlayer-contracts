@@ -11,25 +11,32 @@ import {ERC721A} from "./libs/ERC721A.sol";
  * @author TalentLayer Team
  */
 contract TalentLayerPlatformID is ERC721A, AccessControl {
+    // =========================== Structs ==============================
+
+    /// @notice TalentLayer Platform information struct
+    /// @param platformId the TalentLayer Platform Id
+    /// @param name the name of the platform
+    /// @param dataUri the IPFS URI of the Platform metadata
+    /// @param fees the fees asked by the platform for each job escrow transaction
+    struct Platform {
+        uint256 id;
+        string name;
+        string dataUri;
+        uint8 fees;
+    }
+
     /**
-     * @notice Platform token id to Platform name mapping
+     * @notice Account recovery merkle root
      */
-    mapping(uint256 => string) public names;
+    bytes32 public recoveryRoot;
 
     /**
      * @notice Taken Platform name
      */
     mapping(string => bool) public takenNames;
 
-    /**
-     * @notice Token ID to IPFS URI mapping
-     */
-    mapping(uint256 => string) public platformUri;
-
-    /**
-     * @notice Account recovery merkle root
-     */
-    bytes32 public recoveryRoot;
+    /// Token ID to Platfom struct
+    mapping(uint256 => Platform) public platforms;
 
     /**
      * @notice Addresses that have successfully recovered their account
@@ -40,7 +47,6 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @notice Role granting Minting permission
      */
     bytes32 public constant MINT_ROLE = keccak256("MINT_ROLE");
-
 
     constructor() ERC721A("TalentLayerPlatformID", "TPID") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -53,11 +59,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformAddress Address of the owner of the Platform ID
      * @return the number of tokens minted by the platform
      */
-    function numberMinted(address _platformAddress)
-        public
-        view
-        returns (uint256)
-    {
+    function numberMinted(address _platformAddress) public view returns (uint256) {
         return balanceOf(_platformAddress);
     }
 
@@ -66,11 +68,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _owner Platform Address to check
      * @return uint256 the Platform Id associated to this address
      */
-    function getPlatformIdFromAddress(address _owner)
-        public
-        view
-        returns (uint256)
-    {
+    function getPlatformIdFromAddress(address _owner) public view returns (uint256) {
         uint256 ownedTokenId;
         uint256 currentTokenId = _startTokenId();
         address latestOwnerAddress;
@@ -111,14 +109,24 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformId Token ID to update
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(uint256 _platformId, string memory _newCid)
-        public
-    {
+    function updateProfileData(uint256 _platformId, string memory _newCid) public {
         require(ownerOf(_platformId) == msg.sender);
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
-        platformUri[_platformId] = _newCid;
+
+        platforms[_platformId].dataUri = _newCid;
 
         emit CidUpdated(_platformId, _newCid);
+    }
+
+    /**
+     * Allows a platform to update his fees
+     * @notice You need to have DEFAULT_ADMIN_ROLE to use this function
+     * @param _platformFees Platform fees to update
+     */
+    function updatePlatformfees(uint256 _platformId, uint8 _platformFees) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].fees = _platformFees;
     }
 
     // =========================== Owner functions ==============================
@@ -139,7 +147,8 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function _afterMint(string memory _platformName) private {
         uint256 platformId = _nextTokenId() - 1;
-        names[platformId] = _platformName;
+        Platform storage platform = platforms[platformId];
+        platform.name = _platformName;
         takenNames[_platformName] = true;
 
         emit Mint(msg.sender, platformId, _platformName);
@@ -150,22 +159,16 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     /**
      * Update the start token id to 1
      */
-    function _startTokenId()
-        internal
-        view
-        virtual
-        override(ERC721A)
-        returns (uint256)
-    {
+    function _startTokenId() internal view virtual override(ERC721A) returns (uint256) {
         return 1;
     }
 
     // =========================== External functions ==============================
 
     /**
-    * Check whether the TalentLayer Platform Id is valid.
-    * @param _platformId TalentLayer Platform ID
-    */
+     * Check whether the TalentLayer Platform Id is valid.
+     * @param _platformId TalentLayer Platform ID
+     */
     function isValid(uint256 _platformId) external view {
         require(_platformId > 0 && _platformId <= totalSupply(), "Platform 0 is not a valid TalentLayer Platform ID");
     }
@@ -195,18 +198,12 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         revert("Not allowed");
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override(ERC721A)
-        returns (string memory)
-    {
+    function tokenURI(uint256 tokenId) public view virtual override(ERC721A) returns (string memory) {
         return _buildTokenURI(tokenId);
     }
 
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
-        string memory platformName = names[id];
+        string memory platformName = platforms[id].name;
 
         bytes memory image = abi.encodePacked(
             "data:image/svg+xml;base64,",
@@ -246,10 +243,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformName name for the platform
      */
     modifier canMint(string memory _platformName) {
-        require(
-            numberMinted(msg.sender) == 0,
-            "You already have a Platform ID"
-        );
+        require(numberMinted(msg.sender) == 0, "You already have a Platform ID");
         require(bytes(_platformName).length >= 2, "Name too short");
         require(bytes(_platformName).length <= 10, "Name too long");
         require(!takenNames[_platformName], "Name already taken");
@@ -264,11 +258,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _tokenId New Platform ID
      * @param _platformName Name of the platform
      */
-    event Mint(
-        address indexed _platformOwnerAddress,
-        uint256 _tokenId,
-        string _platformName
-    );
+    event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName);
 
     /**
      * Emit when Cid is updated for a platform.
