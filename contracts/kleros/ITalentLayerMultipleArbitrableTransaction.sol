@@ -38,4 +38,8 @@ interface ITalentLayerMultipleArbitrableTransaction{
         uint256 _transactionId,
         uint256 _amount
     ) external;
+
+    function claim(uint256 _platformId, address _tokenAddress) external;
+
+    function claimAll(uint256 _platformId) external;
 }

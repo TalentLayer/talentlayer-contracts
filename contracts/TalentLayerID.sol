@@ -68,6 +68,11 @@ contract TalentLayerID is ERC721A, Ownable {
         return balanceOf(_user);
     }
 
+    function getProfile(uint256 _profileId) external view returns (Profile memory) {
+        require(_exists(_profileId), "TalentLayerID: Profile does not exist");
+        return profiles[_profileId];
+    }
+
     /**
      * Allows checking if Proof of Humanity address linked to the TalentLayerID is registered.
      * @param _tokenId Token ID to check
