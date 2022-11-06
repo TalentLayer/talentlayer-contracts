@@ -192,11 +192,13 @@ task("deploy")
         string,
         string,
         string,
+        string,
         any,
         number
       ] = [
         serviceRegistry.address,
         talentLayerID.address,
+        talentLayerPlatformID.address,
         talentLayerArbitrator.address,
         [],
         3600 * 24 * 30,

@@ -24,6 +24,7 @@ interface IServiceRegistry {
         string serviceDataUri;
         uint256 countProposals;
         uint256 transactionId;
+        uint256 platformId;
     }
 
     struct Proposal {

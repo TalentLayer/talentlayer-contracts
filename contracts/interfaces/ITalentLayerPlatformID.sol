@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
+import {IERC721A} from "../libs/IERC721A.sol";
+
 /**
  * @title Platform ID Interface
  * @author TalentLayer Team
  */
-interface ITalentLayerPlatformID {
+interface ITalentLayerPlatformID is IERC721A {
 
     function numberMinted(address _platformAddress) external view returns (uint256);
+
+    function getPlatformFeeFromId(uint256 _platformId) external view returns (uint8);
 
     function getPlatformIdFromAddress(address _owner) external view returns (uint256);
 

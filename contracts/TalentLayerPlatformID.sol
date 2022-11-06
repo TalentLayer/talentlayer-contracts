@@ -22,7 +22,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         uint256 id;
         string name;
         string dataUri;
-        uint8 fees;
+        uint8 fee;
     }
 
     /**
@@ -61,6 +61,10 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function numberMinted(address _platformAddress) public view returns (uint256) {
         return balanceOf(_platformAddress);
+    }
+
+    function getPlatformFeeFromId(uint256 _platformId) external view returns (uint8) {
+        return platforms[_platformId].fee;
     }
 
     /**
@@ -126,7 +130,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     function updatePlatformfees(uint256 _platformId, uint8 _platformFees) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
-        platforms[_platformId].fees = _platformFees;
+        platforms[_platformId].fee = _platformFees;
     }
 
     // =========================== Owner functions ==============================

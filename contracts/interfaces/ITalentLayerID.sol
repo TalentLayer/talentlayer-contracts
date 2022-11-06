@@ -2,6 +2,15 @@
 pragma solidity ^0.8.9;
 
 interface ITalentLayerID {
+
+    struct Profile {
+        uint256 id;
+        string handle;
+        address pohAddress;
+        uint256 platformId;
+        string dataUri;
+    }
+
     function numberMinted(address _user) external view returns (uint256);
 
     function isTokenPohRegistered(uint256 _tokenId)
@@ -30,6 +39,8 @@ interface ITalentLayerID {
     ) external;
 
     function setBaseURI(string memory _newBaseURI) external;
+
+    function getProfile(uint256 _profileId) external view returns (Profile memory);
 
     function updateRecoveryRoot(bytes32 _newRoot) external;
 
