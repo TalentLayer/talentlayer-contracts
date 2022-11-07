@@ -26,9 +26,6 @@ copy-configuration:
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 endif
 
-
-
-
 #--------------PLAYGROUND LOCAL----------------#
 
 wait_localhost = 1

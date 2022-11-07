@@ -80,7 +80,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       accounts: {
         mnemonic,
-        // count: 100,
+        count: 100,
       },
       chainId: Network.LOCAL,
     },
