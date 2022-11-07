@@ -72,6 +72,7 @@ describe('TalentLayer', function () {
     talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
       serviceRegistry.address,
       talentLayerID.address,
+      talentLayerPlatformID.address,
       talentLayerArbitrator.address,
       [],
       3600 * 24 * 30,
@@ -139,7 +140,7 @@ describe('TalentLayer', function () {
       expect(idOwner).to.equal(alice.address)
     })
 
-    it("Alice's shoul be able to set up and update platform fees", async function () {
+    it("Alice shouls be able to set up and update platform fees", async function () {
       const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
       const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE()
 

@@ -113,6 +113,14 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
 
     // =========================== View functions ==============================
 
+    /** @dev Only the owner of the platform ID can execute this function
+     *  @param _token Token address ("0" for ETH)
+     */
+    function getTokenBalance(address _token) external view returns (uint256) {
+        uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(msg.sender);
+        talentLayerPlatformIdContract.isValid(platformId);
+        return platformIdToTokenToBalance[platformId][_token];
+    }
 
 
     // =========================== Owner functions ==============================
@@ -157,11 +165,11 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
 
 
         uint256 transactionAmount = proposal.rateAmount + (
-            (
-                (proposal.rateAmount * protocolFeePerTenThousand) +
-                (proposal.rateAmount * originPlatformFeePerTenThousand) +
-                (proposal.rateAmount * platformFeePerTenThousand)
-            ) / 10000
+        (
+        (proposal.rateAmount * protocolFeePerTenThousand) +
+        (proposal.rateAmount * originPlatformFeePerTenThousand) +
+        (proposal.rateAmount * platformFeePerTenThousand)
+        ) / 10000
         );
 
         require(msg.sender == sender, "Access denied.");
@@ -204,11 +212,11 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         uint8 platformFeePerTenThousand = talentLayerPlatformIdContract.getPlatformFeeFromId(service.platformId);
 
         uint256 transactionAmount = proposal.rateAmount + (
-            (
-                (proposal.rateAmount * protocolFeePerTenThousand) +
-                (proposal.rateAmount * originPlatformFeePerTenThousand) +
-                (proposal.rateAmount * platformFeePerTenThousand)
-            ) / 10000
+        (
+        (proposal.rateAmount * protocolFeePerTenThousand) +
+        (proposal.rateAmount * originPlatformFeePerTenThousand) +
+        (proposal.rateAmount * platformFeePerTenThousand)
+        ) / 10000
         );
 
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
