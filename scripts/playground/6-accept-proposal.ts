@@ -34,8 +34,6 @@ async function main() {
     .createETHTransaction(
       3600 * 24 * 7, 
       "_metaEvidence",
-      dave.address, //admin address, not used yet.
-      adminFeeAmount,
       serviceId,
       3, //proposalId/talentLayerId of carol.
       { value: rateAmount + adminFeeAmount }
