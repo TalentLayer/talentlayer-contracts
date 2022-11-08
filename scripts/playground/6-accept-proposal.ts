@@ -35,6 +35,8 @@ async function main() {
     3, //proposalId/talentLayerId of carol.
     { value: rateAmount + adminFeeAmount },
   )
+
+  console.log('Alice accept the Carol proposal')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
