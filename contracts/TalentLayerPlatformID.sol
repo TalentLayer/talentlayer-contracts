@@ -17,12 +17,12 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     /// @param platformId the TalentLayer Platform Id
     /// @param name the name of the platform
     /// @param dataUri the IPFS URI of the Platform metadata
-    /// @param fees the fees asked by the platform for each job escrow transaction
+    /// @param fee the fee asked by the platform for each job escrow transaction
     struct Platform {
         uint256 id;
         string name;
         string dataUri;
-        uint8 fee;
+        uint16 fee;
     }
 
     /**
@@ -35,7 +35,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     mapping(string => bool) public takenNames;
 
-    /// Token ID to Platfom struct
+    /**
+     * @notice Token ID to Platfom struct
+     */
     mapping(uint256 => Platform) public platforms;
 
     /**
@@ -55,7 +57,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     // =========================== View functions ==============================
 
     /**
-     * Allows retrieval of number of minted Platform IDs for a platform.
+     * @notice Allows retrieval of number of minted Platform IDs for a platform.
      * @param _platformAddress Address of the owner of the Platform ID
      * @return the number of tokens minted by the platform
      */
@@ -63,12 +65,12 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return balanceOf(_platformAddress);
     }
 
-    function getPlatformFeeFromId(uint256 _platformId) external view returns (uint8) {
+    function getPlatformFeeFromId(uint256 _platformId) external view returns (uint16) {
         return platforms[_platformId].fee;
     }
 
     /**
-     * Allows getting the Platform ID from an address
+     * @notice Allows getting the Platform ID from an address
      * @param _owner Platform Address to check
      * @return uint256 the Platform Id associated to this address
      */
@@ -98,8 +100,8 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     // =========================== User functions ==============================
 
     /**
-     * Allows a platform to mint a new Platform Id without the need of Proof of Humanity.
-     * @notice You need to have MINT_ROLE to use this function
+     * @notice Allows a platform to mint a new Platform Id without the need of Proof of Humanity.
+     * @dev You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      */
     function mint(string memory _platformName) public canMint(_platformName) onlyRole(MINT_ROLE) {
@@ -108,7 +110,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     }
 
     /**
-     * Update platform URI data.
+     * @notice Update platform URI data.
      * @dev we are trusting the platform to provide the valid IPFS URI
      * @param _platformId Token ID to update
      * @param _newCid New IPFS URI
@@ -123,20 +125,20 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     }
 
     /**
-     * Allows a platform to update his fees
-     * @notice You need to have DEFAULT_ADMIN_ROLE to use this function
-     * @param _platformFees Platform fees to update
+     * @notice Allows a platform to update his fee
+     * @dev You need to have DEFAULT_ADMIN_ROLE to use this function
+     * @param _platformfee Platform fee to update
      */
-    function updatePlatformfees(uint256 _platformId, uint8 _platformFees) public {
+    function updatePlatformfee(uint256 _platformId, uint16 _platformfee) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
-        platforms[_platformId].fee = _platformFees;
+        platforms[_platformId].fee = _platformfee;
     }
 
     // =========================== Owner functions ==============================
 
     /**
-     * Set new Platform ID recovery root.
+     * @notice Set new Platform ID recovery root.
      * @param _newRoot New merkle root
      */
     function updateRecoveryRoot(bytes32 _newRoot) public onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -146,7 +148,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     // =========================== Private functions ==============================
 
     /**
-     * Update Platform name mapping and emit event after mint.
+     * @notice Update Platform name mapping and emit event after mint.
      * @param _platformName Name of the platform
      */
     function _afterMint(string memory _platformName) private {
@@ -170,7 +172,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     // =========================== External functions ==============================
 
     /**
-     * Check whether the TalentLayer Platform Id is valid.
+     * @notice Check whether the TalentLayer Platform Id is valid.
      * @param _platformId TalentLayer Platform ID
      */
     function isValid(uint256 _platformId) external view {
