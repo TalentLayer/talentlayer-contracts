@@ -199,6 +199,12 @@ describe('TalentLayer', function () {
     expect(serviceData.platformId).to.be.equal(1)
   })
 
+  it('Alice should be able to update the service data', async function () {
+    await serviceRegistry.connect(alice).updateServiceData(1, 'New-service-data-Uri')
+    const serviceData = await serviceRegistry.services(1)
+    expect(serviceData.serviceDataUri).to.be.equal('New-service-data-Uri')
+  })
+
   it("Alice can't create a new service with a talentLayerId 0", async function () {
     expect(serviceRegistry.connect(alice).createServiceFromBuyer(0, 'cid', 1)).to.be.revertedWith(
       'Seller 0 is not a valid TalentLayerId',
@@ -208,7 +214,7 @@ describe('TalentLayer', function () {
     )
   })
 
-  it("Bob, the seller, can confrim the service, Alice can't, Carol can't", async function () {
+  it("Bob, the seller, can confirm the service, Alice can't, Carol can't", async function () {
     expect(serviceRegistry.connect(alice).confirmService(1)).to.be.revertedWith(
       "Only the user who didn't initate the service can confirm it",
     )
