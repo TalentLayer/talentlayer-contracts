@@ -11,7 +11,7 @@ interface ITalentLayerPlatformID is IERC721A {
 
     function numberMinted(address _platformAddress) external view returns (uint256);
 
-    function getPlatformFeeFromId(uint256 _platformId) external view returns (uint8);
+    function getPlatformFeeFromId(uint256 _platformId) external view returns (uint16);
 
     function getPlatformIdFromAddress(address _owner) external view returns (uint256);
 

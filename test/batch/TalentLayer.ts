@@ -140,22 +140,22 @@ describe('TalentLayer', function () {
       expect(idOwner).to.equal(alice.address)
     })
 
-    it("Alice shouls be able to set up and update platform fees", async function () {
+    it("Alice should be able to set up and update platform fee", async function () {
       const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
       const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE()
 
       await talentLayerPlatformID.grantRole(adminRole, alice.address)
-      await talentLayerPlatformID.connect(alice).updatePlatformfees(aliceUserId, 1)
+      await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1)
 
       const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
 
-      expect(alicePlatformData.fees).to.be.equal(1)
+      expect(alicePlatformData.fee).to.be.equal(1)
 
-      await talentLayerPlatformID.connect(alice).updatePlatformfees(aliceUserId, 6)
+      await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 6)
 
       const newAlicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
 
-      expect(newAlicePlatformData.fees).to.be.equal(6)
+      expect(newAlicePlatformData.fee).to.be.equal(6)
     })
   })
 
@@ -433,9 +433,9 @@ describe('TalentLayer', function () {
         expect(totalSupply).to.equal(deployerBalance)
       })
 
-      it('Should transfer 1000 tokens to alice', async function () {
+      it('Should transfer 10000000 tokens to alice', async function () {
         // await loadFixture(deployTokenFixture);
-        expect(token.transfer(alice.address, 1000)).to.changeTokenBalances(token, [deployer, alice], [-1000, 1000])
+        expect(token.transfer(alice.address, 10000000)).to.changeTokenBalances(token, [deployer, alice], [-1000, 1000])
       })
     })
 
@@ -482,13 +482,13 @@ describe('TalentLayer', function () {
 
   describe('Escrow Contract.', function () {
     describe('Successful use of Escrow for a service using an ERC20 token.', function () {
-      const amountBob = 100
-      const amountCarol = 200
+      const amountBob = 1000000
+      const amountCarol = 2000
       const serviceId = 12
-      const adminFeeAmount = 0
       const transactionId = 0
       let proposalIdBob = 0 //Will be set later
       let proposalIdCarol = 0 //Will be set later
+      let totalAmount = 0; //Will be set later
 
       it('Alice can create a service.', async function () {
         await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
@@ -502,8 +502,6 @@ describe('TalentLayer', function () {
             .createTokenTransaction(
               3600 * 24 * 7,
               '_metaEvidence',
-              dave.address,
-              adminFeeAmount,
               serviceId,
               proposalIdBob,
             ),
@@ -521,21 +519,29 @@ describe('TalentLayer', function () {
       })
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
-        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob)
+        const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address);
+        await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100);
+        const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId);
+        const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFeePerTenThousand();
+        const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFeePerTenThousand();
+        const platformFee = alicePlatformData.fee;
+
+        totalAmount = amountBob + (amountBob * (protocolFee + originPlatformFee + platformFee) / 10000);
+
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
+
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .createTokenTransaction(
             3600 * 24 * 7,
             '_metaEvidence',
-            dave.address,
-            adminFeeAmount,
             serviceId,
             proposalIdBob,
           )
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
-          [amountBob, -amountBob, 0],
+          [totalAmount, -totalAmount, 0],
         )
 
         await expect(transaction)
@@ -563,8 +569,6 @@ describe('TalentLayer', function () {
             .createTokenTransaction(
               3600 * 24 * 7,
               '_metaEvidence',
-              dave.address,
-              adminFeeAmount,
               serviceId,
               proposalIdCarol,
             ),
@@ -577,7 +581,12 @@ describe('TalentLayer', function () {
         ).to.be.revertedWith('Access denied.')
       })
 
-      it('Alice can release half of the escrow to bob.', async function () {
+      it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
+        const transactionDetails = await talentLayerMultipleArbitrableTransaction.connect(alice).getTransactionDetails(transactionId.toString());
+        const protocolFee = transactionDetails.protocolFee;
+        const originPlatformFee = transactionDetails.originPlatformFee;
+        const platformFee = transactionDetails.platformFee;
+
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .release(transactionId, amountBob / 2)
@@ -586,9 +595,21 @@ describe('TalentLayer', function () {
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
           [-amountBob / 2, 0, amountBob / 2],
         )
+        const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
+          .getTokenBalance(token.address);
+        const deployerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
+          .getTokenBalance(token.address);
+        // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
+        await expect(platformBalance.toString()).to.be.equal(((amountBob / 2) * (platformFee + originPlatformFee) / 10000).toString())
+        await expect(deployerBalance.toString()).to.be.equal(((amountBob / 2) * protocolFee / 10000).toString())
       })
 
-      it('Alice can release a quarter of the escrow to Bob.', async function () {
+      it('Alice can release a quarter of the escrow to Bob, and fees are correctly split.', async function () {
+        const transactionDetails = await talentLayerMultipleArbitrableTransaction.connect(alice).getTransactionDetails(transactionId.toString());
+        const protocolFee = transactionDetails.protocolFee;
+        const originPlatformFee = transactionDetails.originPlatformFee;
+        const platformFee = transactionDetails.platformFee;
+
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .release(transactionId, amountBob / 4)
@@ -597,17 +618,25 @@ describe('TalentLayer', function () {
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
           [-amountBob / 4, 0, amountBob / 4],
         )
+
+        const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
+          .getTokenBalance(token.address);
+        const deployerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
+          .getTokenBalance(token.address);
+        // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
+        await expect(platformBalance.toString()).to.be.equal(((3 * amountBob / 4) * (platformFee + originPlatformFee) / 10000).toString())
+        await expect(deployerBalance.toString()).to.be.equal(((3 * amountBob / 4) * protocolFee / 10000).toString())
       })
 
       it('Carol can NOT reimburse alice.', async function () {
         await expect(
-          talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, amountBob / 4),
+          talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, totalAmount / 4),
         ).to.revertedWith('Access denied.')
       })
 
       it('Bob can NOT reimburse alice for more than what is left in escrow.', async function () {
         await expect(
-          talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob),
+          talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, totalAmount),
         ).to.revertedWith('Insufficient funds.')
       })
 
@@ -615,10 +644,13 @@ describe('TalentLayer', function () {
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
+        //When asking for the reimbursement of a fee-less amount,
+        //we expect the amount reimbursed to include all fees (calculated by the function,
+        //hence the 'totalAmount / 4' expected.
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
-          [-amountBob / 4, amountBob / 4, 0],
+          [-totalAmount / 4, totalAmount / 4, 0],
         )
         await expect(transaction)
           .to.emit(talentLayerMultipleArbitrableTransaction, 'PaymentCompleted')
@@ -630,16 +662,42 @@ describe('TalentLayer', function () {
           talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, 1),
         ).to.be.revertedWith('Insufficient funds.')
       })
+
+      it('Alice can claim her token balance.', async function () {
+        const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
+          .getTokenBalance(token.address);
+        const transaction = await talentLayerMultipleArbitrableTransaction
+          .connect(alice)
+          .claim(platformId, token.address)
+        await expect(transaction).to.changeTokenBalances(
+          token,
+          [talentLayerMultipleArbitrableTransaction.address, alice.address],
+          [-platformBalance, platformBalance],
+        )
+      })
+
+      it('The protocol owner can claim his token balance.', async function () {
+        let protocolOwnerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
+          .getTokenBalance(token.address);
+        const transaction = await talentLayerMultipleArbitrableTransaction
+          .connect(deployer)
+          .claim(0, token.address)
+        await expect(transaction).to.changeTokenBalances(
+          token,
+          [talentLayerMultipleArbitrableTransaction.address, deployer.address],
+          [-protocolOwnerBalance, protocolOwnerBalance],
+        )
+      })
     })
 
     describe('Successful use of Escrow for a service using ETH.', function () {
-      const amountBob = 100
+      const amountBob = 1000000
       const amountCarol = 200
       const serviceId = 13
-      const adminFeeAmount = 0
       const transactionId = 1
       let proposalIdBob = 0 //Will be set later
       let proposalIdCarol = 0 //Will be set later
+      let totalAmount = 0 //Will be set later
       const ethAddress = '0x0000000000000000000000000000000000000000'
 
       it('Alice can create a service.', async function () {
@@ -647,15 +705,22 @@ describe('TalentLayer', function () {
       })
 
       it('Alice can NOT deposit eth to escrow yet.', async function () {
-        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob)
+        const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address);
+        await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100);
+        const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId);
+        const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFeePerTenThousand();
+        const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFeePerTenThousand();
+        const platformFee = alicePlatformData.fee;
+
+        totalAmount = amountBob + (amountBob * (protocolFee + originPlatformFee + platformFee) / 10000);
+
+        await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
         await expect(
           talentLayerMultipleArbitrableTransaction
             .connect(alice)
             .createETHTransaction(
               3600 * 24 * 7,
               '_metaEvidence',
-              dave.address,
-              adminFeeAmount,
               serviceId,
               proposalIdBob,
             ),
@@ -678,15 +743,13 @@ describe('TalentLayer', function () {
           .createETHTransaction(
             3600 * 24 * 7,
             '_metaEvidence',
-            dave.address,
-            adminFeeAmount,
             serviceId,
             proposalIdBob,
-            { value: amountBob },
+            { value: totalAmount },
           )
         await expect(transaction).to.changeEtherBalances(
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
-          [amountBob, -amountBob, 0],
+          [totalAmount, -totalAmount, 0],
         )
 
         await expect(transaction)
@@ -714,8 +777,6 @@ describe('TalentLayer', function () {
             .createETHTransaction(
               3600 * 24 * 7,
               '_metaEvidence',
-              dave.address,
-              adminFeeAmount,
               serviceId,
               proposalIdCarol,
               { value: amountCarol },
@@ -729,7 +790,12 @@ describe('TalentLayer', function () {
         ).to.be.revertedWith('Access denied.')
       })
 
-      it('Alice can release half of the escrow to bob.', async function () {
+      it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
+        const transactionDetails = await talentLayerMultipleArbitrableTransaction.connect(alice).getTransactionDetails(transactionId.toString());
+        const protocolFee = transactionDetails.protocolFee;
+        const originPlatformFee = transactionDetails.originPlatformFee;
+        const platformFee = transactionDetails.platformFee;
+
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .release(transactionId, amountBob / 2)
@@ -737,9 +803,22 @@ describe('TalentLayer', function () {
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
           [-amountBob / 2, 0, amountBob / 2],
         )
+
+        const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
+          .getTokenBalance(ethAddress);
+        const deployerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
+          .getTokenBalance(ethAddress);
+        // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
+        await expect(platformBalance.toString()).to.be.equal(((amountBob / 2) * (platformFee + originPlatformFee) / 10000).toString())
+        await expect(deployerBalance.toString()).to.be.equal(((amountBob / 2) * protocolFee / 10000).toString())
       })
 
-      it('Alice can release a quarter of the escrow to Bob.', async function () {
+      it('Alice can release a quarter of the escrow to Bob, and fees are correctly split.', async function () {
+        const transactionDetails = await talentLayerMultipleArbitrableTransaction.connect(alice).getTransactionDetails(transactionId.toString());
+        const protocolFee = transactionDetails.protocolFee;
+        const originPlatformFee = transactionDetails.originPlatformFee;
+        const platformFee = transactionDetails.platformFee;
+
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .release(transactionId, amountBob / 4)
@@ -747,17 +826,24 @@ describe('TalentLayer', function () {
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
           [-amountBob / 4, 0, amountBob / 4],
         )
+        const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
+          .getTokenBalance(ethAddress);
+        const deployerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
+          .getTokenBalance(ethAddress);
+        // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
+        await expect(platformBalance.toString()).to.be.equal(((3 * amountBob / 4) * (platformFee + originPlatformFee) / 10000).toString())
+        await expect(deployerBalance.toString()).to.be.equal(((3 * amountBob / 4) * protocolFee / 10000).toString())
       })
 
       it('Carol can NOT reimburse alice.', async function () {
         await expect(
-          talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, amountBob / 4),
+          talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, totalAmount / 4),
         ).to.revertedWith('Access denied.')
       })
 
       it('Bob can NOT reimburse alice for more than what is left in escrow.', async function () {
         await expect(
-          talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, amountBob),
+          talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, totalAmount),
         ).to.revertedWith('Insufficient funds.')
       })
 
@@ -765,9 +851,12 @@ describe('TalentLayer', function () {
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
+        //When asking for the reimbursement of a fee-less amount,
+        //we expect the amount reimbursed to include all fees (calculated by the function,
+        //hence the 'totalAmount / 4' expected.
         await expect(transaction).to.changeEtherBalances(
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
-          [-amountBob / 4, amountBob / 4, 0],
+          [-totalAmount / 4, totalAmount / 4, 0],
         )
         await expect(transaction)
           .to.emit(talentLayerMultipleArbitrableTransaction, 'PaymentCompleted')
@@ -779,6 +868,31 @@ describe('TalentLayer', function () {
           talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, 10),
         ).to.be.revertedWith('Insufficient funds.')
       })
+
+      it('Alice can claim her ETH balance.', async function () {
+        const platformEthBalance = await talentLayerMultipleArbitrableTransaction.connect(alice).getTokenBalance(ethAddress);
+        const transaction = await talentLayerMultipleArbitrableTransaction
+          .connect(alice)
+          .claim(platformId, ethAddress)
+        await expect(transaction).to.changeEtherBalances(
+          [talentLayerMultipleArbitrableTransaction.address, alice.address],
+          [-platformEthBalance, platformEthBalance],
+        )
+      })
+
+      it('The Protocol owner can claim his ETH balance.', async function () {
+        const protocolEthBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer).getTokenBalance(ethAddress);
+        const transaction = await talentLayerMultipleArbitrableTransaction
+          .connect(deployer)
+          .claim(0, ethAddress)
+        await expect(transaction).to.changeEtherBalances(
+          [talentLayerMultipleArbitrableTransaction.address, deployer.address],
+          [-protocolEthBalance, protocolEthBalance],
+        )
+      })
+
     })
+
   })
+
 })
