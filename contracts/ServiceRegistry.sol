@@ -74,21 +74,12 @@ contract ServiceRegistry is AccessControl {
     /// @param initiatorId the talentLayerId of the user who initialized the service
     /// @param platformId platform ID on which the Service token was minted
     /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
-    event ServiceCreated(
-        uint256 id,
-        uint256 buyerId,
-        uint256 sellerId,
-        uint256 initiatorId,
-        uint256 platformId
-    );
+    event ServiceCreated(uint256 id, uint256 buyerId, uint256 sellerId, uint256 initiatorId, uint256 platformId);
 
     /// @notice Emitted after a new service is created
     /// @param id The service ID (incremental)
     /// @param serviceDataUri token Id to IPFS URI mapping
-    event ServiceDataCreated(
-        uint256 id,
-        string serviceDataUri
-    );
+    event ServiceDataCreated(uint256 id, string serviceDataUri);
 
     /// @notice Emitted after an seller is assigned to a service
     /// @param id The service ID
@@ -101,36 +92,28 @@ contract ServiceRegistry is AccessControl {
     /// @param buyerId the talentLayerId of the buyer
     /// @param sellerId the talentLayerId of the seller
     /// @param serviceDataUri token Id to IPFS URI mapping
-    event ServiceConfirmed(
-        uint256 id,
-        uint256 buyerId,
-        uint256 sellerId,
-        string serviceDataUri
-    );
+    event ServiceConfirmed(uint256 id, uint256 buyerId, uint256 sellerId, string serviceDataUri);
 
     /// @notice Emitted after a service is rejected
     /// @param id The service ID
     /// @param buyerId the talentLayerId of the buyer
     /// @param sellerId the talentLayerId of the seller
     /// @param serviceDataUri token Id to IPFS URI mapping
-    event ServiceRejected(
-        uint256 id,
-        uint256 buyerId,
-        uint256 sellerId,
-        string serviceDataUri
-    );
+    event ServiceRejected(uint256 id, uint256 buyerId, uint256 sellerId, string serviceDataUri);
 
     /// @notice Emitted after a service is finished
     /// @param id The service ID
     /// @param buyerId the talentLayerId of the buyer
     /// @param sellerId the talentLayerId of the seller
     /// @param serviceDataUri token Id to IPFS URI mapping
-    event ServiceFinished(
-        uint256 id,
-        uint256 buyerId,
-        uint256 sellerId,
-        string serviceDataUri
-    );
+    event ServiceFinished(uint256 id, uint256 buyerId, uint256 sellerId, string serviceDataUri);
+
+    /**
+     * Emit when Cid is updated for a Service
+     * @param id The service ID
+     * @param newServiceDataUri New service Data URI
+     */
+    event ServiceDetailedUpdated(uint256 indexed id, string newServiceDataUri);
 
     /// @notice Emitted after a new proposal is created
     /// @param serviceId The service id
@@ -210,11 +193,7 @@ contract ServiceRegistry is AccessControl {
         return services[_serviceId];
     }
 
-    function getProposal(uint256 _serviceId, uint256 _proposalId)
-        external
-        view
-        returns (Proposal memory)
-    {
+    function getProposal(uint256 _serviceId, uint256 _proposalId) external view returns (Proposal memory) {
         return proposals[_serviceId][_proposalId];
     }
 
@@ -234,15 +213,7 @@ contract ServiceRegistry is AccessControl {
         require(_sellerId > 0, "Seller 0 is not a valid TalentLayerId");
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        return
-        _createService(
-            Status.Filled,
-            senderId,
-            senderId,
-            _sellerId,
-            _serviceDataUri,
-            _platformId
-        );
+        return _createService(Status.Filled, senderId, senderId, _sellerId, _serviceDataUri, _platformId);
     }
 
     /**
@@ -259,15 +230,7 @@ contract ServiceRegistry is AccessControl {
         require(_buyerId > 0, "Buyer 0 is not a valid TalentLayerId");
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        return
-        _createService(
-            Status.Filled,
-            senderId,
-            _buyerId,
-            senderId,
-            _serviceDataUri,
-            _platformId
-        );
+        return _createService(Status.Filled, senderId, _buyerId, senderId, _serviceDataUri, _platformId);
     }
 
     /**
@@ -275,21 +238,10 @@ contract ServiceRegistry is AccessControl {
      * @param _platformId platform ID on which the Service token was minted
      * @param _serviceDataUri token Id to IPFS URI mapping
      */
-    function createOpenServiceFromBuyer(
-        uint256 _platformId,
-        string calldata _serviceDataUri
-    ) public returns (uint256) {
+    function createOpenServiceFromBuyer(uint256 _platformId, string calldata _serviceDataUri) public returns (uint256) {
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        return
-        _createService(
-            Status.Opened,
-            senderId,
-            senderId,
-            0,
-            _serviceDataUri,
-            _platformId
-        );
+        return _createService(Status.Opened, senderId, senderId, 0, _serviceDataUri, _platformId);
     }
 
     /**
@@ -315,14 +267,8 @@ contract ServiceRegistry is AccessControl {
             "You already created a proposal for this service"
         );
         require(service.countProposals < 40, "Max proposals count reached");
-        require(
-            service.buyerId != senderId,
-            "You couldn't create proposal for your own service"
-        );
-        require(
-            bytes(_proposalDataUri).length > 0,
-            "Should provide a valid IPFS URI"
-        );
+        require(service.buyerId != senderId, "You couldn't create proposal for your own service");
+        require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.countProposals++;
         proposals[_serviceId][senderId] = Proposal({
@@ -333,14 +279,7 @@ contract ServiceRegistry is AccessControl {
             proposalDataUri: _proposalDataUri
         });
 
-        emit ProposalCreated(
-            _serviceId,
-            senderId,
-            _proposalDataUri,
-            ProposalStatus.Pending,
-            _rateToken,
-            _rateAmount
-        );
+        emit ProposalCreated(_serviceId, senderId, _proposalDataUri, ProposalStatus.Pending, _rateToken, _rateAmount);
     }
 
     /**
@@ -362,30 +301,15 @@ contract ServiceRegistry is AccessControl {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][senderId];
         require(service.status == Status.Opened, "Service is not opened");
-        require(
-            proposal.sellerId == senderId,
-            "This proposal doesn't exist yet"
-        );
-        require(
-            bytes(_proposalDataUri).length > 0,
-            "Should provide a valid IPFS URI"
-        );
-        require(
-            proposal.status != ProposalStatus.Validated,
-            "This proposal is already updated"
-        );
+        require(proposal.sellerId == senderId, "This proposal doesn't exist yet");
+        require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
+        require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
 
         proposal.rateToken = _rateToken;
         proposal.rateAmount = _rateAmount;
         proposal.proposalDataUri = _proposalDataUri;
 
-        emit ProposalUpdated(
-            _serviceId,
-            senderId,
-            _proposalDataUri,
-            _rateToken,
-            _rateAmount
-        );
+        emit ProposalUpdated(_serviceId, senderId, _proposalDataUri, _rateToken, _rateAmount);
     }
 
     /**
@@ -400,10 +324,7 @@ contract ServiceRegistry is AccessControl {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
-        require(
-            proposal.status != ProposalStatus.Validated,
-            "Proposal has already been validated"
-        );
+        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
         require(senderId == service.buyerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Validated;
@@ -423,15 +344,9 @@ contract ServiceRegistry is AccessControl {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
-        require(
-            proposal.status != ProposalStatus.Validated,
-            "Proposal has already been validated"
-        );
+        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
 
-        require(
-            proposal.status != ProposalStatus.Rejected,
-            "Proposal has already been rejected"
-        );
+        require(proposal.status != ProposalStatus.Rejected, "Proposal has already been rejected");
 
         require(senderId == service.buyerId, "You're not the buyer");
 
@@ -449,23 +364,12 @@ contract ServiceRegistry is AccessControl {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
 
         require(service.status == Status.Filled, "Service has already been confirmed");
-        require(
-            senderId == service.buyerId || senderId == service.sellerId,
-            "You're not an actor of this service"
-        );
-        require(
-            senderId != service.initiatorId,
-            "Only the user who didn't initate the service can confirm it"
-        );
+        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
+        require(senderId != service.initiatorId, "Only the user who didn't initate the service can confirm it");
 
         service.status = Status.Confirmed;
 
-        emit ServiceConfirmed(
-            _serviceId,
-            service.buyerId,
-            service.sellerId,
-            service.serviceDataUri
-        );
+        emit ServiceConfirmed(_serviceId, service.buyerId, service.sellerId, service.serviceDataUri);
     }
 
     /**
@@ -504,22 +408,11 @@ contract ServiceRegistry is AccessControl {
     function rejectService(uint256 _serviceId) public {
         Service storage service = services[_serviceId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(
-            senderId == service.buyerId || senderId == service.sellerId,
-            "You're not an actor of this service"
-        );
-        require(
-            service.status == Status.Filled || service.status == Status.Opened,
-            "You can't reject this service"
-        );
+        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
+        require(service.status == Status.Filled || service.status == Status.Opened, "You can't reject this service");
         service.status = Status.Rejected;
 
-        emit ServiceRejected(
-            _serviceId,
-            service.buyerId,
-            service.sellerId,
-            service.serviceDataUri
-        );
+        emit ServiceRejected(_serviceId, service.buyerId, service.sellerId, service.serviceDataUri);
     }
 
     /**
@@ -529,19 +422,11 @@ contract ServiceRegistry is AccessControl {
     function finishService(uint256 _serviceId) public {
         Service storage service = services[_serviceId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(
-            senderId == service.buyerId || senderId == service.sellerId,
-            "You're not an actor of this service"
-        );
+        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
         require(service.status == Status.Confirmed, "You can't finish this service");
         service.status = Status.Finished;
 
-        emit ServiceFinished(
-            _serviceId,
-            service.buyerId,
-            service.sellerId,
-            service.serviceDataUri
-        );
+        emit ServiceFinished(_serviceId, service.buyerId, service.sellerId, service.serviceDataUri);
     }
 
     /**
@@ -558,20 +443,34 @@ contract ServiceRegistry is AccessControl {
             "Service has to be Opened or Rejected"
         );
 
-        require(
-            senderId == service.buyerId,
-            "You're not an buyer of this service"
-        );
+        require(senderId == service.buyerId, "You're not an buyer of this service");
 
-        require(
-            _sellerId != service.buyerId,
-            "Seller and buyer can't be the same"
-        );
+        require(_sellerId != service.buyerId, "Seller and buyer can't be the same");
 
         service.sellerId = _sellerId;
         service.status = Status.Filled;
 
         emit ServiceSellerAssigned(_serviceId, _sellerId, service.status);
+    }
+
+    /**
+     * Update Service URI data
+     * @param _serviceId, Service ID to update
+     * @param _newServiceDataUri New IPFS URI
+     */
+    function updateServiceData(uint256 _serviceId, string calldata _newServiceDataUri) public {
+        Service storage service = services[_serviceId];
+        require(_serviceId < nextServiceId, "This service doesn't exist");
+        require(
+            service.status == Status.Opened || service.status == Status.Filled,
+            "Service status should be opened or filled"
+        );
+        require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can update the service");
+        require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
+
+        service.serviceDataUri = _newServiceDataUri;
+
+        emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
     }
 
     // =========================== Private functions ==============================
@@ -592,14 +491,8 @@ contract ServiceRegistry is AccessControl {
         uint256 _platformId
     ) private returns (uint256) {
         require(_senderId > 0, "You should have a TalentLayerId");
-        require(
-            _sellerId != _buyerId,
-            "Seller and buyer can't be the same"
-        );
-        require(
-            bytes(_serviceDataUri).length > 0,
-            "Should provide a valid IPFS URI"
-        );
+        require(_sellerId != _buyerId, "Seller and buyer can't be the same");
+        require(bytes(_serviceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         uint256 id = nextServiceId;
         nextServiceId++;
@@ -612,18 +505,9 @@ contract ServiceRegistry is AccessControl {
         service.serviceDataUri = _serviceDataUri;
         service.platformId = _platformId;
 
-        emit ServiceCreated(
-            id,
-            _buyerId,
-            _sellerId,
-            _senderId,
-            _platformId
-        );
+        emit ServiceCreated(id, _buyerId, _sellerId, _senderId, _platformId);
 
-        emit ServiceDataCreated(
-            id,
-            _serviceDataUri
-        );
+        emit ServiceDataCreated(id, _serviceDataUri);
 
         return id;
     }
