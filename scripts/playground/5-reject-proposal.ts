@@ -20,6 +20,7 @@ async function main() {
 
   //Alice rejected Bob proposal
   await serviceRegistry.connect(alice).rejectProposal(serviceId, 2)
+  console.log('Alice rejected Bob proposal')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
