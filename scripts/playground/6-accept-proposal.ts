@@ -1,18 +1,18 @@
-import { ethers } from "hardhat";
-import { get, ConfigProperty } from "../../configManager";
-import { Network } from "../config";
-const hre = require("hardhat");
+import { ethers } from 'hardhat'
+import { get, ConfigProperty } from '../../configManager'
+import { Network } from '../config'
+const hre = require('hardhat')
 
 // Alice accept the Carol proposal
 async function main() {
-  const network = await hre.network.name;
-  console.log(network);
+  const network = await hre.network.name
+  console.log(network)
 
-  const [alice, bob, carol, dave] = await ethers.getSigners();
+  const [alice, bob, carol, dave] = await ethers.getSigners()
   const serviceRegistry = await ethers.getContractAt(
-    "ServiceRegistry",
-    get(network as Network, ConfigProperty.ServiceRegistry)
-  );
+    'ServiceRegistry',
+    get(network as Network, ConfigProperty.ServiceRegistry),
+  )
 
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
     "TalentLayerMultipleArbitrableTransaction",
@@ -45,7 +45,7 @@ async function main() {
   await talentLayerMultipleArbitrableTransaction
     .connect(alice)
     .createETHTransaction(
-      3600 * 24 * 7, 
+      3600 * 24 * 7,
       "_metaEvidence",
       serviceId,
       3, //proposalId/talentLayerId of carol.
@@ -56,6 +56,6 @@ async function main() {
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+  console.error(error)
+  process.exitCode = 1
+})
