@@ -95,11 +95,30 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
 
     /**
      * @notice Emitted after a platform withdraws its balance
-     * @param _recipient Whether the payment is a release or a reimbursement.
+     * @param _platformId The Platform ID to which the balance is transferred.
      * @param _token The address of the token used for the payment.
-     * @param _amount The amount withdrawn.
+     * @param _amount The amount transferred.
      */
-    event BalanceTransferred(address _recipient, address _token, uint256 _amount);
+    event BalanceTransferred(uint256 _platformId, address indexed _token, uint256 _amount);
+
+    /**
+     * @notice Emitted after an OriginPlatformFee is released to a platform's balance
+     * @param _platformId The platform ID.
+     * @param _serviceId The related service ID.
+     * @param _token The address of the token used for the payment.
+     * @param _amount The amount released.
+     */
+    event OriginPlatformFeeReleased(uint256 _platformId,uint256 _serviceId, address indexed _token, uint256 _amount);
+
+    /**
+     * @notice Emitted after a PlatformFee is released to a platform's balance
+     * @param _platformId The platform ID.
+     * @param _serviceId The related service ID.
+     * @param _token The address of the token used for the payment.
+     * @param _amount The amount released.
+     */
+    event PlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
+
 
     // =========================== Declarations ==============================
 
@@ -182,8 +201,9 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     /**
      * @dev Only the owner of the platform ID can execute this function
      * @param _token Token address ("0" for ETH)
+     * @return balance The balance of the platform
      */
-    function getTokenBalance(address _token) external view returns (uint256) {
+    function getTokenBalance(address _token) external view returns (uint256 balance) {
         if (owner() == msg.sender) {
             return platformIdToTokenToBalance[0][_token];
         } else {
@@ -197,8 +217,9 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @notice Get the transaction details
      * @dev Only the transaction sender or receiver can call this function
      * @param _transactionId Id of the transaction
+     * @return transaction The transaction details
      */
-    function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory) {
+    function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory transaction) {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
         require(msg.sender == transaction.sender || msg.sender == transaction.receiver,
@@ -270,7 +291,6 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
                 (proposal.rateAmount * platformFeePerTenThousand)
             ) / 10000
         );
-
         require(msg.sender == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
@@ -335,7 +355,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
 
     /**
      * @notice Allows the sender to release locked-in escrow value to the intended recipient.
-     * The amount released must not include the fees.
+     *         The amount released must not include the fees.
      * @param _transactionId Id of the transaction to release escrow value for.
      * @param _amount Value to be released without fees. Should not be more than amount locked in.
      */
@@ -385,6 +405,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @notice Allows the platform to claim its tokens & / or ETH balance.
      * @param _platformId The ID of the platform claiming the balance.
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
+     * Emits a BalanceTransferred event
      */
     function claim(uint256 _platformId, address _tokenAddress) external {
         address payable recipient;
@@ -401,6 +422,8 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         uint256 amount = platformIdToTokenToBalance[_platformId][_tokenAddress];
         platformIdToTokenToBalance[_platformId][_tokenAddress] = 0;
         _transferBalance(recipient, _tokenAddress, amount);
+
+        emit BalanceTransferred(_platformId, _tokenAddress, amount);
     }
 
     /**
@@ -481,25 +504,26 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         uint256 originPlatformId = talentLayerIdContract.getProfile(talentLayerIdContract.walletOfOwner(_transaction.receiver)).platformId;
         //Platform which originated the service
         uint256 platformId = service.platformId;
+        uint256 protocolFeeAmount = (_transaction.protocolFee * _releaseAmount) / 10000;
+        uint256 originPlatformFeeAmount = (_transaction.originPlatformFee * _releaseAmount) / 10000;
+        uint256 platformFeeAmount = (_transaction.platformFee * _releaseAmount) / 10000;
 
         if (_transaction.token == address(0)) {
             payable(_transaction.receiver).transfer(_releaseAmount);
-
-            //Index zero represents protocol's balance
-            platformIdToTokenToBalance[0][address(0)] += (_transaction.protocolFee * _releaseAmount) / 10000;
-            platformIdToTokenToBalance[originPlatformId][address(0)] += (_transaction.originPlatformFee * _releaseAmount) / 10000;
-            platformIdToTokenToBalance[platformId][address(0)] += (_transaction.platformFee * _releaseAmount) / 10000;
-
         } else {
             require(
                 IERC20(_transaction.token).transfer(_transaction.receiver, _releaseAmount),
                 "Transfer must not fail"
             );
-
-            platformIdToTokenToBalance[0][_transaction.token] += (_transaction.protocolFee * _releaseAmount) / 10000;
-            platformIdToTokenToBalance[originPlatformId][_transaction.token] += (_transaction.originPlatformFee * _releaseAmount) / 10000;
-            platformIdToTokenToBalance[platformId][_transaction.token] += (_transaction.platformFee * _releaseAmount) / 10000;
         }
+            //Index zero represents protocol's balance
+            platformIdToTokenToBalance[0][_transaction.token] += protocolFeeAmount;
+            platformIdToTokenToBalance[originPlatformId][_transaction.token] += originPlatformFeeAmount;
+            platformIdToTokenToBalance[platformId][_transaction.token] += platformFeeAmount;
+
+
+        emit OriginPlatformFeeReleased(originPlatformId, _transaction.serviceId, _transaction.token, originPlatformFeeAmount);
+        emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformFeeAmount);
     }
 
     /**
@@ -589,14 +613,10 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _amount The amount to transfer
      */
     function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
-        bool test = address(0) == _tokenAddress;
         if (address(0) == _tokenAddress) {
         payable (_recipient).transfer(_amount);
         } else {
-            uint256 balance = IERC20(_tokenAddress).balanceOf(address(this));
-            uint256 allowance = IERC20(_tokenAddress).allowance(address(this), _recipient);
             IERC20(_tokenAddress).transfer(_recipient, _amount);
         }
-        emit BalanceTransferred(_recipient, _tokenAddress, _amount);
     }
 }

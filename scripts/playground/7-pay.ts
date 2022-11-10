@@ -3,12 +3,12 @@ import { get, ConfigProperty } from "../../configManager";
 import { Network } from "../config";
 const hre = require("hardhat");
 
-// Then Alice create a service, and others add proposals
+// Then Alice releases 3/4 of the escrow & Carol reimburses the remaining 1/4 to Alice
 async function main() {
   const network = await hre.network.name;
   console.log(network);
 
-  const [alice] = await ethers.getSigners();
+  const [alice, bob, carol, dave] = await ethers.getSigners();
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
     "TalentLayerMultipleArbitrableTransaction",
     get(
@@ -16,9 +16,11 @@ async function main() {
       ConfigProperty.TalentLayerMultipleArbitrableTransaction
     )
   );
+  const rateAmount = 20000000000000;
 
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, 140);
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, 60);
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount/2);
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount/4);
+  await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount/4);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
