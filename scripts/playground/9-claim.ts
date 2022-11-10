@@ -21,15 +21,12 @@ async function main() {
 
   const rateToken = "0x0000000000000000000000000000000000000000";
   const davePlatformId = await platformIdContrat.connect(dave).getPlatformIdFromAddress(dave.address);
-  console.log("davePlatformId", davePlatformId.toString());
 
-  let balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getTokenBalance(rateToken);
-  console.log("balance before ", balance.toString());
+  // let balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getTokenBalance(rateToken);
+  // console.log("balance before ", balance.toString());
   await talentLayerMultipleArbitrableTransaction.connect(dave).claim(davePlatformId, rateToken);
-  balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getTokenBalance(rateToken);
-  console.log("balance after ", balance.toString());
-
-
+  // balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getTokenBalance(rateToken);
+  // console.log("balance after ", balance.toString());
 }
 
 // We recommend this pattern to be able to use async/await everywhere

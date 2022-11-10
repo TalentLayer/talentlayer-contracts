@@ -644,9 +644,10 @@ describe('TalentLayer', function () {
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
-        //When asking for the reimbursement of a fee-less amount,
-        //we expect the amount reimbursed to include all fees (calculated by the function,
-        //hence the 'totalAmount / 4' expected.
+        /* When asking for the reimbursement of a fee-less amount,
+         * we expect the amount reimbursed to include all fees (calculated by the function,
+         * hence the 'totalAmount / 4' expected.
+         */
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
@@ -851,9 +852,10 @@ describe('TalentLayer', function () {
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
-        //When asking for the reimbursement of a fee-less amount,
-        //we expect the amount reimbursed to include all fees (calculated by the function,
-        //hence the 'totalAmount / 4' expected.
+        /* When asking for the reimbursement of a fee-less amount,
+         * we expect the amount reimbursed to include all fees (calculated by the function,
+         * hence the 'totalAmount / 4' expected.
+         */
         await expect(transaction).to.changeEtherBalances(
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
           [-totalAmount / 4, totalAmount / 4, 0],
