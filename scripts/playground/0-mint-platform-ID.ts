@@ -16,8 +16,10 @@ async function main() {
   )
 
   const mintRole = await platformIdContrat.MINT_ROLE()
-  await platformIdContrat.connect(alice).grantRole(mintRole, dave.address)
-  await platformIdContrat.connect(dave).mint('HireVibes')
+  const grantRole = await platformIdContrat.connect(alice).grantRole(mintRole, dave.address)
+  await grantRole.wait()
+  const mint = await platformIdContrat.connect(dave).mint('HireVibes')
+  await mint.wait()
 
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
   console.log('Alice talentLayerIdPLatform', daveTalentLayerIdPLatform)
