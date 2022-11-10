@@ -23,7 +23,7 @@ async function main() {
   //Bob update his proposal
   await serviceRegistry
     .connect(bob)
-    .updateProposal(serviceId, rateTokenBob, 100, "ipfs://bobUpdateProposal");
+    .updateProposal(serviceId, rateTokenBob, 1000000000000000, "ipfs://bobUpdateProposal");
 }
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

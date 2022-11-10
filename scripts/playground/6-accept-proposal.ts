@@ -21,13 +21,26 @@ async function main() {
       ConfigProperty.TalentLayerMultipleArbitrableTransaction
     )
   );
-  // const rateToken = "0x0000000000000000000000000000000000000000";
-  const rateAmount = 200;
-  const adminFeeAmount = 10;
 
+  const platformIdContrat = await ethers.getContractAt(
+    'TalentLayerPlatformID',
+    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+  )
+
+  // const rateToken = "0x0000000000000000000000000000000000000000";
   let serviceId = await serviceRegistry.nextServiceId();
   serviceId = serviceId.sub(1);
   console.log("serviceId", serviceId.toString());
+
+  const rateAmount = 20000000000000;
+  const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address);
+  await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100);
+  const davePlatformData = await platformIdContrat.platforms(daveTlId);
+  const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFeePerTenThousand();
+  const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFeePerTenThousand();
+  const platformFee = davePlatformData.fee;
+
+  const totalAmount = rateAmount + (rateAmount * (protocolFee + originPlatformFee + platformFee) / 10000)
 
   await talentLayerMultipleArbitrableTransaction
     .connect(alice)
@@ -36,7 +49,7 @@ async function main() {
       "_metaEvidence",
       serviceId,
       3, //proposalId/talentLayerId of carol.
-      { value: rateAmount + adminFeeAmount }
+      { value: totalAmount }
     );
 }
 
