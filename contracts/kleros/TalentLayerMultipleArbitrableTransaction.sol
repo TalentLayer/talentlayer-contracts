@@ -214,7 +214,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     }
 
     /**
-     * @notice Get the transaction details
+     * @notice Called to get the details of a transaction
      * @dev Only the transaction sender or receiver can call this function
      * @param _transactionId Id of the transaction
      * @return transaction The transaction details
@@ -331,11 +331,11 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         uint16 platformFeePerTenThousand = talentLayerPlatformIdContract.getPlatformFeeFromId(service.platformId);
 
         uint256 transactionAmount = proposal.rateAmount + (
-        (
-        (proposal.rateAmount * protocolFeePerTenThousand) +
-        (proposal.rateAmount * originPlatformFeePerTenThousand) +
-        (proposal.rateAmount * platformFeePerTenThousand)
-        ) / 10000
+            (
+                (proposal.rateAmount * protocolFeePerTenThousand) +
+                (proposal.rateAmount * originPlatformFeePerTenThousand) +
+                (proposal.rateAmount * platformFeePerTenThousand)
+            ) / 10000
         );
 
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
@@ -379,7 +379,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
 
     /**
      * @notice Allows the intended receiver to return locked-in escrow value back to the sender.
-     * The amount reimbursed must not include the fees.
+     *         The amount reimbursed must not include the fees.
      * @param _transactionId Id of the transaction to reimburse escrow value for.
      * @param _amount Value to be reimbursed without fees. Should not be more than amount locked in.
      */
@@ -402,7 +402,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     }
 
     /**
-     * @notice Allows the platform to claim its tokens & / or ETH balance.
+     * @notice Allows a platform owner to claim its tokens & / or ETH balance.
      * @param _platformId The ID of the platform claiming the balance.
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
      * Emits a BalanceTransferred event
@@ -458,15 +458,15 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     ) private returns (uint256){
         transactions.push(
             Transaction({
-        sender : _sender,
-        receiver : _receiver,
-        token : _token,
-        amount : _amount,
-        serviceId : _serviceId,
-        protocolFee : protocolFeePerTenThousand,
-        originPlatformFee : originPlatformFeePerTenThousand,
-        platformFee : _platformFeePerTenThousand
-        })
+                sender: _sender,
+                receiver: _receiver,
+                token: _token,
+                amount: _amount,
+                serviceId: _serviceId,
+                protocolFee: protocolFeePerTenThousand,
+                originPlatformFee: originPlatformFeePerTenThousand,
+                platformFee: _platformFeePerTenThousand
+            })
         );
         return transactions.length - 1;
     }
@@ -529,7 +529,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     /**
      * @notice Used to reimburse part of the escrow payment to the buyer.
      * @dev If token payment, need token approval for the transfer of _releaseAmount before executing this function.
-     * @dev The amount reimbursed must not include the fees, they will be automatically calculated and reimbursed to the buyer.
+     *      The amount reimbursed must not include the fees, they will be automatically calculated and reimbursed to the buyer.
      * @param _transaction The transaction
      * @param _releaseAmount The amount to reimburse without fees
      */
@@ -547,7 +547,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     }
 
     /**
-     * @notice Used to trigger "afterFullPayment" function & emit "PaymentCompleted" event if payment is complete.
+     * @notice Used to trigger "afterFullPayment" function & emit "PaymentCompleted" event if applicable.
      * @param _serviceId The id of the service
      * @param _amount The amount of the transaction
      */
@@ -607,7 +607,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     }
 
     /**
-     * @notice Used to transfer the token or ETH balance from the escrow contract to a recipient address.
+     * @notice Used to transfer the token or ETH balance from the escrow contract to a recipient's address.
      * @param _recipient The address to transfer the balance to
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
