@@ -14,48 +14,87 @@ import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
+/**
+ * @title TalentLayer Review Contract
+ * @author TalentLayer Team
+ */
 contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     using Address for address;
     using Strings for uint256;
 
-    // Token name
+    /**
+     * @notice Token name
+     */
     string private _name;
 
-    // Token symbol
+    /**
+     * @notice Token symbol
+     */
     string private _symbol;
 
+    /**
+     * @notice Number of review tokens
+     */
     uint256 public _totalSupply = 0;
 
-    // Mapping from token ID to owner address
-    mapping(uint256 => uint256) private _owners;
+    /**
+     * @notice Mapping from Review ID to owner address
+     */
+    mapping(uint256 => uint256) private _reviewIdToOwnerAddress;
 
-    // Mapping owner address to token count
-    mapping(uint256 => uint256) private _balances;
+    /**
+     * @notice Mapping owner TalentLayer ID to token count
+     */
+    mapping(uint256 => uint256) private _talentLayerIdToReviewCount;
 
-    // Mapping from token ID to approved address
-    mapping(uint256 => address) private _tokenApprovals;
-
-    // Mapping from owner to operator approvals
-    mapping(address => mapping(address => bool)) private _operatorApprovals;
-
-    /// Token ID to IPFS URI mapping
+    /**
+     * @notice Mapping from Review Token ID to IPFS URI mapping
+     */
     mapping(uint256 => string) public reviewDataUri;
 
-    // Mapping to save NFT minted for a serviceId and buyerId
-    mapping(uint256 => uint256) public nftMintedByServiceAndbuyerId;
+    /**
+     * @notice Mapping to record whether a review token was minted buy the buyer for a serviceId
+     */
+    mapping(uint256 => uint256) public nftMintedByServiceAndBuyerId;
 
-    // Mapping to save NFT minted for a serviceId and sellerId
-    mapping(uint256 => uint256) public nftMintedByServiceAndsellerId;
+    /**
+     * @notice Mapping to record whether a review token was minted buy the seller for a serviceId
+     */
+    mapping(uint256 => uint256) public nftMintedByServiceAndSellerId;
 
-    // Mapping from Review ID to Platform ID
+    /**
+     * @notice Mapping from Review ID to Platform ID
+     */
     mapping(uint256 => uint256) public reviewIdToPlatformId;
 
+    /**
+     * @notice Mapping from review token ID to approved address
+     */
+    mapping(uint256 => address) private _tokenApprovals;
+
+    /**
+     * @notice Mapping from owner to operator approvals
+     */
+    mapping(address => mapping(address => bool)) private _operatorApprovals;
+
+    /**
+     * @notice Error thrown when caller already minted a review
+     */
     error ReviewAlreadyMinted();
 
+    /**
+     * @notice TalentLayer contract instance
+     */
     ITalentLayerID private tlId;
+
+    /**
+     * @notice Service registry
+     */
     IServiceRegistry private serviceRegistry;
 
-    /// TalentLayer Platform ID registry
+    /**
+     * @notice TalentLayer Platform ID registry
+     */
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
     constructor(
@@ -72,283 +111,18 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC165, IERC165)
-        returns (bool)
-    {
-        return
-            interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
-            super.supportsInterface(interfaceId);
-    }
+    // =========================== View functions ==============================
 
-    function balanceOf(address owner)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
-        require(
-            owner != address(0),
-            "TalentLayerReview: token zero is not a valid owner"
-        );
+    // =========================== User functions ==============================
 
-        return _balances[tlId.walletOfOwner(owner)];
-    }
-
-    function ownerOf(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (address)
-    {
-        address owner = tlId.ownerOf(_owners[tokenId]);
-        require(owner != address(0), "TalentLayerReview: invalid token ID");
-        return owner;
-    }
-
-    function name() public view virtual override returns (string memory) {
-        return _name;
-    }
-
-    function symbol() public view virtual override returns (string memory) {
-        return _symbol;
-    }
-
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
-        _requireMinted(tokenId);
-
-        string memory baseURI = _baseURI();
-        return
-            bytes(baseURI).length > 0
-                ? string(abi.encodePacked(baseURI, tokenId.toString()))
-                : "";
-    }
-
-    function _baseURI() internal view virtual returns (string memory) {
-        return "";
-    }
-
-    function approve(address to, uint256 tokenId) public virtual override {
-        address owner = TalentLayerReview.ownerOf(tokenId);
-        require(to != owner, "TalentLayerReview: approval to current owner");
-
-        require(
-            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-            "TalentLayerReview: approve caller is not token owner nor approved for all"
-        );
-
-        _approve(to, tokenId);
-    }
-
-    function getApproved(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (address)
-    {
-        _requireMinted(tokenId);
-
-        return _tokenApprovals[tokenId];
-    }
-
-    function setApprovalForAll(address operator, bool approved)
-        public
-        virtual
-        override
-    {
-        _setApprovalForAll(_msgSender(), operator, approved);
-    }
-
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
-        return _operatorApprovals[owner][operator];
-    }
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
-        //solhint-disable-next-line max-line-length
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "TalentLayerReview: caller is not token owner nor approved"
-        );
-
-        _transfer(from, to, tokenId);
-    }
-
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
-        safeTransferFrom(from, to, tokenId, "");
-    }
-
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) public virtual override {
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "TalentLayerReview: caller is not token owner nor approved"
-        );
-        _safeTransfer(from, to, tokenId, data);
-    }
-
-    function _safeTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) internal virtual {
-        _transfer(from, to, tokenId);
-        require(
-            _checkOnERC721Received(from, to, tokenId, data),
-            "TalentLayerReview: transfer to non ERC721Receiver implementer"
-        );
-    }
-
-    function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return _owners[tokenId] != 0;
-    }
-
-    function _isApprovedOrOwner(address spender, uint256 tokenId)
-        internal
-        view
-        virtual
-        returns (bool)
-    {
-        address owner = TalentLayerReview.ownerOf(tokenId);
-        return (spender == owner ||
-            isApprovedForAll(owner, spender) ||
-            getApproved(tokenId) == spender);
-    }
-
-    function _mint(
-        uint256 serviceId,
-        uint256 to,
-        uint256 _rating,
-        string calldata reviewUri,
-        uint256 _platformId
-    ) internal virtual {
-        require(to != 0, "TalentLayerReview: mint to invalid address");
-        require(
-            _rating <= 5 && _rating >= 0,
-            "TalentLayerReview: invalid rating"
-        );
-
-        _balances[to] += 1;
-        _owners[_totalSupply] = to;
-        reviewDataUri[_totalSupply] = reviewUri;
-        reviewIdToPlatformId[_totalSupply] = _platformId;
-        _totalSupply = _totalSupply + 1;
-
-        emit Mint(serviceId, to, _totalSupply, _rating, reviewUri, _platformId);
-    }
-
-    function _burn(uint256 tokenId) internal virtual {}
-
-    function _transfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
-
-    function _approve(address to, uint256 tokenId) internal virtual {
-        _tokenApprovals[tokenId] = to;
-        emit Approval(TalentLayerReview.ownerOf(tokenId), to, tokenId);
-    }
-
-    function _setApprovalForAll(
-        address owner,
-        address operator,
-        bool approved
-    ) internal virtual {
-        require(owner != operator, "TalentLayerReview: approve to caller");
-        _operatorApprovals[owner][operator] = approved;
-        emit ApprovalForAll(owner, operator, approved);
-    }
-
-    function _requireMinted(uint256 tokenId) internal view virtual {
-        require(_exists(tokenId), "TalentLayerReview: invalid token ID");
-    }
-
-    function _checkOnERC721Received(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) private returns (bool) {
-        if (to.isContract()) {
-            try
-                IERC721Receiver(to).onERC721Received(
-                    _msgSender(),
-                    from,
-                    tokenId,
-                    data
-                )
-            returns (bytes4 retval) {
-                return retval == IERC721Receiver.onERC721Received.selector;
-            } catch (bytes memory reason) {
-                if (reason.length == 0) {
-                    revert(
-                        "TalentLayerReview: transfer to non ERC721Receiver implementer"
-                    );
-                } else {
-                    /// @solidity memory-safe-assembly
-                    assembly {
-                        revert(add(32, reason), mload(reason))
-                    }
-                }
-            }
-        } else {
-            return true;
-        }
-    }
-
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
-
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
-
-    event Mint(
-        uint256 indexed _serviceId,
-        uint256 indexed _toId,
-        uint256 indexed _tokenId,
-        uint256 _rating,
-        string _reviewUri,
-        uint256 _platformId
-    );
-
+    /**
+     * @notice Called to mint a review token for a completed service
+     * @dev Only one review can be minted per user
+     * @param _serviceId Service ID
+     * @param _reviewUri The IPFS URI of the review
+     * @param _rating The review rate
+     * @param _platformId The platform ID
+     */
     function addReview(
         uint256 _serviceId,
         string calldata _reviewUri,
@@ -370,20 +144,409 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 toId;
         if (senderId == service.buyerId) {
             toId = service.sellerId;
-            if (nftMintedByServiceAndbuyerId[_serviceId] == senderId) {
+            if (nftMintedByServiceAndBuyerId[_serviceId] == senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndbuyerId[_serviceId] = senderId;
+                nftMintedByServiceAndBuyerId[_serviceId] = senderId;
             }
         } else {
             toId = service.buyerId;
-            if (nftMintedByServiceAndsellerId[_serviceId] == senderId) {
+            if (nftMintedByServiceAndSellerId[_serviceId] == senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndsellerId[_serviceId] = senderId;
+                nftMintedByServiceAndSellerId[_serviceId] = senderId;
             }
         }
 
         _mint(_serviceId, toId, _rating, _reviewUri, _platformId);
     }
+
+    // =========================== Private functions ===========================
+
+    /**
+     * @notice Called after each safe transfer to verify whether the recipient received the token
+     * @param _from The address of the sender
+     * @param _to The address of the recipient
+     * @param _tokenId The ID of the review token
+     * @param _data Additional data with no specified format
+     */
+    function _checkOnERC721Received(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes memory _data
+    ) private returns (bool) {
+        if (_to.isContract()) {
+            try
+            IERC721Receiver(_to).onERC721Received(
+                _msgSender(),
+                _from,
+                _tokenId,
+                _data
+            )
+            returns (bytes4 retval) {
+                return retval == IERC721Receiver.onERC721Received.selector;
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    revert(
+                    "TalentLayerReview: transfer to non ERC721Receiver implementer"
+                    );
+                } else {
+                    /// @solidity memory-safe-assembly
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
+        } else {
+            return true;
+        }
+    }
+
+    // =========================== Internal functions ==========================
+
+    /**
+     * @dev Override to block this function
+     */
+    function _baseURI() internal view virtual returns (string memory) {
+        return "";
+    }
+
+    /**
+     * @dev Transfers a token from one owner to another
+     * @param _from The address of the sender
+     * @param _to The address of the recipient
+     * @param _tokenId The ID of the review token
+     * @param _data Additional data with no specified format
+     */
+    function _safeTransfer(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes memory _data
+    ) internal virtual {
+        _transfer(_from, _to, _tokenId);
+        require(
+            _checkOnERC721Received(_from, _to, _tokenId, _data),
+            "TalentLayerReview: transfer to non ERC721Receiver implementer"
+        );
+    }
+
+    /**
+     * @dev CHeck whether a review token exists
+     * @param _tokenId The ID of the review token
+     */
+    function _exists(uint256 _tokenId) internal view virtual returns (bool) {
+        return _reviewIdToOwnerAddress[_tokenId] != 0;
+    }
+
+    /**
+     * @dev Checks whether an operator the owner of a token or whether he is approved
+      to perform operations on behalf of a user
+     * @param _spender The address of the operator
+     * @param _tokenId The ID of the review token
+     */
+    function _isApprovedOrOwner(
+        address _spender,
+        uint256 _tokenId
+    ) internal view virtual returns (bool) {
+        address owner = TalentLayerReview.ownerOf(_tokenId);
+        return (_spender == owner ||
+        isApprovedForAll(owner, _spender) ||
+        getApproved(_tokenId) == _spender);
+    }
+
+    /**
+     * @dev Mints a review token
+     * @param _serviceId The ID of the service linked to the review
+     * @param _to The address of the recipient
+     * @param _rating The review rate
+     * @param _reviewUri The IPFS URI of the review
+     * @param _platformId The platform ID
+     * Emits a "Mint" event
+     */
+    function _mint(
+        uint256 _serviceId,
+        uint256 _to,
+        uint256 _rating,
+        string calldata _reviewUri,
+        uint256 _platformId
+    ) internal virtual {
+        require(_to != 0, "TalentLayerReview: mint to invalid address");
+        require(
+            _rating <= 5 && _rating >= 0,
+            "TalentLayerReview: invalid rating"
+        );
+
+        _talentLayerIdToReviewCount[_to] += 1;
+        _reviewIdToOwnerAddress[_totalSupply] = _to;
+        reviewDataUri[_totalSupply] = _reviewUri;
+        reviewIdToPlatformId[_totalSupply] = _platformId;
+        _totalSupply = _totalSupply + 1;
+
+        emit Mint(_serviceId, _to, _totalSupply, _rating, _reviewUri, _platformId);
+    }
+
+    /**
+     * @dev Blocks the burn functionburn
+     * @param _tokenId The ID of the review token
+     */
+    function _burn(uint256 _tokenId) internal virtual {}
+
+    /**
+     * @dev Bocks the transfer function to restrict the use to only safe transfer
+     * @param _from The address of the sender
+     * @param _to The address of the recipient
+     * @param _tokenId The ID of the review token
+     */
+    function _transfer(
+        address _from,
+        address _to,
+        uint256 _tokenId
+    ) internal virtual {}
+
+    /**
+     * @dev Approves an operator to perform operations on a token
+     * @param _to The address of the operator
+     * @param _tokenId The ID of the review token
+     */
+    function _approve(address _to, uint256 _tokenId) internal virtual {
+        _tokenApprovals[_tokenId] = _to;
+        emit Approval(TalentLayerReview.ownerOf(_tokenId), _to, _tokenId);
+    }
+
+    /**
+     * @dev Gives the approval to an operator to perform operations on behalf of a user
+     * @param _owner The user
+     * @param _operator The operator
+     * @param _approved The approval status
+     */
+    function _setApprovalForAll(
+        address _owner,
+        address _operator,
+        bool _approved
+    ) internal virtual {
+        require(_owner != _operator, "TalentLayerReview: approve to caller");
+        _operatorApprovals[_owner][_operator] = _approved;
+        emit ApprovalForAll(_owner, _operator, _approved);
+    }
+
+    /**
+     * @dev Unused hook.
+     */
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual {}
+
+    /**
+     * @dev Unused hook.
+     */
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual {}
+
+
+    // =========================== External functions ==========================
+
+    // =========================== Overrides ===================================
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC165, IERC165) returns(bool) {
+        return
+        interfaceId == type(IERC721).interfaceId ||
+        interfaceId == type(IERC721Metadata).interfaceId ||
+        super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @dev See {IER721A-balanceOf}.
+     */
+    function balanceOf(address owner) public view virtual override returns(uint256)
+    {
+        require(
+            owner != address(0),
+            "TalentLayerReview: token zero is not a valid owner"
+        );
+
+        return _talentLayerIdToReviewCount[tlId.walletOfOwner(owner)];
+    }
+
+    /**
+     * @dev See {IER721A-ownerOf}.
+     */
+    function ownerOf(uint256 tokenId) public view virtual override returns(address)
+    {
+        address owner = tlId.ownerOf(_reviewIdToOwnerAddress[tokenId]);
+        require(owner != address(0), "TalentLayerReview: invalid token ID");
+        return owner;
+    }
+
+    /**
+     * @dev See {IER721A-name}.
+     */
+    function name() public view virtual override returns (string memory) {
+        return _name;
+    }
+
+    /**
+     * @dev See {IER721A-symbol}.
+     */
+    function symbol() public view virtual override returns (string memory) {
+        return _symbol;
+    }
+
+    /**
+     * @dev See {IER721A-tokenUri}.
+     */
+    function tokenURI(uint256 tokenId) RequireMinted(tokenId)
+    public
+    view
+    virtual
+    override
+    returns(string memory)
+    {
+
+        string memory baseURI = _baseURI();
+        return
+        bytes(baseURI).length > 0
+        ? string(abi.encodePacked(baseURI, tokenId.toString()))
+        : "";
+    }
+
+    /**
+     * @dev See {IER721A-approve}.
+     */
+    function approve(address to, uint256 tokenId) public virtual override {
+        address owner = TalentLayerReview.ownerOf(tokenId);
+        require(to != owner, "TalentLayerReview: approval to current owner");
+
+        require(
+            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
+            "TalentLayerReview: approve caller is not token owner nor approved for all"
+        );
+
+        _approve(to, tokenId);
+    }
+
+    /**
+     * @dev See {IER721A-getApproved}.
+     */
+    function getApproved(uint256 _tokenId) RequireMinted(_tokenId)
+    public
+    view
+    virtual
+    override
+    returns(address)
+    {
+        return _tokenApprovals[_tokenId];
+    }
+
+    /**
+     * @dev See {IER721A-setApprovedForAll}.
+     */
+    function setApprovalForAll(address operator, bool approved)
+    public
+    virtual
+    override
+    {
+        _setApprovalForAll(_msgSender(), operator, approved);
+    }
+
+    /**
+     * @dev See {IER721A-isApprovedForAll}.
+     */
+    function isApprovedForAll(address owner, address operator)
+    public
+    view
+    virtual
+    override
+    returns (bool)
+    {
+        return _operatorApprovals[owner][operator];
+    }
+
+    /**
+     * @dev See {IER721A-transferFrom}.
+     */
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override {
+        //solhint-disable-next-line max-line-length
+        require(
+            _isApprovedOrOwner(_msgSender(), tokenId),
+            "TalentLayerReview: caller is not token owner nor approved"
+        );
+
+        _transfer(from, to, tokenId);
+    }
+
+    /**
+     * @dev See {IER721A-safeTransferFrom}.
+     */
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override {
+        safeTransferFrom(from, to, tokenId, "");
+    }
+
+    /**
+     * @dev See {IER721A-safeTransferFrom}.
+     */
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) public virtual override {
+        require(
+            _isApprovedOrOwner(_msgSender(), tokenId),
+            "TalentLayerReview: caller is not token owner nor approved"
+        );
+        _safeTransfer(from, to, tokenId, data);
+    }
+
+
+    // =========================== Modifiers ===================================
+
+    /**
+     * @dev Throws an error if _tokenId does not exist
+     * @param _tokenId The ID of the review token
+     */
+    modifier RequireMinted(uint256 _tokenId) {
+        _;
+        require(_exists(_tokenId), "TalentLayerReview: invalid token ID");
+    }
+
+    // =========================== Events ======================================
+
+    /**
+     * @dev Emitted after a review token is minted
+     * @param _serviceId The ID of the service
+     * @param _toId The TalentLayer Id of the recipient
+     * @param _tokenId The ID of the review token
+     * @param _rating The rating of the review
+     * @param _reviewUri The IPFS URI of the review metadata
+     * @param _platformId The ID of the platform
+     */
+    event Mint(
+        uint256 indexed _serviceId,
+        uint256 indexed _toId,
+        uint256 indexed _tokenId,
+        uint256 _rating,
+        string _reviewUri,
+        uint256 _platformId
+    );
+
 }
