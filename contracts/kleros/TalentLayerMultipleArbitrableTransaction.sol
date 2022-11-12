@@ -31,9 +31,9 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param token The token used for the transaction
      * @param amount The amount of the transaction EXCLUDING FEES
      * @param serviceId The ID of the associated service
-     * @param protocolFee The fee paid to the protocol's owner
-     * @param originPlatformFee The fee paid to the platform who onboarded the user
-     * @param platformFee The fee paid to the platform on which the transaction was created
+     * @param protocolFee The %fee (per ten thousands) paid to the protocol's owner
+     * @param originPlatformFee The %fee (per ten thousands) paid to the platform who onboarded the user
+     * @param platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
      */
     struct Transaction {
         address sender;
@@ -80,7 +80,6 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      */
     event PaymentCompleted(uint256 _serviceId);
 
-    //TODO Are these events useful ?
     /**
      * @notice Emitted after the protocol fee was updated
      * @param _protocolFee The new protocol fee
@@ -99,7 +98,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _token The address of the token used for the payment.
      * @param _amount The amount transferred.
      */
-    event BalanceTransferred(uint256 _platformId, address indexed _token, uint256 _amount);
+    event FeesClaimed(uint256 _platformId, address indexed _token, uint256 _amount);
 
     /**
      * @notice Emitted after an OriginPlatformFee is released to a platform's balance
@@ -123,12 +122,21 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     // =========================== Declarations ==============================
 
     /**
+     * @notice The index of the protocol in the "platformIdToTokenToBalance" mapping
+     */
+    uint8 private constant PROTOCOL_INDEX = 0;
+    uint16 private constant FEE_DIVIDER = 10000;
+
+
+    /**
      * @notice Transactions stored in array with index = id
      */
     Transaction[] private transactions;
 
     /**
      * @notice Mapping from platformId to Token address to Token Balance
+     *         Represents the amount of ETH or token present on this contract which
+     *         belongs to a platform and can be withdrawn.
      * @dev Id 0 is reserved to the protocol balance & address(0) to ETH balance
      */
     mapping(uint256 => mapping(address => uint256)) private platformIdToTokenToBalance;
@@ -151,15 +159,15 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     /**
      * @notice Percentage paid to the protocol (per 10,000, upgradable)
      */
-    uint16 public protocolFeePerTenThousand;
+    uint16 public protocolFee;
 
     /**
      * @notice Percentage paid to the platform who onboarded the user (per 10,000, upgradable)
      */
-    uint16 public originPlatformFeePerTenThousand;
+    uint16 public originPlatformFee;
 
     /**
-     * @notice Wallet which will receive the protocol fees
+     * @notice (Upgradable) Wallet which will receive the protocol fees
      */
     address payable private protocolWallet;
 
@@ -185,27 +193,32 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
-        protocolFeePerTenThousand = 100;
-        originPlatformFeePerTenThousand = 200;
+        protocolFee = 100;
+        originPlatformFee = 200;
         protocolWallet = payable(owner());
         // arbitrator = _arbitrator;
         // arbitratorExtraData = _arbitratorExtraData;
         // feeTimeout = _feeTimeout;
-
-        emit ProtocolFeeUpdated(protocolFeePerTenThousand);
-        emit OriginPlatformFeeUpdated(originPlatformFeePerTenThousand);
     }
 
     // =========================== View functions ==============================
+
+    /**
+     * @dev Only the owner can execute this function
+     * @return protocolWallet - The Protocol wallet
+     */
+    function getProtocolWallet() external view onlyOwner returns (address) {
+        return protocolWallet;
+    }
 
     /**
      * @dev Only the owner of the platform ID can execute this function
      * @param _token Token address ("0" for ETH)
      * @return balance The balance of the platform
      */
-    function getTokenBalance(address _token) external view returns (uint256 balance) {
+    function getClaimableFeeBalance(address _token) external view returns (uint256 balance) {
         if (owner() == msg.sender) {
-            return platformIdToTokenToBalance[0][_token];
+            return platformIdToTokenToBalance[PROTOCOL_INDEX][_token];
         } else {
             uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(msg.sender);
             talentLayerPlatformIdContract.isValid(platformId);
@@ -236,7 +249,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _protocolFee The new protocol fee
      */
     function updateProtocolFee(uint16 _protocolFee) external onlyOwner {
-        protocolFeePerTenThousand = _protocolFee;
+        protocolFee = _protocolFee;
         emit ProtocolFeeUpdated(_protocolFee);
     }
 
@@ -246,7 +259,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _originPlatformFee The new origin platform fee
      */
     function updateOriginPlatformFee(uint16 _originPlatformFee) external onlyOwner {
-        originPlatformFeePerTenThousand = _originPlatformFee;
+        originPlatformFee = _originPlatformFee;
         emit OriginPlatformFeeUpdated(_originPlatformFee);
     }
 
@@ -281,16 +294,12 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         address receiver;
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
-        uint16 platformFeePerTenThousand = talentLayerPlatformIdContract.getPlatformFeeFromId(service.platformId);
+        // PlatformFee is per ten thousands
+        uint16 platformFee = talentLayerPlatformIdContract.getPlatformFee(service.platformId);
 
 
-        uint256 transactionAmount = proposal.rateAmount + (
-            (
-                (proposal.rateAmount * protocolFeePerTenThousand) +
-                (proposal.rateAmount * originPlatformFeePerTenThousand) +
-                (proposal.rateAmount * platformFeePerTenThousand)
-            ) / 10000
-        );
+        uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platformFee);
+
         require(msg.sender == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
@@ -299,7 +308,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
 
-        uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _serviceId, platformFeePerTenThousand);
+        uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _serviceId, platformFee);
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
         emit ServiceProposalConfirmedWithDeposit(
@@ -328,21 +337,16 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         address receiver;
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
-        uint16 platformFeePerTenThousand = talentLayerPlatformIdContract.getPlatformFeeFromId(service.platformId);
+        // PlatformFee is per ten thousands
+        uint16 platformFee = talentLayerPlatformIdContract.getPlatformFee(service.platformId);
 
-        uint256 transactionAmount = proposal.rateAmount + (
-            (
-                (proposal.rateAmount * protocolFeePerTenThousand) +
-                (proposal.rateAmount * originPlatformFeePerTenThousand) +
-                (proposal.rateAmount * platformFeePerTenThousand)
-            ) / 10000
-        );
+        uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platformFee);
 
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
 
-        uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _serviceId, platformFeePerTenThousand);
+        uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _serviceId, platformFee);
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
 
@@ -411,19 +415,18 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         address payable recipient;
 
         if(owner() == msg.sender) {
-            require(_platformId == 0, "Access denied.");
+            require(_platformId == PROTOCOL_INDEX, "Access denied.");
             recipient = protocolWallet;
         } else {
             talentLayerPlatformIdContract.isValid(_platformId);
-            require(talentLayerPlatformIdContract.ownerOf(_platformId) == msg.sender, "Access denied.");
-            recipient = payable(msg.sender);
+            recipient = payable (talentLayerPlatformIdContract.ownerOf(_platformId));
         }
 
         uint256 amount = platformIdToTokenToBalance[_platformId][_tokenAddress];
         platformIdToTokenToBalance[_platformId][_tokenAddress] = 0;
         _transferBalance(recipient, _tokenAddress, amount);
 
-        emit BalanceTransferred(_platformId, _tokenAddress, amount);
+        emit FeesClaimed(_platformId, _tokenAddress, amount);
     }
 
     /**
@@ -445,7 +448,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _token The token used for the transaction
      * @param _amount The amount of the transaction EXCLUDING FEES
      * @param _serviceId The ID of the associated service
-     * @param _platformFeePerTenThousand The fee paid to the protocol's owner
+     * @param _platformFee The %fee (per ten thousands) paid to the protocol's owner
      * @return The ID of the transaction
      */
     function _saveTransaction(
@@ -454,7 +457,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         address _token,
         uint256 _amount,
         uint256 _serviceId,
-        uint16 _platformFeePerTenThousand
+        uint16 _platformFee
     ) private returns (uint256){
         transactions.push(
             Transaction({
@@ -463,9 +466,9 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
                 token: _token,
                 amount: _amount,
                 serviceId: _serviceId,
-                protocolFee: protocolFeePerTenThousand,
-                originPlatformFee: originPlatformFeePerTenThousand,
-                platformFee: _platformFeePerTenThousand
+                protocolFee: protocolFee,
+                originPlatformFee: originPlatformFee,
+                platformFee: _platformFee
             })
         );
         return transactions.length - 1;
@@ -490,7 +493,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
 
     /**
      * @notice Used to release part of the escrow payment to the seller.
-     * @dev The release of an amount will also trigger the release of the fees to the platform's balances.
+     * @dev The release of an amount will also trigger the release of the fees to the platform's balances & the protocol fees.
      * @param _transaction The transaction to release the escrow value for
      * @param _releaseAmount The amount to release
      */
@@ -501,12 +504,17 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         IServiceRegistry.Service memory service = serviceRegistryContract.getService(_transaction.serviceId);
 
         //Platform which onboarded the user
-        uint256 originPlatformId = talentLayerIdContract.getProfile(talentLayerIdContract.walletOfOwner(_transaction.receiver)).platformId;
+        uint256 originPlatformId = talentLayerIdContract.getOriginatorPlatformIdByAddress(_transaction.receiver);
         //Platform which originated the service
         uint256 platformId = service.platformId;
-        uint256 protocolFeeAmount = (_transaction.protocolFee * _releaseAmount) / 10000;
-        uint256 originPlatformFeeAmount = (_transaction.originPlatformFee * _releaseAmount) / 10000;
-        uint256 platformFeeAmount = (_transaction.platformFee * _releaseAmount) / 10000;
+        uint256 protocolFeeAmount = (_transaction.protocolFee * _releaseAmount) / FEE_DIVIDER;
+        uint256 originPlatformFeeAmount = (_transaction.originPlatformFee * _releaseAmount) / FEE_DIVIDER;
+        uint256 platformFeeAmount = (_transaction.platformFee * _releaseAmount) / FEE_DIVIDER;
+
+        //Index zero represents protocol's balance
+        platformIdToTokenToBalance[0][_transaction.token] += protocolFeeAmount;
+        platformIdToTokenToBalance[originPlatformId][_transaction.token] += originPlatformFeeAmount;
+        platformIdToTokenToBalance[platformId][_transaction.token] += platformFeeAmount;
 
         if (_transaction.token == address(0)) {
             payable(_transaction.receiver).transfer(_releaseAmount);
@@ -516,10 +524,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
                 "Transfer must not fail"
             );
         }
-            //Index zero represents protocol's balance
-            platformIdToTokenToBalance[0][_transaction.token] += protocolFeeAmount;
-            platformIdToTokenToBalance[originPlatformId][_transaction.token] += originPlatformFeeAmount;
-            platformIdToTokenToBalance[platformId][_transaction.token] += platformFeeAmount;
+
 
 
         emit OriginPlatformFeeReleased(originPlatformId, _transaction.serviceId, _transaction.token, originPlatformFeeAmount);
@@ -534,7 +539,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _releaseAmount The amount to reimburse without fees
      */
     function _reimburse(Transaction memory _transaction, uint256 _releaseAmount) private {
-        uint256 totalReleaseAmount = _releaseAmount + (((_transaction.protocolFee + _transaction.originPlatformFee + _transaction.platformFee) * _releaseAmount) / 10000);
+        uint256 totalReleaseAmount = _releaseAmount + (((_transaction.protocolFee + _transaction.originPlatformFee + _transaction.platformFee) * _releaseAmount) / FEE_DIVIDER);
 
         if (_transaction.token == address(0)) {
             payable(_transaction.sender).transfer(totalReleaseAmount);
@@ -614,9 +619,28 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      */
     function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
-        payable (_recipient).transfer(_amount);
+            _recipient.transfer(_amount);
         } else {
             IERC20(_tokenAddress).transfer(_recipient, _amount);
         }
+    }
+
+    /**
+     * @notice Utility function to calculate the total amount to be paid by the buyer to validate a proposal.
+     * @param _amount The core escrow amount
+     * @param _platformFee The platform fee
+     * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
+     */
+    function _calculateTotalEscrowAmount(
+        uint256 _amount,
+        uint256 _platformFee
+    ) private view returns (uint256 totalEscrowAmount) {
+        return _amount + (
+            (
+                (_amount * protocolFee) +
+                (_amount * originPlatformFee) +
+                (_amount * _platformFee)
+            ) / FEE_DIVIDER
+        );
     }
 }

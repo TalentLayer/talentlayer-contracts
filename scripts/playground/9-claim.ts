@@ -22,10 +22,10 @@ async function main() {
   const rateToken = "0x0000000000000000000000000000000000000000";
   const davePlatformId = await platformIdContrat.connect(dave).getPlatformIdFromAddress(dave.address);
 
-  // let balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getTokenBalance(rateToken);
+  // let balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getClaimableFeeBalance(rateToken);
   // console.log("balance before ", balance.toString());
   await talentLayerMultipleArbitrableTransaction.connect(dave).claim(davePlatformId, rateToken);
-  // balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getTokenBalance(rateToken);
+  // balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getClaimableFeeBalance(rateToken);
   // console.log("balance after ", balance.toString());
 }
 
