@@ -27,20 +27,24 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
-  // const rateToken = "0x0000000000000000000000000000000000000000";
   let serviceId = await serviceRegistry.nextServiceId();
   serviceId = serviceId.sub(1);
   console.log("serviceId", serviceId.toString());
 
-  const rateAmount = 20000000000000;
+  const rateAmount = ethers.BigNumber.from(20000000000000);
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address);
   await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100);
   const davePlatformData = await platformIdContrat.platforms(daveTlId);
-  const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFeePerTenThousand();
-  const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFeePerTenThousand();
-  const platformFee = davePlatformData.fee;
+  const protocolFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.protocolFee());
+  const originPlatformFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.originPlatformFee());
+  const platformFee = ethers.BigNumber.from(davePlatformData.fee);
 
-  const totalAmount = rateAmount + (rateAmount * (protocolFee + originPlatformFee + platformFee) / 10000)
+  const totalAmount = rateAmount
+    .add(rateAmount
+      .mul(protocolFee
+        .add(originPlatformFee)
+        .add(platformFee))
+      .div(ethers.BigNumber.from(10000)));
 
   await talentLayerMultipleArbitrableTransaction
     .connect(alice)

@@ -17,7 +17,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     /// @param platformId the TalentLayer Platform Id
     /// @param name the name of the platform
     /// @param dataUri the IPFS URI of the Platform metadata
-    /// @param fee the fee asked by the platform for each job escrow transaction
+    /// @param fee the %fee (per ten thousands) asked by the platform for each job escrow transaction
     struct Platform {
         uint256 id;
         string name;
@@ -65,7 +65,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return balanceOf(_platformAddress);
     }
 
-    function getPlatformFeeFromId(uint256 _platformId) external view returns (uint16) {
+    function getPlatformFee(uint256 _platformId) external view returns (uint16) {
         return platforms[_platformId].fee;
     }
 

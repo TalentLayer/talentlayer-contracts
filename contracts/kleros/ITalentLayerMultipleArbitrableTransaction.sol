@@ -13,7 +13,7 @@ interface ITalentLayerMultipleArbitrableTransaction{
         uint16 platformFee;
     }
 
-    function getTokenBalance(address _token) external view returns (uint256 balance);
+    function getClaimableFeeBalance(address _token) external view returns (uint256 balance);
 
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory);
 

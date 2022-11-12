@@ -16,11 +16,11 @@ async function main() {
       ConfigProperty.TalentLayerMultipleArbitrableTransaction
     )
   );
-  const rateAmount = 20000000000000;
+  const rateAmount = ethers.BigNumber.from(20000000000000);
 
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount/2);
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount/4);
-  await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount/4);
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2));
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(4));
+  await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4));
 }
 
 // We recommend this pattern to be able to use async/await everywhere

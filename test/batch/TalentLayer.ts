@@ -524,12 +524,33 @@ describe('TalentLayer', function () {
         await serviceRegistry.connect(carol).createProposal(serviceId, token.address, amountCarol, 'cid')
       })
 
+      it('Alice cannot update originPlatformFee, protocolFee or protocolWallet', async function () {
+        await expect(talentLayerMultipleArbitrableTransaction.connect(alice).updateProtocolFee(4000)).to.be.revertedWith('Ownable: caller is not the owner');
+        await expect(talentLayerMultipleArbitrableTransaction.connect(alice).updateOriginPlatformFee(4000)).to.be.revertedWith('Ownable: caller is not the owner');
+        await expect(talentLayerMultipleArbitrableTransaction.connect(alice).updateProtocolWallet(dave.address)).to.be.revertedWith('Ownable: caller is not the owner');
+      })
+
+      it('The Deployer can update originPlatformFee, protocolFee and protocolWallet', async function () {
+        let protocolWallet = await talentLayerMultipleArbitrableTransaction.connect(deployer).getProtocolWallet();
+        expect(protocolWallet).to.equal(deployer.address);
+        await talentLayerMultipleArbitrableTransaction.connect(deployer).updateProtocolWallet(dave.address);
+        protocolWallet = await talentLayerMultipleArbitrableTransaction.connect(deployer).getProtocolWallet()
+        expect(protocolWallet).to.equal(dave.address);
+
+        await talentLayerMultipleArbitrableTransaction.connect(deployer).updateProtocolFee(800);
+        await talentLayerMultipleArbitrableTransaction.connect(deployer).updateOriginPlatformFee(1400);
+        const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFee();
+        const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFee();
+        expect(protocolFee).to.equal(800);
+        expect(originPlatformFee).to.equal(1400);
+      })
+
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
         const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address);
         await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100);
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId);
-        const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFeePerTenThousand();
-        const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFeePerTenThousand();
+        const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFee();
+        const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFee();
         const platformFee = alicePlatformData.fee;
 
         totalAmount = amountBob + (amountBob * (protocolFee + originPlatformFee + platformFee) / 10000);
@@ -602,9 +623,9 @@ describe('TalentLayer', function () {
           [-amountBob / 2, 0, amountBob / 2],
         )
         const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
-          .getTokenBalance(token.address);
+          .getClaimableFeeBalance(token.address);
         const deployerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
-          .getTokenBalance(token.address);
+          .getClaimableFeeBalance(token.address);
         // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
         await expect(platformBalance.toString()).to.be.equal(((amountBob / 2) * (platformFee + originPlatformFee) / 10000).toString())
         await expect(deployerBalance.toString()).to.be.equal(((amountBob / 2) * protocolFee / 10000).toString())
@@ -626,9 +647,9 @@ describe('TalentLayer', function () {
         )
 
         const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
-          .getTokenBalance(token.address);
+          .getClaimableFeeBalance(token.address);
         const deployerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
-          .getTokenBalance(token.address);
+          .getClaimableFeeBalance(token.address);
         // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
         await expect(platformBalance.toString()).to.be.equal(((3 * amountBob / 4) * (platformFee + originPlatformFee) / 10000).toString())
         await expect(deployerBalance.toString()).to.be.equal(((3 * amountBob / 4) * protocolFee / 10000).toString())
@@ -672,7 +693,7 @@ describe('TalentLayer', function () {
 
       it('Alice can claim her token balance.', async function () {
         const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
-          .getTokenBalance(token.address);
+          .getClaimableFeeBalance(token.address);
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .claim(platformId, token.address)
@@ -685,13 +706,14 @@ describe('TalentLayer', function () {
 
       it('The protocol owner can claim his token balance.', async function () {
         let protocolOwnerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
-          .getTokenBalance(token.address);
+          .getClaimableFeeBalance(token.address);
+        // await talentLayerMultipleArbitrableTransaction.updateProtocolWallet(alice.address);
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(deployer)
           .claim(0, token.address)
         await expect(transaction).to.changeTokenBalances(
           token,
-          [talentLayerMultipleArbitrableTransaction.address, deployer.address],
+          [talentLayerMultipleArbitrableTransaction.address, dave.address],
           [-protocolOwnerBalance, protocolOwnerBalance],
         )
       })
@@ -715,8 +737,8 @@ describe('TalentLayer', function () {
         const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address);
         await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100);
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId);
-        const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFeePerTenThousand();
-        const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFeePerTenThousand();
+        const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFee();
+        const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFee();
         const platformFee = alicePlatformData.fee;
 
         totalAmount = amountBob + (amountBob * (protocolFee + originPlatformFee + platformFee) / 10000);
@@ -812,9 +834,9 @@ describe('TalentLayer', function () {
         )
 
         const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
-          .getTokenBalance(ethAddress);
+          .getClaimableFeeBalance(ethAddress);
         const deployerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
-          .getTokenBalance(ethAddress);
+          .getClaimableFeeBalance(ethAddress);
         // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
         await expect(platformBalance.toString()).to.be.equal(((amountBob / 2) * (platformFee + originPlatformFee) / 10000).toString())
         await expect(deployerBalance.toString()).to.be.equal(((amountBob / 2) * protocolFee / 10000).toString())
@@ -834,9 +856,9 @@ describe('TalentLayer', function () {
           [-amountBob / 4, 0, amountBob / 4],
         )
         const platformBalance = await talentLayerMultipleArbitrableTransaction.connect(alice)
-          .getTokenBalance(ethAddress);
+          .getClaimableFeeBalance(ethAddress);
         const deployerBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer)
-          .getTokenBalance(ethAddress);
+          .getClaimableFeeBalance(ethAddress);
         // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
         await expect(platformBalance.toString()).to.be.equal(((3 * amountBob / 4) * (platformFee + originPlatformFee) / 10000).toString())
         await expect(deployerBalance.toString()).to.be.equal(((3 * amountBob / 4) * protocolFee / 10000).toString())
@@ -878,7 +900,7 @@ describe('TalentLayer', function () {
       })
 
       it('Alice can claim her ETH balance.', async function () {
-        const platformEthBalance = await talentLayerMultipleArbitrableTransaction.connect(alice).getTokenBalance(ethAddress);
+        const platformEthBalance = await talentLayerMultipleArbitrableTransaction.connect(alice).getClaimableFeeBalance(ethAddress);
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .claim(platformId, ethAddress)
@@ -889,12 +911,12 @@ describe('TalentLayer', function () {
       })
 
       it('The Protocol owner can claim his ETH balance.', async function () {
-        const protocolEthBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer).getTokenBalance(ethAddress);
+        const protocolEthBalance = await talentLayerMultipleArbitrableTransaction.connect(deployer).getClaimableFeeBalance(ethAddress);
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(deployer)
           .claim(0, ethAddress)
         await expect(transaction).to.changeEtherBalances(
-          [talentLayerMultipleArbitrableTransaction.address, deployer.address],
+          [talentLayerMultipleArbitrableTransaction.address, dave.address],
           [-protocolEthBalance, protocolEthBalance],
         )
       })

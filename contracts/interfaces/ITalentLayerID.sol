@@ -48,5 +48,7 @@ interface ITalentLayerID {
 
     function ownerOf(uint256 _tokenId) external view returns (address);
 
+    function getOriginatorPlatformIdByAddress(address _address) external view returns (uint256);
+
     event Mint(address indexed _user, uint256 _tokenId, string _handle);
 }
