@@ -8,7 +8,20 @@ interface ITalentLayerMultipleArbitrableTransaction{
         address token; //token of the escrow
         uint256 amount; //amount locked into escrow
         uint256 serviceId; //the serviceId related to the transaction
+        uint16 protocolFee;
+        uint16 originPlatformFee;
+        uint16 platformFee;
     }
+
+    function getClaimableFeeBalance(address _token) external view returns (uint256 balance);
+
+    function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory);
+
+    function updateProtocolFee(uint16 _protocolFee) external;
+
+    function updateOriginPlatformFee(uint16 _originPlatformFee) external;
+
+    function updateProtocolWallet(address payable _protocolWallet) external;
 
     function createTokenTransaction(
         uint256 _timeoutPayment,
@@ -38,4 +51,8 @@ interface ITalentLayerMultipleArbitrableTransaction{
         uint256 _transactionId,
         uint256 _amount
     ) external;
+
+    function claim(uint256 _platformId, address _tokenAddress) external;
+
+    function claimAll(uint256 _platformId) external;
 }

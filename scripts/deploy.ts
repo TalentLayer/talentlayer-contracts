@@ -125,11 +125,19 @@ task('deploy')
 
       // Deploy TalentLayerMultipleArbitrableTransaction
       const TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory(
-        'TalentLayerMultipleArbitrableTransaction',
-      )
-      const talentLayerMultipleArbitrableTransactionArgs: [string, string, string, any, number] = [
+        "TalentLayerMultipleArbitrableTransaction"
+      );
+      const talentLayerMultipleArbitrableTransactionArgs: [
+        string,
+        string,
+        string,
+        string,
+        any,
+        number
+      ] = [
         serviceRegistry.address,
         talentLayerID.address,
+        talentLayerPlatformID.address,
         talentLayerArbitrator.address,
         [],
         3600 * 24 * 30,
