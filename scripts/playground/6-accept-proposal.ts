@@ -31,7 +31,7 @@ async function main() {
   serviceId = serviceId.sub(1);
   console.log("serviceId", serviceId.toString());
 
-  const rateAmount = ethers.BigNumber.from(20000000000000);
+  const rateAmount = ethers.utils.parseUnits('200', 18);
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address);
   await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100);
   const davePlatformData = await platformIdContrat.platforms(daveTlId);

@@ -16,7 +16,7 @@ async function main() {
       ConfigProperty.TalentLayerMultipleArbitrableTransaction
     )
   );
-  const rateAmount = ethers.BigNumber.from(20000000000000);
+  const rateAmount = ethers.utils.parseUnits('200', 18);
 
   await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2));
   await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(4));
