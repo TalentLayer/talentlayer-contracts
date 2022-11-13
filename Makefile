@@ -87,3 +87,6 @@ pay-proposal:
 reviews:
 	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)
 
+claim-balance:
+	npx hardhat run scripts/playground/9-claim.ts --network $(DEPLOY_NETWORK)
+

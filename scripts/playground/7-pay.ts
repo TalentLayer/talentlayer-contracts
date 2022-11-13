@@ -3,25 +3,24 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
 const hre = require('hardhat')
 
-// Then Alice create a service, and others add proposals
+// Then Alice releases 3/4 of the escrow & Carol reimburses the remaining 1/4 to Alice
 async function main() {
   const network = await hre.network.name
   console.log(network)
 
-  const [alice] = await ethers.getSigners()
+  const [alice, bob, carol, dave] = await ethers.getSigners();
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
-    'TalentLayerMultipleArbitrableTransaction',
-    get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
-  )
+    "TalentLayerMultipleArbitrableTransaction",
+    get(
+      network as Network,
+      ConfigProperty.TalentLayerMultipleArbitrableTransaction
+    )
+  );
+  const rateAmount = ethers.utils.parseUnits('200', 18);
 
-  const firstRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, 140)
-  await firstRelease.wait()
-  console.log('Alice first Release is 140')
-
-  const secondRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, 60)
-  await secondRelease.wait()
-
-  console.log('Alice second release is 60')
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2));
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(4));
+  await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4));
 }
 
 // We recommend this pattern to be able to use async/await everywhere

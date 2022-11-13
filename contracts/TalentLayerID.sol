@@ -68,6 +68,11 @@ contract TalentLayerID is ERC721A, Ownable {
         return balanceOf(_user);
     }
 
+    function getProfile(uint256 _profileId) external view returns (Profile memory) {
+        require(_exists(_profileId), "TalentLayerID: Profile does not exist");
+        return profiles[_profileId];
+    }
+
     /**
      * Allows checking if Proof of Humanity address linked to the TalentLayerID is registered.
      * @param _tokenId Token ID to check
@@ -103,6 +108,14 @@ contract TalentLayerID is ERC721A, Ownable {
         }
 
         return ownedTokenId;
+    }
+
+    /**
+     * @notice Returns the platform ID of the platform which onboarded the user.
+     * @param _address The address of the user
+     */
+    function getOriginatorPlatformIdByAddress(address _address) external view returns (uint256) {
+        return profiles[walletOfOwner(_address)].platformId;
     }
 
     // =========================== User functions ==============================

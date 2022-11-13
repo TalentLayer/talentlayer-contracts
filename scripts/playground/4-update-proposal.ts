@@ -21,7 +21,7 @@ async function main() {
   const rateTokenBob = '0xb64a30399f7F6b0C154c2E7Af0a3ec7B0A5b131a'
 
   //Bob update his proposal
-  await serviceRegistry.connect(bob).updateProposal(serviceId, rateTokenBob, 100, 'ipfs://bobUpdateProposal')
+  await serviceRegistry.connect(bob).updateProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('150', 18), 'ipfs://bobUpdateProposal')
 
   console.log('Bob update his proposal')
 }

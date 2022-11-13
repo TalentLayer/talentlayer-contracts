@@ -15,28 +15,46 @@ async function main() {
   )
 
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
-    'TalentLayerMultipleArbitrableTransaction',
-    get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
-  )
-  // const rateToken = "0x0000000000000000000000000000000000000000";
-  const rateAmount = 200
-  const adminFeeAmount = 10
+    "TalentLayerMultipleArbitrableTransaction",
+    get(
+      network as Network,
+      ConfigProperty.TalentLayerMultipleArbitrableTransaction
+    )
+  );
 
-  let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(1)
-  console.log('serviceId', serviceId.toString())
-
-  await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
-    3600 * 24 * 7,
-    '_metaEvidence',
-    dave.address, //admin address, not used yet.
-    adminFeeAmount,
-    serviceId,
-    3, //proposalId/talentLayerId of carol.
-    { value: rateAmount + adminFeeAmount },
+  const platformIdContrat = await ethers.getContractAt(
+    'TalentLayerPlatformID',
+    get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
-  console.log('Alice accept the Carol proposal')
+  let serviceId = await serviceRegistry.nextServiceId();
+  serviceId = serviceId.sub(1);
+  console.log("serviceId", serviceId.toString());
+
+  const rateAmount = ethers.utils.parseUnits('200', 18);
+  const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address);
+  await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100);
+  const davePlatformData = await platformIdContrat.platforms(daveTlId);
+  const protocolFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.protocolFee());
+  const originPlatformFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.originPlatformFee());
+  const platformFee = ethers.BigNumber.from(davePlatformData.fee);
+
+  const totalAmount = rateAmount
+    .add(rateAmount
+      .mul(protocolFee
+        .add(originPlatformFee)
+        .add(platformFee))
+      .div(ethers.BigNumber.from(10000)));
+
+  await talentLayerMultipleArbitrableTransaction
+    .connect(alice)
+    .createETHTransaction(
+      3600 * 24 * 7,
+      "_metaEvidence",
+      serviceId,
+      3, //proposalId/talentLayerId of carol.
+      { value: totalAmount }
+    );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
