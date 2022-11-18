@@ -27,7 +27,7 @@ async function main() {
   const bobUri = await postToIPFS(
     JSON.stringify({
       proposalTitle: 'Javascript Developer',
-      proposalAbout: 'We looking for Javascript Developer',
+      proposalAbout: 'I m Javascript Developer',
       rateType: 3,
       expectedHours: 50,
     }),
@@ -36,7 +36,7 @@ async function main() {
   const carolUri = await postToIPFS(
     JSON.stringify({
       proposalTitle: 'C++ developer',
-      proposalAbout: 'We are looking for a C++ developer',
+      proposalAbout: 'I m C++ developer',
       rateType: 4,
       expectedHours: 20,
     }),
@@ -44,13 +44,15 @@ async function main() {
 
   console.log('uri', bobUri)
 
+  // Bob make a proposal
   const rateTokenBob = simpleERC20.address
   await serviceRegistry.connect(bob).createProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('100', 18), bobUri)
 
   // Carol make a proposal
-  // const rateTokenCarol = "0xba401cdac1a3b6aeede21c9c4a483be6c29f88c5";
   const rateTokenCarol = '0x0000000000000000000000000000000000000000'
-  await serviceRegistry.connect(carol).createProposal(serviceId, rateTokenCarol, ethers.utils.parseUnits('200', 18), carolUri)
+  await serviceRegistry
+    .connect(carol)
+    .createProposal(serviceId, rateTokenCarol, ethers.utils.parseUnits('200', 18), carolUri)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

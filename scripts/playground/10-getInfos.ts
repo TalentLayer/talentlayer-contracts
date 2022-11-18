@@ -16,9 +16,7 @@ async function main() {
   )
 
   let serviceId = await serviceRegistry.nextServiceId()
-  console.log('serviceId', serviceId.toString())
-
-  console.log('serviceId', serviceId.toString())
+  serviceId = serviceId.sub(1)
 
   // Getting all created services
   console.log('Get All created services---------------------')
@@ -26,22 +24,22 @@ async function main() {
   const getAllCreatedServices = await serviceRegistry.getAllServices()
   console.log('All Services', getAllCreatedServices)
 
-  // Getting all proposals created for a service
-  console.log('Get All created proposals for a service ---------------------')
-
-  const getAllProposalsForService = await serviceRegistry.getAllProposalsForService(serviceId)
-  console.log('All Proposals for a service', getAllProposalsForService)
-
   // getting all Services created by a specific user
   console.log('Get All created services by a specific user---------------------')
 
   const getAllServicesForUser = await serviceRegistry.getAllServicesForUser(1)
   console.log('Services by user', getAllServicesForUser)
 
+  // Getting all proposals created for a service
+  // console.log('Get All created proposals for a service ---------------------')
+
+  // const getAllProposalsForService = await serviceRegistry.getAllProposalsForService(serviceId)
+  // console.log('All Proposals for a service', getAllProposalsForService)
+
   // getting all proposals created by a specific user
-  console.log('Get All created proposals by a specific user---------------------')
-  const getAllProposalsForUser = await serviceRegistry.getAllProposalsForUser(2)
-  console.log('Services by user', getAllProposalsForUser)
+  // console.log('Get All created proposals by a specific user---------------------')
+  // const getAllProposalsForUser = await serviceRegistry.getAllProposalsForUser(2)
+  // console.log('Services by user', getAllProposalsForUser)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
