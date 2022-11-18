@@ -199,46 +199,30 @@ contract ServiceRegistry is AccessControl {
 
     // getting all services
     function getAllServices() external view returns (Service[] memory) {
-        Service[] memory _services = new Service[](nextServiceId - 1);
+        Service[] memory _services;
+        uint256 _servicesLength = nextServiceId - 1;
+        uint256 _index = 0;
+        _services = new Service[](_servicesLength);
         for (uint256 i = 1; i < nextServiceId; i++) {
-            _services[i - 1] = services[i];
+            _services[_index] = services[i];
+            _index++;
         }
         return _services;
-    }
-
-    // getting all proposals for a service
-    function getAllProposalsForService(uint256 _serviceId) external view returns (Proposal[] memory) {
-        Proposal[] memory _proposals = new Proposal[](nextServiceId - 1);
-        for (uint256 i = 1; i < nextServiceId; i++) {
-            _proposals[i - 1] = proposals[_serviceId][i];
-        }
-        return _proposals;
     }
 
     // getting all services for a specific user
     function getAllServicesForUser(uint256 _userId) external view returns (Service[] memory) {
-        Service[] memory _services = new Service[](nextServiceId - 1);
-        uint256 counter = 0;
+        Service[] memory _services;
+        uint256 _servicesLength = nextServiceId - 1;
+        _services = new Service[](_servicesLength);
+        uint256 _index = 0;
         for (uint256 i = 1; i < nextServiceId; i++) {
             if (services[i].buyerId == _userId || services[i].sellerId == _userId) {
-                _services[counter] = services[i];
-                counter++;
+                _services[_index] = services[i];
+                _index++;
             }
         }
         return _services;
-    }
-
-    // getting all proposals for a specific user
-    function getAllProposalsForUser(uint256 _userId) external view returns (Proposal[] memory) {
-        Proposal[] memory _proposals = new Proposal[](nextServiceId - 1);
-        uint256 counter = 0;
-        for (uint256 i = 1; i < nextServiceId; i++) {
-            if (proposals[i][_userId].sellerId == _userId) {
-                _proposals[counter] = proposals[i][_userId];
-                counter++;
-            }
-        }
-        return _proposals;
     }
 
     // =========================== User functions ==============================
