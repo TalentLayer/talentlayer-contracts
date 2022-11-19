@@ -225,6 +225,25 @@ contract ServiceRegistry is AccessControl {
         return _services;
     }
 
+    // get all proposal for a service
+    function getAllProposalsForService(uint256 _serviceId) external view returns (Proposal[] memory) {
+        Proposal[] memory _proposals;
+        uint256 _index = 1;
+        do {
+            _index++;
+        } while (proposals[_serviceId][_index].sellerId > 0);
+        _proposals = new Proposal[](_index);
+
+        for (uint256 i = 0; i < _index; i++) {
+            _proposals[i] = proposals[_serviceId][i];
+        }
+        return _proposals;
+    }
+
+    // get all proposal
+
+    function getAllProposalsForUser(uint256 _userId) external view returns (Proposal[] memory) {}
+
     // =========================== User functions ==============================
 
     /**
