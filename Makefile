@@ -18,11 +18,11 @@ deploy-verify:
 
 ifeq ($(OS),Windows_NT)
 copy-configuration: 
-	Copy "$(CONTRACTS_FOLDER)\talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)\src\config\talent.config_$(DEPLOY_NETWORK).json"
+	# Copy "$(CONTRACTS_FOLDER)\talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)\src\config\talent.config_$(DEPLOY_NETWORK).json"
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 else
 copy-configuration: 
-	cp "$(CONTRACTS_FOLDER)/talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)/src/config/talent.config_$(DEPLOY_NETWORK).json"
+	# cp "$(CONTRACTS_FOLDER)/talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)/src/config/talent.config_$(DEPLOY_NETWORK).json"
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 endif
 
