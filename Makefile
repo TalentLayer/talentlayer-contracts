@@ -31,7 +31,7 @@ endif
 wait_localhost = 1
 wait_other_network = 30
 
-ifeq ($(DEPLOY_NETWORK),"localhost")
+ifeq ($(DEPLOY_NETWORK),localhost)
 	w := $(wait_localhost)
 else
 	w := $(wait_other_network)
