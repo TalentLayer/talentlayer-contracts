@@ -23,7 +23,7 @@ contract TalentLayerID is ERC721A, Ownable {
     /// @param dataUri the IPFS URI of the profile metadata
     struct Profile {
         uint256 id;
-        string handle;
+        bytes handleBytes;
         address pohAddress;
         uint256 platformId;
         string dataUri;
@@ -38,7 +38,7 @@ contract TalentLayerID is ERC721A, Ownable {
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
     /// Taken handles
-    mapping(string => bool) public takenHandles;
+    mapping(bytes => bool) public takenHandles;
 
     /// Token ID to Profile struct
     mapping(uint256 => Profile) public profiles;
@@ -120,14 +120,25 @@ contract TalentLayerID is ERC721A, Ownable {
 
     // =========================== User functions ==============================
 
+    function encodeUserhandle(string memory _handle) public pure returns (bytes memory) {
+        return abi.encode(_handle);
+    }
+
+    function decodeUserHandle(bytes memory _handleBytes) public pure returns (string memory) {
+        return abi.decode(_handleBytes, (string));
+    }
+
     /**
      * Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
     function mint(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
+        // convert handle from string to bytes
+        bytes memory _handleBytes = encodeUserhandle(_handle);
+
         _safeMint(msg.sender, 1);
-        _afterMint(_handle, false, _platformId);
+        _afterMint(_handleBytes, false, _platformId);
     }
 
     /**
@@ -138,9 +149,11 @@ contract TalentLayerID is ERC721A, Ownable {
     function mintWithPoh(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
         _safeMint(msg.sender, 1);
+        bytes memory _handleBytes = encodeUserhandle(_handle);
+
         uint256 userTokenId = _nextTokenId() - 1;
         profiles[userTokenId].pohAddress = msg.sender;
-        _afterMint(_handle, true, _platformId);
+        _afterMint(_handleBytes, true, _platformId);
     }
 
     /**
@@ -152,7 +165,7 @@ contract TalentLayerID is ERC721A, Ownable {
         require(pohRegistry.isRegistered(msg.sender), "You're address is not registerd for poh");
         profiles[_tokenId].pohAddress = msg.sender;
 
-        emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handle);
+        emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handleBytes);
     }
 
     /**
@@ -175,7 +188,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _tokenId Token ID to recover
      * @param _index Index in the merkle tree
      * @param _recoveryKey Recovery key
-     * @param _handle User handle
+     * @param _handleBytes User handle
      * @param _merkleProof Merkle proof
      */
     function recoverAccount(
@@ -183,28 +196,25 @@ contract TalentLayerID is ERC721A, Ownable {
         uint256 _tokenId,
         uint256 _index,
         uint256 _recoveryKey,
-        string calldata _handle,
+        bytes memory _handleBytes,
         bytes32[] calldata _merkleProof
     ) public {
         require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
         require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
         require(numberMinted(msg.sender) == 0, "You already have a token");
         require(profiles[_tokenId].pohAddress == address(0), "Your old address was not linked to Proof of Humanity");
-        require(
-            keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
-            "Invalid handle"
-        );
+        require(keccak256(profiles[_tokenId].handleBytes) == keccak256(_handleBytes), "Invalid handle");
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
 
-        bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
+        bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handleBytes, _oldAddress));
         require(MerkleProof.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
 
         hasBeenRecovered[_oldAddress] = true;
-        profiles[_tokenId].handle = _handle;
+        profiles[_tokenId].handleBytes = _handleBytes;
         profiles[_tokenId].pohAddress = msg.sender;
         _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
 
-        emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
+        emit AccountRecovered(msg.sender, _oldAddress, _handleBytes, _tokenId);
     }
 
     // =========================== Owner functions ==============================
@@ -221,21 +231,21 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /**
      * Update handle address mapping and emit event after mint.
-     * @param _handle Handle for the user
+     * @param _handleBytes Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
     function _afterMint(
-        string memory _handle,
+        bytes memory _handleBytes,
         bool _poh,
         uint256 _platformId
     ) private {
         uint256 userTokenId = _nextTokenId() - 1;
         Profile storage profile = profiles[userTokenId];
         profile.platformId = _platformId;
-        profile.handle = _handle;
-        takenHandles[_handle] = true;
+        profile.handleBytes = _handleBytes;
+        takenHandles[_handleBytes] = true;
 
-        emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId);
+        emit Mint(msg.sender, userTokenId, _handleBytes, _poh, _platformId);
     }
 
     // =========================== Internal functions ==============================
@@ -266,7 +276,8 @@ contract TalentLayerID is ERC721A, Ownable {
     }
 
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
-        string memory username = profiles[id].handle;
+        bytes memory usernameInBytes = profiles[id].handleBytes;
+        string memory username = decodeUserHandle(usernameInBytes);
 
         bytes memory image = abi.encodePacked(
             "data:image/svg+xml;base64,",
@@ -309,7 +320,8 @@ contract TalentLayerID is ERC721A, Ownable {
         require(numberMinted(msg.sender) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
-        require(!takenHandles[_handle], "Handle already taken");
+        bytes memory _handleBytes = encodeUserhandle(_handle);
+        require(!takenHandles[_handleBytes], "Handle already taken");
         talentLayerPlatformIdContract.isValid(_platformId);
         _;
     }
@@ -320,18 +332,18 @@ contract TalentLayerID is ERC721A, Ownable {
      * Emit when new TalentLayerID is minted.
      * @param _user Address of the owner of the TalentLayerID
      * @param _tokenId TalentLayer ID for the user
-     * @param _handle Handle for the user
+     * @param _handleBytes Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    event Mint(address indexed _user, uint256 _tokenId, string _handle, bool _withPoh, uint256 _platformId);
+    event Mint(address indexed _user, uint256 _tokenId, bytes _handleBytes, bool _withPoh, uint256 _platformId);
 
     /**
      * Emit when new Proof of Identity is linked to TalentLayerID.
      * @param _user Address of the owner of the TalentLayerID
      * @param _tokenId TalentLayer ID for the user
-     * @param _handle Handle for the user
+     * @param _handleBytes Handle for the user
      */
-    event PohActivated(address indexed _user, uint256 _tokenId, string _handle);
+    event PohActivated(address indexed _user, uint256 _tokenId, bytes _handleBytes);
 
     /**
      * Emit when Cid is updated for a user.
@@ -344,8 +356,13 @@ contract TalentLayerID is ERC721A, Ownable {
      * Emit when account is recovered.
      * @param _newAddress New user address
      * @param _oldAddress Old user address
-     * @param _handle User handle
+     * @param _handleBytes User handle
      * @param _tokenId TalentLayer ID for the user
      */
-    event AccountRecovered(address indexed _newAddress, address indexed _oldAddress, string _handle, uint256 _tokenId);
+    event AccountRecovered(
+        address indexed _newAddress,
+        address indexed _oldAddress,
+        bytes _handleBytes,
+        uint256 _tokenId
+    );
 }

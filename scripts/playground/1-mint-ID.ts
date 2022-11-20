@@ -33,6 +33,13 @@ async function main() {
   await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPLatform, 'alice.lens')
   console.log('alice.lens registered')
 
+  const aliceProfile = await (await talentLayerIdContract.profiles(1)).handleBytes
+  // Alice Handle in Bytes
+  console.log('Alice handle encode in Bytes =====> ', aliceProfile)
+  // Decode Alice Handle keccak256
+  const decodeUserHandle = await talentLayerIdContract.decodeUserHandle(aliceProfile)
+  console.log('Alice handle decode in string ======> ', decodeUserHandle)
+
   await talentLayerIdContract.connect(bob).mintWithPoh(daveTalentLayerIdPLatform, 'bob.lens')
   console.log('Bob.lens registered')
 
