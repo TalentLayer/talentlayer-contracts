@@ -29,8 +29,9 @@ async function main() {
     }),
   )
 
-  //Bob update his proposal
-  await serviceRegistry.connect(bob).updateProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('150', 18), bobUri)
+  await serviceRegistry
+    .connect(bob)
+    .updateProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
 
   console.log('Bob update his proposal')
 }
