@@ -10,6 +10,9 @@ install: deploy copy-configuration setup-fakedata
 deploy: 
 	npx hardhat deploy --use-pohmock --use-test-erc20 --network $(DEPLOY_NETWORK)
 
+deploy-verify: 
+	npx hardhat deploy --use-pohmock --use-test-erc20 --verify --network $(DEPLOY_NETWORK)
+
 #--------------COPY FILES----------------#
 
 
@@ -23,30 +26,37 @@ copy-configuration:
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 endif
 
-
-
-
 #--------------PLAYGROUND LOCAL----------------#
+
+wait_localhost = 1
+wait_other_network = 30
+
+ifeq ($(DEPLOY_NETWORK),"localhost")
+	w := $(wait_localhost)
+else
+	w := $(wait_other_network)
+endif
+
 
 ifeq ($(OS),Windows_NT)
 setup-fakedata:
-	timeout 5
+	timeout $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
-	timeout 5
+	timeout $(w)
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
-	timeout 5
+	timeout $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
-	timeout 5
+	timeout $(w)
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 else
 setup-fakedata:
-	sleep 5
+	sleep $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
-	sleep 5
+	sleep $(w)
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
-	sleep 5
+	sleep $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
-	sleep 5
+	sleep $(w)
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 endif
 
@@ -76,4 +86,7 @@ pay-proposal:
 
 reviews:
 	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)
+
+claim-balance:
+	npx hardhat run scripts/playground/9-claim.ts --network $(DEPLOY_NETWORK)
 
