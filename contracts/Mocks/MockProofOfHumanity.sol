@@ -26,25 +26,14 @@ contract MockProofOfHumanity is Ownable {
         submissionDuration = 604800;
     }
 
-    function addSubmissionManually(address[] calldata _submissionIDs)
-        external
-        onlyOwner
-    {
+    function addSubmissionManually(address[] calldata _submissionIDs) external onlyOwner {
         for (uint256 i = 0; i < _submissionIDs.length; i++) {
-            submissions[_submissionIDs[i]] = Submission(
-                Status.None,
-                true,
-                true,
-                uint64(block.timestamp),
-                420
-            );
+            submissions[_submissionIDs[i]] = Submission(Status.None, true, true, uint64(block.timestamp), 420);
         }
     }
 
     function isRegistered(address _submissionID) external view returns (bool) {
         Submission storage submission = submissions[_submissionID];
-        return
-            submission.registered &&
-            block.timestamp - submission.submissionTime <= submissionDuration;
+        return submission.registered && block.timestamp - submission.submissionTime <= submissionDuration;
     }
 }
