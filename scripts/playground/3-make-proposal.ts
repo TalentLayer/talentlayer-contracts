@@ -46,18 +46,20 @@ async function main() {
 
   // Bob make a proposal
   const rateTokenBob = simpleERC20.address
-  await serviceRegistry.connect(bob).createProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('100', 18), bobUri)
+  await serviceRegistry
+    .connect(bob)
+    .createProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), bobUri)
 
   // Carol make a proposal
   const rateTokenCarol = '0x0000000000000000000000000000000000000000'
   await serviceRegistry
     .connect(carol)
-    .createProposal(serviceId, rateTokenCarol, ethers.utils.parseUnits('200', 18), carolUri)
+    .createProposal(serviceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), carolUri)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch((error) => {
+main().catch(error => {
   console.error(error)
   process.exitCode = 1
 })

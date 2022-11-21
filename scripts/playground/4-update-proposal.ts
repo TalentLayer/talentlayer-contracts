@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
+import postToIPFS from '../ipfs'
 const hre = require('hardhat')
 
 // Then Alice create a service, and others add proposals
@@ -18,17 +19,26 @@ async function main() {
   serviceId = serviceId.sub(1)
   console.log('serviceId', serviceId.toString())
 
-  const rateTokenBob = '0xb64a30399f7F6b0C154c2E7Af0a3ec7B0A5b131a'
+  const rateTokenBob = get(network as Network, ConfigProperty.SimpleERC20)
+  const bobUri = await postToIPFS(
+    JSON.stringify({
+      proposalTitle: 'Javascript Developer',
+      proposalAbout: 'We looking for Javascript Developer',
+      rateType: 3,
+      expectedHours: 50,
+    }),
+  )
 
-  //Bob update his proposal
-  await serviceRegistry.connect(bob).updateProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('150', 18), 'ipfs://bobUpdateProposal')
+  await serviceRegistry
+    .connect(bob)
+    .updateProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
 
   console.log('Bob update his proposal')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch((error) => {
+main().catch(error => {
   console.error(error)
   process.exitCode = 1
 })

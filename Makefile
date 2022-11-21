@@ -18,11 +18,11 @@ deploy-verify:
 
 ifeq ($(OS),Windows_NT)
 copy-configuration: 
-	Copy "$(CONTRACTS_FOLDER)\talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)\src\config\talent.config_$(DEPLOY_NETWORK).json"
+	# Copy "$(CONTRACTS_FOLDER)\talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)\src\config\talent.config_$(DEPLOY_NETWORK).json"
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 else
 copy-configuration: 
-	cp "$(CONTRACTS_FOLDER)/talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)/src/config/talent.config_$(DEPLOY_NETWORK).json"
+	# cp "$(CONTRACTS_FOLDER)/talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)/src/config/talent.config_$(DEPLOY_NETWORK).json"
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 endif
 
@@ -31,7 +31,7 @@ endif
 wait_localhost = 1
 wait_other_network = 30
 
-ifeq ($(DEPLOY_NETWORK),"localhost")
+ifeq ($(DEPLOY_NETWORK),localhost)
 	w := $(wait_localhost)
 else
 	w := $(wait_other_network)

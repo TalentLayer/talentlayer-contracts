@@ -8,24 +8,21 @@ async function main() {
   const network = await hre.network.name
   console.log(network)
 
-  const [alice, bob, carol, dave] = await ethers.getSigners();
+  const [alice, bob, carol, dave] = await ethers.getSigners()
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
-    "TalentLayerMultipleArbitrableTransaction",
-    get(
-      network as Network,
-      ConfigProperty.TalentLayerMultipleArbitrableTransaction
-    )
-  );
-  const rateAmount = ethers.utils.parseUnits('200', 18);
+    'TalentLayerMultipleArbitrableTransaction',
+    get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
+  )
+  const rateAmount = ethers.utils.parseUnits('0.002', 18)
 
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2));
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(4));
-  await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4));
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2))
+  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(4))
+  await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4))
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch((error) => {
+main().catch(error => {
   console.error(error)
   process.exitCode = 1
 })
