@@ -17,7 +17,7 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /// @notice TalentLayer Profile information struct
     /// @param profileId the talentLayerId of the profile
-    /// @param handle the handle of the profile
+    /// @param handleBytes the handle of the profile in Bytes
     /// @param pohAddress the proof of humanity address of the profile
     /// @param platformId the TalentLayer Platform Id linked to the profile
     /// @param dataUri the IPFS URI of the profile metadata
@@ -120,10 +120,18 @@ contract TalentLayerID is ERC721A, Ownable {
 
     // =========================== User functions ==============================
 
+    /**
+     * @notice encode the handle in bytes
+     * @param _handle The handle of the user
+     */
     function encodeUserhandle(string memory _handle) public pure returns (bytes memory) {
         return abi.encode(_handle);
     }
 
+    /**
+     * @notice decode the handle in string
+     * @param _handleBytes The handle of the user converted to bytes
+     */
     function decodeUserHandle(bytes memory _handleBytes) public pure returns (string memory) {
         return abi.decode(_handleBytes, (string));
     }
@@ -188,7 +196,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _tokenId Token ID to recover
      * @param _index Index in the merkle tree
      * @param _recoveryKey Recovery key
-     * @param _handleBytes User handle
+     * @param _handle User handle
      * @param _merkleProof Merkle proof
      */
     function recoverAccount(
@@ -196,9 +204,10 @@ contract TalentLayerID is ERC721A, Ownable {
         uint256 _tokenId,
         uint256 _index,
         uint256 _recoveryKey,
-        bytes memory _handleBytes,
+        string memory _handle,
         bytes32[] calldata _merkleProof
     ) public {
+        bytes memory _handleBytes = encodeUserhandle(_handle);
         require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
         require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
         require(numberMinted(msg.sender) == 0, "You already have a token");
@@ -206,7 +215,7 @@ contract TalentLayerID is ERC721A, Ownable {
         require(keccak256(profiles[_tokenId].handleBytes) == keccak256(_handleBytes), "Invalid handle");
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
 
-        bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handleBytes, _oldAddress));
+        bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
         require(MerkleProof.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
 
         hasBeenRecovered[_oldAddress] = true;
@@ -231,7 +240,7 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /**
      * Update handle address mapping and emit event after mint.
-     * @param _handleBytes Handle for the user
+     * @param _handleBytes Handle for the user in Bytes
      * @param _platformId Platform ID from which UserId wad minted
      */
     function _afterMint(
@@ -332,7 +341,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * Emit when new TalentLayerID is minted.
      * @param _user Address of the owner of the TalentLayerID
      * @param _tokenId TalentLayer ID for the user
-     * @param _handleBytes Handle for the user
+     * @param _handleBytes Handle for the user in Bytes
      * @param _platformId Platform ID from which UserId wad minted
      */
     event Mint(address indexed _user, uint256 _tokenId, bytes _handleBytes, bool _withPoh, uint256 _platformId);
@@ -341,7 +350,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * Emit when new Proof of Identity is linked to TalentLayerID.
      * @param _user Address of the owner of the TalentLayerID
      * @param _tokenId TalentLayer ID for the user
-     * @param _handleBytes Handle for the user
+     * @param _handleBytes Handle for the user in Bytes
      */
     event PohActivated(address indexed _user, uint256 _tokenId, bytes _handleBytes);
 
@@ -356,7 +365,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * Emit when account is recovered.
      * @param _newAddress New user address
      * @param _oldAddress Old user address
-     * @param _handleBytes User handle
+     * @param _handleBytes User handle in Bytes
      * @param _tokenId TalentLayer ID for the user
      */
     event AccountRecovered(
