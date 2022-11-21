@@ -38,6 +38,9 @@ async function main() {
 
   await talentLayerIdContract.connect(carol).mintWithPoh(daveTalentLayerIdPLatform, 'carol.lens')
   console.log('carol.lens registered')
+
+  await talentLayerIdContract.connect(dave).mintWithPoh(daveTalentLayerIdPLatform, 'dave.lens')
+  console.log('dave.lens registered')
 }
 
 // We recommend this pattern to be able to use async/await everywhere

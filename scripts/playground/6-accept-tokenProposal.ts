@@ -18,34 +18,47 @@ async function main() {
     'TalentLayerMultipleArbitrableTransaction',
     get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
   )
+  console.log('talentLayerMultipleArbitrableTransaction', talentLayerMultipleArbitrableTransaction)
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
+  const token = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
+  console.log('token', token.address)
+
+  // we allow the contract to spend our tokens
+  const amountBob = ethers.utils.parseUnits('0.03', 18)
+  console.log('amountBob', amountBob.toString())
+
+  //Protocol fee
+  const protocolFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.protocolFee())
+  console.log('protocolFee', protocolFee.toString())
+
+  //Origin platform fee && platform fee
+  const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
+  const davePlatformData = await platformIdContrat.platforms(daveTlId)
+  const originPlatformFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.originPlatformFee())
+  const platformFee = ethers.BigNumber.from(davePlatformData.fee)
+
+  const totalAmount = amountBob.add(
+    amountBob.mul(protocolFee.add(originPlatformFee).add(platformFee)).div(ethers.BigNumber.from(10000)),
+  )
+  console.log('totalAmount', totalAmount.toString())
+
+  await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
+
   let serviceId = await serviceRegistry.nextServiceId()
   serviceId = serviceId.sub(1)
   console.log('serviceId', serviceId.toString())
 
-  const rateAmount = ethers.utils.parseUnits('0.002', 18)
-  const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100)
-  const davePlatformData = await platformIdContrat.platforms(daveTlId)
-  const protocolFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.protocolFee())
-  const originPlatformFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.originPlatformFee())
-  const platformFee = ethers.BigNumber.from(davePlatformData.fee)
-
-  const totalAmount = rateAmount.add(
-    rateAmount.mul(protocolFee.add(originPlatformFee).add(platformFee)).div(ethers.BigNumber.from(10000)),
-  )
-
-  await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
-    3600 * 24 * 7,
-    '_metaEvidence',
-    serviceId,
-    3, //proposalId/talentLayerId of carol.
-  )
+  // await talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
+  //   3600 * 24 * 7,
+  //   '_metaEvidence',
+  //   serviceId,
+  //   3, //proposalId/talentLayerId of carol.
+  // )
 }
 
 // We recommend this pattern to be able to use async/await everywhere

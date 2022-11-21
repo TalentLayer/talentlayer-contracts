@@ -23,26 +23,28 @@ async function main() {
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
   console.log('Dave Talent Layer Id', daveTalentLayerIdPLatform)
 
-  /* ----------- Create Open Service -------------- */
+  /* ----------- Alice Update her Service -------------- */
 
-  const aliceCreateJobData = await postToIPFS(
+  const aliceUpdateJobData = await postToIPFS(
     JSON.stringify({
-      title: 'Full Stack Developer Job',
-      about: 'Looking for Full Stack Developer',
-      keywords: 'BlockChain',
+      title: 'Update title',
+      about: 'Update about',
+      keywords: 'Update Keyword',
       role: 'developer',
       rateToken: '0x0000000000000000000000000000000000000000',
       rateAmount: 1,
       recipient: '',
     }),
   )
-  console.log('Alice Job Data Uri', aliceCreateJobData)
+  console.log('Alice Job Updated data Uri', aliceUpdateJobData)
 
-  const createOpenService = await serviceRegistry
-    .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateJobData)
-  await createOpenService.wait()
-  console.log('Open Service created')
+  let serviceId = await serviceRegistry.nextServiceId()
+  serviceId = serviceId.sub(1)
+  console.log('the Alice service id is ', serviceId.toString())
+
+  await serviceRegistry.connect(alice).updateServiceData(serviceId, aliceUpdateJobData)
+  const jobDataAfterUpdate = await serviceRegistry.getService(serviceId)
+  console.log('Job Data after update', jobDataAfterUpdate)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
