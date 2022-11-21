@@ -39,10 +39,10 @@ task('deploy')
         }
         console.log('Mock proof of humanity address:', mockProofOfHumanity.address)
         pohAddress = mockProofOfHumanity.address
-        set(network.name as any as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
+        set((network.name as any) as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
       } else {
         pohAddress = networkConfig.proofOfHumanityAddress
-        set(network.name as any as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
+        set((network.name as any) as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
       }
 
       // Deploy TalentLayerPlatformID contract
@@ -56,7 +56,7 @@ task('deploy')
       }
       console.log('TalentLayerPlatformID address:', talentLayerPlatformID.address)
 
-      set(network.name as any as Network, ConfigProperty.TalentLayerPlatformID, talentLayerPlatformID.address)
+      set((network.name as any) as Network, ConfigProperty.TalentLayerPlatformID, talentLayerPlatformID.address)
 
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
@@ -71,7 +71,7 @@ task('deploy')
       }
       console.log('talentLayerID address:', talentLayerID.address)
 
-      set(network.name as any as Network, ConfigProperty.TalentLayerID, talentLayerID.address)
+      set((network.name as any) as Network, ConfigProperty.TalentLayerID, talentLayerID.address)
 
       // Deploy Service Registry Contract
       const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
@@ -85,7 +85,7 @@ task('deploy')
         })
       }
       console.log('Service Registry address:', serviceRegistry.address)
-      set(network.name as any as Network, ConfigProperty.ServiceRegistry, serviceRegistry.address)
+      set((network.name as any) as Network, ConfigProperty.ServiceRegistry, serviceRegistry.address)
 
       // Deploy Review contract
       const TalentLayerReview = await ethers.getContractFactory('TalentLayerReview')
@@ -106,7 +106,7 @@ task('deploy')
       }
       console.log('Reviews contract address:', talentLayerReview.address)
 
-      set(network.name as any as Network, ConfigProperty.Reviewscontract, talentLayerReview.address)
+      set((network.name as any) as Network, ConfigProperty.Reviewscontract, talentLayerReview.address)
 
       // Deploy TalentLayerArbitrator
       const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
@@ -121,26 +121,20 @@ task('deploy')
       }
       console.log('TalentLayerArbitrator contract address:', talentLayerArbitrator.address)
 
-      set(network.name as any as Network, ConfigProperty.TalentLayerArbitrator, talentLayerArbitrator.address)
+      set((network.name as any) as Network, ConfigProperty.TalentLayerArbitrator, talentLayerArbitrator.address)
 
       // Deploy TalentLayerMultipleArbitrableTransaction
       const TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory(
-        "TalentLayerMultipleArbitrableTransaction"
-      );
-      const talentLayerMultipleArbitrableTransactionArgs: [
-        string,
-        string,
-        string,
-        string,
-        any,
-        number
-      ] = [
+        'TalentLayerMultipleArbitrableTransaction',
+      )
+      const feeTimeout: number = 3600 * 24 * 30
+      const talentLayerMultipleArbitrableTransactionArgs: [string, string, string, string, any, number] = [
         serviceRegistry.address,
         talentLayerID.address,
         talentLayerPlatformID.address,
         talentLayerArbitrator.address,
         [],
-        3600 * 24 * 30,
+        feeTimeout,
       ]
       const talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
         ...talentLayerMultipleArbitrableTransactionArgs,
@@ -158,7 +152,7 @@ task('deploy')
       )
 
       set(
-        network.name as any as Network,
+        (network.name as any) as Network,
         ConfigProperty.TalentLayerMultipleArbitrableTransaction,
         talentLayerMultipleArbitrableTransaction.address,
       )
@@ -173,7 +167,7 @@ task('deploy')
 
         console.log('simpleERC20 address:', simpleERC20.address)
 
-        set(network.name as any as Network, ConfigProperty.SimpleERC20, simpleERC20.address)
+        set((network.name as any) as Network, ConfigProperty.SimpleERC20, simpleERC20.address)
       }
 
       // Grant escrow role
