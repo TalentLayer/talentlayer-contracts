@@ -28,6 +28,13 @@ async function main() {
   const token = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
   console.log('token', token.address)
 
+  // contract send 20 token to alice
+  await token.transfer(alice.address, ethers.utils.parseUnits('20', 18))
+
+  // we check the alice wallet balance
+  const aliceBalance = await token.balanceOf(alice.address)
+  console.log('aliceBalance', ethers.utils.formatUnits(aliceBalance, 18))
+
   // we allow the contract to spend our tokens
   const amountBob = ethers.utils.parseUnits('0.03', 18)
   console.log('amountBob', amountBob.toString())
@@ -47,18 +54,18 @@ async function main() {
   )
   console.log('totalAmount', totalAmount.toString())
 
-  await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
+  await token.approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
 
   let serviceId = await serviceRegistry.nextServiceId()
   serviceId = serviceId.sub(1)
   console.log('serviceId', serviceId.toString())
 
-  // await talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
-  //   3600 * 24 * 7,
-  //   '_metaEvidence',
-  //   serviceId,
-  //   3, //proposalId/talentLayerId of carol.
-  // )
+  await talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
+    3600 * 24 * 7,
+    '_metaEvidence',
+    serviceId,
+    3, //proposalId/talentLayerId of carol.
+  )
 }
 
 // We recommend this pattern to be able to use async/await everywhere
