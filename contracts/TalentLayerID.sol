@@ -49,12 +49,16 @@ contract TalentLayerID is ERC721A, Ownable {
     /// Addresses that have successfully recovered their account
     mapping(address => bool) public hasBeenRecovered;
 
+    /// Price to mint an id (upgradable)
+    uint256 public mintFee;
+
     /**
      * @param _pohAddress Proof of Humanity registry address
      */
     constructor(address _pohAddress, address _talentLayerPlatformIdAddress) ERC721A("TalentLayerID", "TID") {
         pohRegistry = IProofOfHumanity(_pohAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
+        mintFee = 0;
     }
 
     // =========================== View functions ==============================
@@ -125,7 +129,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
+    function mint(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
         _safeMint(msg.sender, 1);
         _afterMint(_handle, false, _platformId);
     }
@@ -135,7 +139,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
+    function mintWithPoh(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
         _safeMint(msg.sender, 1);
         uint256 userTokenId = _nextTokenId() - 1;
@@ -215,6 +219,14 @@ contract TalentLayerID is ERC721A, Ownable {
      */
     function updateRecoveryRoot(bytes32 _newRoot) public onlyOwner {
         recoveryRoot = _newRoot;
+    }
+
+    /**
+     * Updates the mint fee.
+     * @param _mintFee The new mint fee
+     */
+    function updateMintFee(uint256 _mintFee) public onlyOwner {
+        mintFee = _mintFee;
     }
 
     // =========================== Private functions ==============================
@@ -306,6 +318,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      */
     modifier canMint(string memory _handle, uint256 _platformId) {
+        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(msg.sender) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
