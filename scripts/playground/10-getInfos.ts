@@ -1,3 +1,4 @@
+import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
@@ -20,25 +21,25 @@ async function main() {
 
   // Getting all created services
   console.log('Get All created services---------------------')
-
   const getAllCreatedServices = await serviceRegistry.getAllServices()
   console.log('All Services', getAllCreatedServices)
 
   // getting all Services created by a specific user
   console.log('Get All created services by a specific user---------------------')
-
   const getAllServicesForUser = await serviceRegistry.getAllServicesForUser(1)
   console.log('Services by user', getAllServicesForUser)
 
   // Getting all proposals created for a service
   console.log('Get All created proposals for a service ---------------------')
-
   const getAllProposalsForService = await serviceRegistry.getAllProposalsForService(serviceId)
   console.log('All Proposals for a service', getAllProposalsForService)
 
+  const getStructProposal = await (await serviceRegistry.proposals(serviceId, 2)).status
+  console.log('Proposal struct', getStructProposal)
+
   // getting all proposals created by a specific user
   console.log('Get All created proposals by a specific user---------------------')
-  const getAllProposalsForUser = await serviceRegistry.getAllProposalsForUser(2)
+  const getAllProposalsForUser = await serviceRegistry.getAllProposalsForUser(3)
   console.log('Services by user', getAllProposalsForUser)
 }
 
