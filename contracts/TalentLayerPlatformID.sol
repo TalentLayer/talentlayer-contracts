@@ -155,6 +155,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function updateMintFee(uint256 _mintFee) public onlyRole(DEFAULT_ADMIN_ROLE) {
         mintFee = _mintFee;
+        emit MintFeeUpdated(_mintFee);
     }
 
     // =========================== Private functions ==============================
@@ -285,4 +286,10 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _newCid New URI
      */
     event CidUpdated(uint256 indexed _tokenId, string _newCid);
+
+    /**
+     * Emit when mint fee is updated
+     * @param _mintFee The new mint fee
+     */
+    event MintFeeUpdated(uint256 _mintFee);
 }

@@ -227,6 +227,7 @@ contract TalentLayerID is ERC721A, Ownable {
      */
     function updateMintFee(uint256 _mintFee) public onlyOwner {
         mintFee = _mintFee;
+        emit MintFeeUpdated(_mintFee);
     }
 
     // =========================== Private functions ==============================
@@ -361,4 +362,10 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _tokenId TalentLayer ID for the user
      */
     event AccountRecovered(address indexed _newAddress, address indexed _oldAddress, string _handle, uint256 _tokenId);
+
+    /**
+     * Emit when mint fee is updated
+     * @param _mintFee The new mint fee
+     */
+    event MintFeeUpdated(uint256 _mintFee);
 }
