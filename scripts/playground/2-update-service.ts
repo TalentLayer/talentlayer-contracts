@@ -4,6 +4,10 @@ import { Network } from '../config'
 const hre = require('hardhat')
 import postToIPFS from '../ipfs'
 
+/*
+In this script Alice will update the first service.
+*/
+
 async function main() {
   const network = await hre.network.name
   console.log('Create service Test start---------------------')
@@ -38,12 +42,12 @@ async function main() {
   )
   console.log('Alice Job Updated data Uri', aliceUpdateJobData)
 
-  let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(1)
-  console.log('the Alice service id is ', serviceId.toString())
+  let nextServiceId = await serviceRegistry.nextServiceId()
+  let firstServiceId = nextServiceId.sub(2)
+  console.log('the Alice service id is ', firstServiceId.toString())
 
-  await serviceRegistry.connect(alice).updateServiceData(serviceId, aliceUpdateJobData)
-  const jobDataAfterUpdate = await serviceRegistry.getService(serviceId)
+  await serviceRegistry.connect(alice).updateServiceData(firstServiceId, aliceUpdateJobData)
+  const jobDataAfterUpdate = await serviceRegistry.getService(firstServiceId)
   console.log('Job Data after update', jobDataAfterUpdate)
 }
 

@@ -3,6 +3,13 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
 const hre = require('hardhat')
 
+/*
+In this script Alice will accept Carol's proposal with an ETH transaction
+We need to add to the rateAmount the protocolFee, originPlatformFee and platformFee
+First Dave will update his platformFee to 11% then we get the plateFormFee from TalentLayerPlatformID
+and the protocolFee and originPlatformFee from TalentLayerMultipleArbitrableTransaction
+*/
+
 // Alice accept the Carol proposal
 async function main() {
   const network = await hre.network.name
@@ -24,9 +31,9 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
-  let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(1)
-  console.log('serviceId', serviceId.toString())
+  let nextServiceId = await serviceRegistry.nextServiceId()
+  let firstServiceId = nextServiceId.sub(2)
+  console.log('serviceId', firstServiceId.toString())
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
@@ -43,8 +50,9 @@ async function main() {
   await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
     3600 * 24 * 7,
     '_metaEvidence',
-    serviceId,
+    firstServiceId,
     3, //proposalId/talentLayerId of carol.
+    { value: totalAmount },
   )
 }
 
