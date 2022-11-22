@@ -45,6 +45,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     mapping(address => bool) public hasBeenRecovered;
 
+    /// Price to mint a platform id (upgradable)
+    uint256 public mintFee;
+
     /**
      * @notice Role granting Minting permission
      */
@@ -52,6 +55,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     constructor() ERC721A("TalentLayerPlatformID", "TPID") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        mintFee = 0;
     }
 
     // =========================== View functions ==============================
@@ -104,7 +108,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @dev You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      */
-    function mint(string memory _platformName) public canMint(_platformName) onlyRole(MINT_ROLE) {
+    function mint(string memory _platformName) public payable canMint(_platformName) onlyRole(MINT_ROLE) {
         _safeMint(msg.sender, 1);
         _afterMint(_platformName);
     }
@@ -143,6 +147,14 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function updateRecoveryRoot(bytes32 _newRoot) public onlyRole(DEFAULT_ADMIN_ROLE) {
         recoveryRoot = _newRoot;
+    }
+
+    /**
+     * Updates the mint fee.
+     * @param _mintFee The new mint fee
+     */
+    function updateMintFee(uint256 _mintFee) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        mintFee = _mintFee;
     }
 
     // =========================== Private functions ==============================
@@ -249,6 +261,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformName name for the platform
      */
     modifier canMint(string memory _platformName) {
+        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(msg.sender) == 0, "You already have a Platform ID");
         require(bytes(_platformName).length >= 2, "Name too short");
         require(bytes(_platformName).length <= 10, "Name too long");
