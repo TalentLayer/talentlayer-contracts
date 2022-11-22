@@ -5,6 +5,8 @@ include .env
 
 install: deploy copy-configuration setup-fakedata
 
+allScripts: deploy copy-configuration setup-fakedata update-proposal reject-proposal accept-ETHproposal accept-tokenProposal pay-ETHproposal pay-tokenProposal reviews claim-balance
+
 #--------------DEPLOY----------------#
 
 deploy: 
@@ -69,6 +71,9 @@ mint-id:
 create-service:
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
 
+update-service:
+	npx hardhat run scripts/playground/2-update-service.ts --network $(DEPLOY_NETWORK)
+
 make-proposal:
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 
@@ -78,11 +83,17 @@ update-proposal:
 reject-proposal:
 	npx hardhat run scripts/playground/5-reject-proposal.ts --network $(DEPLOY_NETWORK)
 
-accept-proposal:
-	npx hardhat run scripts/playground/6-accept-proposal.ts --network $(DEPLOY_NETWORK)
+accept-ETHproposal:
+	npx hardhat run scripts/playground/6-accept-ETHproposal.ts --network $(DEPLOY_NETWORK)
 
-pay-proposal:
+accept-tokenProposal:
+	npx hardhat run scripts/playground/6-accept-tokenProposal.ts --network $(DEPLOY_NETWORK)
+
+pay-ETHproposal:
 	npx hardhat run scripts/playground/7-pay.ts --network $(DEPLOY_NETWORK)
+
+pay-tokenProposal:
+	npx hardhat run scripts/playground/7-payToken.ts --network $(DEPLOY_NETWORK)
 
 reviews:
 	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)

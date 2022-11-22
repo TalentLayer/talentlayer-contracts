@@ -3,6 +3,10 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
 const hre = require('hardhat')
 
+/*
+In this script Alice will accept Dave proposal with Token transaction
+*/
+
 // Alice accept the Carol proposal
 async function main() {
   const network = await hre.network.name
@@ -18,7 +22,6 @@ async function main() {
     'TalentLayerMultipleArbitrableTransaction',
     get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
   )
-  console.log('talentLayerMultipleArbitrableTransaction', talentLayerMultipleArbitrableTransaction)
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
@@ -26,7 +29,6 @@ async function main() {
   )
 
   const token = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
-  console.log('token', token.address)
 
   // contract send 20 token to alice
   await token.transfer(alice.address, ethers.utils.parseUnits('20', 18))
@@ -35,7 +37,6 @@ async function main() {
   const aliceBalance = await token.balanceOf(alice.address)
   console.log('aliceBalance', ethers.utils.formatUnits(aliceBalance, 18))
 
-  // we allow the contract to spend our tokens
   const amountBob = ethers.utils.parseUnits('0.03', 18)
   console.log('amountBob', amountBob.toString())
 
@@ -54,17 +55,18 @@ async function main() {
   )
   console.log('totalAmount', totalAmount.toString())
 
-  await token.approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
+  // we allow the contract to spend Alice tokens with the bob rateAmount + fees
+  const approv = await token.approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
 
-  let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(1)
-  console.log('serviceId', serviceId.toString())
+  let secondServiceId = await serviceRegistry.nextServiceId()
+  secondServiceId = secondServiceId.sub(1)
+  console.log('serviceId', secondServiceId.toString())
 
   await talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
     3600 * 24 * 7,
     '_metaEvidence',
-    serviceId,
-    3, //proposalId/talentLayerId of carol.
+    secondServiceId,
+    4, //proposalId/talentLayerId of Dave.
   )
 }
 
