@@ -31,7 +31,7 @@ endif
 #--------------PLAYGROUND LOCAL----------------#
 
 wait_localhost = 1
-wait_other_network = 30
+wait_other_network = 1
 
 ifeq ($(DEPLOY_NETWORK),localhost)
 	w := $(wait_localhost)
@@ -90,7 +90,7 @@ accept-tokenProposal:
 	npx hardhat run scripts/playground/6-accept-tokenProposal.ts --network $(DEPLOY_NETWORK)
 
 pay-ETHproposal:
-	npx hardhat run scripts/playground/7-pay.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/playground/7-payETH.ts --network $(DEPLOY_NETWORK)
 
 pay-tokenProposal:
 	npx hardhat run scripts/playground/7-payToken.ts --network $(DEPLOY_NETWORK)
