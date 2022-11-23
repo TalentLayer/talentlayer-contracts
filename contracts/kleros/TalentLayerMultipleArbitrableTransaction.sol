@@ -11,7 +11,6 @@ import "./IArbitrable.sol";
 import "./Arbitrator.sol";
 
 contract TalentLayerMultipleArbitrableTransaction is Ownable {
-
     // =========================== Enum ==============================
 
     /**
@@ -54,11 +53,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param sellerId The talentLayerId of the associated seller
      * @param transactionId The associated escrow transaction ID
      */
-    event ServiceProposalConfirmedWithDeposit(
-        uint256 serviceId,
-        uint256 sellerId,
-        uint256 transactionId
-    );
+    event ServiceProposalConfirmedWithDeposit(uint256 serviceId, uint256 sellerId, uint256 transactionId);
 
     /**
      * @notice Emitted after each payment
@@ -67,12 +62,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _token The address of the token used for the payment.
      * @param _serviceId The id of the concerned service.
      */
-    event Payment(
-        PaymentType _paymentType,
-        uint256 _amount,
-        address _token,
-        uint256 _serviceId
-    );
+    event Payment(PaymentType _paymentType, uint256 _amount, address _token, uint256 _serviceId);
 
     /**
      * @notice Emitted after a service is finished
@@ -107,7 +97,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _token The address of the token used for the payment.
      * @param _amount The amount released.
      */
-    event OriginPlatformFeeReleased(uint256 _platformId,uint256 _serviceId, address indexed _token, uint256 _amount);
+    event OriginPlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
     /**
      * @notice Emitted after a PlatformFee is released to a platform's balance
@@ -118,7 +108,6 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      */
     event PlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
-
     // =========================== Declarations ==============================
 
     /**
@@ -126,7 +115,6 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      */
     uint8 private constant PROTOCOL_INDEX = 0;
     uint16 private constant FEE_DIVIDER = 10000;
-
 
     /**
      * @notice Transactions stored in array with index = id
@@ -188,7 +176,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         address _talentLayerPlatformIDAddress,
         Arbitrator _arbitrator,
         bytes memory _arbitratorExtraData,
-        uint _feeTimeout
+        uint256 _feeTimeout
     ) {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
@@ -235,11 +223,12 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory transaction) {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
-        require(msg.sender == transaction.sender || msg.sender == transaction.receiver,
-            "You are not related to this transaction.");
+        require(
+            msg.sender == transaction.sender || msg.sender == transaction.receiver,
+            "You are not related to this transaction."
+        );
         return transaction;
     }
-
 
     // =========================== Owner functions ==============================
 
@@ -297,7 +286,6 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         // PlatformFee is per ten thousands
         uint16 platformFee = talentLayerPlatformIdContract.getPlatformFee(service.platformId);
 
-
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platformFee);
 
         require(msg.sender == sender, "Access denied.");
@@ -308,14 +296,17 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
 
-        uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _serviceId, platformFee);
+        uint256 transactionId = _saveTransaction(
+            sender,
+            receiver,
+            proposal.rateToken,
+            proposal.rateAmount,
+            _serviceId,
+            platformFee
+        );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
-        emit ServiceProposalConfirmedWithDeposit(
-            _serviceId,
-            proposal.sellerId,
-            transactionId
-        );
+        emit ServiceProposalConfirmedWithDeposit(_serviceId, proposal.sellerId, transactionId);
     }
 
     /**
@@ -346,15 +337,18 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
 
-        uint256 transactionId = _saveTransaction(sender, receiver, proposal.rateToken, proposal.rateAmount, _serviceId, platformFee);
+        uint256 transactionId = _saveTransaction(
+            sender,
+            receiver,
+            proposal.rateToken,
+            proposal.rateAmount,
+            _serviceId,
+            platformFee
+        );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
 
-        emit ServiceProposalConfirmedWithDeposit(
-            _serviceId,
-            proposal.sellerId,
-            transactionId
-        );
+        emit ServiceProposalConfirmedWithDeposit(_serviceId, proposal.sellerId, transactionId);
     }
 
     /**
@@ -363,10 +357,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _transactionId Id of the transaction to release escrow value for.
      * @param _amount Value to be released without fees. Should not be more than amount locked in.
      */
-    function release(
-        uint256 _transactionId,
-        uint256 _amount
-    ) external {
+    function release(uint256 _transactionId, uint256 _amount) external {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
@@ -387,10 +378,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _transactionId Id of the transaction to reimburse escrow value for.
      * @param _amount Value to be reimbursed without fees. Should not be more than amount locked in.
      */
-    function reimburse(
-        uint256 _transactionId,
-        uint256 _amount
-    ) external {
+    function reimburse(uint256 _transactionId, uint256 _amount) external {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
@@ -414,12 +402,12 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     function claim(uint256 _platformId, address _tokenAddress) external {
         address payable recipient;
 
-        if(owner() == msg.sender) {
+        if (owner() == msg.sender) {
             require(_platformId == PROTOCOL_INDEX, "Access denied.");
             recipient = protocolWallet;
         } else {
             talentLayerPlatformIdContract.isValid(_platformId);
-            recipient = payable (talentLayerPlatformIdContract.ownerOf(_platformId));
+            recipient = payable(talentLayerPlatformIdContract.ownerOf(_platformId));
         }
 
         uint256 amount = platformIdToTokenToBalance[_platformId][_tokenAddress];
@@ -437,9 +425,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         //TODO Copy Lugus (need to see how to handle approved token lists)
     }
 
-
     // =========================== Private functions ==============================
-
 
     /**
      * @notice Called to record on chain all the information of a transaction in the 'transactions' array.
@@ -458,7 +444,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         uint256 _amount,
         uint256 _serviceId,
         uint16 _platformFee
-    ) private returns (uint256){
+    ) private returns (uint256) {
         transactions.push(
             Transaction({
                 sender: _sender,
@@ -485,10 +471,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
         address _token,
         uint256 _amount
     ) private {
-        require(
-            IERC20(_token).transferFrom(_sender, address(this), _amount),
-            "Transfer must not fail"
-        );
+        require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
     }
 
     /**
@@ -497,10 +480,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _transaction The transaction to release the escrow value for
      * @param _releaseAmount The amount to release
      */
-    function _release(
-        Transaction memory _transaction,
-        uint256 _releaseAmount
-    ) private {
+    function _release(Transaction memory _transaction, uint256 _releaseAmount) private {
         IServiceRegistry.Service memory service = serviceRegistryContract.getService(_transaction.serviceId);
 
         //Platform which onboarded the user
@@ -525,9 +505,12 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
             );
         }
 
-
-
-        emit OriginPlatformFeeReleased(originPlatformId, _transaction.serviceId, _transaction.token, originPlatformFeeAmount);
+        emit OriginPlatformFeeReleased(
+            originPlatformId,
+            _transaction.serviceId,
+            _transaction.token,
+            originPlatformFeeAmount
+        );
         emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformFeeAmount);
     }
 
@@ -539,7 +522,9 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _releaseAmount The amount to reimburse without fees
      */
     function _reimburse(Transaction memory _transaction, uint256 _releaseAmount) private {
-        uint256 totalReleaseAmount = _releaseAmount + (((_transaction.protocolFee + _transaction.originPlatformFee + _transaction.platformFee) * _releaseAmount) / FEE_DIVIDER);
+        uint256 totalReleaseAmount = _releaseAmount +
+            (((_transaction.protocolFee + _transaction.originPlatformFee + _transaction.platformFee) * _releaseAmount) /
+                FEE_DIVIDER);
 
         if (_transaction.token == address(0)) {
             payable(_transaction.sender).transfer(totalReleaseAmount);
@@ -556,10 +541,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _serviceId The id of the service
      * @param _amount The amount of the transaction
      */
-    function _distributeMessage(
-        uint256 _serviceId,
-        uint256 _amount
-    ) private {
+    function _distributeMessage(uint256 _serviceId, uint256 _amount) private {
         if (_amount == 0) {
             serviceRegistryContract.afterFullPayment(_serviceId);
             emit PaymentCompleted(_serviceId);
@@ -572,15 +554,15 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _proposalId The id of the proposal
      * @return proposal proposal struct, service The service struct, sender The sender address, receiver The receiver address
      */
-    function _getTalentLayerData(
-        uint256 _serviceId,
-        uint256 _proposalId
-    ) private returns (
-        IServiceRegistry.Proposal memory proposal,
-        IServiceRegistry.Service memory service,
-        address sender,
-        address receiver
-    ) {
+    function _getTalentLayerData(uint256 _serviceId, uint256 _proposalId)
+        private
+        returns (
+            IServiceRegistry.Proposal memory proposal,
+            IServiceRegistry.Service memory service,
+            address sender,
+            address receiver
+        )
+    {
         IServiceRegistry.Proposal memory proposal = _getProposal(_serviceId, _proposalId);
         IServiceRegistry.Service memory service = _getService(_serviceId);
         address sender = talentLayerIdContract.ownerOf(service.buyerId);
@@ -594,9 +576,11 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _proposalId The id of the proposal
      * @return The Proposal struct
      */
-    function _getProposal(
-        uint256 _serviceId, uint256 _proposalId
-    ) private view returns (IServiceRegistry.Proposal memory){
+    function _getProposal(uint256 _serviceId, uint256 _proposalId)
+        private
+        view
+        returns (IServiceRegistry.Proposal memory)
+    {
         return serviceRegistryContract.getProposal(_serviceId, _proposalId);
     }
 
@@ -605,9 +589,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _serviceId The id of the service
      * @return The Service struct
      */
-    function _getService(
-        uint256 _serviceId
-    ) private view returns (IServiceRegistry.Service memory){
+    function _getService(uint256 _serviceId) private view returns (IServiceRegistry.Service memory) {
         return serviceRegistryContract.getService(_serviceId);
     }
 
@@ -617,7 +599,11 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
      */
-    function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
+    function _transferBalance(
+        address payable _recipient,
+        address _tokenAddress,
+        uint256 _amount
+    ) private {
         if (address(0) == _tokenAddress) {
             _recipient.transfer(_amount);
         } else {
@@ -631,16 +617,13 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _platformFee The platform fee
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(
-        uint256 _amount,
-        uint256 _platformFee
-    ) private view returns (uint256 totalEscrowAmount) {
-        return _amount + (
-            (
-                (_amount * protocolFee) +
-                (_amount * originPlatformFee) +
-                (_amount * _platformFee)
-            ) / FEE_DIVIDER
-        );
+    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformFee)
+        private
+        view
+        returns (uint256 totalEscrowAmount)
+    {
+        return
+            _amount +
+            (((_amount * protocolFee) + (_amount * originPlatformFee) + (_amount * _platformFee)) / FEE_DIVIDER);
     }
 }
