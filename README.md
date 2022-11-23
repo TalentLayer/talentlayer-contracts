@@ -19,12 +19,18 @@ https://www.talentlayer.org/
 
 ## Deployed on Goerli
 
-- TalentLayerId: 0x7dBC788370F7A6479414b8831b3990B587f41195
-- ServiceRegistry: 0xC324C667D6f77f2B1D11E8BB1662f8Bdf1d0400c
-- TalentLayerReview: 0x281d8BC91ABEd65d1AC7581B0cE8fCE4B51e6713
-- Mock ProofOfHumanity: 0xF1F55da2bd610760A0Cbbd138Ad0B385ccB9b9f0
-- TalentLayerArbitrator: 0x448BDaa117ae85E0419C0d965EF639Edb770bE52
-- TalentLayerMultipleArbitrableTransaction: 0x6B3B0a38cf06F41Db60BED9912CA36F30133f99F
+- Mock proof of humanity address: 0xC4C7DC60Af79F76ef35Ad3e5f1E91C4a0670fe18
+- TalentLayerPlatformID address: 0x37DfEbF0EBc6d34803ba67Fab41Df2E23b3FAe6D
+- talentLayerID address: 0x97aa4622Aeda18CAF5c797C1E5285Bd5c6fc145D
+- Service Registry address: 0xE5054E2e59B284CA09713418451709E0CEb4116b
+- Reviews contract address: 0x67EE2a1f75788794f516b8F9919496D63109A380
+- TalentLayerArbitrator contract address: 0x8CEb4c0c2f0187a63953aeBd012966b868E604E9
+- TalentLayerMultipleArbitrableTransaction contract address: 0x64A705B5121F005431574d3F23159adc230B0041
+- simpleERC20 address: 0xD2Bf38BdB3E380486c4C8EDefEFA86F81aBCbC1e
+- Registered Alice: 0x2E6f7222d4d7A71B05E7C35389d23C3dB400851f
+- Registered Bob: 0x1BaDA83f662e868F8C3Ef7158e5e8337a797a3d7
+- Registered Carol: 0xe50D5B11cd621361BaB13910AF7A0f5cF12AE2C1
+- Registered Dave: 0xe526660f2F5aD454D8588926DcE72BF249945Fe0
 
 ## Playground
 
