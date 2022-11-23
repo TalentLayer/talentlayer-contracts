@@ -31,14 +31,10 @@ async function main() {
   const token = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
 
   // contract send 20 token to alice
-  await token.transfer(alice.address, ethers.utils.parseUnits('20', 18))
+  // await token.transfer(alice.address, ethers.utils.parseUnits('1', 18))
 
-  // we check the alice wallet balance
-  const aliceBalance = await token.balanceOf(alice.address)
-  console.log('aliceBalance', ethers.utils.formatUnits(aliceBalance, 18))
-
-  const amountBob = ethers.utils.parseUnits('0.03', 18)
-  console.log('amountBob', amountBob.toString())
+  const amountDave = ethers.utils.parseUnits('0.003', 18)
+  console.log('amountBob', amountDave.toString())
 
   //Protocol fee
   const protocolFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.protocolFee())
@@ -50,13 +46,14 @@ async function main() {
   const originPlatformFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.originPlatformFee())
   const platformFee = ethers.BigNumber.from(davePlatformData.fee)
 
-  const totalAmount = amountBob.add(
-    amountBob.mul(protocolFee.add(originPlatformFee).add(platformFee)).div(ethers.BigNumber.from(10000)),
+  const totalAmount = amountDave.add(
+    amountDave.mul(protocolFee.add(originPlatformFee).add(platformFee)).div(ethers.BigNumber.from(10000)),
   )
   console.log('totalAmount', totalAmount.toString())
 
   // we allow the contract to spend Alice tokens with the bob rateAmount + fees
   const approv = await token.approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
+  approv.wait()
 
   let secondServiceId = await serviceRegistry.nextServiceId()
   secondServiceId = secondServiceId.sub(1)
