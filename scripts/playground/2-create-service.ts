@@ -32,7 +32,7 @@ async function main() {
 
   /* ----------- Create Open Service -------------- */
 
-  // Alice create first service
+  // Alice create first service #1
   const aliceCreateFirstJobData = await postToIPFS(
     JSON.stringify({
       title: 'Full Stack Developer Job',
@@ -55,7 +55,7 @@ async function main() {
   const getFirstService = await serviceRegistry.getService(1)
   console.log('First Service', getFirstService)
 
-  // Alice create a second service
+  // Alice create a second service #2
   const aliceCreateSecondJobData = await postToIPFS(
     JSON.stringify({
       title: 'Full Stack Developer Job 2',

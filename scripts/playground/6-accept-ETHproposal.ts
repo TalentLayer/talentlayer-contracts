@@ -32,12 +32,14 @@ async function main() {
   )
 
   let nextServiceId = await serviceRegistry.nextServiceId()
-  let firstServiceId = nextServiceId.sub(2)
+  let firstServiceId = nextServiceId.sub(2) // service id #1
   console.log('serviceId', firstServiceId.toString())
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100)
+  const updatePlatformfee = await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100)
+  updatePlatformfee.wait()
+
   const davePlatformData = await platformIdContrat.platforms(daveTlId)
   const protocolFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.protocolFee())
   const originPlatformFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.originPlatformFee())
@@ -46,6 +48,7 @@ async function main() {
   const totalAmount = rateAmount.add(
     rateAmount.mul(protocolFee.add(originPlatformFee).add(platformFee)).div(ethers.BigNumber.from(10000)),
   )
+  console.log('totalAmount', totalAmount.toString())
 
   await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
     3600 * 24 * 7,
@@ -54,6 +57,7 @@ async function main() {
     3, //proposalId/talentLayerId of carol.
     { value: totalAmount },
   )
+  console.log('ETH transaction created')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
