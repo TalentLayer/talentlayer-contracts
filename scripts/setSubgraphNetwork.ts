@@ -38,7 +38,7 @@ function saveJSON(subgraphNetwork: any) {
   return fs.writeFileSync(filename, JSON.stringify(subgraphNetwork, null, 2))
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
