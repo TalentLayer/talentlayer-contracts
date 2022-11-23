@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 interface ITalentLayerID {
-
     struct Profile {
         uint256 id;
         string handle;
@@ -13,10 +12,7 @@ interface ITalentLayerID {
 
     function numberMinted(address _user) external view returns (uint256);
 
-    function isTokenPohRegistered(uint256 _tokenId)
-        external
-        view
-        returns (bool);
+    function isTokenPohRegistered(uint256 _tokenId) external view returns (bool);
 
     function walletOfOwner(address _owner) external view returns (uint256);
 
@@ -26,8 +22,7 @@ interface ITalentLayerID {
 
     function activatePoh(uint256 _tokenId) external;
 
-    function updateProfileData(uint256 _tokenId, string memory _newCid)
-        external;
+    function updateProfileData(uint256 _tokenId, string memory _newCid) external;
 
     function recoverAccount(
         address _oldAddress,

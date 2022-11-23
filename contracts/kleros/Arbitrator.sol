@@ -12,8 +12,11 @@ import "./Arbitrable.sol";
  *  -Allow giving rulings. For this a function must call arbitrable.rule(disputeID, ruling).
  */
 abstract contract Arbitrator {
-
-    enum DisputeStatus {Waiting, Appealable, Solved}
+    enum DisputeStatus {
+        Waiting,
+        Appealable,
+        Solved
+    }
 
     modifier requireArbitrationFee(bytes memory _extraData) {
         require(msg.value >= arbitrationCost(_extraData), "Not enough ETH to cover arbitration costs.");
@@ -48,19 +51,29 @@ abstract contract Arbitrator {
      *  @param _extraData Can be used to give additional info on the dispute to be created.
      *  @return disputeID ID of the dispute created.
      */
-    function createDispute(uint256 _choices, bytes memory _extraData) public virtual requireArbitrationFee(_extraData) payable returns(uint256 disputeID) {}
+    function createDispute(uint256 _choices, bytes memory _extraData)
+        public
+        payable
+        virtual
+        requireArbitrationFee(_extraData)
+        returns (uint256 disputeID)
+    {}
 
     /** @dev Compute the cost of arbitration. It is recommended not to increase it often, as it can be highly time and gas consuming for the arbitrated contracts to cope with fee augmentation.
      *  @param _extraData Can be used to give additional info on the dispute to be created.
      *  @return fee Amount to be paid.
      */
-    function arbitrationCost(bytes memory _extraData) public virtual view returns(uint256 fee);
+    function arbitrationCost(bytes memory _extraData) public view virtual returns (uint256 fee);
 
     /** @dev Appeal a ruling. Note that it has to be called before the arbitrator contract calls rule.
      *  @param _disputeID ID of the dispute to be appealed.
      *  @param _extraData Can be used to give extra info on the appeal.
      */
-    function appeal(uint256 _disputeID, bytes memory _extraData) public requireAppealFee(_disputeID,_extraData) payable {
+    function appeal(uint256 _disputeID, bytes memory _extraData)
+        public
+        payable
+        requireAppealFee(_disputeID, _extraData)
+    {
         emit AppealDecision(_disputeID, Arbitrable(msg.sender));
     }
 
@@ -69,24 +82,24 @@ abstract contract Arbitrator {
      *  @param _extraData Can be used to give additional info on the dispute to be created.
      *  @return fee Amount to be paid.
      */
-    function appealCost(uint256 _disputeID, bytes memory _extraData) public virtual view returns(uint256 fee);
+    function appealCost(uint256 _disputeID, bytes memory _extraData) public view virtual returns (uint256 fee);
 
     /** @dev Compute the start and end of the dispute's current or next appeal period, if possible.
      *  @param _disputeID ID of the dispute.
      *  @return start The start of the period.
      *  @return end The end of the period.
      */
-    function appealPeriod(uint256 _disputeID) public view returns(uint256 start, uint256 end) {}
+    function appealPeriod(uint256 _disputeID) public view returns (uint256 start, uint256 end) {}
 
     /** @dev Return the status of a dispute.
      *  @param _disputeID ID of the dispute to rule.
      *  @return status The status of the dispute.
      */
-    function disputeStatus(uint256 _disputeID) public virtual view returns(DisputeStatus status);
+    function disputeStatus(uint256 _disputeID) public view virtual returns (DisputeStatus status);
 
     /** @dev Return the current ruling of a dispute. This is useful for parties to know if they should appeal.
      *  @param _disputeID ID of the dispute.
      *  @return ruling The ruling which has been given or the one which will be given if there is no appeal.
      */
-    function currentRuling(uint256 _disputeID) public virtual view returns(uint256 ruling);
+    function currentRuling(uint256 _disputeID) public view virtual returns (uint256 ruling);
 }

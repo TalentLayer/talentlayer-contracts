@@ -131,14 +131,8 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     ) public {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(
-            senderId == service.buyerId || senderId == service.sellerId,
-            "You're not an actor of this service"
-        );
-        require(
-            service.status == IServiceRegistry.Status.Finished,
-            "The service is not finished yet"
-        );
+        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
+        require(service.status == IServiceRegistry.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
@@ -177,20 +171,11 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         bytes memory _data
     ) private returns (bool) {
         if (_to.isContract()) {
-            try
-            IERC721Receiver(_to).onERC721Received(
-                _msgSender(),
-                _from,
-                _tokenId,
-                _data
-            )
-            returns (bytes4 retval) {
+            try IERC721Receiver(_to).onERC721Received(_msgSender(), _from, _tokenId, _data) returns (bytes4 retval) {
                 return retval == IERC721Receiver.onERC721Received.selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
-                    revert(
-                    "TalentLayerReview: transfer to non ERC721Receiver implementer"
-                    );
+                    revert("TalentLayerReview: transfer to non ERC721Receiver implementer");
                 } else {
                     /// @solidity memory-safe-assembly
                     assembly {
@@ -246,14 +231,9 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      * @param _spender The address of the operator
      * @param _tokenId The ID of the review token
      */
-    function _isApprovedOrOwner(
-        address _spender,
-        uint256 _tokenId
-    ) internal view virtual returns (bool) {
+    function _isApprovedOrOwner(address _spender, uint256 _tokenId) internal view virtual returns (bool) {
         address owner = TalentLayerReview.ownerOf(_tokenId);
-        return (_spender == owner ||
-        isApprovedForAll(owner, _spender) ||
-        getApproved(_tokenId) == _spender);
+        return (_spender == owner || isApprovedForAll(owner, _spender) || getApproved(_tokenId) == _spender);
     }
 
     /**
@@ -273,10 +253,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 _platformId
     ) internal virtual {
         require(_to != 0, "TalentLayerReview: mint to invalid address");
-        require(
-            _rating <= 5 && _rating >= 0,
-            "TalentLayerReview: invalid rating"
-        );
+        require(_rating <= 5 && _rating >= 0, "TalentLayerReview: invalid rating");
 
         _talentLayerIdToReviewCount[_to] += 1;
         _reviewIdToOwnerAddress[_totalSupply] = _to;
@@ -349,7 +326,6 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId
     ) internal virtual {}
 
-
     // =========================== External functions ==========================
 
     // =========================== Overrides ===================================
@@ -357,24 +333,18 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(ERC165, IERC165) returns(bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return
-        interfaceId == type(IERC721).interfaceId ||
-        interfaceId == type(IERC721Metadata).interfaceId ||
-        super.supportsInterface(interfaceId);
+            interfaceId == type(IERC721).interfaceId ||
+            interfaceId == type(IERC721Metadata).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     /**
      * @dev See {IER721A-balanceOf}.
      */
-    function balanceOf(address owner) public view virtual override returns(uint256)
-    {
-        require(
-            owner != address(0),
-            "TalentLayerReview: token zero is not a valid owner"
-        );
+    function balanceOf(address owner) public view virtual override returns (uint256) {
+        require(owner != address(0), "TalentLayerReview: token zero is not a valid owner");
 
         return _talentLayerIdToReviewCount[tlId.walletOfOwner(owner)];
     }
@@ -382,8 +352,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev See {IER721A-ownerOf}.
      */
-    function ownerOf(uint256 tokenId) public view virtual override returns(address)
-    {
+    function ownerOf(uint256 tokenId) public view virtual override returns (address) {
         address owner = tlId.ownerOf(_reviewIdToOwnerAddress[tokenId]);
         require(owner != address(0), "TalentLayerReview: invalid token ID");
         return owner;
@@ -406,19 +375,9 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev See {IER721A-tokenUri}.
      */
-    function tokenURI(uint256 tokenId) RequireMinted(tokenId)
-    public
-    view
-    virtual
-    override
-    returns(string memory)
-    {
-
+    function tokenURI(uint256 tokenId) public view virtual override RequireMinted(tokenId) returns (string memory) {
         string memory baseURI = _baseURI();
-        return
-        bytes(baseURI).length > 0
-        ? string(abi.encodePacked(baseURI, tokenId.toString()))
-        : "";
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
     /**
@@ -439,37 +398,21 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev See {IER721A-getApproved}.
      */
-    function getApproved(uint256 _tokenId) RequireMinted(_tokenId)
-    public
-    view
-    virtual
-    override
-    returns(address)
-    {
+    function getApproved(uint256 _tokenId) public view virtual override RequireMinted(_tokenId) returns (address) {
         return _tokenApprovals[_tokenId];
     }
 
     /**
      * @dev See {IER721A-setApprovedForAll}.
      */
-    function setApprovalForAll(address operator, bool approved)
-    public
-    virtual
-    override
-    {
+    function setApprovalForAll(address operator, bool approved) public virtual override {
         _setApprovalForAll(_msgSender(), operator, approved);
     }
 
     /**
      * @dev See {IER721A-isApprovedForAll}.
      */
-    function isApprovedForAll(address owner, address operator)
-    public
-    view
-    virtual
-    override
-    returns (bool)
-    {
+    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -482,10 +425,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId
     ) public virtual override {
         //solhint-disable-next-line max-line-length
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "TalentLayerReview: caller is not token owner nor approved"
-        );
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
 
         _transfer(from, to, tokenId);
     }
@@ -510,13 +450,9 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId,
         bytes memory data
     ) public virtual override {
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "TalentLayerReview: caller is not token owner nor approved"
-        );
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
         _safeTransfer(from, to, tokenId, data);
     }
-
 
     // =========================== Modifiers ===================================
 
@@ -548,5 +484,4 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         string _reviewUri,
         uint256 _platformId
     );
-
 }

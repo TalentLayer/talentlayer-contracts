@@ -8,7 +8,6 @@ import {IERC721A} from "../libs/IERC721A.sol";
  * @author TalentLayer Team
  */
 interface ITalentLayerPlatformID is IERC721A {
-
     function numberMinted(address _platformAddress) external view returns (uint256);
 
     function getPlatformFee(uint256 _platformId) external view returns (uint16);
