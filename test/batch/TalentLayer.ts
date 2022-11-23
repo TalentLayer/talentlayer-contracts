@@ -215,6 +215,12 @@ describe('TalentLayer', function () {
     )
   })
 
+  it("Alice can't create a new service with wrong TalentLayer Platform ID", async function () {
+    expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(2, 'wrongTlid')).to.be.revertedWith(
+      'Platform 0 is not a valid TalentLayer Platform ID',
+    )
+  })
+
   it("Bob, the seller, can confirm the service, Alice can't, Carol can't", async function () {
     expect(serviceRegistry.connect(alice).confirmService(1)).to.be.revertedWith(
       "Only the user who didn't initate the service can confirm it",
