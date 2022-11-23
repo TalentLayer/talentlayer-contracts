@@ -9,6 +9,7 @@ describe('TalentLayer', function () {
     bob: SignerWithAddress,
     carol: SignerWithAddress,
     dave: SignerWithAddress,
+    eve: SignerWithAddress,
     ServiceRegistry: ContractFactory,
     TalentLayerID: ContractFactory,
     TalentLayerPlatformID: ContractFactory,
@@ -26,10 +27,11 @@ describe('TalentLayer', function () {
     mockProofOfHumanity: Contract,
     token: Contract,
     platformName: string,
-    platformId: string
+    platformId: string,
+    mintFee: number
 
   before(async function () {
-    ;[deployer, alice, bob, carol, dave] = await ethers.getSigners()
+    ;[deployer, alice, bob, carol, dave, eve] = await ethers.getSigners()
 
     // Deploy MockProofOfHumanity
     MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
@@ -86,13 +88,16 @@ describe('TalentLayer', function () {
     const escrowRole = await serviceRegistry.ESCROW_ROLE()
     await serviceRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address)
 
-    // Grant Platform Id Mint role to Alice
+    // Grant Platform Id Mint role to Alice and Bob
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, alice.address)
+    await talentLayerPlatformID.connect(deployer).grantRole(mintRole, bob.address)
 
     // Alice mints a Platform Id
     platformName = 'HireVibes'
     await talentLayerPlatformID.connect(alice).mint(platformName)
+
+    mintFee = 100
   })
 
   describe('Platform Id contract test', async function () {
@@ -156,6 +161,36 @@ describe('TalentLayer', function () {
       const newAlicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
 
       expect(newAlicePlatformData.fee).to.be.equal(6)
+    })
+
+    it('The deployer can update the mint fee', async function () {
+      await talentLayerPlatformID.connect(deployer).updateMintFee(mintFee)
+      const updatedMintFee = await talentLayerPlatformID.mintFee()
+
+      expect(updatedMintFee).to.be.equal(mintFee)
+    })
+
+    it('Bob can mint a platform id by paying the mint fee', async function () {
+      const bobBalanceBefore = await bob.getBalance()
+      const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
+
+      // Mint fails is not enough ETH is sent
+      expect(talentLayerPlatformID.connect(bob).mint('BobPlat')).to.be.revertedWith(
+        'Incorrect amount of ETH for mint fee',
+      )
+
+      // Mint is successful if the correct amount of ETH for mint fee is sent
+      await talentLayerPlatformID.connect(bob).mint('BobPlat', { value: mintFee })
+      const bobPlatformId = await talentLayerPlatformID.getPlatformIdFromAddress(bob.address)
+      expect(bobPlatformId).to.be.equal('2')
+
+      // Bob balance is decreased by the mint fee (+ gas fees)
+      const bobBalanceAfter = await bob.getBalance()
+      expect(bobBalanceAfter).to.be.lte(bobBalanceBefore.sub(mintFee))
+
+      // Platform id contract balance is increased by the mint fee
+      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerPlatformID.address)
+      expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
     })
   })
 
@@ -419,6 +454,33 @@ describe('TalentLayer', function () {
 
     const proposalDataAfter = await serviceRegistry.getProposal(11, bobTid)
     expect(proposalDataAfter.status.toString()).to.be.equal('2')
+  })
+
+  it('The deployer can update the mint fee', async function () {
+    await talentLayerID.connect(deployer).updateMintFee(mintFee)
+    const updatedMintFee = await talentLayerID.mintFee()
+
+    expect(updatedMintFee).to.be.equal(mintFee)
+  })
+
+  it('Eve can mint a talentLayerId by paying the mint fee', async function () {
+    const eveBalanceBefore = await eve.getBalance()
+    const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
+
+    // Mint fails is not enough ETH is sent
+    expect(talentLayerID.connect(eve).mint('1', 'eve')).to.be.revertedWith('Incorrect amount of ETH for mint fee')
+
+    // Mint is successful if the correct amount of ETH for mint fee is sent
+    await talentLayerID.connect(eve).mint('1', 'eve', { value: mintFee })
+    expect(await talentLayerID.walletOfOwner(eve.address)).to.be.equal('4')
+
+    // Eve balance is decreased by the mint fee (+ gas fees)
+    const eveBalanceAfter = await eve.getBalance()
+    expect(eveBalanceAfter).to.be.lte(eveBalanceBefore.sub(mintFee))
+
+    // Platform id contract balance is increased by the mint fee
+    const contractBalanceAfter = await ethers.provider.getBalance(talentLayerID.address)
+    expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
   })
 
   describe('SimpleERC20 contract.', function () {
