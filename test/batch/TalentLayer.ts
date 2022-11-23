@@ -478,7 +478,7 @@ describe('TalentLayer', function () {
     const eveBalanceAfter = await eve.getBalance()
     expect(eveBalanceAfter).to.be.lte(eveBalanceBefore.sub(mintFee))
 
-    // Platform id contract balance is increased by the mint fee
+    // TalentLayer id contract balance is increased by the mint fee
     const contractBalanceAfter = await ethers.provider.getBalance(talentLayerID.address)
     expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
   })
