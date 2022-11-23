@@ -174,7 +174,7 @@ describe('TalentLayer', function () {
       const bobBalanceBefore = await bob.getBalance()
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
 
-      // Mint fails is not enough ETH is sent
+      // Mint fails if not enough ETH is sent
       expect(talentLayerPlatformID.connect(bob).mint('BobPlat')).to.be.revertedWith(
         'Incorrect amount of ETH for mint fee',
       )
@@ -467,7 +467,7 @@ describe('TalentLayer', function () {
     const eveBalanceBefore = await eve.getBalance()
     const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
 
-    // Mint fails is not enough ETH is sent
+    // Mint fails if not enough ETH is sent
     expect(talentLayerID.connect(eve).mint('1', 'eve')).to.be.revertedWith('Incorrect amount of ETH for mint fee')
 
     // Mint is successful if the correct amount of ETH for mint fee is sent
