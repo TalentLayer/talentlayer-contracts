@@ -17,7 +17,7 @@ async function main() {
   )
   const rateAmount = ethers.utils.parseUnits('0.003', 18)
 
-  const release = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount)
+  const release = await talentLayerMultipleArbitrableTransaction.connect(alice).release(1, rateAmount)
   release.wait()
 }
 

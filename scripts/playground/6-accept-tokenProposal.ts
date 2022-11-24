@@ -30,10 +30,7 @@ async function main() {
 
   const token = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
 
-  // contract send 20 token to alice
-  // await token.transfer(alice.address, ethers.utils.parseUnits('1', 18))
-
-  const amountDave = ethers.utils.parseUnits('0.003', 18)
+  const amountDave = ethers.utils.parseUnits('0.03', 18)
   console.log('amountBob', amountDave.toString())
 
   //Protocol fee
