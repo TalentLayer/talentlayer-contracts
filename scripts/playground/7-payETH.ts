@@ -9,16 +9,26 @@ async function main() {
   const network = await hre.network.name
   console.log(network)
 
+  const serviceRegistry = await ethers.getContractAt(
+    'ServiceRegistry',
+    get(network as Network, ConfigProperty.ServiceRegistry),
+  )
+
   const [alice, bob, carol, dave] = await ethers.getSigners()
+
   const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
     'TalentLayerMultipleArbitrableTransaction',
     get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
   )
+
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
 
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2))
-  await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(4))
-  await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4))
+  const firstRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2))
+  firstRelease.wait()
+  const secondRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(4))
+  secondRelease.wait()
+  const reimburse = await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4))
+  reimburse.wait()
 }
 
 // We recommend this pattern to be able to use async/await everywhere
