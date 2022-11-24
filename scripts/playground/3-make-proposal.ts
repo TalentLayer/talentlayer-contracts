@@ -69,33 +69,36 @@ async function main() {
 
   // Bob create a proposal #2 for Alice's service #1 (id : 1-2 in GraphQL)
   const rateTokenBob = simpleERC20.address
-  await serviceRegistry
+  const bobProposal = await serviceRegistry
     .connect(bob)
     .createProposal(firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), bobUri)
   console.log('Bob proposal created')
+  bobProposal.wait()
   // get the proposal
-  let bobProposal = await serviceRegistry.proposals(firstServiceId, 2)
-  console.log('Bob proposal', bobProposal)
+  let bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
+  console.log('Bob proposal', bobProposalData)
 
   // Carol make a proposal #3 for Alice's service #1 (id : 1-3 in GraphQL)
   const rateTokenCarol = '0x0000000000000000000000000000000000000000'
-  await serviceRegistry
+  const carolProposal = await serviceRegistry
     .connect(carol)
     .createProposal(firstServiceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), carolUri)
   console.log('Carol proposal created')
+  carolProposal.wait()
   // get the proposal
-  let carolProposal = await serviceRegistry.proposals(firstServiceId, 3)
-  console.log('Carol proposal', carolProposal)
+  let carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
+  console.log('Carol proposal', carolProposalData)
 
   // Dave create a proposal #4 for Alice's service #2 (id : 2-4 in GraphQL)
   const rateTokenDave = simpleERC20.address
-  await serviceRegistry
+  const daveProposal = await serviceRegistry
     .connect(dave)
     .createProposal(secondServiceId, rateTokenDave, ethers.utils.parseUnits('0.003', 18), daveUri)
   console.log('Dave proposal created')
+  daveProposal.wait()
   // get the proposal
-  let daveProposal = await serviceRegistry.proposals(secondServiceId, 4)
-  console.log('Dave proposal', daveProposal)
+  let daveProposalData = await serviceRegistry.proposals(secondServiceId, 4)
+  console.log('Dave proposal', daveProposalData)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
