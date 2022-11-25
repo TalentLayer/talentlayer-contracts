@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
-import { waitConfirmation } from '../utils'
+import { waitConfirmations } from '../utils'
 const hre = require('hardhat')
 
 /*
@@ -50,8 +50,8 @@ async function main() {
   console.log('totalAmount', totalAmount.toString())
 
   // we allow the contract to spend Alice tokens with the bob rateAmount + fees
-  const approv = await token.approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
-  waitConfirmation(network, approv, 10)
+  const approve = await token.approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
+  waitConfirmations(network, approve, 10)
 
   let secondServiceId = await serviceRegistry.nextServiceId()
   secondServiceId = secondServiceId.sub(1)
