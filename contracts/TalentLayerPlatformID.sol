@@ -69,6 +69,11 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return platforms[_platformId].fee;
     }
 
+    function getPlatformData(uint256 _platformId) external view returns (Platform memory) {
+        require(_platformId > 0 && _platformId <= totalSupply(), "This plateForm Id is not valid");
+        return platforms[_platformId];
+    }
+
     /**
      * @notice Allows getting the Platform ID from an address
      * @param _owner Platform Address to check
