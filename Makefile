@@ -1,11 +1,12 @@
 #!make
 include .env
 
+
 #--------------FULL INSTALLATION----------------#
 
 install: deploy copy-configuration setup-fakedata
 
-allScripts: deploy setup-allFakeData
+allScripts: deploy copy-configuration setup-allFakeData
 
 #--------------DEPLOY----------------#
 

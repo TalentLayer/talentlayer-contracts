@@ -25,10 +25,10 @@ async function main() {
 
   const firstRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2))
   firstRelease.wait()
-  const secondRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(4))
+  const secondRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2))
   secondRelease.wait()
-  const reimburse = await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4))
-  reimburse.wait()
+  // const reimburse = await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4))
+  // reimburse.wait()
 }
 
 // We recommend this pattern to be able to use async/await everywhere
