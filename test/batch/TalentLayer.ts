@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { Contract, ContractFactory } from 'ethers'
+import { TalentLayerID } from '../../typechain-types'
 
 describe('TalentLayer', function () {
   let deployer: SignerWithAddress,
@@ -45,7 +46,7 @@ describe('TalentLayer', function () {
     // Deploy TalenLayerID
     TalentLayerID = await ethers.getContractFactory('TalentLayerID')
     const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
-    talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
+    talentLayerID = (await TalentLayerID.deploy(...talentLayerIDArgs)) as TalentLayerID
 
     // Deploy ServiceRegistry
     ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
@@ -191,6 +192,28 @@ describe('TalentLayer', function () {
       // Platform id contract balance is increased by the mint fee
       const contractBalanceAfter = await ethers.provider.getBalance(talentLayerPlatformID.address)
       expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
+    })
+
+    it("The deployer can withdraw the contract's balance", async function () {
+      const deployerBalanceBefore = await deployer.getBalance()
+      const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
+
+      // Withdraw fails if the caller is not an admin
+      expect(talentLayerPlatformID.connect(bob).withdraw()).to.be.revertedWith('Ownable: caller is not the owner')
+
+      // Withdraw is successful if the caller is the deployer
+      const tx = await talentLayerPlatformID.connect(deployer).withdraw()
+      const receipt = await tx.wait()
+      const gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
+
+      const deployerBalanceAfter = await deployer.getBalance()
+      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerPlatformID.address)
+
+      // Deployer balance is increased by the contract balance (- gas fees)s
+      expect(deployerBalanceAfter).to.be.equal(deployerBalanceBefore.add(contractBalanceBefore).sub(gasUsed))
+
+      // Contract balance is 0
+      expect(contractBalanceAfter).to.be.equal(0)
     })
   })
 
@@ -481,6 +504,28 @@ describe('TalentLayer', function () {
     // TalentLayer id contract balance is increased by the mint fee
     const contractBalanceAfter = await ethers.provider.getBalance(talentLayerID.address)
     expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
+  })
+
+  it("The deployer can withdraw the contract's balance", async function () {
+    const deployerBalanceBefore = await deployer.getBalance()
+    const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
+
+    // Withdraw fails if the caller is not the owner
+    expect(talentLayerID.connect(alice).withdraw()).to.be.revertedWith('Ownable: caller is not the owner')
+
+    // Withdraw is successful if the caller is the owner
+    const tx = await talentLayerID.connect(deployer).withdraw()
+    const receipt = await tx.wait()
+    const gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
+
+    const deployerBalanceAfter = await deployer.getBalance()
+    const contractBalanceAfter = await ethers.provider.getBalance(talentLayerID.address)
+
+    // Deployer balance is increased by the contract balance (- gas fees)s
+    expect(deployerBalanceAfter).to.be.equal(deployerBalanceBefore.add(contractBalanceBefore).sub(gasUsed))
+
+    // Contract balance is 0
+    expect(contractBalanceAfter).to.be.equal(0)
   })
 
   describe('SimpleERC20 contract.', function () {

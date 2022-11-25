@@ -230,6 +230,14 @@ contract TalentLayerID is ERC721A, Ownable {
         emit MintFeeUpdated(_mintFee);
     }
 
+    /**
+     * Withdraws the contract balance to the owner.
+     */
+    function withdraw() public onlyOwner {
+        (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(sent, "Failed to withdraw Ether");
+    }
+
     // =========================== Private functions ==============================
 
     /**
