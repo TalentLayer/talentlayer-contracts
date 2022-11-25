@@ -27,7 +27,7 @@ async function main() {
   const bobUri = await postToIPFS(
     JSON.stringify({
       proposalTitle: 'Javascript Developer',
-      proposalAbout: 'I m Javascript Developer',
+      proposalAbout: 'We looking for Javascript Developer',
       rateType: 3,
       expectedHours: 50,
     }),
@@ -36,7 +36,7 @@ async function main() {
   const carolUri = await postToIPFS(
     JSON.stringify({
       proposalTitle: 'C++ developer',
-      proposalAbout: 'I m C++ developer',
+      proposalAbout: 'We are looking for a C++ developer',
       rateType: 4,
       expectedHours: 20,
     }),
@@ -44,7 +44,6 @@ async function main() {
 
   console.log('uri', bobUri)
 
-  // Bob make a proposal
   const rateTokenBob = simpleERC20.address
   await serviceRegistry
     .connect(bob)

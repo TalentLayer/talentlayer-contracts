@@ -6,6 +6,7 @@ import postToIPFS from '../ipfs'
 
 async function main() {
   const network = await hre.network.name
+  console.log('Create service Test start---------------------')
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
@@ -22,8 +23,6 @@ async function main() {
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
   console.log('Dave Talent Layer Id', daveTalentLayerIdPLatform)
 
-  console.log('Open Service created------------------------')
-
   const aliceCreateJobData = await postToIPFS(
     JSON.stringify({
       title: 'Full Stack Developer Job',
@@ -35,35 +34,15 @@ async function main() {
       recipient: '',
     }),
   )
+
   console.log('Alice Job Data Uri', aliceCreateJobData)
-
-  const aliceSecondCreateJobData = await postToIPFS(
-    JSON.stringify({
-      title: 'Tester Job',
-      about: 'Looking for Tester',
-      keywords: 'BlockChain',
-      role: ' tester',
-      rateToken: '0x0000000000000000000000000000000000000000',
-      rateAmount: 1,
-      recipient: '',
-    }),
-  )
-
-  console.log('Alice Second Job Data Uri', aliceSecondCreateJobData)
 
   const createOpenService = await serviceRegistry
     .connect(alice)
     .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateJobData)
   await createOpenService.wait()
-  console.log('Alice Create Open Service', createOpenService)
 
-  const createSecondOpenService = await serviceRegistry
-    .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceSecondCreateJobData)
-  await createOpenService.wait()
-  console.log('Alice Create Second Open Service', createSecondOpenService)
-
-  console.log('Alice updated the Job data------------------------')
+  console.log('Open Service created------------------------')
 
   const aliceUpdateJobData = await postToIPFS(
     JSON.stringify({
@@ -77,11 +56,16 @@ async function main() {
     }),
   )
 
+  console.log('Alice Job Updated data Uri', aliceUpdateJobData)
+
   let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(2)
-  console.log('Alice updated the service with the id n° ', serviceId.toString())
+  serviceId = serviceId.sub(1)
+  console.log('the Alice service id is ', serviceId.toString())
 
   await serviceRegistry.connect(alice).updateServiceData(serviceId, aliceUpdateJobData)
+  const jobDataAfterUpdate = await serviceRegistry.getService(serviceId)
+  console.log('Alice updated the Job data------------------------')
+  console.log('Job Data after update', jobDataAfterUpdate)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
