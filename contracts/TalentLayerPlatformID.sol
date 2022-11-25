@@ -45,7 +45,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     mapping(address => bool) public hasBeenRecovered;
 
-    /// Price to mint a platform id (upgradable)
+    /// Price to mint a platform id (in wei, upgradable)
     uint256 public mintFee;
 
     /**

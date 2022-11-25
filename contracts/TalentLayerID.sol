@@ -49,7 +49,7 @@ contract TalentLayerID is ERC721A, Ownable {
     /// Addresses that have successfully recovered their account
     mapping(address => bool) public hasBeenRecovered;
 
-    /// Price to mint an id (upgradable)
+    /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
 
     /**
