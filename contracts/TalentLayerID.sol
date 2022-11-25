@@ -256,7 +256,7 @@ contract TalentLayerID is ERC721A, Ownable {
         profile.handle = _handle;
         takenHandles[_handle] = true;
 
-        emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId);
+        emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId, mintFee);
     }
 
     // =========================== Internal functions ==============================
@@ -344,8 +344,16 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _tokenId TalentLayer ID for the user
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
+     * @param _fee Fee paid to mint the TalentLayerID
      */
-    event Mint(address indexed _user, uint256 _tokenId, string _handle, bool _withPoh, uint256 _platformId);
+    event Mint(
+        address indexed _user,
+        uint256 _tokenId,
+        string _handle,
+        bool _withPoh,
+        uint256 _platformId,
+        uint256 _fee
+    );
 
     /**
      * Emit when new Proof of Identity is linked to TalentLayerID.
