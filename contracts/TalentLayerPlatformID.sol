@@ -158,6 +158,14 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         emit MintFeeUpdated(_mintFee);
     }
 
+    /**
+     * Withdraws the contract balance to the admin.
+     */
+    function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(sent, "Failed to withdraw Ether");
+    }
+
     // =========================== Private functions ==============================
 
     /**
