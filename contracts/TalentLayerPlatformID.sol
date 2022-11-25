@@ -178,7 +178,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         platform.name = _platformName;
         takenNames[_platformName] = true;
 
-        emit Mint(msg.sender, platformId, _platformName);
+        emit Mint(msg.sender, platformId, _platformName, mintFee);
     }
 
     // =========================== Internal functions ==============================
@@ -285,8 +285,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformOwnerAddress Address of the owner of the PlatformID
      * @param _tokenId New Platform ID
      * @param _platformName Name of the platform
+     * @param _fee Fee paid to mint the Platform ID
      */
-    event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName);
+    event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName, uint256 _fee);
 
     /**
      * Emit when Cid is updated for a platform.
