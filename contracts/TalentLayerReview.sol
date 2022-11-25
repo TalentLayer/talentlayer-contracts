@@ -22,6 +22,14 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     using Address for address;
     using Strings for uint256;
 
+    // Struct Review
+    struct Review {
+        uint256 id;
+        uint256 reviewIdToOwnerAddress;
+        string reviewDataUri;
+        uint256 reviewIdToPlatformId;
+    }
+
     /**
      * @notice Token name
      */
@@ -38,9 +46,10 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     uint256 public _totalSupply = 0;
 
     /**
-     * @notice Mapping from Review ID to owner address
+     * @notice Review Id to Review struct
+     * @dev reviewId => Review
      */
-    mapping(uint256 => uint256) private _reviewIdToOwnerAddress;
+    mapping(uint256 => Review) public reviews;
 
     /**
      * @notice Mapping owner TalentLayer ID to token count
@@ -48,12 +57,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     mapping(uint256 => uint256) private _talentLayerIdToReviewCount;
 
     /**
-     * @notice Mapping from Review Token ID to IPFS URI mapping
-     */
-    mapping(uint256 => string) public reviewDataUri;
-
-    /**
-     * @notice Mapping to record whether a review token was minted buy the buyer for a serviceId
+     * @notice Mapping to record whether a review token was minted by the buyer for a serviceId
      */
     mapping(uint256 => uint256) public nftMintedByServiceAndBuyerId;
 
@@ -61,11 +65,6 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      * @notice Mapping to record whether a review token was minted buy the seller for a serviceId
      */
     mapping(uint256 => uint256) public nftMintedByServiceAndSellerId;
-
-    /**
-     * @notice Mapping from Review ID to Platform ID
-     */
-    mapping(uint256 => uint256) public reviewIdToPlatformId;
 
     /**
      * @notice Mapping from review token ID to approved address
@@ -112,6 +111,11 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     }
 
     // =========================== View functions ==============================
+
+    // get the data of the struct Review
+    function getReviewData(uint256 _reviewId) public view returns (Review memory) {
+        return reviews[_reviewId];
+    }
 
     // =========================== User functions ==============================
 
@@ -222,7 +226,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      * @param _tokenId The ID of the review token
      */
     function _exists(uint256 _tokenId) internal view virtual returns (bool) {
-        return _reviewIdToOwnerAddress[_tokenId] != 0;
+        return reviews[_tokenId].id != 0;
     }
 
     /**
@@ -256,9 +260,14 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         require(_rating <= 5 && _rating >= 0, "TalentLayerReview: invalid rating");
 
         _talentLayerIdToReviewCount[_to] += 1;
-        _reviewIdToOwnerAddress[_totalSupply] = _to;
-        reviewDataUri[_totalSupply] = _reviewUri;
-        reviewIdToPlatformId[_totalSupply] = _platformId;
+
+        reviews[_totalSupply] = Review({
+            id: _totalSupply,
+            reviewIdToOwnerAddress: _to,
+            reviewDataUri: _reviewUri,
+            reviewIdToPlatformId: _platformId
+        });
+
         _totalSupply = _totalSupply + 1;
 
         emit Mint(_serviceId, _to, _totalSupply, _rating, _reviewUri, _platformId);
@@ -353,7 +362,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      * @dev See {IER721A-ownerOf}.
      */
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {
-        address owner = tlId.ownerOf(_reviewIdToOwnerAddress[tokenId]);
+        address owner = tlId.ownerOf(reviews[tokenId].id);
         require(owner != address(0), "TalentLayerReview: invalid token ID");
         return owner;
     }
