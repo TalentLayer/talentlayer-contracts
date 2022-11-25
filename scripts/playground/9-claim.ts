@@ -29,12 +29,12 @@ async function main() {
   const ERC20TokenAddress = simpleERC20.address
   const davePlatformId = await platformIdContrat.connect(dave).getPlatformIdFromAddress(dave.address)
 
-  let balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getClaimableFeeBalance(rateToken)
-  console.log('balance before ', balance.toString())
+  // let balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getClaimableFeeBalance(rateToken)
+  // console.log('balance before ', balance.toString())
   await talentLayerMultipleArbitrableTransaction.connect(dave).claim(davePlatformId, rateToken)
   await talentLayerMultipleArbitrableTransaction.connect(dave).claim(davePlatformId, ERC20TokenAddress)
-  balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getClaimableFeeBalance(rateToken)
-  console.log('balance after ', balance.toString())
+  // balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getClaimableFeeBalance(rateToken)
+  // console.log('balance after ', balance.toString())
 }
 
 // We recommend this pattern to be able to use async/await everywhere
