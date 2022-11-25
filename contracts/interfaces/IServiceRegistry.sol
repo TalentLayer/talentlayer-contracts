@@ -9,13 +9,13 @@ interface IServiceRegistry {
         Rejected,
         Opened
     }
-    
+
     enum ProposalStatus {
         Pending,
         Validated,
         Rejected
     }
-    
+
     struct Service {
         Status status;
         uint256 buyerId;
@@ -35,12 +35,15 @@ interface IServiceRegistry {
         string proposalDataUri;
     }
 
-
     function getService(uint256 _serviceId) external view returns (Service memory);
 
     function getProposal(uint256 _serviceId, uint256 _proposal) external view returns (Proposal memory);
 
-    function afterDeposit(uint256 _serviceId, uint256 _proposalId, uint256 _transactionId) external;
+    function afterDeposit(
+        uint256 _serviceId,
+        uint256 _proposalId,
+        uint256 _transactionId
+    ) external;
 
     function afterFullPayment(uint256 _serviceId) external;
 }
