@@ -49,12 +49,16 @@ contract TalentLayerID is ERC721A, Ownable {
     /// Addresses that have successfully recovered their account
     mapping(address => bool) public hasBeenRecovered;
 
+    /// Price to mint an id (in wei, upgradable)
+    uint256 public mintFee;
+
     /**
      * @param _pohAddress Proof of Humanity registry address
      */
     constructor(address _pohAddress, address _talentLayerPlatformIdAddress) ERC721A("TalentLayerID", "TID") {
         pohRegistry = IProofOfHumanity(_pohAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
+        mintFee = 0;
     }
 
     // =========================== View functions ==============================
@@ -125,7 +129,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
+    function mint(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
         _safeMint(msg.sender, 1);
         _afterMint(_handle, false, _platformId);
     }
@@ -135,7 +139,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle) public canMint(_handle, _platformId) {
+    function mintWithPoh(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
         _safeMint(msg.sender, 1);
         uint256 userTokenId = _nextTokenId() - 1;
@@ -217,6 +221,23 @@ contract TalentLayerID is ERC721A, Ownable {
         recoveryRoot = _newRoot;
     }
 
+    /**
+     * Updates the mint fee.
+     * @param _mintFee The new mint fee
+     */
+    function updateMintFee(uint256 _mintFee) public onlyOwner {
+        mintFee = _mintFee;
+        emit MintFeeUpdated(_mintFee);
+    }
+
+    /**
+     * Withdraws the contract balance to the owner.
+     */
+    function withdraw() public onlyOwner {
+        (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(sent, "Failed to withdraw Ether");
+    }
+
     // =========================== Private functions ==============================
 
     /**
@@ -235,7 +256,7 @@ contract TalentLayerID is ERC721A, Ownable {
         profile.handle = _handle;
         takenHandles[_handle] = true;
 
-        emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId);
+        emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId, mintFee);
     }
 
     // =========================== Internal functions ==============================
@@ -306,6 +327,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      */
     modifier canMint(string memory _handle, uint256 _platformId) {
+        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(msg.sender) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
@@ -322,8 +344,16 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _tokenId TalentLayer ID for the user
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
+     * @param _fee Fee paid to mint the TalentLayerID
      */
-    event Mint(address indexed _user, uint256 _tokenId, string _handle, bool _withPoh, uint256 _platformId);
+    event Mint(
+        address indexed _user,
+        uint256 _tokenId,
+        string _handle,
+        bool _withPoh,
+        uint256 _platformId,
+        uint256 _fee
+    );
 
     /**
      * Emit when new Proof of Identity is linked to TalentLayerID.
@@ -348,4 +378,10 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _tokenId TalentLayer ID for the user
      */
     event AccountRecovered(address indexed _newAddress, address indexed _oldAddress, string _handle, uint256 _tokenId);
+
+    /**
+     * Emit when mint fee is updated
+     * @param _mintFee The new mint fee
+     */
+    event MintFeeUpdated(uint256 _mintFee);
 }
