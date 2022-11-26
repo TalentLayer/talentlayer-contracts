@@ -45,6 +45,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     mapping(address => bool) public hasBeenRecovered;
 
+    /// Price to mint a platform id (in wei, upgradable)
+    uint256 public mintFee;
+
     /**
      * @notice Role granting Minting permission
      */
@@ -52,6 +55,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     constructor() ERC721A("TalentLayerPlatformID", "TPID") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        mintFee = 0;
     }
 
     // =========================== View functions ==============================
@@ -104,7 +108,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @dev You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      */
-    function mint(string memory _platformName) public canMint(_platformName) onlyRole(MINT_ROLE) {
+    function mint(string memory _platformName) public payable canMint(_platformName) onlyRole(MINT_ROLE) {
         _safeMint(msg.sender, 1);
         _afterMint(_platformName);
     }
@@ -145,6 +149,23 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         recoveryRoot = _newRoot;
     }
 
+    /**
+     * Updates the mint fee.
+     * @param _mintFee The new mint fee
+     */
+    function updateMintFee(uint256 _mintFee) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        mintFee = _mintFee;
+        emit MintFeeUpdated(_mintFee);
+    }
+
+    /**
+     * Withdraws the contract balance to the admin.
+     */
+    function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(sent, "Failed to withdraw Ether");
+    }
+
     // =========================== Private functions ==============================
 
     /**
@@ -157,7 +178,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         platform.name = _platformName;
         takenNames[_platformName] = true;
 
-        emit Mint(msg.sender, platformId, _platformName);
+        emit Mint(msg.sender, platformId, _platformName, mintFee);
     }
 
     // =========================== Internal functions ==============================
@@ -249,6 +270,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformName name for the platform
      */
     modifier canMint(string memory _platformName) {
+        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(msg.sender) == 0, "You already have a Platform ID");
         require(bytes(_platformName).length >= 2, "Name too short");
         require(bytes(_platformName).length <= 10, "Name too long");
@@ -263,8 +285,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformOwnerAddress Address of the owner of the PlatformID
      * @param _tokenId New Platform ID
      * @param _platformName Name of the platform
+     * @param _fee Fee paid to mint the Platform ID
      */
-    event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName);
+    event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName, uint256 _fee);
 
     /**
      * Emit when Cid is updated for a platform.
@@ -272,4 +295,10 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _newCid New URI
      */
     event CidUpdated(uint256 indexed _tokenId, string _newCid);
+
+    /**
+     * Emit when mint fee is updated
+     * @param _mintFee The new mint fee
+     */
+    event MintFeeUpdated(uint256 _mintFee);
 }
