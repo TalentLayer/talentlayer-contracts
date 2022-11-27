@@ -33,6 +33,8 @@ interface ITalentLayerID {
         bytes32[] calldata _merkleProof
     ) external;
 
+    function isValid(uint256 _tokenId) external view;
+
     function setBaseURI(string memory _newBaseURI) external;
 
     function getProfile(uint256 _profileId) external view returns (Profile memory);
