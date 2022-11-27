@@ -3,6 +3,10 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
 const hre = require('hardhat')
 
+/*
+In this script Alice will reject Bob's proposal
+*/
+
 // Then Alice create a service, and others add proposals
 async function main() {
   const network = await hre.network.name
@@ -14,12 +18,12 @@ async function main() {
     get(network as Network, ConfigProperty.ServiceRegistry),
   )
 
-  let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(1)
-  console.log('serviceId', serviceId.toString())
+  let nextServiceId = await serviceRegistry.nextServiceId()
+  let firstServiceId = nextServiceId.sub(2)
+  console.log('serviceId', firstServiceId.toString())
 
   //Alice rejected Bob proposal
-  await serviceRegistry.connect(alice).rejectProposal(serviceId, 2)
+  await serviceRegistry.connect(alice).rejectProposal(firstServiceId, 2)
   console.log('Alice rejected Bob proposal')
 }
 

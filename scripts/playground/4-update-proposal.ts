@@ -4,6 +4,10 @@ import { Network } from '../config'
 import postToIPFS from '../ipfs'
 const hre = require('hardhat')
 
+/*
+In this script Bob will update his proposal
+*/
+
 // Then Alice create a service, and others add proposals
 async function main() {
   const network = await hre.network.name
@@ -15,9 +19,9 @@ async function main() {
     get(network as Network, ConfigProperty.ServiceRegistry),
   )
 
-  let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(1)
-  console.log('serviceId', serviceId.toString())
+  let nextServiceId = await serviceRegistry.nextServiceId()
+  let firstServiceId = nextServiceId.sub(2)
+  console.log('serviceId', firstServiceId.toString())
 
   const rateTokenBob = get(network as Network, ConfigProperty.SimpleERC20)
   const bobUri = await postToIPFS(
@@ -31,7 +35,7 @@ async function main() {
 
   await serviceRegistry
     .connect(bob)
-    .updateProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
+    .updateProposal(firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
 
   console.log('Bob update his proposal')
 }

@@ -3,6 +3,11 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
 import postToIPFS from '../ipfs'
 
+/*
+In this script Bob, Carol and Dave will create proposals for Alice's services
+Bob and Carol for the first service (with ETH and Token) and Dave for the second service (Token)
+*/
+
 const hre = require('hardhat')
 
 // Then Alice create a service, and others add proposals
@@ -18,42 +23,82 @@ async function main() {
 
   const simpleERC20 = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
 
-  let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(1)
-  console.log('serviceId', serviceId.toString())
+  // Get the first and second service id
+  let nextServiceId = await serviceRegistry.nextServiceId()
+  let firstServiceId = nextServiceId.sub(2)
+  let secondServiceId = nextServiceId.sub(1)
+  console.log('firstServiceId', firstServiceId.toString())
+  console.log('secondServiceId', secondServiceId.toString())
 
-  //Bob make a proposal
+  /* ---------  IPFS for proposal --------- */
 
+  //Bob proposals data
   const bobUri = await postToIPFS(
     JSON.stringify({
-      proposalTitle: 'Javascript Developer',
+      proposalTitle: 'Bob : Javascript Developer',
       proposalAbout: 'We looking for Javascript Developer',
       rateType: 3,
       expectedHours: 50,
     }),
   )
+  console.log('Bob proposal uri ===> ', bobUri)
 
+  //Carol proposals data
   const carolUri = await postToIPFS(
     JSON.stringify({
-      proposalTitle: 'C++ developer',
+      proposalTitle: 'Carol : C++ developer',
       proposalAbout: 'We are looking for a C++ developer',
       rateType: 4,
       expectedHours: 20,
     }),
   )
+  console.log('Carol proposal Uri =====> ', carolUri)
 
-  console.log('uri', bobUri)
+  //Dave proposals data
+  const daveUri = await postToIPFS(
+    JSON.stringify({
+      proposalTitle: 'Dave :  developer',
+      proposalAbout: 'We are looking for a Ninja developer',
+      rateType: 3,
+      expectedHours: 10,
+    }),
+  )
+  console.log('Dave proposal Uri =====> ', daveUri)
 
+  /* ---------  Proposal creation --------- */
+
+  // Bob create a proposal #2 for Alice's service #1 (id : 1-2 in GraphQL)
   const rateTokenBob = simpleERC20.address
-  await serviceRegistry
+  const bobProposal = await serviceRegistry
     .connect(bob)
-    .createProposal(serviceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), bobUri)
+    .createProposal(firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), bobUri)
+  console.log('Bob proposal created')
+  bobProposal.wait()
+  // get the proposal
+  let bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
+  console.log('Bob proposal', bobProposalData)
 
-  // Carol make a proposal
+  // Carol make a proposal #3 for Alice's service #1 (id : 1-3 in GraphQL)
   const rateTokenCarol = '0x0000000000000000000000000000000000000000'
-  await serviceRegistry
+  const carolProposal = await serviceRegistry
     .connect(carol)
-    .createProposal(serviceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), carolUri)
+    .createProposal(firstServiceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), carolUri)
+  console.log('Carol proposal created')
+  carolProposal.wait()
+  // get the proposal
+  let carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
+  console.log('Carol proposal', carolProposalData)
+
+  // Dave create a proposal #4 for Alice's service #2 (id : 2-4 in GraphQL)
+  const rateTokenDave = simpleERC20.address
+  const daveProposal = await serviceRegistry
+    .connect(dave)
+    .createProposal(secondServiceId, rateTokenDave, ethers.utils.parseUnits('0.003', 18), daveUri)
+  console.log('Dave proposal created')
+  daveProposal.wait()
+  // get the proposal
+  let daveProposalData = await serviceRegistry.proposals(secondServiceId, 4)
+  console.log('Dave proposal', daveProposalData)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
