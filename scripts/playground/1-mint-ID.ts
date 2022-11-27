@@ -3,6 +3,11 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
 const hre = require('hardhat')
 
+/*
+In this script we will mint a new TalentLayer ID for Alice, Bob, Carol and Dave
+We need for that to get the TalentLayer Platform ID of Dave then we will mint a new TalentLayer ID
+*/
+
 async function main() {
   const network = await hre.network.name
   console.log(network)
@@ -38,6 +43,9 @@ async function main() {
 
   await talentLayerIdContract.connect(carol).mintWithPoh(daveTalentLayerIdPLatform, 'carol.lens')
   console.log('carol.lens registered')
+
+  await talentLayerIdContract.connect(dave).mintWithPoh(daveTalentLayerIdPLatform, 'dave.lens')
+  console.log('dave.lens registered')
 }
 
 // We recommend this pattern to be able to use async/await everywhere

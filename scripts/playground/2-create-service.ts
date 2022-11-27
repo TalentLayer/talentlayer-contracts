@@ -4,6 +4,13 @@ import { Network } from '../config'
 const hre = require('hardhat')
 import postToIPFS from '../ipfs'
 
+/*
+In this script Alice will create a two services.
+First we need to create Job Data and post it to IPFS to get the Service Data URI
+Then we will create Open service
+
+*/
+
 async function main() {
   const network = await hre.network.name
   console.log('Create service Test start---------------------')
@@ -23,7 +30,10 @@ async function main() {
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
   console.log('Dave Talent Layer Id', daveTalentLayerIdPLatform)
 
-  const aliceCreateJobData = await postToIPFS(
+  /* ----------- Create Open Service -------------- */
+
+  // Alice create first service #1
+  const aliceCreateFirstJobData = await postToIPFS(
     JSON.stringify({
       title: 'Full Stack Developer Job',
       about: 'Looking for Full Stack Developer',
@@ -34,38 +44,43 @@ async function main() {
       recipient: '',
     }),
   )
+  console.log('Alice First Job Data Uri', aliceCreateFirstJobData)
 
-  console.log('Alice Job Data Uri', aliceCreateJobData)
-
-  const createOpenService = await serviceRegistry
+  const createFirstOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateJobData)
-  await createOpenService.wait()
+    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateFirstJobData)
+  await createFirstOpenService.wait()
+  console.log('First Open Service created')
 
-  console.log('Open Service created------------------------')
+  const getFirstService = await serviceRegistry.getService(1)
+  console.log('First Service', getFirstService)
 
-  const aliceUpdateJobData = await postToIPFS(
+  // Alice create a second service #2
+  const aliceCreateSecondJobData = await postToIPFS(
     JSON.stringify({
-      title: 'Update title',
-      about: 'Update about',
-      keywords: 'Update Keyword',
+      title: 'Full Stack Developer Job 2',
+      about: 'Looking for Full Stack Developer 2',
+      keywords: 'BlockChain',
       role: 'developer',
       rateToken: '0x0000000000000000000000000000000000000000',
       rateAmount: 1,
       recipient: '',
     }),
   )
+  console.log('Alice Second Job Data Uri', aliceCreateSecondJobData)
 
-  console.log('Alice Job Updated data Uri', aliceUpdateJobData)
+  const createSecondOpenService = await serviceRegistry
+    .connect(alice)
+    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateSecondJobData)
+  await createSecondOpenService.wait()
+  console.log('Open Service 2 created')
 
-  let serviceId = await serviceRegistry.nextServiceId()
-  serviceId = serviceId.sub(1)
-  console.log('the Alice service id is ', serviceId.toString())
+  const getSecondeService = await serviceRegistry.getService(2)
+  console.log('Second Service', getSecondeService)
 
-  await serviceRegistry.connect(alice).updateServiceData(serviceId, aliceUpdateJobData)
-  const jobDataAfterUpdate = await serviceRegistry.getService(serviceId)
-  console.log('Alice updated the Job data------------------------')
-  console.log('Job Data after update', jobDataAfterUpdate)
+  // the next service id will be 3
+  const getNextServiceId = await serviceRegistry.nextServiceId()
+  console.log('Next Service Id', getNextServiceId)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

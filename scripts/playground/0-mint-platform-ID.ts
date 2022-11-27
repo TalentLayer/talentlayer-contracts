@@ -3,6 +3,12 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
 const hre = require('hardhat')
 
+/*
+in this script we will mint a new platform ID for HireVibes
+We first need to grant the MINT_ROLE to the address (Dave) who will mint the new Platform ID
+After that we mint the new Platform ID Dave will update the profile data.
+*/
+
 async function main() {
   const network = await hre.network.name
   console.log(network)
@@ -22,8 +28,6 @@ async function main() {
   await mint.wait()
 
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  console.log('Alice talentLayerIdPLatform', daveTalentLayerIdPLatform)
-
   await platformIdContrat.connect(dave).updateProfileData(daveTalentLayerIdPLatform, 'newCid')
 
   const davePlatformData = await platformIdContrat.platforms(daveTalentLayerIdPLatform)
@@ -31,6 +35,7 @@ async function main() {
   const platformName = davePlatformData.name
   const platformCid = davePlatformData.dataUri
 
+  console.log('Dave talentLayerIdPLatform', daveTalentLayerIdPLatform)
   console.log('platformName', platformName)
   console.log('platformCid', platformCid)
 }

@@ -1,9 +1,12 @@
 #!make
 include .env
 
+
 #--------------FULL INSTALLATION----------------#
 
 install: deploy copy-configuration setup-fakedata
+
+allScripts: deploy copy-configuration setup-allFakeData
 
 #--------------DEPLOY----------------#
 
@@ -28,8 +31,8 @@ endif
 
 #--------------PLAYGROUND LOCAL----------------#
 
-wait_localhost = 1
-wait_other_network = 30
+wait_localhost = 5
+wait_other_network = 60
 
 ifeq ($(DEPLOY_NETWORK),localhost)
 	w := $(wait_localhost)
@@ -60,6 +63,64 @@ setup-fakedata:
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 endif
 
+ifeq ($(OS),Windows_NT)
+setup-allFakeData:
+	timeout $(w)
+	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/2-update-service.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/4-update-proposal.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/5-reject-proposal.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/6-accept-ETHproposal.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/6-accept-tokenProposal.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/7-payETH.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/7-payToken.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)
+	timeout $(w)
+	npx hardhat run scripts/playground/9-claim.ts --network $(DEPLOY_NETWORK)
+else
+setup-allFakeData:
+	sleep $(w)
+	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/2-update-service.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/4-update-proposal.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/5-reject-proposal.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/6-accept-ETHproposal.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/6-accept-tokenProposal.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/7-payETH.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/7-payToken.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)
+	sleep $(w)
+	npx hardhat run scripts/playground/9-claim.ts --network $(DEPLOY_NETWORK)
+endif
+
 mint-platformid:
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
 
@@ -68,6 +129,9 @@ mint-id:
 
 create-service:
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
+
+update-service:
+	npx hardhat run scripts/playground/2-update-service.ts --network $(DEPLOY_NETWORK)
 
 make-proposal:
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
@@ -78,11 +142,17 @@ update-proposal:
 reject-proposal:
 	npx hardhat run scripts/playground/5-reject-proposal.ts --network $(DEPLOY_NETWORK)
 
-accept-proposal:
-	npx hardhat run scripts/playground/6-accept-proposal.ts --network $(DEPLOY_NETWORK)
+accept-ETHproposal:
+	npx hardhat run scripts/playground/6-accept-ETHproposal.ts --network $(DEPLOY_NETWORK)
 
-pay-proposal:
-	npx hardhat run scripts/playground/7-pay.ts --network $(DEPLOY_NETWORK)
+accept-tokenProposal:
+	npx hardhat run scripts/playground/6-accept-tokenProposal.ts --network $(DEPLOY_NETWORK)
+
+pay-ETHproposal:
+	npx hardhat run scripts/playground/7-payETH.ts --network $(DEPLOY_NETWORK)
+
+pay-tokenProposal:
+	npx hardhat run scripts/playground/7-payToken.ts --network $(DEPLOY_NETWORK)
 
 reviews:
 	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)

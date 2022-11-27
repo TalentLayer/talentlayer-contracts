@@ -159,13 +159,24 @@ task('deploy')
 
       if (useTestErc20) {
         // Deploy ERC20 contract
+
+        // amount transfered to bob, dave and carol
+        const amount = ethers.utils.parseUnits('10', 18)
         const SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
         const simpleERC20 = await SimpleERC20.deploy()
-        await simpleERC20.transfer(bob.address, 500)
-        await simpleERC20.transfer(carol.address, 500)
-        await simpleERC20.transfer(dave.address, 500)
+        await simpleERC20.transfer(bob.address, amount)
+        await simpleERC20.transfer(carol.address, amount)
+        await simpleERC20.transfer(dave.address, amount)
 
         console.log('simpleERC20 address:', simpleERC20.address)
+
+        // get the SimpleERC20 balance in wallet of bob, carol and dave
+        const balance = await simpleERC20.balanceOf(bob.address)
+        console.log('SimpleERC20 balance:', balance.toString())
+        const balance2 = await simpleERC20.balanceOf(carol.address)
+        console.log('SimpleERC20 balance2:', balance2.toString())
+        const balance3 = await simpleERC20.balanceOf(dave.address)
+        console.log('SimpleERC20 balance3:', balance3.toString())
 
         set(network.name as any as Network, ConfigProperty.SimpleERC20, simpleERC20.address)
       }

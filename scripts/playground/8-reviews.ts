@@ -4,7 +4,10 @@ import { Network } from '../config'
 const hre = require('hardhat')
 import postToIPFS from '../ipfs'
 
-// Then Alice create a service, and others add proposals
+/*
+In this scriptAlice will review Carol and Carol will review Alice
+*/
+
 async function main() {
   const network = await hre.network.name
   console.log(network)
