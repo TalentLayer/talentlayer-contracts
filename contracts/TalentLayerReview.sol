@@ -25,9 +25,9 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     // Struct Review
     struct Review {
         uint256 id;
-        uint256 reviewIdToOwnerAddress;
-        string reviewDataUri;
-        uint256 reviewIdToPlatformId;
+        uint256 owner;
+        string dataUri;
+        uint256 platformId;
     }
 
     /**
@@ -113,7 +113,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     // =========================== View functions ==============================
 
     // get the data of the struct Review
-    function getReviewData(uint256 _reviewId) public view returns (Review memory) {
+    function getReview(uint256 _reviewId) public view returns (Review memory) {
         return reviews[_reviewId];
     }
 
@@ -127,12 +127,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      * @param _rating The review rate
      * @param _platformId The platform ID
      */
-    function addReview(
-        uint256 _serviceId,
-        string calldata _reviewUri,
-        uint256 _rating,
-        uint256 _platformId
-    ) public {
+    function addReview(uint256 _serviceId, string calldata _reviewUri, uint256 _rating, uint256 _platformId) public {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
@@ -208,12 +203,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      * @param _tokenId The ID of the review token
      * @param _data Additional data with no specified format
      */
-    function _safeTransfer(
-        address _from,
-        address _to,
-        uint256 _tokenId,
-        bytes memory _data
-    ) internal virtual {
+    function _safeTransfer(address _from, address _to, uint256 _tokenId, bytes memory _data) internal virtual {
         _transfer(_from, _to, _tokenId);
         require(
             _checkOnERC721Received(_from, _to, _tokenId, _data),
@@ -261,12 +251,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
 
         _talentLayerIdToReviewCount[_to] += 1;
 
-        reviews[_totalSupply] = Review({
-            id: _totalSupply,
-            reviewIdToOwnerAddress: _to,
-            reviewDataUri: _reviewUri,
-            reviewIdToPlatformId: _platformId
-        });
+        reviews[_totalSupply] = Review({id: _totalSupply, owner: _to, dataUri: _reviewUri, platformId: _platformId});
 
         _totalSupply = _totalSupply + 1;
 
@@ -285,11 +270,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      * @param _to The address of the recipient
      * @param _tokenId The ID of the review token
      */
-    function _transfer(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) internal virtual {}
+    function _transfer(address _from, address _to, uint256 _tokenId) internal virtual {}
 
     /**
      * @dev Approves an operator to perform operations on a token
@@ -307,11 +288,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      * @param _operator The operator
      * @param _approved The approval status
      */
-    function _setApprovalForAll(
-        address _owner,
-        address _operator,
-        bool _approved
-    ) internal virtual {
+    function _setApprovalForAll(address _owner, address _operator, bool _approved) internal virtual {
         require(_owner != _operator, "TalentLayerReview: approve to caller");
         _operatorApprovals[_owner][_operator] = _approved;
         emit ApprovalForAll(_owner, _operator, _approved);
@@ -320,20 +297,12 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev Unused hook.
      */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
 
     /**
      * @dev Unused hook.
      */
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
+    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
 
     // =========================== External functions ==========================
 
@@ -428,11 +397,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev See {IER721A-transferFrom}.
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
         //solhint-disable-next-line max-line-length
         require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
 
@@ -442,23 +407,14 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev See {IER721A-safeTransferFrom}.
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override {
         safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
      * @dev See {IER721A-safeTransferFrom}.
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) public virtual override {
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual override {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
         _safeTransfer(from, to, tokenId, data);
     }
