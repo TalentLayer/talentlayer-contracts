@@ -248,15 +248,15 @@ describe('TalentLayer', function () {
     await talentLayerReview.connect(alice).addReview(1, 'cidReview1', 2, 1)
     await talentLayerReview.connect(bob).addReview(1, 'cidReview2', 4, 1)
 
-    const reviewData1 = await talentLayerReview.getReviewData(0)
-    console.log('reviewData1', reviewData1.reviewDataUri)
-    const reviewData2 = await talentLayerReview.getReviewData(1)
-    console.log('reviewData2', reviewData2.reviewDataUri)
+    const reviewData1 = await talentLayerReview.getReview(0)
+    console.log('reviewData1', reviewData1.dataUri)
+    const reviewData2 = await talentLayerReview.getReview(1)
+    console.log('reviewData2', reviewData2.dataUri)
 
-    expect(reviewData1.reviewDataUri).to.be.equal('cidReview1')
-    expect(reviewData2.reviewDataUri).to.be.equal('cidReview2')
+    expect(reviewData1.dataUri).to.be.equal('cidReview1')
+    expect(reviewData2.dataUri).to.be.equal('cidReview2')
 
-    expect(await reviewData1.reviewIdToPlatformId).to.be.equal(1)
+    expect(await reviewData1.platformId).to.be.equal(1)
   })
 
   it("Alice and Bob can't write a review for the same Service", async function () {

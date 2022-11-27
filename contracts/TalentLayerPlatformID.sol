@@ -69,7 +69,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return platforms[_platformId].fee;
     }
 
-    function getPlatformData(uint256 _platformId) external view returns (Platform memory) {
+    function getPlatform(uint256 _platformId) external view returns (Platform memory) {
         require(_platformId > 0 && _platformId <= totalSupply(), "This plateForm Id is not valid");
         return platforms[_platformId];
     }
@@ -193,19 +193,11 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return ERC721A.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721A) {
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
         revert("Not allowed");
     }
 
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721A) {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
         revert("Not allowed");
     }
 
