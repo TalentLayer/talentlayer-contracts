@@ -210,8 +210,8 @@ contract ServiceRegistry is AccessControl {
         uint256 _sellerId,
         string calldata _serviceDataUri
     ) public returns (uint256) {
-        require(_sellerId > 0, "Seller 0 is not a valid TalentLayerId");
         talentLayerPlatformIdContract.isValid(_platformId);
+        tlId.isValid(_sellerId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return _createService(Status.Filled, senderId, senderId, _sellerId, _serviceDataUri, _platformId);
     }
@@ -227,8 +227,8 @@ contract ServiceRegistry is AccessControl {
         uint256 _buyerId,
         string calldata _serviceDataUri
     ) public returns (uint256) {
-        require(_buyerId > 0, "Buyer 0 is not a valid TalentLayerId");
         talentLayerPlatformIdContract.isValid(_platformId);
+        tlId.isValid(_buyerId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return _createService(Status.Filled, senderId, _buyerId, senderId, _serviceDataUri, _platformId);
     }
@@ -437,6 +437,7 @@ contract ServiceRegistry is AccessControl {
     function assignSellerToService(uint256 _serviceId, uint256 _sellerId) public {
         Service storage service = services[_serviceId];
         uint256 senderId = tlId.walletOfOwner(msg.sender);
+        tlId.isValid(_sellerId);
 
         require(
             service.status == Status.Opened || service.status == Status.Rejected,

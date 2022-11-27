@@ -122,6 +122,14 @@ contract TalentLayerID is ERC721A, Ownable {
         return profiles[walletOfOwner(_address)].platformId;
     }
 
+    /**
+     * @notice Check whether the User Token Id is valid.
+     * @param _tokenId Token ID to check
+     */
+    function isValid(uint256 _tokenId) external view {
+        require(_tokenId > 0 && _tokenId <= totalSupply(), "Your ID is not a valid token ID");
+    }
+
     // =========================== User functions ==============================
 
     /**
