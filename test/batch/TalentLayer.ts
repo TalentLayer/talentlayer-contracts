@@ -215,9 +215,15 @@ describe('TalentLayer', function () {
     )
   })
 
-  it("Alice can't create a new service with wrong TalentLayer Platform ID", async function () {
-    expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(2, 'wrongTlid')).to.be.revertedWith(
+  it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function () {
+    expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(2, 'wrongTlPid')).to.be.revertedWith(
       'Platform 0 is not a valid TalentLayer Platform ID',
+    )
+  })
+
+  it("Alice can't create a new service from buyer with right TalentLayer Platform ID but wrong TalentLayer Id", async function () {
+    expect(serviceRegistry.connect(alice).createServiceFromBuyer(1, 6, 'cid')).to.be.revertedWith(
+      'Your ID is not a valid token ID',
     )
   })
 
