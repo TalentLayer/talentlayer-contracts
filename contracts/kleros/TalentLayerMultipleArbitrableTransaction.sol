@@ -74,7 +74,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @notice Emitted after the protocol fee was updated
      * @param _protocolFee The new protocol fee
      */
-    event ProtocolFeeUpdated(uint256 _protocolFee);
+    event ProtocolFeeUpdated(uint16 _protocolFee);
 
     /**
      * @notice Emitted after the origin platform fee was updated
