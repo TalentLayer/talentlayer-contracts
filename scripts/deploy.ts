@@ -194,10 +194,7 @@ task('deploy')
         console.log('Registered Carol:', carol.address)
         console.log('Registered Dave:', dave.address)
       }
-    } catch (e: any) {
-      if (e.message.includes('Reason: Already Verified')) {
-        console.log('Contract is already verified!')
-      }
+    } catch (e) {
       console.log('------------------------')
       console.log('FAILED')
       console.error(e)
