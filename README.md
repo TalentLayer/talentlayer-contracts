@@ -32,6 +32,16 @@ https://www.talentlayer.org/
 - Registered Carol: 0xe50D5B11cd621361BaB13910AF7A0f5cF12AE2C1
 - Registered Dave: 0xe526660f2F5aD454D8588926DcE72BF249945Fe0
 
+## Deployed on Avalanche testnet (Fuji)
+
+- Proof of humanity 0x52B21E28B98B558bF5DddFd3dB9653449F8067D6
+- TalentLayer Platform ID: 0xC30859CFa06D0cB9D66837feBB36a856BF78865E
+- TalentLayer ID: 0xD1B87CCe7f9FA272c6643Fa89085F135A2AbB234
+- Service Registry : 0x9Af3080e73FB1054896e3799a786F0063965bA46
+- TalentLayerReview : 0xc9c87d5b85fd88d375000f9e3e26195690934F50
+- TalentLayerArbitrator : 0x60EeeEA95257D0649Dbad970C65A6b62a3fF9F11
+- TalentLayerMultipleArbitrableTransaction : 0x754278520467fAdBB1D0230E082E436E70505EE2
+
 ## Playground
 
 Please read the Makefile for more details.
