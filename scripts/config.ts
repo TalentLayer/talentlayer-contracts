@@ -4,6 +4,8 @@ export enum Network {
   GNOSIS = 100,
   KOVAN = 42,
   GOERLI = 5,
+  AVALANCHE = 43114,
+  FUJI = 43113,
 }
 
 export type NetworkConfig = {
@@ -18,6 +20,8 @@ const local = {} as NetworkConfig
 const mainnet = {} as NetworkConfig
 const gnosis = {} as NetworkConfig
 const goerli = {} as NetworkConfig
+const avalanche = {} as NetworkConfig
+const fuji = {} as NetworkConfig
 
 export const configs: { [networkId in Network]: NetworkConfig } = {
   [Network.LOCAL]: local,
@@ -25,6 +29,8 @@ export const configs: { [networkId in Network]: NetworkConfig } = {
   [Network.GNOSIS]: gnosis,
   [Network.KOVAN]: kovan,
   [Network.GOERLI]: goerli,
+  [Network.AVALANCHE]: avalanche,
+  [Network.FUJI]: fuji,
 }
 
 export const getConfig = (networkId: Network): NetworkConfig => {

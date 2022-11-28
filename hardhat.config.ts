@@ -35,6 +35,12 @@ function getChainConfig(chain: Network): NetworkUserConfig {
     case Network.KOVAN:
       jsonRpcUrl = 'https://kovan.infura.io/v3/' + infuraApiKey
       break
+    case Network.AVALANCHE:
+      jsonRpcUrl = 'https://avalanche-mainnet.infura.io/v3/' + infuraApiKey
+      break
+    case Network.FUJI:
+      jsonRpcUrl = 'https://avalanche-fuji.infura.io/v3/' + infuraApiKey
+      break
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey
   }
@@ -58,6 +64,8 @@ const config: HardhatUserConfig = {
       xdai: process.env.GNOSIS_API_KEY || '',
       goerli: process.env.ETHERSCAN_API_KEY || '',
       kovan: process.env.ETHERSCAN_API_KEY || '',
+      avalanche: process.env.SNOWTRACE_API_KEY || '',
+      avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || '',
     },
   },
   gasReporter: {
@@ -88,6 +96,8 @@ const config: HardhatUserConfig = {
     goerli: getChainConfig(Network.GOERLI),
     gnosis: getChainConfig(Network.GNOSIS),
     kovan: getChainConfig(Network.KOVAN),
+    avalanche: getChainConfig(Network.AVALANCHE),
+    fuji: getChainConfig(Network.FUJI),
   },
   paths: {
     artifacts: './artifacts',
