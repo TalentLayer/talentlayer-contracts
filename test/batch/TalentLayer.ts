@@ -4,7 +4,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { Contract, ContractFactory } from 'ethers'
 import { TalentLayerID } from '../../typechain-types'
 
-describe('TalentLayer', function () {
+describe('TalentLayer', function() {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -31,7 +31,7 @@ describe('TalentLayer', function () {
     platformId: string,
     mintFee: number
 
-  before(async function () {
+  before(async function() {
     ;[deployer, alice, bob, carol, dave, eve] = await ethers.getSigners()
 
     // Deploy MockProofOfHumanity
@@ -101,18 +101,18 @@ describe('TalentLayer', function () {
     mintFee = 100
   })
 
-  describe('Platform Id contract test', async function () {
-    it('Alice successfully minted a PlatformId Id', async function () {
+  describe('Platform Id contract test', async function() {
+    it('Alice successfully minted a PlatformId Id', async function() {
       platformId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
       expect(platformId).to.be.equal('1')
     })
 
-    it('Alice can check the number of id minted', async function () {
+    it('Alice can check the number of id minted', async function() {
       await talentLayerPlatformID.connect(alice).numberMinted(alice.address)
       expect(await talentLayerPlatformID.numberMinted(alice.address)).to.be.equal('1')
     })
 
-    it('Alice can update the platform Data', async function () {
+    it('Alice can update the platform Data', async function() {
       await talentLayerPlatformID.connect(alice).updateProfileData('1', 'newPlatId')
 
       const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
@@ -120,21 +120,21 @@ describe('TalentLayer', function () {
       expect(alicePlatformData.dataUri).to.be.equal('newPlatId')
     })
 
-    it('Alice should not be able to transfer her PlatformId Id to Bob', async function () {
+    it('Alice should not be able to transfer her PlatformId Id to Bob', async function() {
       expect(talentLayerPlatformID.transferFrom(alice.address, bob.address, 1)).to.be.revertedWith('Not allowed')
     })
 
-    it('Alice should not be able to mint a new PlatformId ID', async function () {
+    it('Alice should not be able to mint a new PlatformId ID', async function() {
       expect(talentLayerPlatformID.connect(alice).mint('SecPlatId')).to.be.revertedWith(
         'You already have a Platform ID',
       )
     })
 
-    it('Alice should not be able to mint a PlatformId ID with the same name', async function () {
+    it('Alice should not be able to mint a PlatformId ID with the same name', async function() {
       expect(talentLayerPlatformID.connect(alice).mint('PlatId')).to.be.revertedWith('You already have a Platform ID')
     })
 
-    it("Alice's PlatformID ownership data is coherent", async function () {
+    it("Alice's PlatformID ownership data is coherent", async function() {
       const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
       const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
       const name = alicePlatformData.name
@@ -146,7 +146,7 @@ describe('TalentLayer', function () {
       expect(idOwner).to.equal(alice.address)
     })
 
-    it('Alice should be able to set up and update platform fee', async function () {
+    it('Alice should be able to set up and update platform fee', async function() {
       const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
       const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE()
 
@@ -164,14 +164,14 @@ describe('TalentLayer', function () {
       expect(newAlicePlatformData.fee).to.be.equal(6)
     })
 
-    it('The deployer can update the mint fee', async function () {
+    it('The deployer can update the mint fee', async function() {
       await talentLayerPlatformID.connect(deployer).updateMintFee(mintFee)
       const updatedMintFee = await talentLayerPlatformID.mintFee()
 
       expect(updatedMintFee).to.be.equal(mintFee)
     })
 
-    it('Bob can mint a platform id by paying the mint fee', async function () {
+    it('Bob can mint a platform id by paying the mint fee', async function() {
       const bobBalanceBefore = await bob.getBalance()
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
 
@@ -194,7 +194,7 @@ describe('TalentLayer', function () {
       expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
     })
 
-    it("The deployer can withdraw the contract's balance", async function () {
+    it("The deployer can withdraw the contract's balance", async function() {
       const deployerBalanceBefore = await deployer.getBalance()
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
 
@@ -217,7 +217,7 @@ describe('TalentLayer', function () {
     })
   })
 
-  it('Alice, Bob and Carol can mint a talentLayerId', async function () {
+  it('Alice, Bob and Carol can mint a talentLayerId', async function() {
     await talentLayerID.connect(alice).mintWithPoh('1', 'alice')
     await talentLayerID.connect(bob).mintWithPoh('1', 'bob')
 
@@ -233,7 +233,7 @@ describe('TalentLayer', function () {
     expect(profileData.platformId).to.be.equal('1')
   })
 
-  it('Carol can activate POH on her talentLayerID', async function () {
+  it('Carol can activate POH on her talentLayerID', async function() {
     expect(talentLayerID.connect(carol).mintWithPoh(1, 'carol')).to.be.revertedWith(
       "You're address is not registerd for poh",
     )
@@ -245,7 +245,7 @@ describe('TalentLayer', function () {
     expect(await profileData.pohAddress).to.be.equal(carol.address)
   })
 
-  it('Alice, the buyer, can initiate a new service with Bob, the seller', async function () {
+  it('Alice, the buyer, can initiate a new service with Bob, the seller', async function() {
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     await serviceRegistry.connect(alice).createServiceFromBuyer(1, bobTid, 'cid')
     const serviceData = await serviceRegistry.services(1)
@@ -258,13 +258,13 @@ describe('TalentLayer', function () {
     expect(serviceData.platformId).to.be.equal(1)
   })
 
-  it('Alice should be able to update the service data', async function () {
+  it('Alice should be able to update the service data', async function() {
     await serviceRegistry.connect(alice).updateServiceData(1, 'New-service-data-Uri')
     const serviceData = await serviceRegistry.services(1)
     expect(serviceData.serviceDataUri).to.be.equal('New-service-data-Uri')
   })
 
-  it("Alice can't create a new service with a talentLayerId 0", async function () {
+  it("Alice can't create a new service with a talentLayerId 0", async function() {
     expect(serviceRegistry.connect(alice).createServiceFromBuyer(0, 'cid', 1)).to.be.revertedWith(
       'Seller 0 is not a valid TalentLayerId',
     )
@@ -273,19 +273,19 @@ describe('TalentLayer', function () {
     )
   })
 
-  it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function () {
+  it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function() {
     expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(2, 'wrongTlPid')).to.be.revertedWith(
-      'Platform 0 is not a valid TalentLayer Platform ID',
+      'Invalid platform ID',
     )
   })
 
-  it("Alice can't create a new service from buyer with right TalentLayer Platform ID but wrong TalentLayer Id", async function () {
+  it("Alice can't create a new service from buyer with right TalentLayer Platform ID but wrong TalentLayer Id", async function() {
     expect(serviceRegistry.connect(alice).createServiceFromBuyer(1, 6, 'cid')).to.be.revertedWith(
       'Your ID is not a valid token ID',
     )
   })
 
-  it("Bob, the seller, can confirm the service, Alice can't, Carol can't", async function () {
+  it("Bob, the seller, can confirm the service, Alice can't, Carol can't", async function() {
     expect(serviceRegistry.connect(alice).confirmService(1)).to.be.revertedWith(
       "Only the user who didn't initate the service can confirm it",
     )
@@ -296,25 +296,25 @@ describe('TalentLayer', function () {
     expect(serviceRegistry.connect(bob).confirmService(1)).to.be.revertedWith('Service has already been confirmed')
   })
 
-  it("Bob can't write a review yet", async function () {
+  it("Bob can't write a review yet", async function() {
     expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
       'The service is not finished yet',
     )
   })
 
-  it("Carol can't write a review as she's not linked to this service", async function () {
+  it("Carol can't write a review as she's not linked to this service", async function() {
     expect(talentLayerReview.connect(carol).addReview(1, 'cidReview', 5, 1)).to.be.revertedWith(
       "You're not an actor of this service",
     )
   })
 
-  it('Alice can say that the service is finished', async function () {
+  it('Alice can say that the service is finished', async function() {
     await serviceRegistry.connect(alice).finishService(1)
     const serviceData = await serviceRegistry.services(1)
     expect(serviceData.status.toString()).to.be.equal('2')
   })
 
-  it('Alice and Bob can write a review now and we can get review data', async function () {
+  it('Alice and Bob can write a review now and we can get review data', async function() {
     await talentLayerReview.connect(alice).addReview(1, 'cidReview1', 2, 1)
     await talentLayerReview.connect(bob).addReview(1, 'cidReview2', 4, 1)
 
@@ -329,12 +329,12 @@ describe('TalentLayer', function () {
     expect(await reviewData1.platformId).to.be.equal(1)
   })
 
-  it("Alice and Bob can't write a review for the same Service", async function () {
+  it("Alice and Bob can't write a review for the same Service", async function() {
     expect(talentLayerReview.connect(alice).addReview(1, 'cidReview', 0)).to.be.revertedWith('ReviewAlreadyMinted()')
     expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3)).to.be.revertedWith('ReviewAlreadyMinted()')
   })
 
-  it('Carol, a new buyer, can initiate a new service with Bob, the seller', async function () {
+  it('Carol, a new buyer, can initiate a new service with Bob, the seller', async function() {
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     await serviceRegistry.connect(carol).createServiceFromBuyer(1, bobTid, 'cid2')
     const serviceData = await serviceRegistry.services(2)
@@ -346,14 +346,14 @@ describe('TalentLayer', function () {
     expect(serviceData.serviceDataUri).to.be.equal('cid2')
   })
 
-  it("Bob can reject Carol new service as he's not agree with the service details", async function () {
+  it("Bob can reject Carol new service as he's not agree with the service details", async function() {
     await serviceRegistry.connect(bob).rejectService(2)
     const serviceData = await serviceRegistry.services(2)
     expect(serviceData.status.toString()).to.be.equal('3')
     expect(serviceRegistry.connect(bob).confirmService(1)).to.be.revertedWith("You can't finish this service")
   })
 
-  it('Bob can post another service with fixed service details, and Carol confirmed it', async function () {
+  it('Bob can post another service with fixed service details, and Carol confirmed it', async function() {
     const carolId = await talentLayerID.walletOfOwner(carol.address)
     await serviceRegistry.connect(bob).createServiceFromSeller(1, carolId, 'cid3')
     let serviceData = await serviceRegistry.services(3)
@@ -371,14 +371,14 @@ describe('TalentLayer', function () {
     expect(serviceData.status.toString()).to.be.equal('1')
   })
 
-  it("Dave, who doesn't have TalentLayerID, can't create a service", async function () {
+  it("Dave, who doesn't have TalentLayerID, can't create a service", async function() {
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     expect(serviceRegistry.connect(dave).createServiceFromBuyer(1, bobTid, 'cid')).to.be.revertedWith(
       'You sould have a TalentLayerId',
     )
   })
 
-  it('Alice the buyer can create an Open service', async function () {
+  it('Alice the buyer can create an Open service', async function() {
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
     const serviceData = await serviceRegistry.services(4)
 
@@ -390,7 +390,7 @@ describe('TalentLayer', function () {
     expect(serviceData.platformId).to.be.equal(1)
   })
 
-  it('Alice can assign an seller to a Open service', async function () {
+  it('Alice can assign an seller to a Open service', async function() {
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     await serviceRegistry.connect(alice).assignSellerToService(5, bobTid)
@@ -400,7 +400,7 @@ describe('TalentLayer', function () {
     expect(serviceData.sellerId.toString()).to.be.equal(bobTid)
   })
 
-  it('Bob can confirm the Open service', async function () {
+  it('Bob can confirm the Open service', async function() {
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     await serviceRegistry.connect(alice).assignSellerToService(6, bobTid)
@@ -410,7 +410,7 @@ describe('TalentLayer', function () {
     expect(serviceData.status.toString()).to.be.equal('1')
   })
 
-  it('Bob can reject an Open service', async function () {
+  it('Bob can reject an Open service', async function() {
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     const carolId = await talentLayerID.walletOfOwner(carol.address)
@@ -427,7 +427,7 @@ describe('TalentLayer', function () {
     expect(serviceDataNewAssignement.status.toString()).to.be.equal('1')
   })
 
-  it('Bob can create a proposal for an Open service', async function () {
+  it('Bob can create a proposal for an Open service', async function() {
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
@@ -454,7 +454,7 @@ describe('TalentLayer', function () {
     expect(proposalDataAfter.status.toString()).to.be.equal('0')
   })
 
-  it('Bob can update a proposal ', async function () {
+  it('Bob can update a proposal ', async function() {
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
@@ -470,7 +470,7 @@ describe('TalentLayer', function () {
     expect(proposalDataAfter.proposalDataUri).to.be.equal('cid2')
   })
 
-  it('Alice can validate a proposal', async function () {
+  it('Alice can validate a proposal', async function() {
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
@@ -485,7 +485,7 @@ describe('TalentLayer', function () {
     expect(proposalDataAfter.status.toString()).to.be.equal('1')
   })
 
-  it('Alice can delete a proposal ', async function () {
+  it('Alice can delete a proposal ', async function() {
     const bobTid = await talentLayerID.walletOfOwner(bob.address)
     const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
@@ -497,14 +497,14 @@ describe('TalentLayer', function () {
     expect(proposalDataAfter.status.toString()).to.be.equal('2')
   })
 
-  it('The deployer can update the mint fee', async function () {
+  it('The deployer can update the mint fee', async function() {
     await talentLayerID.connect(deployer).updateMintFee(mintFee)
     const updatedMintFee = await talentLayerID.mintFee()
 
     expect(updatedMintFee).to.be.equal(mintFee)
   })
 
-  it('Eve can mint a talentLayerId by paying the mint fee', async function () {
+  it('Eve can mint a talentLayerId by paying the mint fee', async function() {
     const eveBalanceBefore = await eve.getBalance()
     const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
 
@@ -524,7 +524,7 @@ describe('TalentLayer', function () {
     expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
   })
 
-  it("The deployer can withdraw the contract's balance", async function () {
+  it("The deployer can withdraw the contract's balance", async function() {
     const deployerBalanceBefore = await deployer.getBalance()
     const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
 
@@ -546,32 +546,32 @@ describe('TalentLayer', function () {
     expect(contractBalanceAfter).to.be.equal(0)
   })
 
-  describe('SimpleERC20 contract.', function () {
-    describe('Deployment', function () {
+  describe('SimpleERC20 contract.', function() {
+    describe('Deployment', function() {
       // it("Should be accessible", async function () {
       //   await loadFixture(deployTokenFixture);
       //   expect(await token.ping()).to.equal(1);
       // });
 
-      it('Should set the right deployer', async function () {
+      it('Should set the right deployer', async function() {
         expect(await token.owner()).to.equal(deployer.address)
       })
 
-      it('Should assign the total supply of tokens to the deployer', async function () {
+      it('Should assign the total supply of tokens to the deployer', async function() {
         // await loadFixture(deployTokenFixture);
         const deployerBalance = await token.balanceOf(deployer.address)
         const totalSupply = await token.totalSupply()
         expect(totalSupply).to.equal(deployerBalance)
       })
 
-      it('Should transfer 10000000 tokens to alice', async function () {
+      it('Should transfer 10000000 tokens to alice', async function() {
         // await loadFixture(deployTokenFixture);
         expect(token.transfer(alice.address, 10000000)).to.changeTokenBalances(token, [deployer, alice], [-1000, 1000])
       })
     })
 
-    describe('Token transactions.', function () {
-      it('Should transfer tokens between accounts', async function () {
+    describe('Token transactions.', function() {
+      it('Should transfer tokens between accounts', async function() {
         // await loadFixture(deployTokenFixture);
 
         // Transfer 50 tokens from deployer to alice
@@ -581,7 +581,7 @@ describe('TalentLayer', function () {
         expect(token.connect(alice).transfer(bob.address, 50)).to.changeTokenBalances(token, [alice, bob], [-50, 50])
       })
 
-      it('Should emit Transfer events.', async function () {
+      it('Should emit Transfer events.', async function() {
         // await loadFixture(deployTokenFixture);
 
         // Transfer 50 tokens from deployer to alice
@@ -595,7 +595,7 @@ describe('TalentLayer', function () {
           .withArgs(alice.address, bob.address, 50)
       })
 
-      it("Should revert when sender doesn't have enough tokens.", async function () {
+      it("Should revert when sender doesn't have enough tokens.", async function() {
         // await loadFixture(deployTokenFixture);
 
         const initialdeployerBalance = await token.balanceOf(deployer.address)
@@ -611,8 +611,8 @@ describe('TalentLayer', function () {
     })
   })
 
-  describe('Escrow Contract.', function () {
-    describe('Successful use of Escrow for a service using an ERC20 token.', function () {
+  describe('Escrow Contract.', function() {
+    describe('Successful use of Escrow for a service using an ERC20 token.', function() {
       const amountBob = 1000000
       const amountCarol = 2000
       const serviceId = 12
@@ -621,11 +621,11 @@ describe('TalentLayer', function () {
       let proposalIdCarol = 0 //Will be set later
       let totalAmount = 0 //Will be set later
 
-      it('Alice can create a service.', async function () {
+      it('Alice can create a service.', async function() {
         await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
       })
 
-      it('Alice can NOT deposit tokens to escrow yet.', async function () {
+      it('Alice can NOT deposit tokens to escrow yet.', async function() {
         await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountBob)
         expect(
           talentLayerMultipleArbitrableTransaction
@@ -634,17 +634,17 @@ describe('TalentLayer', function () {
         ).to.be.reverted
       })
 
-      it('Bob can register a proposal.', async function () {
+      it('Bob can register a proposal.', async function() {
         proposalIdBob = await talentLayerID.walletOfOwner(bob.address)
         await serviceRegistry.connect(bob).createProposal(serviceId, token.address, amountBob, 'cid')
       })
 
-      it('Carol can register a proposal.', async function () {
+      it('Carol can register a proposal.', async function() {
         proposalIdCarol = await talentLayerID.walletOfOwner(carol.address)
         await serviceRegistry.connect(carol).createProposal(serviceId, token.address, amountCarol, 'cid')
       })
 
-      it('Alice cannot update originPlatformFee, protocolFee or protocolWallet', async function () {
+      it('Alice cannot update originPlatformFee, protocolFee or protocolWallet', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(alice).updateProtocolFee(4000),
         ).to.be.revertedWith('Ownable: caller is not the owner')
@@ -656,7 +656,7 @@ describe('TalentLayer', function () {
         ).to.be.revertedWith('Ownable: caller is not the owner')
       })
 
-      it('The Deployer can update originPlatformFee, protocolFee and protocolWallet', async function () {
+      it('The Deployer can update originPlatformFee, protocolFee and protocolWallet', async function() {
         let protocolWallet = await talentLayerMultipleArbitrableTransaction.connect(deployer).getProtocolWallet()
         expect(protocolWallet).to.equal(deployer.address)
         await talentLayerMultipleArbitrableTransaction.connect(deployer).updateProtocolWallet(dave.address)
@@ -671,7 +671,7 @@ describe('TalentLayer', function () {
         expect(originPlatformFee).to.equal(1400)
       })
 
-      it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
+      it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function() {
         const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
         await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100)
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
@@ -697,19 +697,19 @@ describe('TalentLayer', function () {
           .withArgs(serviceId, proposalIdBob, transactionId)
       })
 
-      it('The deposit should also validate the proposal.', async function () {
+      it('The deposit should also validate the proposal.', async function() {
         const proposal = await serviceRegistry.getProposal(serviceId, proposalIdBob)
         await expect(proposal.status.toString()).to.be.equal('1')
       })
 
-      it('The deposit should also update the service with transactionId, proposalId, and status.', async function () {
+      it('The deposit should also update the service with transactionId, proposalId, and status.', async function() {
         const service = await serviceRegistry.getService(serviceId)
         await expect(service.status.toString()).to.be.equal('1')
         await expect(service.transactionId.toString()).to.be.equal('0')
         await expect(service.sellerId.toString()).to.be.equal(proposalIdBob)
       })
 
-      it("Alice can NOT deposit funds for Carol's proposal.", async function () {
+      it("Alice can NOT deposit funds for Carol's proposal.", async function() {
         await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountCarol)
         await expect(
           talentLayerMultipleArbitrableTransaction
@@ -718,13 +718,13 @@ describe('TalentLayer', function () {
         ).to.be.reverted
       })
 
-      it('Carol should not be allowed to release escrow the service.', async function () {
+      it('Carol should not be allowed to release escrow the service.', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(carol).release(transactionId, 10),
         ).to.be.revertedWith('Access denied.')
       })
 
-      it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
+      it('Alice can release half of the escrow to bob, and fees are correctly split.', async function() {
         const transactionDetails = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .getTransactionDetails(transactionId.toString())
@@ -753,7 +753,7 @@ describe('TalentLayer', function () {
         await expect(deployerBalance.toString()).to.be.equal((((amountBob / 2) * protocolFee) / 10000).toString())
       })
 
-      it('Alice can release a quarter of the escrow to Bob, and fees are correctly split.', async function () {
+      it('Alice can release a quarter of the escrow to Bob, and fees are correctly split.', async function() {
         const transactionDetails = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .getTransactionDetails(transactionId.toString())
@@ -783,19 +783,19 @@ describe('TalentLayer', function () {
         await expect(deployerBalance.toString()).to.be.equal(((((3 * amountBob) / 4) * protocolFee) / 10000).toString())
       })
 
-      it('Carol can NOT reimburse alice.', async function () {
+      it('Carol can NOT reimburse alice.', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, totalAmount / 4),
         ).to.revertedWith('Access denied.')
       })
 
-      it('Bob can NOT reimburse alice for more than what is left in escrow.', async function () {
+      it('Bob can NOT reimburse alice for more than what is left in escrow.', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, totalAmount),
         ).to.revertedWith('Insufficient funds.')
       })
 
-      it('Bob can reimburse alice for what is left in the escrow, an emit will be sent.', async function () {
+      it('Bob can reimburse alice for what is left in the escrow, an emit will be sent.', async function() {
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
@@ -813,13 +813,13 @@ describe('TalentLayer', function () {
           .withArgs(serviceId)
       })
 
-      it('Alice can not release escrow because there is none left. ', async function () {
+      it('Alice can not release escrow because there is none left. ', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, 1),
         ).to.be.revertedWith('Insufficient funds.')
       })
 
-      it('Alice can claim her token balance.', async function () {
+      it('Alice can claim her token balance.', async function() {
         const platformBalance = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .getClaimableFeeBalance(token.address)
@@ -833,7 +833,7 @@ describe('TalentLayer', function () {
         )
       })
 
-      it('The protocol owner can claim his token balance.', async function () {
+      it('The protocol owner can claim his token balance.', async function() {
         let protocolOwnerBalance = await talentLayerMultipleArbitrableTransaction
           .connect(deployer)
           .getClaimableFeeBalance(token.address)
@@ -847,7 +847,7 @@ describe('TalentLayer', function () {
       })
     })
 
-    describe('Successful use of Escrow for a service using ETH.', function () {
+    describe('Successful use of Escrow for a service using ETH.', function() {
       const amountBob = 1000000
       const amountCarol = 200
       const serviceId = 13
@@ -857,11 +857,11 @@ describe('TalentLayer', function () {
       let totalAmount = 0 //Will be set later
       const ethAddress = '0x0000000000000000000000000000000000000000'
 
-      it('Alice can create a service.', async function () {
+      it('Alice can create a service.', async function() {
         await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'cid')
       })
 
-      it('Alice can NOT deposit eth to escrow yet.', async function () {
+      it('Alice can NOT deposit eth to escrow yet.', async function() {
         const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
         await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100)
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
@@ -879,17 +879,17 @@ describe('TalentLayer', function () {
         ).to.be.reverted
       })
 
-      it('Bob can register a proposal.', async function () {
+      it('Bob can register a proposal.', async function() {
         proposalIdBob = await talentLayerID.walletOfOwner(bob.address)
         await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, amountBob, 'cid')
       })
 
-      it('Carol can register a proposal.', async function () {
+      it('Carol can register a proposal.', async function() {
         proposalIdCarol = await talentLayerID.walletOfOwner(carol.address)
         await serviceRegistry.connect(carol).createProposal(serviceId, ethAddress, amountCarol, 'cid')
       })
 
-      it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
+      it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function() {
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob, { value: totalAmount })
@@ -903,19 +903,19 @@ describe('TalentLayer', function () {
           .withArgs(serviceId, proposalIdBob, transactionId)
       })
 
-      it('The deposit should also validate the proposal.', async function () {
+      it('The deposit should also validate the proposal.', async function() {
         const proposal = await serviceRegistry.getProposal(serviceId, proposalIdBob)
         await expect(proposal.status.toString()).to.be.equal('1')
       })
 
-      it('The deposit should also update the service with transactionId, proposalId, and status.', async function () {
+      it('The deposit should also update the service with transactionId, proposalId, and status.', async function() {
         const service = await serviceRegistry.getService(serviceId)
         await expect(service.status.toString()).to.be.equal('1')
         await expect(service.transactionId).to.be.equal(transactionId)
         await expect(service.sellerId).to.be.equal(proposalIdBob)
       })
 
-      it("Alice can NOT deposit funds for Carol's proposal, and NO event should emit.", async function () {
+      it("Alice can NOT deposit funds for Carol's proposal, and NO event should emit.", async function() {
         await token.connect(alice).approve(talentLayerMultipleArbitrableTransaction.address, amountCarol)
         expect(
           talentLayerMultipleArbitrableTransaction
@@ -924,13 +924,13 @@ describe('TalentLayer', function () {
         ).to.be.reverted
       })
 
-      it('Carol should not be allowed to release escrow the service.', async function () {
+      it('Carol should not be allowed to release escrow the service.', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(carol).release(transactionId, 10),
         ).to.be.revertedWith('Access denied.')
       })
 
-      it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
+      it('Alice can release half of the escrow to bob, and fees are correctly split.', async function() {
         const transactionDetails = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .getTransactionDetails(transactionId.toString())
@@ -959,7 +959,7 @@ describe('TalentLayer', function () {
         await expect(deployerBalance.toString()).to.be.equal((((amountBob / 2) * protocolFee) / 10000).toString())
       })
 
-      it('Alice can release a quarter of the escrow to Bob, and fees are correctly split.', async function () {
+      it('Alice can release a quarter of the escrow to Bob, and fees are correctly split.', async function() {
         const transactionDetails = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .getTransactionDetails(transactionId.toString())
@@ -987,19 +987,19 @@ describe('TalentLayer', function () {
         await expect(deployerBalance.toString()).to.be.equal(((((3 * amountBob) / 4) * protocolFee) / 10000).toString())
       })
 
-      it('Carol can NOT reimburse alice.', async function () {
+      it('Carol can NOT reimburse alice.', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(transactionId, totalAmount / 4),
         ).to.revertedWith('Access denied.')
       })
 
-      it('Bob can NOT reimburse alice for more than what is left in escrow.', async function () {
+      it('Bob can NOT reimburse alice for more than what is left in escrow.', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(bob).reimburse(transactionId, totalAmount),
         ).to.revertedWith('Insufficient funds.')
       })
 
-      it('Bob can reimburse alice for what is left in the escrow, an emit will be sent.', async function () {
+      it('Bob can reimburse alice for what is left in the escrow, an emit will be sent.', async function() {
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
@@ -1016,13 +1016,13 @@ describe('TalentLayer', function () {
           .withArgs(serviceId)
       })
 
-      it('Alice can not release escrow because there is none left.', async function () {
+      it('Alice can not release escrow because there is none left.', async function() {
         await expect(
           talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, 10),
         ).to.be.revertedWith('Insufficient funds.')
       })
 
-      it('Alice can claim her ETH balance.', async function () {
+      it('Alice can claim her ETH balance.', async function() {
         const platformEthBalance = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
           .getClaimableFeeBalance(ethAddress)
@@ -1033,7 +1033,7 @@ describe('TalentLayer', function () {
         )
       })
 
-      it('The Protocol owner can claim his ETH balance.', async function () {
+      it('The Protocol owner can claim his ETH balance.', async function() {
         const protocolEthBalance = await talentLayerMultipleArbitrableTransaction
           .connect(deployer)
           .getClaimableFeeBalance(ethAddress)
