@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "solhint": "solhint contracts/kleros/*.sol"
+    "solhint": "solhint --fix contracts/**/*.sol"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TalentLayer/talentlayer-id-contracts.git"
   },
-  "author": "",
+  "author": "TL",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/TalentLayer/talentlayer-id-contracts/issues"
