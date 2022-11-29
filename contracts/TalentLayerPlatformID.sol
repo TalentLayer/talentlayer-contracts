@@ -202,7 +202,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformId TalentLayer Platform ID
      */
     function isValid(uint256 _platformId) external view {
-        require(_platformId > 0 && _platformId <= totalSupply(), "Platform 0 is not a valid TalentLayer Platform ID");
+        require(_platformId > 0 && _platformId <= totalSupply(), "Invalid platform ID");
     }
 
     // =========================== Overrides ==============================
