@@ -119,6 +119,17 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     }
 
     /**
+     * @notice Allows a user to mint a new Platform Id and assign it to an eth address without the need of Proof of Humanity.
+     * @dev You need to have MINT_ROLE to use this function
+     * @param _platformName Platform name
+     * @param _platformAddress Eth Address to assign the Platform Id to
+     */
+    function mintForAddress(string memory _platformName, address _platformAddress) public payable canMintForAddress(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
+        _safeMint(_platformAddress, 1);
+        _afterMint(_platformName);
+    }
+
+    /**
      * @notice Update platform URI data.
      * @dev we are trusting the platform to provide the valid IPFS URI
      * @param _platformId Token ID to update
@@ -181,6 +192,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         uint256 platformId = _nextTokenId() - 1;
         Platform storage platform = platforms[platformId];
         platform.name = _platformName;
+        platform.id = platformId;
         takenNames[_platformName] = true;
 
         emit Mint(msg.sender, platformId, _platformName, mintFee);
@@ -214,9 +226,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return ERC721A.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
 
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
-        revert("Not allowed");
-    }
+//    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
+//        revert("Not allowed");
+//    }
 
     function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
         revert("Not allowed");
@@ -269,6 +281,20 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     modifier canMint(string memory _platformName) {
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(msg.sender) == 0, "You already have a Platform ID");
+        require(bytes(_platformName).length >= 2, "Name too short");
+        require(bytes(_platformName).length <= 10, "Name too long");
+        require(!takenNames[_platformName], "Name already taken");
+        _;
+    }
+
+    /**
+     * Check if Platform is able to mint a new Platform ID.
+     * @param _platformName name for the platform
+     * @param _platformAddress address of the platform associated with the ID
+     */
+    modifier canMintForAddress(string memory _platformName, address _platformAddress) {
+        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
+        require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
         require(bytes(_platformName).length >= 2, "Name too short");
         require(bytes(_platformName).length <= 10, "Name too long");
         require(!takenNames[_platformName], "Name already taken");
