@@ -226,9 +226,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return ERC721A.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
 
-//    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
-//        revert("Not allowed");
-//    }
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
+        revert("Not allowed");
+    }
 
     function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
         revert("Not allowed");
