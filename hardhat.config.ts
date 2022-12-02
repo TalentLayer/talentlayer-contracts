@@ -6,6 +6,7 @@ import '@nomicfoundation/hardhat-toolbox'
 import 'hardhat-contract-sizer'
 import './scripts/deploy'
 import './scripts/wallet'
+import './scripts/mintPlatformIdForAddress'
 import { Network } from './scripts/config'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })

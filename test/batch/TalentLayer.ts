@@ -89,14 +89,14 @@ describe('TalentLayer', function() {
     const escrowRole = await serviceRegistry.ESCROW_ROLE()
     await serviceRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address)
 
-    // Grant Platform Id Mint role to Alice and Bob
+    // Grant Platform Id Mint role to Deployer and Bob
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
-    await talentLayerPlatformID.connect(deployer).grantRole(mintRole, alice.address)
+    await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, bob.address)
 
-    // Alice mints a Platform Id
+    // Deployer mints Platform Id for Alice
     platformName = 'HireVibes'
-    await talentLayerPlatformID.connect(alice).mint(platformName)
+    await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, alice.address)
 
     mintFee = 100
   })
@@ -129,6 +129,13 @@ describe('TalentLayer', function() {
         'You already have a Platform ID',
       )
     })
+
+    it('ALice can\'t mint a platformId for someone else', async function() {
+      const mintRole = await talentLayerPlatformID.MINT_ROLE()
+      expect(talentLayerPlatformID.connect(alice).mintForAddress('platId2', dave.address)).to.be.revertedWith(
+        `Error: VM Exception while processing transaction: reverted with reason string 'AccessControl: account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}'`)
+    })
+
 
     it('Alice should not be able to mint a PlatformId ID with the same name', async function() {
       expect(talentLayerPlatformID.connect(alice).mint('PlatId')).to.be.revertedWith('You already have a Platform ID')

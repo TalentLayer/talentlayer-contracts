@@ -22,9 +22,10 @@ async function main() {
   )
 
   const mintRole = await platformIdContrat.MINT_ROLE()
-  const grantRole = await platformIdContrat.connect(alice).grantRole(mintRole, dave.address)
+  //Deployer needs MINT_ROLE to mint for other addresses
+  const grantRole = await platformIdContrat.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
-  const mint = await platformIdContrat.connect(dave).mint('HireVibes')
+  const mint = await platformIdContrat.connect(alice).mintForAddress('HireVibes', dave.address)
   await mint.wait()
 
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
@@ -35,7 +36,7 @@ async function main() {
   const platformName = davePlatformData.name
   const platformCid = davePlatformData.dataUri
 
-  console.log('Dave talentLayerIdPLatform', daveTalentLayerIdPLatform)
+  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPLatform)
   console.log('platformName', platformName)
   console.log('platformCid', platformCid)
 }
