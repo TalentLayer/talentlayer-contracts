@@ -251,7 +251,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         protocolWallet = payable(owner());
         // arbitrator = _arbitrator;
         // arbitratorExtraData = _arbitratorExtraData;
-        // feeTimeout = _feeTimeout;
+        feeTimeout = _feeTimeout;
     }
 
     // =========================== View functions ==============================
