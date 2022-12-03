@@ -10,7 +10,7 @@ import "../interfaces/ITalentLayerPlatformID.sol";
 import "./IArbitrable.sol";
 import "./Arbitrator.sol";
 
-contract TalentLayerMultipleArbitrableTransaction is Ownable {
+contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
     // =========================== Enum ==============================
 
     /**
@@ -424,6 +424,10 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
     function claimAll(uint256 _platformId) external {
         //TODO Copy Lugus (need to see how to handle approved token lists)
     }
+
+    // =========================== Arbitrator functions ==============================
+
+    function rule(uint256 _disputeID, uint256 _ruling) external {}
 
     // =========================== Private functions ==============================
 
