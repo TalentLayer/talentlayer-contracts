@@ -557,10 +557,9 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         // Reimburse receiver if has paid any fees.
         if (transaction.receiverFee != 0) {
             payable(transaction.receiver).transfer(transaction.receiverFee);
-            transaction.receiverFee = 0;
         }
 
-        // TODO: execute ruling "sender wins"
+        _executeRuling(_transactionID, SENDER_WINS);
     }
 
     /** @notice Pays receiver if sender fails to pay the arbitration fee.
@@ -577,7 +576,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
             transaction.senderFee = 0;
         }
 
-        // TODO: execute ruling "receiver wins"
+        _executeRuling(_transactionID, RECEIVER_WINS);
     }
 
     /**
@@ -644,6 +643,41 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
             uint256 extraFeeReceiver = transaction.receiverFee - _arbitrationCost;
             transaction.receiverFee = _arbitrationCost;
             payable(transaction.receiver).transfer(extraFeeReceiver);
+        }
+    }
+
+    /** @notice Executes a ruling of a dispute. Sends the funds and reimburses the arbitration fee to the winning party.
+     *  @param _transactionID The index of the transaction.
+     *  @param _ruling Ruling given by the arbitrator.
+     *                 0: Refused to rule, split amount equally between sender and receiver.
+     *                 1: Reimburse the sender
+     *                 2: Pay the receiver
+     */
+    function _executeRuling(uint256 _transactionID, uint256 _ruling) internal {
+        Transaction storage transaction = transactions[_transactionID];
+        require(_ruling <= AMOUNT_OF_CHOICES, "Invalid ruling.");
+
+        address payable sender = payable(transaction.sender);
+        address payable receiver = payable(transaction.receiver);
+        uint256 amount = transaction.amount;
+        uint256 senderFee = transaction.senderFee;
+        uint256 receiverFee = transaction.receiverFee;
+
+        transaction.amount = 0;
+        transaction.senderFee = 0;
+        transaction.receiverFee = 0;
+        transaction.status = Status.Resolved;
+
+        // Send the funds to the winner and reimburse the arbitration fee.
+        if (_ruling == SENDER_WINS) {
+            sender.transfer(senderFee + amount);
+        } else if (_ruling == RECEIVER_WINS) {
+            receiver.transfer(receiverFee + amount);
+        } else {
+            // If no ruling is given split funds in half
+            uint256 split_amount = (senderFee + amount) / 2;
+            sender.transfer(split_amount);
+            receiver.transfer(split_amount);
         }
     }
 
