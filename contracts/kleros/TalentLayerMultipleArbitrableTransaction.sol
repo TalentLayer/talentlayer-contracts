@@ -22,6 +22,14 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
     }
 
     /**
+     * @notice party type enum
+     */
+    enum Party {
+        Sender,
+        Receiver
+    }
+
+    /**
      * @notice Transaction status enum
      */
     enum Status {
@@ -132,6 +140,13 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
      * @param _amount The amount released.
      */
     event PlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
+
+    /** @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
+     *  @param _serviceId The service ID
+     *  @param _transactionID The index of the transaction.
+     *  @param _party The party who has to pay.
+     */
+    event HasToPayFee(uint256 indexed _serviceId, uint256 indexed _transactionID, Party _party);
 
     // =========================== Declarations ==============================
 
@@ -444,6 +459,66 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         _transferBalance(payable(transaction.receiver), transaction.token, amount);
 
         transaction.status = Status.Resolved;
+    }
+
+    /** @notice Allows the sender of the transaction to pay the arbitration fee to raise a dispute.
+     *  Note that the arbitrator can have createDispute throw, which will make this function throw and therefore lead to a party being timed-out.
+     *  This is not a vulnerability as the arbitrator can rule in favor of one party anyway.
+     *  @param _transactionID Id of the transaction.
+     */
+    function payArbitrationFeeBySender(uint256 _transactionID) public payable {
+        Transaction storage transaction = transactions[_transactionID];
+        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost("");
+
+        require(
+            transaction.status < Status.DisputeCreated,
+            "Dispute has already been created or because the transaction has been executed."
+        );
+        require(msg.sender == transaction.sender, "The caller must be the sender.");
+
+        transaction.senderFee += msg.value;
+        // The total fees paid by the sender should be at least the arbitration cost.
+        require(transaction.senderFee >= arbitrationCost, "The sender fee must cover arbitration costs.");
+
+        transaction.lastInteraction = block.timestamp;
+
+        // The receiver still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
+        if (transaction.receiverFee < arbitrationCost) {
+            transaction.status = Status.WaitingReceiver;
+            emit HasToPayFee(transaction.serviceId, _transactionID, Party.Receiver);
+        } else {
+            // The receiver has also paid the fee. We create the dispute.
+            // TODO: create dispute
+        }
+    }
+
+    /** @notice Allows the receiver of the transaction to pay the arbitration fee to raise a dispute.
+     *  Note that this function mirrors payArbitrationFeeBySender.
+     *  @param _transactionID Id of the transaction.
+     */
+    function payArbitrationFeeByReceiver(uint256 _transactionID) public payable {
+        Transaction storage transaction = transactions[_transactionID];
+        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost("");
+
+        require(
+            transaction.status < Status.DisputeCreated,
+            "Dispute has already been created or because the transaction has been executed."
+        );
+        require(msg.sender == transaction.receiver, "The caller must be the receiver.");
+
+        transaction.receiverFee += msg.value;
+        // The total fees paid by the receiver should be at least the arbitration cost.
+        require(transaction.receiverFee >= arbitrationCost, "The receiver fee must cover arbitration costs.");
+
+        transaction.lastInteraction = block.timestamp;
+        // The sender still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
+        if (transaction.senderFee < arbitrationCost) {
+            transaction.status = Status.WaitingSender;
+            emit HasToPayFee(transaction.serviceId, _transactionID, Party.Sender);
+        } else {
+            // The sender has also paid the fee. We create the dispute.
+            // TODO: create dispute
+        }
     }
 
     /**
