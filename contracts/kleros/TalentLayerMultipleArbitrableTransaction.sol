@@ -205,6 +205,21 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
     uint8 constant AMOUNT_OF_CHOICES = 2;
 
     /**
+     * @notice Ruling id for sender to win the dispute
+     */
+    uint8 constant SENDER_WINS = 1;
+
+    /**
+     * @notice Ruling id for receiver to win the dispute
+     */
+    uint8 constant RECEIVER_WINS = 2;
+
+    /**
+     * @notice Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
+     */
+    uint256 public feeTimeout;
+
+    /**
      * @notice One-to-one relationship between the dispute and the transaction.
      */
     mapping(uint256 => uint256) public disputeIDtoTransactionID;
@@ -529,6 +544,40 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
             // The sender has also paid the fee. We create the dispute.
             _raiseDispute(_transactionID, arbitrationCost);
         }
+    }
+
+    /** @notice Reimburses sender if receiver fails to pay the arbitration fee.
+     *  @param _transactionID The index of the transaction.
+     */
+    function timeOutBySender(uint256 _transactionID) public {
+        Transaction storage transaction = transactions[_transactionID];
+        require(transaction.status == Status.WaitingReceiver, "The transaction is not waiting on the receiver.");
+        require(block.timestamp - transaction.lastInteraction >= feeTimeout, "Timeout time has not passed yet.");
+
+        // Reimburse receiver if has paid any fees.
+        if (transaction.receiverFee != 0) {
+            payable(transaction.receiver).transfer(transaction.receiverFee);
+            transaction.receiverFee = 0;
+        }
+
+        // TODO: execute ruling "sender wins"
+    }
+
+    /** @notice Pays receiver if sender fails to pay the arbitration fee.
+     *  @param _transactionID The index of the transaction.
+     */
+    function timeOutByReceiver(uint256 _transactionID) public {
+        Transaction storage transaction = transactions[_transactionID];
+        require(transaction.status == Status.WaitingSender, "The transaction is not waiting on the sender.");
+        require(block.timestamp - transaction.lastInteraction >= feeTimeout, "Timeout time has not passed yet.");
+
+        // Reimburse sender if has paid any fees.
+        if (transaction.senderFee != 0) {
+            payable(transaction.sender).transfer(transaction.senderFee);
+            transaction.senderFee = 0;
+        }
+
+        // TODO: execute ruling "receiver wins"
     }
 
     /**
