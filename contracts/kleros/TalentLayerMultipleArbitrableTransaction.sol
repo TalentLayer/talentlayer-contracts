@@ -616,7 +616,21 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
 
     // =========================== Arbitrator functions ==============================
 
-    function rule(uint256 _disputeID, uint256 _ruling) external {}
+    /** @notice Allows the arbitrator to give a ruling for a dispute.
+     *  @param _disputeID The ID of the dispute in the Arbitrator contract.
+     *  @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
+     */
+    function rule(uint256 _disputeID, uint256 _ruling) public {
+        uint256 transactionID = disputeIDtoTransactionID[_disputeID];
+        Transaction storage transaction = transactions[transactionID];
+
+        require(msg.sender == address(transaction.arbitrator), "The caller must be the arbitrator.");
+        require(transaction.status == Status.DisputeCreated, "The dispute has already been resolved.");
+
+        emit Ruling(Arbitrator(msg.sender), _disputeID, _ruling);
+
+        _executeRuling(transactionID, _ruling);
+    }
 
     // =========================== Internal functions ==============================
 
