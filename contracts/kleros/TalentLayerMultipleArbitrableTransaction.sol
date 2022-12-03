@@ -387,6 +387,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         Transaction storage transaction = transactions[_transactionId];
 
         require(transaction.sender == msg.sender, "Access denied.");
+        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
         require(transaction.amount >= _amount, "Insufficient funds.");
 
         transaction.amount -= _amount;
@@ -408,6 +409,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         Transaction storage transaction = transactions[_transactionId];
 
         require(transaction.receiver == msg.sender, "Access denied.");
+        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
         require(transaction.amount >= _amount, "Insufficient funds.");
 
         transaction.amount -= _amount;
