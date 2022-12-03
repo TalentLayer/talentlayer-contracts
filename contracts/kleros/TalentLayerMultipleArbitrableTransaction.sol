@@ -199,6 +199,16 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
      */
     address payable private protocolWallet;
 
+    /**
+     * @notice Amount of choices available for ruling the disputes
+     */
+    uint8 constant AMOUNT_OF_CHOICES = 2;
+
+    /**
+     * @notice One-to-one relationship between the dispute and the transaction.
+     */
+    mapping(uint256 => uint256) public disputeIDtoTransactionID;
+
     // =========================== Constructor ==============================
 
     /**
@@ -488,7 +498,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
             emit HasToPayFee(transaction.serviceId, _transactionID, Party.Receiver);
         } else {
             // The receiver has also paid the fee. We create the dispute.
-            // TODO: create dispute
+            _raiseDispute(_transactionID, arbitrationCost);
         }
     }
 
@@ -517,7 +527,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
             emit HasToPayFee(transaction.serviceId, _transactionID, Party.Sender);
         } else {
             // The sender has also paid the fee. We create the dispute.
-            // TODO: create dispute
+            _raiseDispute(_transactionID, arbitrationCost);
         }
     }
 
@@ -556,6 +566,37 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
     // =========================== Arbitrator functions ==============================
 
     function rule(uint256 _disputeID, uint256 _ruling) external {}
+
+    // =========================== Internal functions ==============================
+
+    /** @notice Creates a dispute, paying the arbitration fee to the arbitrator. Parties are refund if
+     *          they overpaid for the arbitration fee.
+     *  @param _transactionID Id of the transaction.
+     *  @param _arbitrationCost Amount to pay the arbitrator.
+     */
+    function _raiseDispute(uint256 _transactionID, uint256 _arbitrationCost) internal {
+        Transaction storage transaction = transactions[_transactionID];
+        transaction.status = Status.DisputeCreated;
+        Arbitrator arbitrator = transaction.arbitrator;
+
+        transaction.disputeId = arbitrator.createDispute{value: _arbitrationCost}(AMOUNT_OF_CHOICES, "");
+        disputeIDtoTransactionID[transaction.disputeId] = _transactionID;
+        emit Dispute(arbitrator, transaction.disputeId, _transactionID, _transactionID);
+
+        // Refund sender if it overpaid.
+        if (transaction.senderFee > _arbitrationCost) {
+            uint256 extraFeeSender = transaction.senderFee - _arbitrationCost;
+            transaction.senderFee = _arbitrationCost;
+            payable(transaction.sender).transfer(extraFeeSender);
+        }
+
+        // Refund receiver if it overpaid.
+        if (transaction.receiverFee > _arbitrationCost) {
+            uint256 extraFeeReceiver = transaction.receiverFee - _arbitrationCost;
+            transaction.receiverFee = _arbitrationCost;
+            payable(transaction.receiver).transfer(extraFeeReceiver);
+        }
+    }
 
     // =========================== Private functions ==============================
 
