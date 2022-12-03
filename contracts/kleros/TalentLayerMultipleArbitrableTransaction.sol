@@ -421,6 +421,26 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
     }
 
     /**
+     * @notice Transfers the locked-in escrow funds to the receiver if the timeout for payment has passed
+     *         and there is no dispute.
+     * @param _transactionID Id of the transaction to execute.
+     */
+    function executeTransaction(uint256 _transactionID) public {
+        Transaction storage transaction = transactions[_transactionID];
+        require(
+            block.timestamp - transaction.lastInteraction >= transaction.timeoutPayment,
+            "The timeout has not passed yet."
+        );
+        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
+
+        uint256 amount = transaction.amount;
+        transaction.amount = 0;
+        _transferBalance(payable(transaction.receiver), transaction.token, amount);
+
+        transaction.status = Status.Resolved;
+    }
+
+    /**
      * @notice Allows a platform owner to claim its tokens & / or ETH balance.
      * @param _platformId The ID of the platform claiming the balance.
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
