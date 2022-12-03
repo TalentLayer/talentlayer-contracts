@@ -556,7 +556,9 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
 
         // Reimburse receiver if has paid any fees.
         if (transaction.receiverFee != 0) {
-            payable(transaction.receiver).transfer(transaction.receiverFee);
+            uint256 receiverFee = transaction.receiverFee;
+            transaction.receiverFee = 0;
+            payable(transaction.receiver).transfer(receiverFee);
         }
 
         _executeRuling(_transactionID, SENDER_WINS);
@@ -572,8 +574,9 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
 
         // Reimburse sender if has paid any fees.
         if (transaction.senderFee != 0) {
-            payable(transaction.sender).transfer(transaction.senderFee);
+            uint256 senderFee = transaction.senderFee;
             transaction.senderFee = 0;
+            payable(transaction.sender).transfer(senderFee);
         }
 
         _executeRuling(_transactionID, RECEIVER_WINS);
