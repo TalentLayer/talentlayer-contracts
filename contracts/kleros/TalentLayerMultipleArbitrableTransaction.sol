@@ -374,6 +374,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
+        emit MetaEvidence(transactionId, _metaEvidence);
         emit ServiceProposalConfirmedWithDeposit(_serviceId, proposal.sellerId, transactionId);
     }
 
@@ -419,6 +420,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
 
+        emit MetaEvidence(transactionId, _metaEvidence);
         emit ServiceProposalConfirmedWithDeposit(_serviceId, proposal.sellerId, transactionId);
     }
 
