@@ -549,7 +549,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
     }
 
     /** @notice Reimburses sender if receiver fails to pay the arbitration fee.
-     *  @param _transactionID The index of the transaction.
+     *  @param _transactionID Id of the transaction.
      */
     function timeOutBySender(uint256 _transactionID) public {
         Transaction storage transaction = transactions[_transactionID];
@@ -567,7 +567,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
     }
 
     /** @notice Pays receiver if sender fails to pay the arbitration fee.
-     *  @param _transactionID The index of the transaction.
+     *  @param _transactionID Id of the transaction.
      */
     function timeOutByReceiver(uint256 _transactionID) public {
         Transaction storage transaction = transactions[_transactionID];
@@ -582,6 +582,21 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         }
 
         _executeRuling(_transactionID, RECEIVER_WINS);
+    }
+
+    /** @notice Allows a party to submit a reference to evidence.
+     *  @param _transactionID The index of the transaction.
+     *  @param _evidence A link to an evidence using its URI.
+     */
+    function submitEvidence(uint256 _transactionID, string memory _evidence) public {
+        Transaction storage transaction = transactions[_transactionID];
+        require(
+            msg.sender == transaction.sender || msg.sender == transaction.receiver,
+            "The caller must be the sender or the receiver."
+        );
+        require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
+
+        emit Evidence(transaction.arbitrator, _transactionID, msg.sender, _evidence);
     }
 
     /**
