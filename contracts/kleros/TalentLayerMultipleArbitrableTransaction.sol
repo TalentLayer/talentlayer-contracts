@@ -21,6 +21,17 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         Reimburse
     }
 
+    /**
+     * @notice Transaction status enum
+     */
+    enum Status {
+        NoDispute, // no dispute has arisen about the transaction
+        WaitingSender, // receiver has paid arbitration fee, while sender still has to do it
+        WaitingReceiver, // sender has paid arbitration fee, while receiver still has to do it
+        DisputeCreated, // both parties have paid the arbitration fee and a dispute has been created
+        Resolved // the transaction is solved (either no dispute has ever arisen or the dispute has been resolved)
+    }
+
     // =========================== Struct ==============================
 
     /**
@@ -33,6 +44,12 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
      * @param protocolFee The %fee (per ten thousands) paid to the protocol's owner
      * @param originPlatformFee The %fee (per ten thousands) paid to the platform who onboarded the user
      * @param platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
+     * @param timeoutPayment The time in seconds after which a party automatically loose a dispute
+     * @param disputeId // The ID of the dispute, if it exists
+     * @param senderFee // // Total fees paid by the sender.
+     * @param receiverFee // Total fees paid by the receiver.
+     * @param lastInteraction // Last interaction for the dispute procedure.
+     * @param status The status of the transaction
      */
     struct Transaction {
         address sender;
@@ -43,6 +60,12 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         uint16 protocolFee;
         uint16 originPlatformFee;
         uint16 platformFee;
+        uint256 timeoutPayment;
+        uint256 disputeId;
+        uint256 senderFee;
+        uint256 receiverFee;
+        uint256 lastInteraction;
+        Status status;
     }
 
     // =========================== Events ==============================
@@ -302,7 +325,8 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
             proposal.rateToken,
             proposal.rateAmount,
             _serviceId,
-            platformFee
+            platformFee,
+            _timeoutPayment
         );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
@@ -343,7 +367,8 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
             proposal.rateToken,
             proposal.rateAmount,
             _serviceId,
-            platformFee
+            platformFee,
+            _timeoutPayment
         );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
@@ -447,7 +472,8 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         address _token,
         uint256 _amount,
         uint256 _serviceId,
-        uint16 _platformFee
+        uint16 _platformFee,
+        uint256 _timeoutPayment
     ) private returns (uint256) {
         transactions.push(
             Transaction({
@@ -458,7 +484,13 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
                 serviceId: _serviceId,
                 protocolFee: protocolFee,
                 originPlatformFee: originPlatformFee,
-                platformFee: _platformFee
+                platformFee: _platformFee,
+                timeoutPayment: _timeoutPayment,
+                disputeId: 0,
+                senderFee: 0,
+                receiverFee: 0,
+                lastInteraction: block.timestamp,
+                status: Status.NoDispute
             })
         );
         return transactions.length - 1;
