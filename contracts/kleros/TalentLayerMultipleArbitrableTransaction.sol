@@ -599,6 +599,19 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         emit Evidence(transaction.arbitrator, _transactionID, msg.sender, _evidence);
     }
 
+    /** @notice Appeals an appealable ruling, paying the appeal fee to the arbitrator.
+     *  Note that no checks are required as the checks are done by the arbitrator.
+     *
+     *  @param _transactionID Id of the transaction.
+     */
+    function appeal(uint256 _transactionID) public payable {
+        Transaction storage transaction = transactions[_transactionID];
+
+        transaction.arbitrator.appeal{value: msg.value}(transaction.disputeId, "");
+    }
+
+    // =========================== Platform functions ==============================
+
     /**
      * @notice Allows a platform owner to claim its tokens & / or ETH balance.
      * @param _platformId The ID of the platform claiming the balance.
