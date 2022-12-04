@@ -224,6 +224,11 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
      */
     mapping(uint256 => uint256) public disputeIDtoTransactionID;
 
+    /**
+     * @notice Extra data to set up the arbitration.
+     */
+    bytes public arbitratorExtraData;
+
     // =========================== Constructor ==============================
 
     /**
@@ -231,7 +236,6 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
      * @param _serviceRegistryAddress Contract address to ServiceRegistry.sol
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
-     * @param _arbitrator The arbitrator of the contract.
      * @param _arbitratorExtraData Extra data for the arbitrator.
      * @param _feeTimeout Arbitration fee timeout for the parties.
      */
@@ -239,7 +243,6 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         address _serviceRegistryAddress,
         address _talentLayerIDAddress,
         address _talentLayerPlatformIDAddress,
-        Arbitrator _arbitrator,
         bytes memory _arbitratorExtraData,
         uint256 _feeTimeout
     ) {
@@ -249,8 +252,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         protocolFee = 100;
         originPlatformFee = 200;
         protocolWallet = payable(owner());
-        // arbitrator = _arbitrator;
-        // arbitratorExtraData = _arbitratorExtraData;
+        arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
     }
 
@@ -495,7 +497,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
      */
     function payArbitrationFeeBySender(uint256 _transactionID) public payable {
         Transaction storage transaction = transactions[_transactionID];
-        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost("");
+        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(arbitratorExtraData);
 
         require(
             transaction.status < Status.DisputeCreated,
@@ -525,7 +527,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
      */
     function payArbitrationFeeByReceiver(uint256 _transactionID) public payable {
         Transaction storage transaction = transactions[_transactionID];
-        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost("");
+        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(arbitratorExtraData);
 
         require(
             transaction.status < Status.DisputeCreated,
@@ -607,7 +609,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
     function appeal(uint256 _transactionID) public payable {
         Transaction storage transaction = transactions[_transactionID];
 
-        transaction.arbitrator.appeal{value: msg.value}(transaction.disputeId, "");
+        transaction.arbitrator.appeal{value: msg.value}(transaction.disputeId, arbitratorExtraData);
     }
 
     // =========================== Platform functions ==============================
@@ -674,7 +676,10 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         transaction.status = Status.DisputeCreated;
         Arbitrator arbitrator = transaction.arbitrator;
 
-        transaction.disputeId = arbitrator.createDispute{value: _arbitrationCost}(AMOUNT_OF_CHOICES, "");
+        transaction.disputeId = arbitrator.createDispute{value: _arbitrationCost}(
+            AMOUNT_OF_CHOICES,
+            arbitratorExtraData
+        );
         disputeIDtoTransactionID[transaction.disputeId] = _transactionID;
         emit Dispute(arbitrator, transaction.disputeId, _transactionID, _transactionID);
 
