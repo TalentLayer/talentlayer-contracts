@@ -34,13 +34,14 @@ https://www.talentlayer.org/
 
 ## Deployed on Avalanche testnet (Fuji)
 
-- Proof of humanity 0x52B21E28B98B558bF5DddFd3dB9653449F8067D6
-- TalentLayer Platform ID: 0xC30859CFa06D0cB9D66837feBB36a856BF78865E
-- TalentLayer ID: 0xD1B87CCe7f9FA272c6643Fa89085F135A2AbB234
-- Service Registry : 0x9Af3080e73FB1054896e3799a786F0063965bA46
-- TalentLayerReview : 0xc9c87d5b85fd88d375000f9e3e26195690934F50
-- TalentLayerArbitrator : 0x60EeeEA95257D0649Dbad970C65A6b62a3fF9F11
-- TalentLayerMultipleArbitrableTransaction : 0x754278520467fAdBB1D0230E082E436E70505EE2
+- Proof of humanity 0x435e586D8408f4dBCbF418208878041D700FE06A
+- TalentLayer Platform ID: 0x8799479a39b6e563969126328e2323cbA01e8742
+- TalentLayer ID: 0x9a76eA2C056B6Bee5A1179BBece77D28FceE48C4
+- Service Registry : 0x9EA2678d5A69CEDEc52ecafA367659b1d2Ff7824
+- TalentLayerReview : 0xD8c4fD1D8Dd2f3a6E4d26BeB167e73D9E28db7F0
+- TalentLayerArbitrator : 0xc779bA385Fe051De397d5e25eaedabef2d495f51
+- TalentLayerMultipleArbitrableTransaction : 0x8754a129D3F53222dd94Ce45749134c15C9Ed119
+- simpleERC20 address: 0xaC174398bB8a3aD8b04D8CeE4B93E752AcddCD4b
 
 ## Playground
 
