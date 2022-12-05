@@ -348,9 +348,8 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
         address sender;
-        address receiver;
 
-        (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
+        (proposal, service, sender, ) = _getTalentLayerData(_serviceId, _proposalId);
         // PlatformFee is per ten thousands
         uint16 platformFee = talentLayerPlatformIdContract.getPlatformFee(service.platformId);
 
@@ -388,9 +387,8 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
         address sender;
-        address receiver;
 
-        (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
+        (proposal, service, sender, ) = _getTalentLayerData(_serviceId, _proposalId);
         // PlatformFee is per ten thousands
         uint16 platformFee = talentLayerPlatformIdContract.getPlatformFee(service.platformId);
 
