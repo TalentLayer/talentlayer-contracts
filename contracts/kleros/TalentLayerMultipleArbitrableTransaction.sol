@@ -364,16 +364,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
 
-        uint256 transactionId = _saveTransaction(
-            sender,
-            receiver,
-            proposal.rateToken,
-            proposal.rateAmount,
-            _serviceId,
-            platformFee,
-            _timeoutPayment,
-            _arbitrator
-        );
+        uint256 transactionId = _saveTransaction(_serviceId, _proposalId, platformFee, _timeoutPayment, _arbitrator);
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
         emit MetaEvidence(transactionId, _metaEvidence);
@@ -409,16 +400,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
 
-        uint256 transactionId = _saveTransaction(
-            sender,
-            receiver,
-            proposal.rateToken,
-            proposal.rateAmount,
-            _serviceId,
-            platformFee,
-            _timeoutPayment,
-            _arbitrator
-        );
+        uint256 transactionId = _saveTransaction(_serviceId, _proposalId, platformFee, _timeoutPayment, _arbitrator);
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
 
@@ -739,30 +721,30 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
 
     /**
      * @notice Called to record on chain all the information of a transaction in the 'transactions' array.
-     * @param _sender The party paying the escrow amount
-     * @param _receiver The intended receiver of the escrow amount
-     * @param _token The token used for the transaction
-     * @param _amount The amount of the transaction EXCLUDING FEES
      * @param _serviceId The ID of the associated service
      * @param _platformFee The %fee (per ten thousands) paid to the protocol's owner
      * @return The ID of the transaction
      */
     function _saveTransaction(
-        address _sender,
-        address _receiver,
-        address _token,
-        uint256 _amount,
         uint256 _serviceId,
+        uint256 _proposalId,
         uint16 _platformFee,
         uint256 _timeoutPayment,
         Arbitrator _arbitrator
     ) internal returns (uint256) {
+        IServiceRegistry.Proposal memory proposal;
+        IServiceRegistry.Service memory service;
+        address sender;
+        address receiver;
+
+        (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
+
         transactions.push(
             Transaction({
-                sender: _sender,
-                receiver: _receiver,
-                token: _token,
-                amount: _amount,
+                sender: sender,
+                receiver: receiver,
+                token: proposal.rateToken,
+                amount: proposal.rateAmount,
                 serviceId: _serviceId,
                 protocolFee: protocolFee,
                 originPlatformFee: originPlatformFee,
