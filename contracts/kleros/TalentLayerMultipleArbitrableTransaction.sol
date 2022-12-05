@@ -676,9 +676,11 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         transaction.status = Status.DisputeCreated;
         Arbitrator arbitrator = transaction.arbitrator;
 
+        IServiceRegistry.Service memory service = _getService(transaction.serviceId);
+
         transaction.disputeId = arbitrator.createDispute{value: _arbitrationCost}(
             AMOUNT_OF_CHOICES,
-            arbitratorExtraData
+            toBytes(service.platformId)
         );
         disputeIDtoTransactionID[transaction.disputeId] = _transactionID;
         emit Dispute(arbitrator, transaction.disputeId, _transactionID, _transactionID);
@@ -754,7 +756,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         uint16 _platformFee,
         uint256 _timeoutPayment,
         Arbitrator _arbitrator
-    ) private returns (uint256) {
+    ) internal returns (uint256) {
         transactions.push(
             Transaction({
                 sender: _sender,
@@ -942,5 +944,15 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         return
             _amount +
             (((_amount * protocolFee) + (_amount * originPlatformFee) + (_amount * _platformFee)) / FEE_DIVIDER);
+    }
+
+    /**
+     * @notice Converts a uint256 to bytes.
+     */
+    function toBytes(uint256 x) private pure returns (bytes memory b) {
+        b = new bytes(32);
+        assembly {
+            mstore(add(b, 32), x)
+        }
     }
 }
