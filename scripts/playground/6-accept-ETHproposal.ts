@@ -31,6 +31,11 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
+  const talentLayerArbitrator = await ethers.getContractAt(
+    'TalentLayerArbitrator',
+    get(network as Network, ConfigProperty.TalentLayerArbitrator),
+  )
+
   let nextServiceId = await serviceRegistry.nextServiceId()
   let firstServiceId = nextServiceId.sub(2) // service id #1
   console.log('serviceId', firstServiceId.toString())
@@ -55,6 +60,7 @@ async function main() {
     '_metaEvidence',
     firstServiceId,
     3, //proposalId/talentLayerId of carol.
+    talentLayerArbitrator.address,
     { value: totalAmount },
   )
   console.log('ETH transaction created')

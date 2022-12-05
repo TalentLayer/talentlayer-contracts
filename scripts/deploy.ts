@@ -110,7 +110,7 @@ task('deploy')
 
       // Deploy TalentLayerArbitrator
       const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-      const talentLayerArbitratorArgs: [number] = [0]
+      const talentLayerArbitratorArgs: [number, string] = [0, talentLayerPlatformID.address]
       const talentLayerArbitrator = await TalentLayerArbitrator.deploy(...talentLayerArbitratorArgs)
       if (verify) {
         await talentLayerArbitrator.deployTransaction.wait(5)
@@ -128,11 +128,10 @@ task('deploy')
         'TalentLayerMultipleArbitrableTransaction',
       )
       const feeTimeout: number = 3600 * 24 * 30
-      const talentLayerMultipleArbitrableTransactionArgs: [string, string, string, string, any, number] = [
+      const talentLayerMultipleArbitrableTransactionArgs: [string, string, string, any, number] = [
         serviceRegistry.address,
         talentLayerID.address,
         talentLayerPlatformID.address,
-        talentLayerArbitrator.address,
         [],
         feeTimeout,
       ]
