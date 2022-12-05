@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "./Arbitrator.sol";
+import "../interfaces/ITalentLayerPlatformID.sol";
 
 /** @title TalentLayer Arbitrator
  *  @dev Fork from centralized arbitrator
@@ -11,11 +12,17 @@ contract TalentLayerArbitrator is Arbitrator {
     uint256 arbitrationPrice; // Not public because arbitrationCost already acts as an accessor.
     uint256 constant NOT_PAYABLE_VALUE = (2**256 - 2) / 2; // High value to be sure that the appeal is too expensive.
 
+    /**
+     * @notice Instance of TalentLayerPlatformID.sol
+     */
+    ITalentLayerPlatformID private talentLayerPlatformIdContract;
+
     struct DisputeStruct {
         Arbitrable arbitrated;
         uint256 choices;
         uint256 fee;
         uint256 ruling;
+        uint256 platformId;
         DisputeStatus status;
     }
 
@@ -28,9 +35,11 @@ contract TalentLayerArbitrator is Arbitrator {
 
     /** @dev Constructor. Set the initial arbitration price.
      *  @param _arbitrationPrice Amount to be paid for arbitration.
+     *  @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
      */
-    constructor(uint256 _arbitrationPrice) {
+    constructor(uint256 _arbitrationPrice, address _talentLayerPlatformIDAddress) {
         arbitrationPrice = _arbitrationPrice;
+        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
     }
 
     /** @dev Set the arbitration price. Only callable by the owner.
@@ -70,13 +79,16 @@ contract TalentLayerArbitrator is Arbitrator {
         returns (uint256 disputeID)
     {
         super.createDispute(_choices, _extraData);
+        uint256 platformId = bytesToUint(_extraData);
+
         disputes.push(
             DisputeStruct({
                 arbitrated: Arbitrable(msg.sender),
                 choices: _choices,
                 fee: msg.value,
                 ruling: 0,
-                status: DisputeStatus.Waiting
+                status: DisputeStatus.Waiting,
+                platformId: platformId
             })
         );
         disputeID = disputes.length - 1; // Create the dispute and return its number.
@@ -103,7 +115,13 @@ contract TalentLayerArbitrator is Arbitrator {
      *  @param _disputeID ID of the dispute to rule.
      *  @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
      */
-    function giveRuling(uint256 _disputeID, uint256 _ruling) public onlyOwner {
+    function giveRuling(uint256 _disputeID, uint256 _ruling) public {
+        DisputeStruct storage dispute = disputes[_disputeID];
+
+        require(
+            msg.sender == talentLayerPlatformIdContract.ownerOf(dispute.platformId),
+            "Only the owner of the platform can give a ruling"
+        );
         return _giveRuling(_disputeID, _ruling);
     }
 
@@ -121,5 +139,17 @@ contract TalentLayerArbitrator is Arbitrator {
      */
     function currentRuling(uint256 _disputeID) public view override returns (uint256 ruling) {
         return disputes[_disputeID].ruling;
+    }
+
+    /**
+     * @dev Converts bytes to uint256
+     */
+    function bytesToUint(bytes memory bs) private pure returns (uint256) {
+        require(bs.length >= 32, "slicing out of range");
+        uint256 x;
+        assembly {
+            x := mload(add(bs, add(0x20, 0)))
+        }
+        return x;
     }
 }
