@@ -66,7 +66,7 @@ describe('TalentLayer', function() {
 
     // Deploy TalentLayerArbitrator
     TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-    talentLayerArbitrator = await TalentLayerArbitrator.deploy(0)
+    talentLayerArbitrator = await TalentLayerArbitrator.deploy(0, talentLayerPlatformID.address)
 
     // Deploy TalentLayerMultipleArbitrableTransaction
     TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory(
@@ -76,7 +76,6 @@ describe('TalentLayer', function() {
       serviceRegistry.address,
       talentLayerID.address,
       talentLayerPlatformID.address,
-      talentLayerArbitrator.address,
       [],
       3600 * 24 * 30,
     )
@@ -130,12 +129,12 @@ describe('TalentLayer', function() {
       )
     })
 
-    it('ALice can\'t mint a platformId for someone else', async function() {
+    it("ALice can't mint a platformId for someone else", async function() {
       const mintRole = await talentLayerPlatformID.MINT_ROLE()
       expect(talentLayerPlatformID.connect(alice).mintForAddress('platId2', dave.address)).to.be.revertedWith(
-        `Error: VM Exception while processing transaction: reverted with reason string 'AccessControl: account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}'`)
+        `Error: VM Exception while processing transaction: reverted with reason string 'AccessControl: account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}'`,
+      )
     })
-
 
     it('Alice should not be able to mint a PlatformId ID with the same name', async function() {
       expect(talentLayerPlatformID.connect(alice).mint('PlatId')).to.be.revertedWith('You already have a Platform ID')
@@ -637,7 +636,13 @@ describe('TalentLayer', function() {
         expect(
           talentLayerMultipleArbitrableTransaction
             .connect(alice)
-            .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob),
+            .createTokenTransaction(
+              3600 * 24 * 7,
+              '_metaEvidence',
+              serviceId,
+              proposalIdBob,
+              talentLayerArbitrator.address,
+            ),
         ).to.be.reverted
       })
 
@@ -692,7 +697,13 @@ describe('TalentLayer', function() {
 
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
-          .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob)
+          .createTokenTransaction(
+            3600 * 24 * 7,
+            '_metaEvidence',
+            serviceId,
+            proposalIdBob,
+            talentLayerArbitrator.address,
+          )
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
@@ -721,7 +732,13 @@ describe('TalentLayer', function() {
         await expect(
           talentLayerMultipleArbitrableTransaction
             .connect(alice)
-            .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdCarol),
+            .createTokenTransaction(
+              3600 * 24 * 7,
+              '_metaEvidence',
+              serviceId,
+              proposalIdCarol,
+              talentLayerArbitrator.address,
+            ),
         ).to.be.reverted
       })
 
@@ -882,7 +899,13 @@ describe('TalentLayer', function() {
         await expect(
           talentLayerMultipleArbitrableTransaction
             .connect(alice)
-            .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob),
+            .createETHTransaction(
+              3600 * 24 * 7,
+              '_metaEvidence',
+              serviceId,
+              proposalIdBob,
+              talentLayerArbitrator.address,
+            ),
         ).to.be.reverted
       })
 
@@ -899,7 +922,14 @@ describe('TalentLayer', function() {
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function() {
         const transaction = await talentLayerMultipleArbitrableTransaction
           .connect(alice)
-          .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob, { value: totalAmount })
+          .createETHTransaction(
+            3600 * 24 * 7,
+            '_metaEvidence',
+            serviceId,
+            proposalIdBob,
+            talentLayerArbitrator.address,
+            { value: totalAmount },
+          )
         await expect(transaction).to.changeEtherBalances(
           [talentLayerMultipleArbitrableTransaction.address, alice, bob],
           [totalAmount, -totalAmount, 0],
@@ -927,7 +957,14 @@ describe('TalentLayer', function() {
         expect(
           talentLayerMultipleArbitrableTransaction
             .connect(alice)
-            .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdCarol, { value: amountCarol }),
+            .createETHTransaction(
+              3600 * 24 * 7,
+              '_metaEvidence',
+              serviceId,
+              proposalIdCarol,
+              talentLayerArbitrator.address,
+              { value: amountCarol },
+            ),
         ).to.be.reverted
       })
 
