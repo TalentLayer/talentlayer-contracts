@@ -11,6 +11,7 @@ import {
   TalentLayerPlatformID,
 } from '../../typechain-types'
 
+// TODO: remove "only"
 describe.only('Dispute Resolution', () => {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
@@ -29,6 +30,7 @@ describe.only('Dispute Resolution', () => {
   const serviceId = 1
   const serviceAmount = 100
   const proposalId = bobTlId
+  const transactionId = 0
   const ethAddress = '0x0000000000000000000000000000000000000000'
 
   before(async function () {
@@ -80,8 +82,8 @@ describe.only('Dispute Resolution', () => {
     const platformName = 'HireVibes'
     await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
-    await talentLayerID.connect(alice).mint('1', 'alice')
-    await talentLayerID.connect(bob).mint('1', 'bob')
+    await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
+    await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
     // Alice, the buyer, initiates a new open service with Bob
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
@@ -122,6 +124,29 @@ describe.only('Dispute Resolution', () => {
     it('Contract balance increases by the amount of the transaction', async function () {
       const contractBalanceAfter = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
       expect(contractBalanceAfter).to.be.eq(contractBalanceBefore.add(totalTransactionAmount))
+    })
+  })
+
+  describe('When the buyer releases a partial payment to the seller', async function () {
+    let bobBalanceBefore: BigNumber
+    let contractBalanceBefore: BigNumber
+    const releasedAmount = 10
+
+    before(async function () {
+      bobBalanceBefore = await bob.getBalance()
+      contractBalanceBefore = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+
+      await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, releasedAmount)
+    })
+
+    it('Bob balance increases by the amount released', async function () {
+      const bobBalanceAfter = await bob.getBalance()
+      expect(bobBalanceAfter).to.be.eq(bobBalanceBefore.add(releasedAmount))
+    })
+
+    it('Contract balance decreases by the amount released', async function () {
+      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+      expect(contractBalanceAfter).to.be.eq(contractBalanceBefore.sub(releasedAmount))
     })
   })
 })
