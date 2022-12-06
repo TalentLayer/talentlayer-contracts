@@ -22,7 +22,6 @@
 
 **INFO** :  If you deploy the subgraph for the first time, please create an account on The Graph platform then create a new subgraph then get your access token
 
--------------
 
 >> **Step 2.2 : Deploying your subgraph**
   
