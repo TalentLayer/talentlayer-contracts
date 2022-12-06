@@ -34,7 +34,7 @@ WARN !! : if the npm command or make command doesn't work correctly please launc
  After the last command you should see on your subgraph dashboard some deployment logs
  
  
- > **Step 3 : update your front end**
+ > **Step 3 : update the front end**
  - Fill the .env varaibles 
  - Fill the network const with the right deployed addresses in the **src > config.ts** file
  - Select the chain you want in the const chain in the **src > App.tx** / ex : **const chains: any = [goerli]** to use the front on Goerli
