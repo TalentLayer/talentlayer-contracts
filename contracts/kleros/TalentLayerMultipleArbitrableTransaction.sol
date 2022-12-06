@@ -468,6 +468,8 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
         _transferBalance(payable(transaction.receiver), transaction.token, amount);
 
         transaction.status = Status.Resolved;
+
+        _distributeMessage(transaction.serviceId, transaction.amount);
     }
 
     /** @notice Allows the sender of the transaction to pay the arbitration fee to raise a dispute.
