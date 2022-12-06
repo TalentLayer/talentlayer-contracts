@@ -9,7 +9,6 @@
   - add : ``--use-pohmock`` will use the POH Mock
   - add : `` --use-test-erc20`` will deploy a ERC20 token
   - add : `` --verify `` will verify the contract on the network scan
- ex : run make deploy will deploy the contract, use pOH Mock and deploy an ERC20 token
  - Add the deployed contract address in the README.md file
  
 
