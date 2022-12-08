@@ -74,7 +74,6 @@ describe('TalentLayer', function () {
       serviceRegistry.address,
       talentLayerID.address,
       talentLayerPlatformID.address,
-      3600 * 24 * 30,
     )
 
     // Deploy SimpleERC20 Token

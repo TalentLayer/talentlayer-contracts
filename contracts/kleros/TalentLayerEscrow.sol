@@ -76,6 +76,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         Status status;
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
+        uint256 arbitrationFeeTimeout;
     }
 
     // =========================== Events ==============================
@@ -114,12 +115,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _originPlatformFee The new origin platform fee
      */
     event OriginPlatformFeeUpdated(uint256 _originPlatformFee);
-
-    /**
-     * @notice Emitted after the fee timeout was updated
-     * @param _feeTimeout The new fee timeout
-     */
-    event FeeTimeoutUpdated(uint256 _feeTimeout);
 
     /**
      * @notice Emitted after a platform withdraws its balance
@@ -221,11 +216,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     uint8 constant RECEIVER_WINS = 2;
 
     /**
-     * @notice Time in seconds a party can take to pay arbitration fees before being considered unresponding and lose the dispute.
-     */
-    uint256 public feeTimeout;
-
-    /**
      * @notice One-to-one relationship between the dispute and the transaction.
      */
     mapping(uint256 => uint256) public disputeIDtoTransactionID;
@@ -237,13 +227,11 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _serviceRegistryAddress Contract address to ServiceRegistry.sol
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
-     * @param _feeTimeout Arbitration fee timeout for the parties.
      */
     constructor(
         address _serviceRegistryAddress,
         address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress,
-        uint256 _feeTimeout
+        address _talentLayerPlatformIDAddress
     ) {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
@@ -251,7 +239,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         protocolFee = 100;
         originPlatformFee = 200;
         protocolWallet = payable(owner());
-        feeTimeout = _feeTimeout;
     }
 
     // =========================== View functions ==============================
@@ -326,16 +313,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         protocolWallet = _protocolWallet;
     }
 
-    /**
-     * @notice Updates the fee timeout
-     * @dev Only the owner can call this function
-     * @param _feeTimeout The new fee timeout
-     */
-    function updateFeeTimeout(uint256 _feeTimeout) external onlyOwner {
-        feeTimeout = _feeTimeout;
-        emit FeeTimeoutUpdated(_feeTimeout);
-    }
-
     // =========================== User functions ==============================
 
     /**
@@ -372,7 +349,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             _proposalId,
             platform.fee,
             platform.arbitrator,
-            platform.arbitratorExtraData
+            platform.arbitratorExtraData,
+            platform.arbitrationFeeTimeout
         );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
@@ -410,7 +388,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             _proposalId,
             platform.fee,
             platform.arbitrator,
-            platform.arbitratorExtraData
+            platform.arbitratorExtraData,
+            platform.arbitrationFeeTimeout
         );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
@@ -529,7 +508,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     function timeOutBySender(uint256 _transactionID) public {
         Transaction storage transaction = transactions[_transactionID];
         require(transaction.status == Status.WaitingReceiver, "The transaction is not waiting on the receiver.");
-        require(block.timestamp - transaction.lastInteraction >= feeTimeout, "Timeout time has not passed yet.");
+        require(
+            block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
+            "Timeout time has not passed yet."
+        );
 
         // Reimburse receiver if has paid any fees.
         if (transaction.receiverFee != 0) {
@@ -547,7 +529,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     function timeOutByReceiver(uint256 _transactionID) public {
         Transaction storage transaction = transactions[_transactionID];
         require(transaction.status == Status.WaitingSender, "The transaction is not waiting on the sender.");
-        require(block.timestamp - transaction.lastInteraction >= feeTimeout, "Timeout time has not passed yet.");
+        require(
+            block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
+            "Timeout time has not passed yet."
+        );
 
         // Reimburse sender if has paid any fees.
         if (transaction.senderFee != 0) {
@@ -721,7 +706,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 _proposalId,
         uint16 _platformFee,
         Arbitrator _arbitrator,
-        bytes memory _arbitratorExtraData
+        bytes memory _arbitratorExtraData,
+        uint256 _arbitrationFeeTimeout
     ) internal returns (uint256) {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
@@ -746,7 +732,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
                 lastInteraction: block.timestamp,
                 status: Status.NoDispute,
                 arbitrator: _arbitrator,
-                arbitratorExtraData: _arbitratorExtraData
+                arbitratorExtraData: _arbitratorExtraData,
+                arbitrationFeeTimeout: _arbitrationFeeTimeout
             })
         );
         return transactions.length - 1;

@@ -27,6 +27,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         uint16 fee;
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
+        uint256 arbitrationFeeTimeout;
     }
 
     /**
@@ -181,6 +182,16 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
         platforms[_platformId].arbitratorExtraData = _extraData;
+    }
+
+    /**
+     * @notice Allows a platform to update the timeout for paying the arbitration fee
+     * @param _arbitrationFeeTimeout The new timeout
+     */
+    function updateArbitrationFeeTimeout(uint256 _platformId, uint256 _arbitrationFeeTimeout) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].arbitrationFeeTimeout = _arbitrationFeeTimeout;
     }
 
     // =========================== Owner functions ==============================

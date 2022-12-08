@@ -16,6 +16,7 @@ interface ITalentLayerPlatformID is IERC721A {
         uint16 fee;
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
+        uint256 arbitrationFeeTimeout;
     }
 
     function numberMinted(address _platformAddress) external view returns (uint256);
