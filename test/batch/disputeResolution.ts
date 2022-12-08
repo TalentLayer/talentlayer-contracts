@@ -1,6 +1,6 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import { BigNumber } from 'ethers'
+import { BigNumber, Bytes } from 'ethers'
 import { ethers } from 'hardhat'
 import {
   MockProofOfHumanity,
@@ -32,6 +32,7 @@ describe.only('Dispute Resolution', () => {
   const proposalId = bobTlId
   const transactionId = 0
   const ethAddress = '0x0000000000000000000000000000000000000000'
+  const arbitratorExtraData: Bytes = []
 
   before(async function () {
     ;[deployer, alice, bob, carol] = await ethers.getSigners()
@@ -112,7 +113,7 @@ describe.only('Dispute Resolution', () => {
           serviceId,
           proposalId,
           talentLayerArbitrator.address,
-          '',
+          arbitratorExtraData,
           {
             value: totalTransactionAmount,
           },
