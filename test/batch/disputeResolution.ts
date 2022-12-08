@@ -65,7 +65,6 @@ describe('Dispute Resolution', () => {
       serviceRegistry.address,
       talentLayerID.address,
       talentLayerPlatformID.address,
-      3600 * 24 * 30,
     )
 
     // Grant escrow role
@@ -80,9 +79,10 @@ describe('Dispute Resolution', () => {
     const platformName = 'HireVibes'
     await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
-    // Update platform arbitrator
+    // Update platform arbitrator, extra data and fee timeout
     await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
     await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)
+    await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, 3600 * 1)
 
     // Mint TL Id for Alice and Bob
     await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
