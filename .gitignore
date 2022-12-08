@@ -11,3 +11,6 @@ cache
 artifacts
 
 .DS_store
+
+
+/examples

@@ -12,16 +12,14 @@ async function main() {
     subgraphNetwork.localhost.TalentLayerID.address = config.talentLayerIdAddress
     subgraphNetwork.localhost.TalentLayerReview.address = config.talentLayerReviewAddress
     subgraphNetwork.localhost.ServiceRegistry.address = config.serviceRegistryAddress
-    subgraphNetwork.localhost.TalentLayerMultipleArbitrableTransaction.address =
-      config.talentLayerMultipleArbitrableTransactionAddress
+    subgraphNetwork.localhost.TalentLayerEscrow.address = config.talentLayerEscrowAddress
     subgraphNetwork.localhost.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
   } else if (network == 'goerli') {
     subgraphNetwork.goerli.proofOfHumanityAddress.address = config.proofOfHumanityAddress
     subgraphNetwork.goerli.TalentLayerID.address = config.talentLayerIdAddress
     subgraphNetwork.goerli.TalentLayerReview.address = config.talentLayerReviewAddress
     subgraphNetwork.goerli.ServiceRegistry.address = config.serviceRegistryAddress
-    subgraphNetwork.goerli.TalentLayerMultipleArbitrableTransaction.address =
-      config.talentLayerMultipleArbitrableTransactionAddress
+    subgraphNetwork.goerli.TalentLayerEscrow.address = config.talentLayerEscrowAddress
     subgraphNetwork.goerli.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
   }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-interface ITalentLayerMultipleArbitrableTransaction {
+interface ITalentLayerEscrow {
     struct Transaction {
         address sender; //pays recipient using the escrow
         address receiver; //intended recipient of the escrow

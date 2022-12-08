@@ -7,7 +7,7 @@ import {
   ServiceRegistry,
   TalentLayerArbitrator,
   TalentLayerID,
-  TalentLayerMultipleArbitrableTransaction,
+  TalentLayerEscrow,
   TalentLayerPlatformID,
 } from '../../typechain-types'
 
@@ -20,7 +20,7 @@ describe.only('Dispute Resolution', () => {
     serviceRegistry: ServiceRegistry,
     talentLayerID: TalentLayerID,
     talentLayerPlatformID: TalentLayerPlatformID,
-    talentLayerMultipleArbitrableTransaction: TalentLayerMultipleArbitrableTransaction,
+    talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
     mockProofOfHumanity: MockProofOfHumanity
 
@@ -58,11 +58,9 @@ describe.only('Dispute Resolution', () => {
     const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
     talentLayerArbitrator = await TalentLayerArbitrator.deploy(0, talentLayerPlatformID.address)
 
-    // Deploy TalentLayerMultipleArbitrableTransaction
-    const TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory(
-      'TalentLayerMultipleArbitrableTransaction',
-    )
-    talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
+    // Deploy TalentLayerEscrow
+    const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
+    talentLayerEscrow = await TalentLayerEscrow.deploy(
       serviceRegistry.address,
       talentLayerID.address,
       talentLayerPlatformID.address,
@@ -72,7 +70,7 @@ describe.only('Dispute Resolution', () => {
 
     // Grant escrow role
     const escrowRole = await serviceRegistry.ESCROW_ROLE()
-    await serviceRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address)
+    await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
 
     // Grant Platform Id Mint role to Deployer and Bob
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -100,14 +98,14 @@ describe.only('Dispute Resolution', () => {
 
     before(async function () {
       aliceBalanceBefore = await alice.getBalance()
-      contractBalanceBefore = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+      contractBalanceBefore = await ethers.provider.getBalance(talentLayerEscrow.address)
 
-      const protocolFee = await talentLayerMultipleArbitrableTransaction.protocolFee()
-      const originPlatformFee = await talentLayerMultipleArbitrableTransaction.originPlatformFee()
+      const protocolFee = await talentLayerEscrow.protocolFee()
+      const originPlatformFee = await talentLayerEscrow.originPlatformFee()
       const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
       totalTransactionAmount = serviceAmount + (serviceAmount * (protocolFee + originPlatformFee + platformFee)) / 10000
 
-      const tx = await talentLayerMultipleArbitrableTransaction
+      const tx = await talentLayerEscrow
         .connect(alice)
         .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalId, talentLayerArbitrator.address, {
           value: totalTransactionAmount,
@@ -122,7 +120,7 @@ describe.only('Dispute Resolution', () => {
     })
 
     it('Contract balance increases by the amount of the transaction', async function () {
-      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
       expect(contractBalanceAfter).to.be.eq(contractBalanceBefore.add(totalTransactionAmount))
     })
   })
@@ -134,9 +132,9 @@ describe.only('Dispute Resolution', () => {
 
     before(async function () {
       bobBalanceBefore = await bob.getBalance()
-      contractBalanceBefore = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+      contractBalanceBefore = await ethers.provider.getBalance(talentLayerEscrow.address)
 
-      await talentLayerMultipleArbitrableTransaction.connect(alice).release(transactionId, releasedAmount)
+      await talentLayerEscrow.connect(alice).release(transactionId, releasedAmount)
     })
 
     it('Bob balance increases by the amount released', async function () {
@@ -145,7 +143,7 @@ describe.only('Dispute Resolution', () => {
     })
 
     it('Contract balance decreases by the amount released', async function () {
-      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerMultipleArbitrableTransaction.address)
+      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
       expect(contractBalanceAfter).to.be.eq(contractBalanceBefore.sub(releasedAmount))
     })
   })
