@@ -116,6 +116,12 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     event OriginPlatformFeeUpdated(uint256 _originPlatformFee);
 
     /**
+     * @notice Emitted after the fee timeout was updated
+     * @param _feeTimeout The new fee timeout
+     */
+    event FeeTimeoutUpdated(uint256 _feeTimeout);
+
+    /**
      * @notice Emitted after a platform withdraws its balance
      * @param _platformId The Platform ID to which the balance is transferred.
      * @param _token The address of the token used for the payment.
@@ -326,6 +332,16 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     function updateProtocolWallet(address payable _protocolWallet) external onlyOwner {
         protocolWallet = _protocolWallet;
+    }
+
+    /**
+     * @notice Updates the fee timeout
+     * @dev Only the owner can call this function
+     * @param _feeTimeout The new fee timeout
+     */
+    function updateFeeTimeout(uint256 _feeTimeout) external onlyOwner {
+        feeTimeout = _feeTimeout;
+        emit FeeTimeoutUpdated(_feeTimeout);
     }
 
     // =========================== User functions ==============================
