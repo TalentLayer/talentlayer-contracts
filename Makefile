@@ -4,7 +4,7 @@ include .env
 
 #--------------FULL INSTALLATION----------------#
 
-install: deploy copy-configuration setup-fakedata
+install: deploy  setup-fakedata
 
 allScripts: deploy copy-configuration setup-allFakeData
 
@@ -31,8 +31,8 @@ endif
 
 #--------------PLAYGROUND LOCAL----------------#
 
-wait_localhost = 5
-wait_other_network = 60
+wait_localhost = 1
+wait_other_network = 1
 
 ifeq ($(DEPLOY_NETWORK),localhost)
 	w := $(wait_localhost)

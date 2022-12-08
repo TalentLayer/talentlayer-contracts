@@ -19,9 +19,9 @@ async function main() {
     get(network as Network, ConfigProperty.ServiceRegistry),
   )
 
-  const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
-    'TalentLayerMultipleArbitrableTransaction',
-    get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
+  const talentLayerEscrow = await ethers.getContractAt(
+    'TalentLayerEscrow',
+    get(network as Network, ConfigProperty.TalentLayerEscrow),
   )
 
   const platformIdContrat = await ethers.getContractAt(
@@ -35,13 +35,13 @@ async function main() {
   console.log('amountBob', amountDave.toString())
 
   //Protocol fee
-  const protocolFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.protocolFee())
+  const protocolFee = ethers.BigNumber.from(await talentLayerEscrow.protocolFee())
   console.log('protocolFee', protocolFee.toString())
 
   //Origin platform fee && platform fee
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
   const davePlatformData = await platformIdContrat.platforms(daveTlId)
-  const originPlatformFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.originPlatformFee())
+  const originPlatformFee = ethers.BigNumber.from(await talentLayerEscrow.originPlatformFee())
   const platformFee = ethers.BigNumber.from(davePlatformData.fee)
 
   const totalAmount = amountDave.add(
@@ -50,14 +50,14 @@ async function main() {
   console.log('totalAmount', totalAmount.toString())
 
   // we allow the contract to spend Alice tokens with the bob rateAmount + fees
-  const approve = await token.approve(talentLayerMultipleArbitrableTransaction.address, totalAmount)
+  const approve = await token.approve(talentLayerEscrow.address, totalAmount)
   waitConfirmations(network, approve, 10)
 
   let secondServiceId = await serviceRegistry.nextServiceId()
   secondServiceId = secondServiceId.sub(1)
   console.log('serviceId', secondServiceId.toString())
 
-  await talentLayerMultipleArbitrableTransaction.connect(alice).createTokenTransaction(
+  await talentLayerEscrow.connect(alice).createTokenTransaction(
     3600 * 24 * 7,
     '_metaEvidence',
     secondServiceId,
