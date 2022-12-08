@@ -68,7 +68,7 @@ async function main() {
     secondServiceId,
     4, //proposalId/talentLayerId of Dave.
     talentLayerArbitrator.address,
-    '',
+    [],
   )
 }
 
