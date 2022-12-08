@@ -1,6 +1,6 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import { BigNumber, Bytes } from 'ethers'
+import { BigNumber, Bytes, ContractTransaction } from 'ethers'
 import { ethers } from 'hardhat'
 import {
   MockProofOfHumanity,
@@ -35,6 +35,7 @@ describe.only('Dispute Resolution', () => {
   const arbitratorExtraData: Bytes = []
   const arbitrationCost = ethers.utils.parseEther('0.001')
   const disputeId = 0
+  const metaEvidence = 'metaEvidence'
 
   before(async function () {
     ;[deployer, alice, bob, carol] = await ethers.getSigners()
@@ -102,6 +103,7 @@ describe.only('Dispute Resolution', () => {
     let escrowBalanceBefore: BigNumber
     let totalTransactionAmount: number
     let gasUsed: BigNumber
+    let tx: ContractTransaction
 
     before(async function () {
       aliceBalanceBefore = await alice.getBalance()
@@ -112,7 +114,7 @@ describe.only('Dispute Resolution', () => {
       const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
       totalTransactionAmount = serviceAmount + (serviceAmount * (protocolFee + originPlatformFee + platformFee)) / 10000
 
-      const tx = await talentLayerEscrow.connect(alice).createETHTransaction('_metaEvidence', serviceId, proposalId, {
+      tx = await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
         value: totalTransactionAmount,
       })
       const receipt = await tx.wait()
@@ -127,6 +129,10 @@ describe.only('Dispute Resolution', () => {
     it('Escrow balance increases by the amount of the transaction', async function () {
       const contractBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
       expect(contractBalanceAfter).to.be.eq(escrowBalanceBefore.add(totalTransactionAmount))
+    })
+
+    it('MetaEvidence is submitted', async function () {
+      await expect(tx).to.emit(talentLayerEscrow, 'MetaEvidence').withArgs(transactionId, metaEvidence)
     })
   })
 
@@ -234,10 +240,28 @@ describe.only('Dispute Resolution', () => {
     })
 
     it('A dispute is created, with the correct data', async function () {
-      const dispute = await talentLayerArbitrator.disputes(0)
+      const dispute = await talentLayerArbitrator.disputes(disputeId)
       expect(dispute.arbitrated).to.be.eq(talentLayerEscrow.address)
       expect(dispute.fee).to.be.eq(arbitrationCost)
       expect(dispute.platformId).to.be.eq(carolPlatformId)
+    })
+  })
+
+  describe('When evidence is submitted', async function () {
+    it('The evidence event is emitted for the sender', async function () {
+      const aliceEvidence = "Alice's evidence"
+      const tx = await talentLayerEscrow.connect(alice).submitEvidence(transactionId, aliceEvidence)
+      await expect(tx)
+        .to.emit(talentLayerEscrow, 'Evidence')
+        .withArgs(talentLayerArbitrator.address, transactionId, alice.address, aliceEvidence)
+    })
+
+    it('The evidence event is emitted for the receiver', async function () {
+      const bobEvidence = "Bob's evidence"
+      const tx = await talentLayerEscrow.connect(bob).submitEvidence(transactionId, bobEvidence)
+      await expect(tx)
+        .to.emit(talentLayerEscrow, 'Evidence')
+        .withArgs(talentLayerArbitrator.address, transactionId, bob.address, bobEvidence)
     })
   })
 })
