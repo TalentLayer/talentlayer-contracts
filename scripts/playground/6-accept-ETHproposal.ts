@@ -60,8 +60,6 @@ async function main() {
     '_metaEvidence',
     firstServiceId,
     3, //proposalId/talentLayerId of carol.
-    talentLayerArbitrator.address,
-    [],
     { value: totalAmount },
   )
   console.log('ETH transaction created')
