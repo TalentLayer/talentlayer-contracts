@@ -59,6 +59,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param lastInteraction Last interaction for the dispute procedure.
      * @param status The status of the transaction
      * @param arbitrator The address of the contract that can rule on a dispute for the transaction.
+     * @param arbitratorExtraData Extra data to set up the arbitration.
      */
     struct Transaction {
         address sender;
@@ -76,6 +77,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 lastInteraction;
         Status status;
         Arbitrator arbitrator;
+        bytes arbitratorExtraData;
     }
 
     // =========================== Events ==============================
@@ -230,11 +232,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     mapping(uint256 => uint256) public disputeIDtoTransactionID;
 
-    /**
-     * @notice Extra data to set up the arbitration.
-     */
-    bytes public arbitratorExtraData;
-
     // =========================== Constructor ==============================
 
     /**
@@ -242,14 +239,12 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _serviceRegistryAddress Contract address to ServiceRegistry.sol
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
-     * @param _arbitratorExtraData Extra data for the arbitrator.
      * @param _feeTimeout Arbitration fee timeout for the parties.
      */
     constructor(
         address _serviceRegistryAddress,
         address _talentLayerIDAddress,
         address _talentLayerPlatformIDAddress,
-        bytes memory _arbitratorExtraData,
         uint256 _feeTimeout
     ) {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
@@ -258,7 +253,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         protocolFee = 100;
         originPlatformFee = 200;
         protocolWallet = payable(owner());
-        arbitratorExtraData = _arbitratorExtraData;
         feeTimeout = _feeTimeout;
     }
 
@@ -359,7 +353,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId,
-        Arbitrator _arbitrator
+        Arbitrator _arbitrator,
+        bytes memory _arbitratorExtraData
     ) external payable {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
@@ -379,7 +374,14 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
 
-        uint256 transactionId = _saveTransaction(_serviceId, _proposalId, platformFee, _timeoutPayment, _arbitrator);
+        uint256 transactionId = _saveTransaction(
+            _serviceId,
+            _proposalId,
+            platformFee,
+            _timeoutPayment,
+            _arbitrator,
+            _arbitratorExtraData
+        );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
         emit MetaEvidence(transactionId, _metaEvidence);
@@ -398,7 +400,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId,
-        Arbitrator _arbitrator
+        Arbitrator _arbitrator,
+        bytes memory _arbitratorExtraData
     ) external {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
@@ -414,7 +417,14 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
 
-        uint256 transactionId = _saveTransaction(_serviceId, _proposalId, platformFee, _timeoutPayment, _arbitrator);
+        uint256 transactionId = _saveTransaction(
+            _serviceId,
+            _proposalId,
+            platformFee,
+            _timeoutPayment,
+            _arbitrator,
+            _arbitratorExtraData
+        );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
 
@@ -473,7 +483,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     function payArbitrationFeeBySender(uint256 _transactionID) public payable {
         Transaction storage transaction = transactions[_transactionID];
-        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(arbitratorExtraData);
+        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
 
         require(
             transaction.status < Status.DisputeCreated,
@@ -503,7 +513,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     function payArbitrationFeeByReceiver(uint256 _transactionID) public payable {
         Transaction storage transaction = transactions[_transactionID];
-        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(arbitratorExtraData);
+        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
 
         require(
             transaction.status < Status.DisputeCreated,
@@ -585,7 +595,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     function appeal(uint256 _transactionID) public payable {
         Transaction storage transaction = transactions[_transactionID];
 
-        transaction.arbitrator.appeal{value: msg.value}(transaction.disputeId, arbitratorExtraData);
+        transaction.arbitrator.appeal{value: msg.value}(transaction.disputeId, transaction.arbitratorExtraData);
     }
 
     // =========================== Platform functions ==============================
@@ -724,7 +734,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 _proposalId,
         uint16 _platformFee,
         uint256 _timeoutPayment,
-        Arbitrator _arbitrator
+        Arbitrator _arbitrator,
+        bytes memory _arbitratorExtraData
     ) internal returns (uint256) {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
@@ -749,7 +760,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
                 receiverFee: 0,
                 lastInteraction: block.timestamp,
                 status: Status.NoDispute,
-                arbitrator: _arbitrator
+                arbitrator: _arbitrator,
+                arbitratorExtraData: _arbitratorExtraData
             })
         );
         return transactions.length - 1;
