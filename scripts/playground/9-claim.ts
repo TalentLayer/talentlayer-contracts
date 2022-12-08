@@ -13,9 +13,9 @@ async function main() {
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
-  const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
-    'TalentLayerMultipleArbitrableTransaction',
-    get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
+  const talentLayerEscrow = await ethers.getContractAt(
+    'TalentLayerEscrow',
+    get(network as Network, ConfigProperty.TalentLayerEscrow),
   )
 
   const platformIdContrat = await ethers.getContractAt(
@@ -29,11 +29,11 @@ async function main() {
   const ERC20TokenAddress = simpleERC20.address
   const davePlatformId = await platformIdContrat.connect(dave).getPlatformIdFromAddress(dave.address)
 
-  // let balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getClaimableFeeBalance(rateToken)
+  // let balance = await talentLayerEscrow.connect(dave).getClaimableFeeBalance(rateToken)
   // console.log('balance before ', balance.toString())
-  await talentLayerMultipleArbitrableTransaction.connect(dave).claim(davePlatformId, rateToken)
-  await talentLayerMultipleArbitrableTransaction.connect(dave).claim(davePlatformId, ERC20TokenAddress)
-  // balance = await talentLayerMultipleArbitrableTransaction.connect(dave).getClaimableFeeBalance(rateToken)
+  await talentLayerEscrow.connect(dave).claim(davePlatformId, rateToken)
+  await talentLayerEscrow.connect(dave).claim(davePlatformId, ERC20TokenAddress)
+  // balance = await talentLayerEscrow.connect(dave).getClaimableFeeBalance(rateToken)
   // console.log('balance after ', balance.toString())
 }
 

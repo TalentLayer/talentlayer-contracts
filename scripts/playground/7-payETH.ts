@@ -16,18 +16,18 @@ async function main() {
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
-  const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
-    'TalentLayerMultipleArbitrableTransaction',
-    get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
+  const talentLayerEscrow = await ethers.getContractAt(
+    'TalentLayerEscrow',
+    get(network as Network, ConfigProperty.TalentLayerEscrow),
   )
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
 
-  const firstRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2))
+  const firstRelease = await talentLayerEscrow.connect(alice).release(0, rateAmount.div(2))
   firstRelease.wait()
-  const secondRelease = await talentLayerMultipleArbitrableTransaction.connect(alice).release(0, rateAmount.div(2))
+  const secondRelease = await talentLayerEscrow.connect(alice).release(0, rateAmount.div(2))
   secondRelease.wait()
-  // const reimburse = await talentLayerMultipleArbitrableTransaction.connect(carol).reimburse(0, rateAmount.div(4))
+  // const reimburse = await talentLayerEscrow.connect(carol).reimburse(0, rateAmount.div(4))
   // reimburse.wait()
 }
 

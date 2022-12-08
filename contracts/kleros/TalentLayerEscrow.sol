@@ -10,7 +10,7 @@ import "../interfaces/ITalentLayerPlatformID.sol";
 import "./IArbitrable.sol";
 import "./Arbitrator.sol";
 
-contract TalentLayerMultipleArbitrableTransaction is Ownable, IArbitrable {
+contract TalentLayerEscrow is Ownable, IArbitrable {
     // =========================== Enum ==============================
 
     /**
