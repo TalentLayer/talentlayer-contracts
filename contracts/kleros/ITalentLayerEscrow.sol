@@ -26,14 +26,12 @@ interface ITalentLayerEscrow {
     function updateProtocolWallet(address payable _protocolWallet) external;
 
     function createTokenTransaction(
-        uint256 _timeoutPayment,
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId
     ) external;
 
     function createETHTransaction(
-        uint256 _timeoutPayment,
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId

@@ -52,7 +52,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param protocolFee The %fee (per ten thousands) paid to the protocol's owner
      * @param originPlatformFee The %fee (per ten thousands) paid to the platform who onboarded the user
      * @param platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
-     * @param timeoutPayment The time in seconds after which a party automatically loose a dispute
      * @param disputeId The ID of the dispute, if it exists
      * @param senderFee Total fees paid by the sender.
      * @param receiverFee Total fees paid by the receiver.
@@ -70,7 +69,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint16 protocolFee;
         uint16 originPlatformFee;
         uint16 platformFee;
-        uint256 timeoutPayment;
         uint256 disputeId;
         uint256 senderFee;
         uint256 receiverFee;
@@ -342,14 +340,12 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
     /**
      * @dev Validates a proposal for a service by locking ETH into escrow.
-     * @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
      * @param _metaEvidence Link to the meta-evidence.
      * @param _serviceId Service of transaction
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
      */
     function createETHTransaction(
-        uint256 _timeoutPayment,
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId
@@ -375,7 +371,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             _serviceId,
             _proposalId,
             platform.fee,
-            _timeoutPayment,
             platform.arbitrator,
             platform.arbitratorExtraData
         );
@@ -387,13 +382,11 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
     /**
      * @dev Validates a proposal for a service by locking ERC20 into escrow.
-     * @param _timeoutPayment Time after which a party can automatically execute the arbitrable transaction.
      * @param _metaEvidence Link to the meta-evidence.
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
      */
     function createTokenTransaction(
-        uint256 _timeoutPayment,
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId
@@ -416,7 +409,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             _serviceId,
             _proposalId,
             platform.fee,
-            _timeoutPayment,
             platform.arbitrator,
             platform.arbitratorExtraData
         );
@@ -728,7 +720,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 _serviceId,
         uint256 _proposalId,
         uint16 _platformFee,
-        uint256 _timeoutPayment,
         Arbitrator _arbitrator,
         bytes memory _arbitratorExtraData
     ) internal returns (uint256) {
@@ -749,7 +740,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
                 protocolFee: protocolFee,
                 originPlatformFee: originPlatformFee,
                 platformFee: _platformFee,
-                timeoutPayment: _timeoutPayment,
                 disputeId: 0,
                 senderFee: 0,
                 receiverFee: 0,
