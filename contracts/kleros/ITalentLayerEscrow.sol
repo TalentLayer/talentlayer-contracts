@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
+import "./Arbitrator.sol";
+
 interface ITalentLayerEscrow {
     struct Transaction {
         address sender; //pays recipient using the escrow
@@ -26,19 +28,19 @@ interface ITalentLayerEscrow {
     function createTokenTransaction(
         uint256 _timeoutPayment,
         string memory _metaEvidence,
-        address _adminWallet,
-        uint256 _adminFeeAmount,
         uint256 _serviceId,
-        uint256 _proposalId
+        uint256 _proposalId,
+        Arbitrator _arbitrator,
+        bytes memory _arbitratorExtraData
     ) external;
 
     function createETHTransaction(
         uint256 _timeoutPayment,
         string memory _metaEvidence,
-        address _adminWallet,
-        uint256 _adminFeeAmount,
         uint256 _serviceId,
-        uint256 _proposalId
+        uint256 _proposalId,
+        Arbitrator _arbitrator,
+        bytes memory _arbitratorExtraData
     ) external payable;
 
     function release(uint256 _transactionId, uint256 _amount) external;
