@@ -126,11 +126,10 @@ task('deploy')
       // Deploy TalentLayerEscrow
       const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
       const feeTimeout: number = 3600 * 24 * 30
-      const talentLayerEscrowArgs: [string, string, string, any, number] = [
+      const talentLayerEscrowArgs: [string, string, string, number] = [
         serviceRegistry.address,
         talentLayerID.address,
         talentLayerPlatformID.address,
-        [],
         feeTimeout,
       ]
       const talentLayerEscrow = await TalentLayerEscrow.deploy(...talentLayerEscrowArgs)

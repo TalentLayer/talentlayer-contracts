@@ -64,7 +64,6 @@ describe.only('Dispute Resolution', () => {
       serviceRegistry.address,
       talentLayerID.address,
       talentLayerPlatformID.address,
-      [],
       3600 * 24 * 30,
     )
 
@@ -107,9 +106,17 @@ describe.only('Dispute Resolution', () => {
 
       const tx = await talentLayerEscrow
         .connect(alice)
-        .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalId, talentLayerArbitrator.address, {
-          value: totalTransactionAmount,
-        })
+        .createETHTransaction(
+          3600 * 24 * 7,
+          '_metaEvidence',
+          serviceId,
+          proposalId,
+          talentLayerArbitrator.address,
+          '',
+          {
+            value: totalTransactionAmount,
+          },
+        )
       const receipt = await tx.wait()
       gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
     })

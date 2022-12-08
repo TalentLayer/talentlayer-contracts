@@ -74,7 +74,6 @@ describe('TalentLayer', function () {
       serviceRegistry.address,
       talentLayerID.address,
       talentLayerPlatformID.address,
-      [],
       3600 * 24 * 30,
     )
 
@@ -640,6 +639,7 @@ describe('TalentLayer', function () {
               serviceId,
               proposalIdBob,
               talentLayerArbitrator.address,
+              '',
             ),
         ).to.be.reverted
       })
@@ -701,6 +701,7 @@ describe('TalentLayer', function () {
             serviceId,
             proposalIdBob,
             talentLayerArbitrator.address,
+            '',
           )
         await expect(transaction).to.changeTokenBalances(
           token,
@@ -736,6 +737,7 @@ describe('TalentLayer', function () {
               serviceId,
               proposalIdCarol,
               talentLayerArbitrator.address,
+              '',
             ),
         ).to.be.reverted
       })
@@ -879,6 +881,7 @@ describe('TalentLayer', function () {
               serviceId,
               proposalIdBob,
               talentLayerArbitrator.address,
+              '',
             ),
         ).to.be.reverted
       })
@@ -902,6 +905,7 @@ describe('TalentLayer', function () {
             serviceId,
             proposalIdBob,
             talentLayerArbitrator.address,
+            '',
             { value: totalAmount },
           )
         await expect(transaction).to.changeEtherBalances(
@@ -937,6 +941,7 @@ describe('TalentLayer', function () {
               serviceId,
               proposalIdCarol,
               talentLayerArbitrator.address,
+              '',
               { value: amountCarol },
             ),
         ).to.be.reverted
