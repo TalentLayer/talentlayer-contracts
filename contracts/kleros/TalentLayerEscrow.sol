@@ -53,12 +53,12 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param originPlatformFee The %fee (per ten thousands) paid to the platform who onboarded the user
      * @param platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
      * @param timeoutPayment The time in seconds after which a party automatically loose a dispute
-     * @param disputeId // The ID of the dispute, if it exists
-     * @param senderFee // // Total fees paid by the sender.
-     * @param receiverFee // Total fees paid by the receiver.
-     * @param lastInteraction // Last interaction for the dispute procedure.
+     * @param disputeId The ID of the dispute, if it exists
+     * @param senderFee Total fees paid by the sender.
+     * @param receiverFee Total fees paid by the receiver.
+     * @param lastInteraction Last interaction for the dispute procedure.
      * @param status The status of the transaction
-     * @param arbitrator // The address of the contract that can rule on a dispute for the transaction.
+     * @param arbitrator The address of the contract that can rule on a dispute for the transaction.
      */
     struct Transaction {
         address sender;
