@@ -67,8 +67,6 @@ async function main() {
     '_metaEvidence',
     secondServiceId,
     4, //proposalId/talentLayerId of Dave.
-    talentLayerArbitrator.address,
-    [],
   )
 }
 

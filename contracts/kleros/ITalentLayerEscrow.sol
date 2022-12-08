@@ -29,18 +29,14 @@ interface ITalentLayerEscrow {
         uint256 _timeoutPayment,
         string memory _metaEvidence,
         uint256 _serviceId,
-        uint256 _proposalId,
-        Arbitrator _arbitrator,
-        bytes memory _arbitratorExtraData
+        uint256 _proposalId
     ) external;
 
     function createETHTransaction(
         uint256 _timeoutPayment,
         string memory _metaEvidence,
         uint256 _serviceId,
-        uint256 _proposalId,
-        Arbitrator _arbitrator,
-        bytes memory _arbitratorExtraData
+        uint256 _proposalId
     ) external payable;
 
     function release(uint256 _transactionId, uint256 _amount) external;

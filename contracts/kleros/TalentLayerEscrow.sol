@@ -352,20 +352,17 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 _timeoutPayment,
         string memory _metaEvidence,
         uint256 _serviceId,
-        uint256 _proposalId,
-        Arbitrator _arbitrator,
-        bytes memory _arbitratorExtraData
+        uint256 _proposalId
     ) external payable {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
         address sender;
 
         (proposal, service, sender, ) = _getTalentLayerData(_serviceId, _proposalId);
+        ITalentLayerPlatformID.Platform memory platform = talentLayerPlatformIdContract.getPlatform(service.platformId);
+
         // PlatformFee is per ten thousands
-        uint16 platformFee = talentLayerPlatformIdContract.getPlatformFee(service.platformId);
-
-        uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platformFee);
-
+        uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
         require(msg.sender == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
@@ -377,10 +374,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 transactionId = _saveTransaction(
             _serviceId,
             _proposalId,
-            platformFee,
+            platform.fee,
             _timeoutPayment,
-            _arbitrator,
-            _arbitratorExtraData
+            platform.arbitrator,
+            platform.arbitratorExtraData
         );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
@@ -399,19 +396,17 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 _timeoutPayment,
         string memory _metaEvidence,
         uint256 _serviceId,
-        uint256 _proposalId,
-        Arbitrator _arbitrator,
-        bytes memory _arbitratorExtraData
+        uint256 _proposalId
     ) external {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
         address sender;
 
         (proposal, service, sender, ) = _getTalentLayerData(_serviceId, _proposalId);
-        // PlatformFee is per ten thousands
-        uint16 platformFee = talentLayerPlatformIdContract.getPlatformFee(service.platformId);
+        ITalentLayerPlatformID.Platform memory platform = talentLayerPlatformIdContract.getPlatform(service.platformId);
 
-        uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platformFee);
+        // PlatformFee is per ten thousands
+        uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
 
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
@@ -420,10 +415,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 transactionId = _saveTransaction(
             _serviceId,
             _proposalId,
-            platformFee,
+            platform.fee,
             _timeoutPayment,
-            _arbitrator,
-            _arbitratorExtraData
+            platform.arbitrator,
+            platform.arbitratorExtraData
         );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);

@@ -12,7 +12,7 @@ import {
 } from '../../typechain-types'
 
 // TODO: remove "only"
-describe.only('Dispute Resolution', () => {
+describe('Dispute Resolution', () => {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -80,6 +80,11 @@ describe.only('Dispute Resolution', () => {
     const platformName = 'HireVibes'
     await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
+    // Update platform arbitrator
+    await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
+    await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)
+
+    // Mint TL Id for Alice and Bob
     await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
     await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
@@ -107,17 +112,9 @@ describe.only('Dispute Resolution', () => {
 
       const tx = await talentLayerEscrow
         .connect(alice)
-        .createETHTransaction(
-          3600 * 24 * 7,
-          '_metaEvidence',
-          serviceId,
-          proposalId,
-          talentLayerArbitrator.address,
-          arbitratorExtraData,
-          {
-            value: totalTransactionAmount,
-          },
-        )
+        .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalId, {
+          value: totalTransactionAmount,
+        })
       const receipt = await tx.wait()
       gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
     })

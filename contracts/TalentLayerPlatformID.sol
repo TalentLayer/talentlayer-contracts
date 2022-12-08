@@ -6,6 +6,8 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 
+import "./kleros/Arbitrator.sol";
+
 /**
  * @title Platform ID Contract
  * @author TalentLayer Team
@@ -23,6 +25,8 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         string name;
         string dataUri;
         uint16 fee;
+        Arbitrator arbitrator;
+        bytes arbitratorExtraData;
     }
 
     /**
@@ -124,7 +128,12 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformName Platform name
      * @param _platformAddress Eth Address to assign the Platform Id to
      */
-    function mintForAddress(string memory _platformName, address _platformAddress) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
+    function mintForAddress(string memory _platformName, address _platformAddress)
+        public
+        payable
+        canMint(_platformName, _platformAddress)
+        onlyRole(MINT_ROLE)
+    {
         _safeMint(_platformAddress, 1);
         _afterMint(_platformName);
     }
@@ -146,13 +155,32 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     /**
      * @notice Allows a platform to update his fee
-     * @dev You need to have DEFAULT_ADMIN_ROLE to use this function
      * @param _platformfee Platform fee to update
      */
     function updatePlatformfee(uint256 _platformId, uint16 _platformfee) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
         platforms[_platformId].fee = _platformfee;
+    }
+
+    /**
+     * @notice Allows a platform to update his arbitrator
+     * @param _arbitrator New arbitrator
+     */
+    function updateArbitrator(uint256 _platformId, Arbitrator _arbitrator) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].arbitrator = _arbitrator;
+    }
+
+    /**
+     * @notice Allows a platform to update his extra data for arbitrator
+     * @param _extraData New extra data for arbitrator
+     */
+    function updateArbitratorExtraData(uint256 _platformId, bytes memory _extraData) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].arbitratorExtraData = _extraData;
     }
 
     // =========================== Owner functions ==============================
@@ -226,11 +254,19 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return ERC721A.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
 
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override(ERC721A) {
         revert("Not allowed");
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override(ERC721A) {
         revert("Not allowed");
     }
 
