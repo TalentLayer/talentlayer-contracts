@@ -450,28 +450,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         _distributeMessage(transaction.serviceId, transaction.amount);
     }
 
-    /**
-     * @notice Transfers the locked-in escrow funds to the receiver if the timeout for payment has passed
-     *         and there is no dispute.
-     * @param _transactionID Id of the transaction to execute.
-     */
-    function executeTransaction(uint256 _transactionID) public {
-        Transaction storage transaction = transactions[_transactionID];
-        require(
-            block.timestamp - transaction.lastInteraction >= transaction.timeoutPayment,
-            "The timeout has not passed yet."
-        );
-        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
-
-        uint256 amount = transaction.amount;
-        transaction.amount = 0;
-        _transferBalance(payable(transaction.receiver), transaction.token, amount);
-
-        transaction.status = Status.Resolved;
-
-        _distributeMessage(transaction.serviceId, transaction.amount);
-    }
-
     /** @notice Allows the sender of the transaction to pay the arbitration fee to raise a dispute.
      *  Note that the arbitrator can have createDispute throw, which will make this function throw and therefore lead to a party being timed-out.
      *  This is not a vulnerability as the arbitrator can rule in favor of one party anyway.
