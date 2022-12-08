@@ -110,11 +110,9 @@ describe('Dispute Resolution', () => {
       const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
       totalTransactionAmount = serviceAmount + (serviceAmount * (protocolFee + originPlatformFee + platformFee)) / 10000
 
-      const tx = await talentLayerEscrow
-        .connect(alice)
-        .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalId, {
-          value: totalTransactionAmount,
-        })
+      const tx = await talentLayerEscrow.connect(alice).createETHTransaction('_metaEvidence', serviceId, proposalId, {
+        value: totalTransactionAmount,
+      })
       const receipt = await tx.wait()
       gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
     })
@@ -151,5 +149,42 @@ describe('Dispute Resolution', () => {
       const contractBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
       expect(contractBalanceAfter).to.be.eq(contractBalanceBefore.sub(releasedAmount))
     })
+  })
+
+  describe('When the sender pays the arbitration fee', async function () {
+    let aliceBalanceBefore: BigNumber
+    let contractBalanceBefore: BigNumber
+    let gasUsed: BigNumber
+    let arbitrationCost: BigNumber
+
+    before(async function () {
+      aliceBalanceBefore = await alice.getBalance()
+      contractBalanceBefore = await ethers.provider.getBalance(talentLayerEscrow.address)
+      arbitrationCost = await talentLayerArbitrator.arbitrationCost(arbitratorExtraData)
+
+      const tx = await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId)
+      const receipt = await tx.wait()
+      gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
+    })
+
+    it('Alice balance decreases by the arbitration cost', async function () {
+      const aliceBalanceAfter = await alice.getBalance()
+      expect(aliceBalanceAfter).to.be.eq(aliceBalanceBefore.sub(arbitrationCost).sub(gasUsed))
+    })
+
+    // it('Contract balance increases by the arbitration cost', async function () {
+    //   const contractBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
+    //   expect(contractBalanceAfter).to.be.eq(contractBalanceBefore.sub(arbitrationCost))
+    // })
+
+    // it('The fee paid by sender increases by the arbitration cost', async function () {
+    //   const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
+    //   expect(transaction.senderFee).to.be.eq(arbitrationCost)
+    // })
+
+    // it("The transaction status becomes 'waiting receiver'", async function () {
+    //   const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
+    //   expect(transaction.status).to.be.eq(2)
+    // })
   })
 })

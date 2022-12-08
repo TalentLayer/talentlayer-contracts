@@ -56,7 +56,6 @@ async function main() {
   console.log('totalAmount', totalAmount.toString())
 
   await talentLayerEscrow.connect(alice).createETHTransaction(
-    3600 * 24 * 7,
     '_metaEvidence',
     firstServiceId,
     3, //proposalId/talentLayerId of carol.

@@ -630,11 +630,8 @@ describe('TalentLayer', function () {
 
       it('Alice can NOT deposit tokens to escrow yet.', async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountBob)
-        expect(
-          talentLayerEscrow
-            .connect(alice)
-            .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob),
-        ).to.be.reverted
+        expect(talentLayerEscrow.connect(alice).createTokenTransaction('_metaEvidence', serviceId, proposalIdBob)).to.be
+          .reverted
       })
 
       it('Bob can register a proposal.', async function () {
@@ -688,7 +685,7 @@ describe('TalentLayer', function () {
 
         const transaction = await talentLayerEscrow
           .connect(alice)
-          .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob)
+          .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob)
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, alice, bob],
@@ -715,9 +712,7 @@ describe('TalentLayer', function () {
       it("Alice can NOT deposit funds for Carol's proposal.", async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountCarol)
         await expect(
-          talentLayerEscrow
-            .connect(alice)
-            .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdCarol),
+          talentLayerEscrow.connect(alice).createTokenTransaction('_metaEvidence', serviceId, proposalIdCarol),
         ).to.be.reverted
       })
 
@@ -851,11 +846,8 @@ describe('TalentLayer', function () {
         totalAmount = amountBob + (amountBob * (protocolFee + originPlatformFee + platformFee)) / 10000
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
-        await expect(
-          talentLayerEscrow
-            .connect(alice)
-            .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob),
-        ).to.be.reverted
+        await expect(talentLayerEscrow.connect(alice).createETHTransaction('_metaEvidence', serviceId, proposalIdBob))
+          .to.be.reverted
       })
 
       it('Bob can register a proposal.', async function () {
@@ -871,7 +863,7 @@ describe('TalentLayer', function () {
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
         const transaction = await talentLayerEscrow
           .connect(alice)
-          .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob, { value: totalAmount })
+          .createETHTransaction('_metaEvidence', serviceId, proposalIdBob, { value: totalAmount })
         await expect(transaction).to.changeEtherBalances(
           [talentLayerEscrow.address, alice, bob],
           [totalAmount, -totalAmount, 0],
@@ -899,7 +891,7 @@ describe('TalentLayer', function () {
         expect(
           talentLayerEscrow
             .connect(alice)
-            .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdCarol, { value: amountCarol }),
+            .createETHTransaction('_metaEvidence', serviceId, proposalIdCarol, { value: amountCarol }),
         ).to.be.reverted
       })
 

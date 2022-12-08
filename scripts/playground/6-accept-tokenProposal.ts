@@ -63,7 +63,6 @@ async function main() {
   console.log('serviceId', secondServiceId.toString())
 
   await talentLayerEscrow.connect(alice).createTokenTransaction(
-    3600 * 24 * 7,
     '_metaEvidence',
     secondServiceId,
     4, //proposalId/talentLayerId of Dave.
