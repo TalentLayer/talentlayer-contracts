@@ -92,14 +92,14 @@ describe.only('Dispute Resolution', () => {
     await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
     await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
-    // Alice, the buyer, initiates a new open service with Bob
+    // Alice, the buyer, initiates a new open service
     await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
 
-    // Bob creates a proposal for the service
+    // Bob, the seller, creates a proposal for the service
     await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
   })
 
-  describe('When a transaction is created', async function () {
+  describe('Transaction creation', async function () {
     let totalTransactionAmount: BigNumber
     let tx: ContractTransaction
 
@@ -116,7 +116,7 @@ describe.only('Dispute Resolution', () => {
       })
     })
 
-    it('Funds are sent from the creator of the transaction to the escrow', async function () {
+    it('Funds are sent from buyer (Alice) to the escrow', async function () {
       await expect(tx).to.changeEtherBalances(
         [alice.address, talentLayerEscrow.address],
         [-totalTransactionAmount, totalTransactionAmount],
@@ -128,8 +128,8 @@ describe.only('Dispute Resolution', () => {
     })
   })
 
-  describe('When the buyer releases a partial payment to the seller', async function () {
-    it('Bob balance increases by the amount released', async function () {
+  describe('Partial release to seller before a dispute', async function () {
+    it('Funds are sent from escrow to seller (Bob)', async function () {
       const tx = await talentLayerEscrow.connect(alice).release(transactionId, transactionReleasedAmount)
       await expect(tx).to.changeEtherBalances(
         [bob.address, talentLayerEscrow.address],
@@ -138,7 +138,7 @@ describe.only('Dispute Resolution', () => {
     })
   })
 
-  describe('When the sender pays the arbitration fee', async function () {
+  describe('Payment of arbitration fee by first party (sender in this case)', async function () {
     it('Fails if is not called by the sender of the transaction', async function () {
       const tx = talentLayerEscrow.connect(bob).payArbitrationFeeBySender(transactionId, {
         value: arbitrationCost,
@@ -153,7 +153,7 @@ describe.only('Dispute Resolution', () => {
       await expect(tx).to.be.revertedWith('The sender fee must cover arbitration costs.')
     })
 
-    describe('When the sender pays the arbitration fee', async function () {
+    describe('Successfull payment of arbitration fee', async function () {
       let tx: ContractTransaction
 
       before(async function () {
@@ -162,14 +162,14 @@ describe.only('Dispute Resolution', () => {
         })
       })
 
-      it('Arbitration cost is sent from sender to escrow', async function () {
+      it('Arbitration fee is sent from sender (Alice) to escrow', async function () {
         await expect(tx).to.changeEtherBalances(
           [alice.address, talentLayerEscrow.address],
           [-arbitrationCost, arbitrationCost],
         )
       })
 
-      it('The fee paid by sender increases by the arbitration cost', async function () {
+      it('The fee amount paid by the sender is stored in the transaction', async function () {
         const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
         expect(transaction.senderFee).to.be.eq(arbitrationCost)
       })
@@ -181,7 +181,7 @@ describe.only('Dispute Resolution', () => {
     })
   })
 
-  describe('When the receiver pays the arbitration fee', async function () {
+  describe('Payment of arbitration fee by second party (receiver in this case)', async function () {
     it('Fails if is not called by the receiver of the transaction', async function () {
       const tx = talentLayerEscrow.connect(alice).payArbitrationFeeByReceiver(transactionId, {
         value: arbitrationCost,
@@ -196,7 +196,7 @@ describe.only('Dispute Resolution', () => {
       await expect(tx).to.be.revertedWith('The receiver fee must cover arbitration costs.')
     })
 
-    describe('When the receiver pays the arbitration fee', async function () {
+    describe('Successfull payment of arbitration fee', async function () {
       let tx: ContractTransaction
 
       before(async function () {
@@ -212,7 +212,7 @@ describe.only('Dispute Resolution', () => {
         )
       })
 
-      it('The fee paid by sender increases by the arbitration cost', async function () {
+      it('The fee amount paid by the receiver is stored in the transaction', async function () {
         const transaction = await talentLayerEscrow.connect(bob).getTransactionDetails(transactionId)
         expect(transaction.receiverFee).to.be.eq(arbitrationCost)
       })
@@ -231,8 +231,8 @@ describe.only('Dispute Resolution', () => {
     })
   })
 
-  describe('When evidence is submitted', async function () {
-    it('The evidence event is emitted for the sender', async function () {
+  describe('Submission of Evidence', async function () {
+    it('The evidence event is emitted when the sender submits it', async function () {
       const aliceEvidence = "Alice's evidence"
       const tx = await talentLayerEscrow.connect(alice).submitEvidence(transactionId, aliceEvidence)
       await expect(tx)
@@ -240,7 +240,7 @@ describe.only('Dispute Resolution', () => {
         .withArgs(talentLayerArbitrator.address, transactionId, alice.address, aliceEvidence)
     })
 
-    it('The evidence event is emitted for the receiver', async function () {
+    it('The evidence event is emitted when the receiver submits it', async function () {
       const bobEvidence = "Bob's evidence"
       const tx = await talentLayerEscrow.connect(bob).submitEvidence(transactionId, bobEvidence)
       await expect(tx)
@@ -249,25 +249,26 @@ describe.only('Dispute Resolution', () => {
     })
   })
 
-  describe('When a ruling is given', async function () {
+  describe('Submission of a ruling', async function () {
     it('Fails if ruling is not given by the platform owner', async function () {
       const tx = talentLayerArbitrator.connect(dave).giveRuling(disputeId, 1)
       await expect(tx).to.be.revertedWith('Only the owner of the platform can give a ruling')
     })
 
-    describe('When the platform owner gives a ruling', async function () {
+    describe('Successfull submission of a ruling', async function () {
       let tx: ContractTransaction
 
       before(async function () {
+        // Rule in favor of the sender (Alice)
         tx = await talentLayerArbitrator.connect(carol).giveRuling(disputeId, 1)
       })
 
-      it('Alice (winner of the dispute) receives escrow funds and gets arbitration fee reimbursed', async function () {
+      it('The winner of the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
         const sentAmount = transactionAmount.sub(transactionReleasedAmount).add(arbitrationCost)
         await expect(tx).to.changeEtherBalances([alice.address, talentLayerEscrow.address], [sentAmount, -sentAmount])
       })
 
-      it('Owner of the platform (arbitrator) receives the arbitration fee', async function () {
+      it('The owner of the platform (Carol) receives the arbitration fee', async function () {
         await expect(tx).to.changeEtherBalances(
           [carol.address, talentLayerArbitrator.address],
           [arbitrationCost, -arbitrationCost],
