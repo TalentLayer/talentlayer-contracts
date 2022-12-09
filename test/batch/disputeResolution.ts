@@ -111,6 +111,7 @@ describe('Dispute Resolution, standard flow', function () {
   const transactionReleasedAmount = BigNumber.from(100)
   const transactionReimbursedAmount = BigNumber.from(50)
   let currentTransactionAmount = transactionAmount
+  const rulingId = 1
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
@@ -311,12 +312,12 @@ describe('Dispute Resolution, standard flow', function () {
 
   describe('Submission of a ruling', async function () {
     it('Fails if ruling is not given by the arbitrator contract', async function () {
-      const tx = talentLayerEscrow.connect(dave).rule(disputeId, 1)
+      const tx = talentLayerEscrow.connect(dave).rule(disputeId, rulingId)
       await expect(tx).to.be.revertedWith('The caller must be the arbitrator.')
     })
 
     it('Fails if ruling is not given by the platform owner', async function () {
-      const tx = talentLayerArbitrator.connect(dave).giveRuling(disputeId, 1)
+      const tx = talentLayerArbitrator.connect(dave).giveRuling(disputeId, rulingId)
       await expect(tx).to.be.revertedWith('Only the owner of the platform can give a ruling')
     })
 
@@ -325,7 +326,7 @@ describe('Dispute Resolution, standard flow', function () {
 
       before(async function () {
         // Rule in favor of the sender (Alice)
-        tx = await talentLayerArbitrator.connect(carol).giveRuling(disputeId, 1)
+        tx = await talentLayerArbitrator.connect(carol).giveRuling(disputeId, rulingId)
       })
 
       it('The winner of the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
@@ -343,6 +344,12 @@ describe('Dispute Resolution, standard flow', function () {
       it('The status of the transaction becomes "Resolved"', async function () {
         const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
         expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
+      })
+
+      it('Dispute data is updated', async function () {
+        const dispute = await talentLayerArbitrator.connect(alice).disputes(transactionId)
+        expect(dispute.status).to.be.eq(2)
+        expect(dispute.ruling).to.be.eq(rulingId)
       })
     })
   })
