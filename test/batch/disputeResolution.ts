@@ -299,6 +299,11 @@ describe.only('Dispute Resolution', () => {
   })
 
   describe('Submission of a ruling', async function () {
+    it('Fails if ruling is not given by the arbitrator contract', async function () {
+      const tx = talentLayerEscrow.connect(dave).rule(disputeId, 1)
+      await expect(tx).to.be.revertedWith('The caller must be the arbitrator.')
+    })
+
     it('Fails if ruling is not given by the platform owner', async function () {
       const tx = talentLayerArbitrator.connect(dave).giveRuling(disputeId, 1)
       await expect(tx).to.be.revertedWith('Only the owner of the platform can give a ruling')
