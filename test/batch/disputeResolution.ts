@@ -240,6 +240,12 @@ describe.only('Dispute Resolution', () => {
   })
 
   describe('Submission of Evidence', async function () {
+    it('Fails if evidence is not submitted by either sender or receiver of the transaction', async function () {
+      const daveEvidence = "Dave's evidence"
+      const tx = talentLayerEscrow.connect(dave).submitEvidence(transactionId, daveEvidence)
+      await expect(tx).to.be.revertedWith('The caller must be the sender or the receiver.')
+    })
+
     it('The evidence event is emitted when the sender submits it', async function () {
       const aliceEvidence = "Alice's evidence"
       const tx = await talentLayerEscrow.connect(alice).submitEvidence(transactionId, aliceEvidence)
