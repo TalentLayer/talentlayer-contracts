@@ -2,14 +2,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { BigNumber, Bytes, ContractTransaction } from 'ethers'
 import { ethers } from 'hardhat'
-import {
-  MockProofOfHumanity,
-  ServiceRegistry,
-  TalentLayerArbitrator,
-  TalentLayerID,
-  TalentLayerEscrow,
-  TalentLayerPlatformID,
-} from '../../typechain-types'
+import { TalentLayerArbitrator, TalentLayerEscrow, TalentLayerPlatformID } from '../../typechain-types'
 
 enum TransactionStatus {
   NoDispute,
@@ -19,98 +12,109 @@ enum TransactionStatus {
   Resolved,
 }
 
+const bobTlId = 2
+const carolPlatformId = 1
+const serviceId = 1
+const proposalId = bobTlId
+const transactionId = 0
+const transactionAmount = BigNumber.from(1000)
+const ethAddress = '0x0000000000000000000000000000000000000000'
+const arbitratorExtraData: Bytes = []
+const arbitrationCost = BigNumber.from(10)
+const disputeId = 0
+const metaEvidence = 'metaEvidence'
+const feeDivider = 10000
+
+/**
+ * Deploys contract and sets up the context for dispute resolution.
+ * @param arbitrationFeeTimeout the timeout for the arbitration fee
+ * @returns the deployed contracts
+ */
+async function deployAndSetup(
+  arbitrationFeeTimeout: number,
+): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator]> {
+  const [deployer, alice, bob, carol] = await ethers.getSigners()
+
+  // Deploy MockProofOfHumanity
+  const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
+  const mockProofOfHumanity = await MockProofOfHumanity.deploy()
+
+  // Deploy PlatformId
+  const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
+  const talentLayerPlatformID = await TalentLayerPlatformID.deploy()
+
+  // Deploy TalenLayerID
+  const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
+  const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
+  const talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
+
+  // Deploy ServiceRegistry
+  const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
+  const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+  const serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs)
+
+  // Deploy TalentLayerArbitrator
+  const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
+  const talentLayerArbitrator = await TalentLayerArbitrator.deploy(arbitrationCost, talentLayerPlatformID.address)
+
+  // Deploy TalentLayerEscrow
+  const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
+  const talentLayerEscrow = await TalentLayerEscrow.deploy(
+    serviceRegistry.address,
+    talentLayerID.address,
+    talentLayerPlatformID.address,
+  )
+
+  // Grant escrow role
+  const escrowRole = await serviceRegistry.ESCROW_ROLE()
+  await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
+
+  // Grant Platform Id Mint role to Deployer and Bob
+  const mintRole = await talentLayerPlatformID.MINT_ROLE()
+  await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
+
+  // Deployer mints Platform Id for Carol
+  const platformName = 'HireVibes'
+  await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
+
+  // Update platform arbitrator, extra data and fee timeout
+  await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
+  await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)
+  await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, arbitrationFeeTimeout)
+
+  // Mint TL Id for Alice and Bob
+  await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
+  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
+
+  // Alice, the buyer, initiates a new open service
+  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+
+  // Bob, the seller, creates a proposal for the service
+  await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+
+  return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator]
+}
+
 // TODO: remove "only"
-describe.only('Dispute Resolution', function () {
-  let deployer: SignerWithAddress,
-    alice: SignerWithAddress,
+describe('Dispute Resolution, standard flow', function () {
+  let alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
     dave: SignerWithAddress,
-    serviceRegistry: ServiceRegistry,
-    talentLayerID: TalentLayerID,
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
-    mockProofOfHumanity: MockProofOfHumanity,
     protocolFee: number,
     originPlatformFee: number,
     platformFee: number
 
-  const bobTlId = 2
-  const carolPlatformId = 1
-  const serviceId = 1
-  const proposalId = bobTlId
-  const transactionId = 0
-  const transactionAmount = BigNumber.from(1000)
   const transactionReleasedAmount = BigNumber.from(100)
   const transactionReimbursedAmount = BigNumber.from(50)
   let currentTransactionAmount = transactionAmount
-  const ethAddress = '0x0000000000000000000000000000000000000000'
-  const arbitratorExtraData: Bytes = []
-  const arbitrationCost = BigNumber.from(10)
-  const disputeId = 0
-  const metaEvidence = 'metaEvidence'
-  const feeDivider = 10000
 
   before(async function () {
-    ;[deployer, alice, bob, carol, dave] = await ethers.getSigners()
-
-    // Deploy MockProofOfHumanity
-    const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-    mockProofOfHumanity = await MockProofOfHumanity.deploy()
-
-    // Deploy PlatformId
-    const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
-    talentLayerPlatformID = await TalentLayerPlatformID.deploy()
-
-    // Deploy TalenLayerID
-    const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-    const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
-    talentLayerID = (await TalentLayerID.deploy(...talentLayerIDArgs)) as TalentLayerID
-
-    // Deploy ServiceRegistry
-    const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-    const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
-    serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs)
-
-    // Deploy TalentLayerArbitrator
-    const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-    talentLayerArbitrator = await TalentLayerArbitrator.deploy(arbitrationCost, talentLayerPlatformID.address)
-
-    // Deploy TalentLayerEscrow
-    const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
-    talentLayerEscrow = await TalentLayerEscrow.deploy(
-      serviceRegistry.address,
-      talentLayerID.address,
-      talentLayerPlatformID.address,
-    )
-
-    // Grant escrow role
-    const escrowRole = await serviceRegistry.ESCROW_ROLE()
-    await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
-
-    // Grant Platform Id Mint role to Deployer and Bob
-    const mintRole = await talentLayerPlatformID.MINT_ROLE()
-    await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
-
-    // Deployer mints Platform Id for Carol
-    const platformName = 'HireVibes'
-    await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
-
-    // Update platform arbitrator, extra data and fee timeout
-    await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
-    await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)
-    await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, 3600 * 1)
-
-    // Mint TL Id for Alice and Bob
-    await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
-    await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
-
-    // Alice, the buyer, initiates a new open service
-    await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
-
-    // Bob, the seller, creates a proposal for the service
-    await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+    ;[, alice, bob, carol, dave] = await ethers.getSigners()
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(3600)
   })
 
   describe('Transaction creation', async function () {
@@ -345,89 +349,13 @@ describe.only('Dispute Resolution', function () {
 })
 
 describe('Dispute Resolution, with party failing to pay arbitration fee on time', function () {
-  let deployer: SignerWithAddress,
-    alice: SignerWithAddress,
-    bob: SignerWithAddress,
-    carol: SignerWithAddress,
-    serviceRegistry: ServiceRegistry,
-    talentLayerID: TalentLayerID,
-    talentLayerPlatformID: TalentLayerPlatformID,
-    talentLayerEscrow: TalentLayerEscrow,
-    talentLayerArbitrator: TalentLayerArbitrator,
-    mockProofOfHumanity: MockProofOfHumanity
+  let alice: SignerWithAddress, talentLayerPlatformID: TalentLayerPlatformID, talentLayerEscrow: TalentLayerEscrow
 
-  const bobTlId = 2
-  const carolPlatformId = 1
-  const serviceId = 1
-  const proposalId = bobTlId
-  const transactionId = 0
-  const transactionAmount = BigNumber.from(1000)
   let currentTransactionAmount = transactionAmount
-  const ethAddress = '0x0000000000000000000000000000000000000000'
-  const arbitratorExtraData: Bytes = []
-  const arbitrationCost = BigNumber.from(10)
-  const metaEvidence = 'metaEvidence'
-  const feeDivider = 10000
 
   before(async function () {
-    ;[deployer, alice, bob, carol] = await ethers.getSigners()
-
-    // Deploy MockProofOfHumanity
-    const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-    mockProofOfHumanity = await MockProofOfHumanity.deploy()
-
-    // Deploy PlatformId
-    const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
-    talentLayerPlatformID = await TalentLayerPlatformID.deploy()
-
-    // Deploy TalenLayerID
-    const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-    const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
-    talentLayerID = (await TalentLayerID.deploy(...talentLayerIDArgs)) as TalentLayerID
-
-    // Deploy ServiceRegistry
-    const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-    const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
-    serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs)
-
-    // Deploy TalentLayerArbitrator
-    const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-    talentLayerArbitrator = await TalentLayerArbitrator.deploy(arbitrationCost, talentLayerPlatformID.address)
-
-    // Deploy TalentLayerEscrow
-    const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
-    talentLayerEscrow = await TalentLayerEscrow.deploy(
-      serviceRegistry.address,
-      talentLayerID.address,
-      talentLayerPlatformID.address,
-    )
-
-    // Grant escrow role
-    const escrowRole = await serviceRegistry.ESCROW_ROLE()
-    await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
-
-    // Grant Platform Id Mint role to Deployer and Bob
-    const mintRole = await talentLayerPlatformID.MINT_ROLE()
-    await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
-
-    // Deployer mints Platform Id for Carol
-    const platformName = 'HireVibes'
-    await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
-
-    // Update platform arbitrator, extra data and fee timeout
-    await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
-    await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)
-    await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, 1)
-
-    // Mint TL Id for Alice and Bob
-    await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
-    await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
-
-    // Alice, the buyer, initiates a new open service
-    await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
-
-    // Bob, the seller, creates a proposal for the service
-    await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+    ;[, alice] = await ethers.getSigners()
+    ;[talentLayerPlatformID, talentLayerEscrow] = await deployAndSetup(1)
 
     // Create transaction
     const protocolFee = await talentLayerEscrow.protocolFee()
