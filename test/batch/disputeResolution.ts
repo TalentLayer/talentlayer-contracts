@@ -142,8 +142,8 @@ describe.only('Dispute Resolution', () => {
     })
   })
 
-  describe('Partial release to seller before a dispute', async function () {
-    it('Funds are sent from escrow to seller (Bob)', async function () {
+  describe('Partial release/reimbursement before a dispute', async function () {
+    it('On release funds are sent from escrow to seller (Bob)', async function () {
       const tx = await talentLayerEscrow.connect(alice).release(transactionId, transactionReleasedAmount)
       await expect(tx).to.changeEtherBalances(
         [bob.address, talentLayerEscrow.address],
@@ -152,10 +152,8 @@ describe.only('Dispute Resolution', () => {
 
       currentTransactionAmount = currentTransactionAmount.sub(transactionReleasedAmount)
     })
-  })
 
-  describe('Partial reimbursement to buyer before a dispute', async function () {
-    it('Funds and fees are sent from escrow to buyer (Alice)', async function () {
+    it('On reimbursement funds and fees are sent from escrow to buyer (Alice)', async function () {
       const reimbursedFees = transactionReimbursedAmount
         .mul(protocolFee + originPlatformFee + platformFee)
         .div(feeDivider)
@@ -214,7 +212,7 @@ describe.only('Dispute Resolution', () => {
     })
   })
 
-  describe('Payment of arbitration fee by second party (receiver in this case)', async function () {
+  describe('Payment of arbitration fee by second party (receiver in this case) and creation of dispute', async function () {
     it('Fails if is not called by the receiver of the transaction', async function () {
       const tx = talentLayerEscrow.connect(alice).payArbitrationFeeByReceiver(transactionId, {
         value: arbitrationCost,
@@ -261,6 +259,18 @@ describe.only('Dispute Resolution', () => {
         expect(dispute.fee).to.be.eq(arbitrationCost)
         expect(dispute.platformId).to.be.eq(carolPlatformId)
       })
+    })
+  })
+
+  describe('Attempt to release/reimburse after a dispute', async function () {
+    it('Release fails since ther must be no dispute to release', async function () {
+      const tx = talentLayerEscrow.connect(alice).release(transactionId, transactionReleasedAmount)
+      await expect(tx).to.be.revertedWith("The transaction shouldn't be disputed.")
+    })
+
+    it('Reimbursement fails since ther must be no dispute to reimburse', async function () {
+      const tx = talentLayerEscrow.connect(bob).reimburse(transactionId, transactionReimbursedAmount)
+      await expect(tx).to.be.revertedWith("The transaction shouldn't be disputed.")
     })
   })
 
