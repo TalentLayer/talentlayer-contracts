@@ -169,6 +169,13 @@ describe.only('Dispute Resolution', () => {
       expect(tx).to.be.revertedWith('The caller must be the sender.')
     })
 
+    it('Fails if the amount of ETH sent is less than the arbitration cost', async function () {
+      const tx = talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+        value: arbitrationCost.sub(1),
+      })
+      await expect(tx).to.be.revertedWith('The sender fee must cover arbitration costs.')
+    })
+
     describe('When the sender pays the arbitration fee', async function () {
       let aliceBalanceBefore: BigNumber
       let escrowBalanceBefore: BigNumber
@@ -213,6 +220,13 @@ describe.only('Dispute Resolution', () => {
         value: arbitrationCost,
       })
       expect(tx).to.be.revertedWith('The caller must be the receiver.')
+    })
+
+    it('Fails if the amount of ETH sent is less than the arbitration cost', async function () {
+      const tx = talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
+        value: arbitrationCost.sub(1),
+      })
+      await expect(tx).to.be.revertedWith('The receiver fee must cover arbitration costs.')
     })
 
     describe('When the receiver pays the arbitration fee', async function () {
