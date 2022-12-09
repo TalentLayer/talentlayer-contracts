@@ -358,8 +358,6 @@ describe('Dispute Resolution, standard flow', function () {
 describe('Dispute Resolution, with party failing to pay arbitration fee on time', function () {
   let alice: SignerWithAddress, talentLayerPlatformID: TalentLayerPlatformID, talentLayerEscrow: TalentLayerEscrow
 
-  let currentTransactionAmount = transactionAmount
-
   before(async function () {
     ;[, alice] = await ethers.getSigners()
     ;[talentLayerPlatformID, talentLayerEscrow] = await deployAndSetup(1)
@@ -389,13 +387,64 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
     })
 
     it('The sender wins the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
-      const sentAmount = currentTransactionAmount.add(arbitrationCost)
+      const sentAmount = transactionAmount.add(arbitrationCost)
       await expect(tx).to.changeEtherBalances([alice.address, talentLayerEscrow.address], [sentAmount, -sentAmount])
     })
 
     it('The status of the transaction becomes "Resolved"', async function () {
       const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
       expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
+    })
+  })
+})
+
+describe('Dispute Resolution, arbitrator abstaing from giving a ruling', function () {
+  let alice: SignerWithAddress,
+    bob: SignerWithAddress,
+    carol: SignerWithAddress,
+    talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerEscrow: TalentLayerEscrow,
+    talentLayerArbitrator: TalentLayerArbitrator
+
+  before(async function () {
+    ;[, alice, bob, carol] = await ethers.getSigners()
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(1)
+
+    // Create transaction
+    const protocolFee = await talentLayerEscrow.protocolFee()
+    const originPlatformFee = await talentLayerEscrow.originPlatformFee()
+    const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+    const totalTransactionAmount = transactionAmount.add(
+      transactionAmount.mul(protocolFee + originPlatformFee + platformFee).div(feeDivider),
+    )
+    await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
+      value: totalTransactionAmount,
+    })
+
+    // Alice wants to raise a dispute and pays the arbitration fee
+    await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+      value: arbitrationCost,
+    })
+
+    // Bob pays the arbitration fee and a dispute is created
+    await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
+      value: arbitrationCost,
+    })
+  })
+
+  describe('The arbitrator abstains form giving a ruling', async function () {
+    let tx: ContractTransaction
+
+    before(async function () {
+      tx = await talentLayerArbitrator.connect(carol).giveRuling(transactionId, 0)
+    })
+
+    it('Split funds and arbitration fee half and half between the parties', async function () {
+      const halfAmount = transactionAmount.add(arbitrationCost).div(2)
+      await expect(tx).to.changeEtherBalances(
+        [alice.address, bob.address, talentLayerEscrow.address],
+        [halfAmount, halfAmount, -transactionAmount.add(arbitrationCost)],
+      )
     })
   })
 })
