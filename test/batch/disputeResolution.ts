@@ -11,6 +11,14 @@ import {
   TalentLayerPlatformID,
 } from '../../typechain-types'
 
+enum TransactionStatus {
+  NoDispute,
+  WaitingSender,
+  WaitingReceiver,
+  DisputeCreated,
+  Resolved,
+}
+
 // TODO: remove "only"
 describe.only('Dispute Resolution', () => {
   let deployer: SignerWithAddress,
@@ -176,7 +184,7 @@ describe.only('Dispute Resolution', () => {
 
       it('The transaction status becomes "WaitingReceiver"', async function () {
         const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
-        expect(transaction.status).to.be.eq(2)
+        expect(transaction.status).to.be.eq(TransactionStatus.WaitingReceiver)
       })
     })
   })
@@ -219,7 +227,7 @@ describe.only('Dispute Resolution', () => {
 
       it('The transaction status becomes "DisputeCreated"', async function () {
         const transaction = await talentLayerEscrow.connect(bob).getTransactionDetails(transactionId)
-        expect(transaction.status).to.be.eq(3)
+        expect(transaction.status).to.be.eq(TransactionStatus.DisputeCreated)
       })
 
       it('A dispute is created, with the correct data', async function () {
@@ -277,7 +285,7 @@ describe.only('Dispute Resolution', () => {
 
       it('The status of the transaction becomes "Resolved"', async function () {
         const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
-        expect(transaction.status).to.be.eq(4)
+        expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
       })
     })
   })
