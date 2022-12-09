@@ -30,11 +30,11 @@ describe.only('Dispute Resolution', () => {
   const serviceId = 1
   const proposalId = bobTlId
   const transactionId = 0
-  const transactionAmount = ethers.utils.parseEther('10')
-  const transactionReleasedAmount = ethers.utils.parseEther('1')
+  const transactionAmount = BigNumber.from(1000)
+  const transactionReleasedAmount = BigNumber.from(100)
   const ethAddress = '0x0000000000000000000000000000000000000000'
   const arbitratorExtraData: Bytes = []
-  const arbitrationCost = ethers.utils.parseEther('0.001')
+  const arbitrationCost = BigNumber.from(10)
   const disputeId = 0
   const metaEvidence = 'metaEvidence'
 
@@ -100,16 +100,10 @@ describe.only('Dispute Resolution', () => {
   })
 
   describe('When a transaction is created', async function () {
-    let aliceBalanceBefore: BigNumber
-    let escrowBalanceBefore: BigNumber
     let totalTransactionAmount: BigNumber
-    let gasUsed: BigNumber
     let tx: ContractTransaction
 
     before(async function () {
-      aliceBalanceBefore = await alice.getBalance()
-      escrowBalanceBefore = await ethers.provider.getBalance(talentLayerEscrow.address)
-
       const protocolFee = await talentLayerEscrow.protocolFee()
       const originPlatformFee = await talentLayerEscrow.originPlatformFee()
       const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
@@ -120,18 +114,13 @@ describe.only('Dispute Resolution', () => {
       tx = await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
         value: totalTransactionAmount,
       })
-      const receipt = await tx.wait()
-      gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
     })
 
-    it('Alice balance decreases by the amount of the transaction', async function () {
-      const aliceBalanceAfter = await alice.getBalance()
-      expect(aliceBalanceAfter).to.be.eq(aliceBalanceBefore.sub(totalTransactionAmount).sub(gasUsed))
-    })
-
-    it('Escrow balance increases by the amount of the transaction', async function () {
-      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
-      expect(contractBalanceAfter).to.be.eq(escrowBalanceBefore.add(totalTransactionAmount))
+    it('Funds are sent from the creator of the transaction to the escrow', async function () {
+      await expect(tx).to.changeEtherBalances(
+        [alice.address, talentLayerEscrow.address],
+        [-totalTransactionAmount, totalTransactionAmount],
+      )
     })
 
     it('MetaEvidence is submitted', async function () {
@@ -140,33 +129,21 @@ describe.only('Dispute Resolution', () => {
   })
 
   describe('When the buyer releases a partial payment to the seller', async function () {
-    let bobBalanceBefore: BigNumber
-    let escrowBalanceBefore: BigNumber
-
-    before(async function () {
-      bobBalanceBefore = await bob.getBalance()
-      escrowBalanceBefore = await ethers.provider.getBalance(talentLayerEscrow.address)
-
-      await talentLayerEscrow.connect(alice).release(transactionId, transactionReleasedAmount)
-    })
-
     it('Bob balance increases by the amount released', async function () {
-      const bobBalanceAfter = await bob.getBalance()
-      expect(bobBalanceAfter).to.be.eq(bobBalanceBefore.add(transactionReleasedAmount))
-    })
-
-    it('Escrow balance decreases by the amount released', async function () {
-      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
-      expect(contractBalanceAfter).to.be.eq(escrowBalanceBefore.sub(transactionReleasedAmount))
+      const tx = await talentLayerEscrow.connect(alice).release(transactionId, transactionReleasedAmount)
+      await expect(tx).to.changeEtherBalances(
+        [bob.address, talentLayerEscrow.address],
+        [transactionReleasedAmount, -transactionReleasedAmount],
+      )
     })
   })
 
   describe('When the sender pays the arbitration fee', async function () {
-    it('Fails if is not called by the sender of the transaction', function () {
+    it('Fails if is not called by the sender of the transaction', async function () {
       const tx = talentLayerEscrow.connect(bob).payArbitrationFeeBySender(transactionId, {
         value: arbitrationCost,
       })
-      expect(tx).to.be.revertedWith('The caller must be the sender.')
+      await expect(tx).to.be.revertedWith('The caller must be the sender.')
     })
 
     it('Fails if the amount of ETH sent is less than the arbitration cost', async function () {
@@ -177,29 +154,19 @@ describe.only('Dispute Resolution', () => {
     })
 
     describe('When the sender pays the arbitration fee', async function () {
-      let aliceBalanceBefore: BigNumber
-      let escrowBalanceBefore: BigNumber
-      let gasUsed: BigNumber
+      let tx: ContractTransaction
 
       before(async function () {
-        aliceBalanceBefore = await alice.getBalance()
-        escrowBalanceBefore = await ethers.provider.getBalance(talentLayerEscrow.address)
-
-        const tx = await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+        tx = await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
           value: arbitrationCost,
         })
-        const receipt = await tx.wait()
-        gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       })
 
-      it('Alice balance decreases by the arbitration cost', async function () {
-        const aliceBalanceAfter = await alice.getBalance()
-        expect(aliceBalanceAfter).to.be.eq(aliceBalanceBefore.sub(arbitrationCost).sub(gasUsed))
-      })
-
-      it('Escrow balance increases by the arbitration cost', async function () {
-        const contractBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
-        expect(contractBalanceAfter).to.be.eq(escrowBalanceBefore.add(arbitrationCost))
+      it('Arbitration cost is sent from sender to escrow', async function () {
+        await expect(tx).to.changeEtherBalances(
+          [alice.address, talentLayerEscrow.address],
+          [-arbitrationCost, arbitrationCost],
+        )
       })
 
       it('The fee paid by sender increases by the arbitration cost', async function () {
@@ -215,11 +182,11 @@ describe.only('Dispute Resolution', () => {
   })
 
   describe('When the receiver pays the arbitration fee', async function () {
-    it('Fails if is not called by the receiver of the transaction', function () {
+    it('Fails if is not called by the receiver of the transaction', async function () {
       const tx = talentLayerEscrow.connect(alice).payArbitrationFeeByReceiver(transactionId, {
         value: arbitrationCost,
       })
-      expect(tx).to.be.revertedWith('The caller must be the receiver.')
+      await expect(tx).to.be.revertedWith('The caller must be the receiver.')
     })
 
     it('Fails if the amount of ETH sent is less than the arbitration cost', async function () {
@@ -230,37 +197,19 @@ describe.only('Dispute Resolution', () => {
     })
 
     describe('When the receiver pays the arbitration fee', async function () {
-      let bobBalanceBefore: BigNumber
-      let escrowBalanceBefore: BigNumber
-      let arbitratorBalanceBefore: BigNumber
-      let gasUsed: BigNumber
+      let tx: ContractTransaction
 
       before(async function () {
-        bobBalanceBefore = await bob.getBalance()
-        escrowBalanceBefore = await ethers.provider.getBalance(talentLayerEscrow.address)
-        arbitratorBalanceBefore = await ethers.provider.getBalance(talentLayerArbitrator.address)
-
-        const tx = await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
+        tx = await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
           value: arbitrationCost,
         })
-        const receipt = await tx.wait()
-        gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       })
 
-      it('Bob balance decreases by the arbitration cost', async function () {
-        const bobBalanceAfter = await bob.getBalance()
-        console.log('Bob balance after: ', bobBalanceAfter)
-        expect(bobBalanceAfter).to.be.eq(bobBalanceBefore.sub(arbitrationCost).sub(gasUsed))
-      })
-
-      it('Escrow balance remains the same', async function () {
-        const escrowBalanceAfter = await ethers.provider.getBalance(talentLayerEscrow.address)
-        expect(escrowBalanceAfter).to.be.eq(escrowBalanceBefore)
-      })
-
-      it('Arbitrator balance increases by the arbitration cost', async function () {
-        const arbitratorBalanceAfter = await ethers.provider.getBalance(talentLayerArbitrator.address)
-        expect(arbitratorBalanceAfter).to.be.eq(arbitratorBalanceBefore.add(arbitrationCost))
+      it('The arbitration fee is sent to the arbitrator', async function () {
+        await expect(tx).to.changeEtherBalances(
+          [bob.address, talentLayerEscrow.address, talentLayerArbitrator.address],
+          [-arbitrationCost, 0, arbitrationCost],
+        )
       })
 
       it('The fee paid by sender increases by the arbitration cost', async function () {
@@ -301,46 +250,31 @@ describe.only('Dispute Resolution', () => {
   })
 
   describe('When a ruling is given', async function () {
-    it('Fails if ruling is not given by the platform owner', function () {
+    it('Fails if ruling is not given by the platform owner', async function () {
       const tx = talentLayerArbitrator.connect(dave).giveRuling(disputeId, 1)
-      expect(tx).to.be.revertedWith('Only the owner of the platform can give a ruling')
+      await expect(tx).to.be.revertedWith('Only the owner of the platform can give a ruling')
     })
 
     describe('When the platform owner gives a ruling', async function () {
-      let aliceBalanceBefore: BigNumber
-      let carolBalanceBefore: BigNumber
-      let arbitratorBalanceBefore: BigNumber
-      let gasUsed: BigNumber
+      let tx: ContractTransaction
 
       before(async function () {
-        aliceBalanceBefore = await alice.getBalance()
-        carolBalanceBefore = await carol.getBalance()
-        arbitratorBalanceBefore = await ethers.provider.getBalance(talentLayerArbitrator.address)
-
-        // Rule in favor of sender (Alice)
-        const tx = await talentLayerArbitrator.connect(carol).giveRuling(disputeId, 1)
-        const receipt = await tx.wait()
-        gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
+        tx = await talentLayerArbitrator.connect(carol).giveRuling(disputeId, 1)
       })
 
       it('Alice (winner of the dispute) receives escrow funds and gets arbitration fee reimbursed', async function () {
-        const aliceBalanceAfter = await alice.getBalance()
-        expect(aliceBalanceAfter).to.be.eq(
-          aliceBalanceBefore.add(transactionAmount.sub(transactionReleasedAmount)).add(arbitrationCost),
+        const sentAmount = transactionAmount.sub(transactionReleasedAmount).add(arbitrationCost)
+        await expect(tx).to.changeEtherBalances([alice.address, talentLayerEscrow.address], [sentAmount, -sentAmount])
+      })
+
+      it('Owner of the platform (arbitrator) receives the arbitration fee', async function () {
+        await expect(tx).to.changeEtherBalances(
+          [carol.address, talentLayerArbitrator.address],
+          [arbitrationCost, -arbitrationCost],
         )
       })
 
-      it('Carol (arbitrator) balance increases by the arbitration cost', async function () {
-        const carolBalanceAfter = await carol.getBalance()
-        expect(carolBalanceAfter).to.be.eq(carolBalanceBefore.add(arbitrationCost).sub(gasUsed))
-      })
-
-      it('Arbitrator balance decreases by the arbitration cost', async function () {
-        const arbitratorBalanceAfter = await ethers.provider.getBalance(talentLayerArbitrator.address)
-        expect(arbitratorBalanceAfter).to.be.eq(arbitratorBalanceBefore.sub(arbitrationCost))
-      })
-
-      it('The status of the transaction becomes "Resoved"', async function () {
+      it('The status of the transaction becomes "Resolved"', async function () {
         const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
         expect(transaction.status).to.be.eq(4)
       })
