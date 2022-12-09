@@ -20,7 +20,7 @@ enum TransactionStatus {
 }
 
 // TODO: remove "only"
-describe.only('Dispute Resolution', () => {
+describe.only('Dispute Resolution', function () {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -212,6 +212,13 @@ describe.only('Dispute Resolution', () => {
     })
   })
 
+  describe('Attempt to end dispute before arbitration fee timeout has passed', async function () {
+    it('Fails if is not called by the sender of the transaction', async function () {
+      const tx = talentLayerEscrow.connect(alice).timeOutBySender(transactionId)
+      await expect(tx).to.be.revertedWith('Timeout time has not passed yet.')
+    })
+  })
+
   describe('Payment of arbitration fee by second party (receiver in this case) and creation of dispute', async function () {
     it('Fails if is not called by the receiver of the transaction', async function () {
       const tx = talentLayerEscrow.connect(alice).payArbitrationFeeByReceiver(transactionId, {
@@ -318,7 +325,6 @@ describe.only('Dispute Resolution', () => {
       })
 
       it('The winner of the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
-        console.log('currentTransactionAmount', currentTransactionAmount.toString())
         const sentAmount = currentTransactionAmount.add(arbitrationCost)
         await expect(tx).to.changeEtherBalances([alice.address, talentLayerEscrow.address], [sentAmount, -sentAmount])
       })
@@ -334,6 +340,127 @@ describe.only('Dispute Resolution', () => {
         const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
         expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
       })
+    })
+  })
+})
+
+describe('Dispute Resolution, with party failing to pay arbitration fee on time', function () {
+  let deployer: SignerWithAddress,
+    alice: SignerWithAddress,
+    bob: SignerWithAddress,
+    carol: SignerWithAddress,
+    serviceRegistry: ServiceRegistry,
+    talentLayerID: TalentLayerID,
+    talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerEscrow: TalentLayerEscrow,
+    talentLayerArbitrator: TalentLayerArbitrator,
+    mockProofOfHumanity: MockProofOfHumanity
+
+  const bobTlId = 2
+  const carolPlatformId = 1
+  const serviceId = 1
+  const proposalId = bobTlId
+  const transactionId = 0
+  const transactionAmount = BigNumber.from(1000)
+  let currentTransactionAmount = transactionAmount
+  const ethAddress = '0x0000000000000000000000000000000000000000'
+  const arbitratorExtraData: Bytes = []
+  const arbitrationCost = BigNumber.from(10)
+  const metaEvidence = 'metaEvidence'
+  const feeDivider = 10000
+
+  before(async function () {
+    ;[deployer, alice, bob, carol] = await ethers.getSigners()
+
+    // Deploy MockProofOfHumanity
+    const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
+    mockProofOfHumanity = await MockProofOfHumanity.deploy()
+
+    // Deploy PlatformId
+    const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
+    talentLayerPlatformID = await TalentLayerPlatformID.deploy()
+
+    // Deploy TalenLayerID
+    const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
+    const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
+    talentLayerID = (await TalentLayerID.deploy(...talentLayerIDArgs)) as TalentLayerID
+
+    // Deploy ServiceRegistry
+    const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
+    const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+    serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs)
+
+    // Deploy TalentLayerArbitrator
+    const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
+    talentLayerArbitrator = await TalentLayerArbitrator.deploy(arbitrationCost, talentLayerPlatformID.address)
+
+    // Deploy TalentLayerEscrow
+    const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
+    talentLayerEscrow = await TalentLayerEscrow.deploy(
+      serviceRegistry.address,
+      talentLayerID.address,
+      talentLayerPlatformID.address,
+    )
+
+    // Grant escrow role
+    const escrowRole = await serviceRegistry.ESCROW_ROLE()
+    await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
+
+    // Grant Platform Id Mint role to Deployer and Bob
+    const mintRole = await talentLayerPlatformID.MINT_ROLE()
+    await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
+
+    // Deployer mints Platform Id for Carol
+    const platformName = 'HireVibes'
+    await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
+
+    // Update platform arbitrator, extra data and fee timeout
+    await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
+    await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)
+    await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, 1)
+
+    // Mint TL Id for Alice and Bob
+    await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
+    await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
+
+    // Alice, the buyer, initiates a new open service
+    await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+
+    // Bob, the seller, creates a proposal for the service
+    await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+
+    // Create transaction
+    const protocolFee = await talentLayerEscrow.protocolFee()
+    const originPlatformFee = await talentLayerEscrow.originPlatformFee()
+    const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+    const totalTransactionAmount = transactionAmount.add(
+      transactionAmount.mul(protocolFee + originPlatformFee + platformFee).div(feeDivider),
+    )
+    await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
+      value: totalTransactionAmount,
+    })
+
+    // Alice wants to raise a dispute and pays the arbitration fee
+    await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+      value: arbitrationCost,
+    })
+  })
+
+  describe('One party (in our case receiver) fails to pay arbitration fee on time', function () {
+    let tx: ContractTransaction
+
+    before(async function () {
+      tx = await talentLayerEscrow.connect(alice).timeOutBySender(transactionId)
+    })
+
+    it('The sender wins the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
+      const sentAmount = currentTransactionAmount.add(arbitrationCost)
+      await expect(tx).to.changeEtherBalances([alice.address, talentLayerEscrow.address], [sentAmount, -sentAmount])
+    })
+
+    it('The status of the transaction becomes "Resolved"', async function () {
+      const transaction = await talentLayerEscrow.connect(alice).getTransactionDetails(transactionId)
+      expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
     })
   })
 })
