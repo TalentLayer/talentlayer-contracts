@@ -31,7 +31,10 @@ describe.only('Dispute Resolution', () => {
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
-    mockProofOfHumanity: MockProofOfHumanity
+    mockProofOfHumanity: MockProofOfHumanity,
+    protocolFee: number,
+    originPlatformFee: number,
+    platformFee: number
 
   const bobTlId = 2
   const carolPlatformId = 1
@@ -40,11 +43,14 @@ describe.only('Dispute Resolution', () => {
   const transactionId = 0
   const transactionAmount = BigNumber.from(1000)
   const transactionReleasedAmount = BigNumber.from(100)
+  const transactionReimbursedAmount = BigNumber.from(50)
+  let currentTransactionAmount = transactionAmount
   const ethAddress = '0x0000000000000000000000000000000000000000'
   const arbitratorExtraData: Bytes = []
   const arbitrationCost = BigNumber.from(10)
   const disputeId = 0
   const metaEvidence = 'metaEvidence'
+  const feeDivider = 10000
 
   before(async function () {
     ;[deployer, alice, bob, carol, dave] = await ethers.getSigners()
@@ -112,11 +118,11 @@ describe.only('Dispute Resolution', () => {
     let tx: ContractTransaction
 
     before(async function () {
-      const protocolFee = await talentLayerEscrow.protocolFee()
-      const originPlatformFee = await talentLayerEscrow.originPlatformFee()
-      const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+      protocolFee = await talentLayerEscrow.protocolFee()
+      originPlatformFee = await talentLayerEscrow.originPlatformFee()
+      platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
       totalTransactionAmount = transactionAmount.add(
-        transactionAmount.mul(protocolFee + originPlatformFee + platformFee).div(10000),
+        transactionAmount.mul(protocolFee + originPlatformFee + platformFee).div(feeDivider),
       )
 
       tx = await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
@@ -143,6 +149,25 @@ describe.only('Dispute Resolution', () => {
         [bob.address, talentLayerEscrow.address],
         [transactionReleasedAmount, -transactionReleasedAmount],
       )
+
+      currentTransactionAmount = currentTransactionAmount.sub(transactionReleasedAmount)
+    })
+  })
+
+  describe('Partial reimbursement to buyer before a dispute', async function () {
+    it('Funds and fees are sent from escrow to buyer (Alice)', async function () {
+      const reimbursedFees = transactionReimbursedAmount
+        .mul(protocolFee + originPlatformFee + platformFee)
+        .div(feeDivider)
+      const totalReimbursedAmount = transactionReimbursedAmount.add(reimbursedFees)
+
+      const tx = await talentLayerEscrow.connect(bob).reimburse(transactionId, transactionReimbursedAmount)
+      await expect(tx).to.changeEtherBalances(
+        [alice.address, talentLayerEscrow.address],
+        [totalReimbursedAmount, -totalReimbursedAmount],
+      )
+
+      currentTransactionAmount = currentTransactionAmount.sub(transactionReimbursedAmount)
     })
   })
 
@@ -278,7 +303,8 @@ describe.only('Dispute Resolution', () => {
       })
 
       it('The winner of the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
-        const sentAmount = transactionAmount.sub(transactionReleasedAmount).add(arbitrationCost)
+        console.log('currentTransactionAmount', currentTransactionAmount.toString())
+        const sentAmount = currentTransactionAmount.add(arbitrationCost)
         await expect(tx).to.changeEtherBalances([alice.address, talentLayerEscrow.address], [sentAmount, -sentAmount])
       })
 
