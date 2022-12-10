@@ -60,6 +60,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     constructor() ERC721A("TalentLayerPlatformID", "TPID") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(MINT_ROLE, msg.sender);
         mintFee = 0;
     }
 

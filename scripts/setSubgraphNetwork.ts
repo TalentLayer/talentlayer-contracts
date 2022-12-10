@@ -21,6 +21,14 @@ async function main() {
     subgraphNetwork.goerli.ServiceRegistry.address = config.serviceRegistryAddress
     subgraphNetwork.goerli.TalentLayerEscrow.address = config.talentLayerEscrowAddress
     subgraphNetwork.goerli.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
+  } else if (network == 'fuji') {
+    subgraphNetwork.fuji.proofOfHumanityAddress.address = config.proofOfHumanityAddress
+    subgraphNetwork.fuji.TalentLayerID.address = config.talentLayerIdAddress
+    subgraphNetwork.fuji.TalentLayerReview.address = config.talentLayerReviewAddress
+    subgraphNetwork.fuji.ServiceRegistry.address = config.serviceRegistryAddress
+    subgraphNetwork.fuji.TalentLayerMultipleArbitrableTransaction.address =
+      config.talentLayerMultipleArbitrableTransactionAddress
+    subgraphNetwork.fuji.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
   }
 
   saveJSON(subgraphNetwork)
