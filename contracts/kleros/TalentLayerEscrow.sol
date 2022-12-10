@@ -149,6 +149,33 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     event HasToPayFee(uint256 indexed _serviceId, uint256 indexed _transactionID, Party _party);
 
+    /** @dev Emitted when a transaction is created.
+     *  @param _sender The party paying the escrow amount
+     *  @param _receiver The intended receiver of the escrow amount
+     *  @param _token The token used for the transaction
+     *  @param _amount The amount of the transaction EXCLUDING FEES
+     *  @param _serviceId The ID of the associated service
+     *  @param _protocolFee The %fee (per ten thousands) paid to the protocol's owner
+     *  @param _originPlatformFee The %fee (per ten thousands) paid to the platform who onboarded the user
+     *  @param _platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
+     *  @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
+     *  @param _arbitratorExtraData Extra data to set up the arbitration.
+     */
+    event TransactionCreated(
+        uint256 _transactionID,
+        address _sender,
+        address _receiver,
+        address _token,
+        uint256 _amount,
+        uint256 _serviceId,
+        uint16 _protocolFee,
+        uint16 _originPlatformFee,
+        uint16 _platformFee,
+        Arbitrator _arbitrator,
+        bytes _arbitratorExtraData,
+        uint256 _arbitrationFeeTimeout
+    );
+
     // =========================== Declarations ==============================
 
     /**
@@ -330,8 +357,9 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
         address sender;
+        address receiver;
 
-        (proposal, service, sender, ) = _getTalentLayerData(_serviceId, _proposalId);
+        (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory platform = talentLayerPlatformIdContract.getPlatform(service.platformId);
 
         // PlatformFee is per ten thousands
@@ -354,8 +382,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         );
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
-        emit MetaEvidence(transactionId, _metaEvidence);
-        emit ServiceProposalConfirmedWithDeposit(_serviceId, proposal.sellerId, transactionId);
+        _afterCreateTransaction(transactionId, _metaEvidence, proposal.sellerId);
     }
 
     /**
@@ -372,8 +399,9 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         IServiceRegistry.Proposal memory proposal;
         IServiceRegistry.Service memory service;
         address sender;
+        address receiver;
 
-        (proposal, service, sender, ) = _getTalentLayerData(_serviceId, _proposalId);
+        (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory platform = talentLayerPlatformIdContract.getPlatform(service.platformId);
 
         // PlatformFee is per ten thousands
@@ -394,8 +422,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
 
-        emit MetaEvidence(transactionId, _metaEvidence);
-        emit ServiceProposalConfirmedWithDeposit(_serviceId, proposal.sellerId, transactionId);
+        _afterCreateTransaction(transactionId, _metaEvidence, proposal.sellerId);
     }
 
     /**
@@ -736,7 +763,39 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
                 arbitrationFeeTimeout: _arbitrationFeeTimeout
             })
         );
+
         return transactions.length - 1;
+    }
+
+    /**
+     * @notice Emits the events related to the creation of a transaction.
+     * @param _transactionId The ID of the transaction
+     * @param _metaEvidence The meta evidence of the transaction
+     * @param _sellerId The ID of the seller
+     */
+    function _afterCreateTransaction(
+        uint256 _transactionId,
+        string memory _metaEvidence,
+        uint256 _sellerId
+    ) internal {
+        Transaction storage transaction = transactions[_transactionId];
+
+        emit MetaEvidence(_transactionId, _metaEvidence);
+        emit ServiceProposalConfirmedWithDeposit(transaction.serviceId, _sellerId, _transactionId);
+        emit TransactionCreated(
+            _transactionId,
+            transaction.sender,
+            transaction.receiver,
+            transaction.token,
+            transaction.amount,
+            transaction.serviceId,
+            protocolFee,
+            originPlatformFee,
+            transaction.platformFee,
+            transaction.arbitrator,
+            transaction.arbitratorExtraData,
+            transaction.arbitrationFeeTimeout
+        );
     }
 
     /**
