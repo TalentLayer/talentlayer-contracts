@@ -150,17 +150,24 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     event PlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
     /** @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
-     *  @param _transactionId The index of the transaction.
+     *  @param _transactionId The id of the transaction.
      *  @param _party The party who has to pay.
      */
     event HasToPayFee(uint256 indexed _transactionId, Party _party);
 
     /** @notice Emitted when a party pais the arbitration fee for a dispute.
-     *  @param _transactionId The index of the transaction.
+     *  @param _transactionId The id of the transaction.
      *  @param _party The party who has paid.
      * @param _amount The amount paid.
      */
     event ArbitrationFeePaid(uint256 indexed _transactionId, Party _party, uint256 _amount);
+
+    /**
+     * @notice Emitted when a ruling is executed.
+     * @param _transactionId The index of the transaction.
+     * @param _ruling The given ruling.
+     */
+    event RulingExecuted(uint256 indexed _transactionId, uint256 _ruling);
 
     /** @dev Emitted when a transaction is created.
      *  @param _sender The party paying the escrow amount
@@ -736,6 +743,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             sender.transfer(split_amount);
             receiver.transfer(split_amount);
         }
+
+        emit RulingExecuted(_transactionId, _ruling);
     }
 
     // =========================== Private functions ==============================
