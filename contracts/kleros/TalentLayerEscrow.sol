@@ -156,6 +156,13 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     event HasToPayFee(uint256 indexed _serviceId, uint256 indexed _transactionId, Party _party);
 
+    /** @notice Emitted when a party pais the arbitration fee for a dispute.
+     *  @param _transactionId The index of the transaction.
+     *  @param _party The party who has paid.
+     * @param _amount The amount paid.
+     */
+    event ArbitrationFeePaid(uint256 indexed _transactionId, Party _party, uint256 _amount);
+
     /** @dev Emitted when a transaction is created.
      *  @param _sender The party paying the escrow amount
      *  @param _receiver The intended receiver of the escrow amount
@@ -497,6 +504,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         transaction.lastInteraction = block.timestamp;
 
+        emit ArbitrationFeePaid(_transactionId, Party.Sender, msg.value);
+
         // The receiver still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction.receiverFee < arbitrationCost) {
             transaction.status = Status.WaitingReceiver;
@@ -526,6 +535,9 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         require(transaction.receiverFee >= arbitrationCost, "The receiver fee must cover arbitration costs.");
 
         transaction.lastInteraction = block.timestamp;
+
+        emit ArbitrationFeePaid(_transactionId, Party.Receiver, msg.value);
+
         // The sender still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction.senderFee < arbitrationCost) {
             transaction.status = Status.WaitingSender;
