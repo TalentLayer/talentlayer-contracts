@@ -81,33 +81,6 @@ contract ServiceRegistry is AccessControl {
     /// @param serviceDataUri token Id to IPFS URI mapping
     event ServiceDataCreated(uint256 id, string serviceDataUri);
 
-    /// @notice Emitted after an seller is assigned to a service
-    /// @param id The service ID
-    /// @param sellerId the talentLayerId of the seller
-    /// @param status service status
-    event ServiceSellerAssigned(uint256 id, uint256 sellerId, Status status);
-
-    /// @notice Emitted after a service is confirmed
-    /// @param id The service ID
-    /// @param buyerId the talentLayerId of the buyer
-    /// @param sellerId the talentLayerId of the seller
-    /// @param serviceDataUri token Id to IPFS URI mapping
-    event ServiceConfirmed(uint256 id, uint256 buyerId, uint256 sellerId, string serviceDataUri);
-
-    /// @notice Emitted after a service is rejected
-    /// @param id The service ID
-    /// @param buyerId the talentLayerId of the buyer
-    /// @param sellerId the talentLayerId of the seller
-    /// @param serviceDataUri token Id to IPFS URI mapping
-    event ServiceRejected(uint256 id, uint256 buyerId, uint256 sellerId, string serviceDataUri);
-
-    /// @notice Emitted after a service is finished
-    /// @param id The service ID
-    /// @param buyerId the talentLayerId of the buyer
-    /// @param sellerId the talentLayerId of the seller
-    /// @param serviceDataUri token Id to IPFS URI mapping
-    event ServiceFinished(uint256 id, uint256 buyerId, uint256 sellerId, string serviceDataUri);
-
     /**
      * Emit when Cid is updated for a Service
      * @param id The service ID
@@ -198,40 +171,6 @@ contract ServiceRegistry is AccessControl {
     }
 
     // =========================== User functions ==============================
-
-    /**
-     * @notice Allows an buyer to initiate a new Service with an seller
-     * @param _platformId platform ID on which the Service token was minted
-     * @param _sellerId Handle for the user
-     * @param _serviceDataUri token Id to IPFS URI mapping
-     */
-    function createServiceFromBuyer(
-        uint256 _platformId,
-        uint256 _sellerId,
-        string calldata _serviceDataUri
-    ) public returns (uint256) {
-        talentLayerPlatformIdContract.isValid(_platformId);
-        tlId.isValid(_sellerId);
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
-        return _createService(Status.Filled, senderId, senderId, _sellerId, _serviceDataUri, _platformId);
-    }
-
-    /**
-     * @notice Allows an seller to initiate a new Service with an buyer
-     * @param _platformId platform ID on which the Service token was minted
-     * @param _buyerId Handle for the user
-     * @param _serviceDataUri token Id to IPFS URI mapping
-     */
-    function createServiceFromSeller(
-        uint256 _platformId,
-        uint256 _buyerId,
-        string calldata _serviceDataUri
-    ) public returns (uint256) {
-        talentLayerPlatformIdContract.isValid(_platformId);
-        tlId.isValid(_buyerId);
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
-        return _createService(Status.Filled, senderId, _buyerId, senderId, _serviceDataUri, _platformId);
-    }
 
     /**
      * @notice Allows an buyer to initiate an open service
@@ -356,23 +295,6 @@ contract ServiceRegistry is AccessControl {
     }
 
     /**
-     * @notice Allows the user who didn't initiate the service to confirm it. They now consent both to be reviewed each other at the end of service.
-     * @param _serviceId Service identifier
-     */
-    function confirmService(uint256 _serviceId) public {
-        Service storage service = services[_serviceId];
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
-
-        require(service.status == Status.Filled, "Service has already been confirmed");
-        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
-        require(senderId != service.initiatorId, "Only the user who didn't initate the service can confirm it");
-
-        service.status = Status.Confirmed;
-
-        emit ServiceConfirmed(_serviceId, service.buyerId, service.sellerId, service.serviceDataUri);
-    }
-
-    /**
      * @notice Allow the escrow contract to upgrade the Service state after a deposit has been done
      * @param _serviceId Service identifier
      * @param _proposalId The choosed proposal id for this service
@@ -399,59 +321,6 @@ contract ServiceRegistry is AccessControl {
     function afterFullPayment(uint256 _serviceId) external onlyRole(ESCROW_ROLE) {
         Service storage service = services[_serviceId];
         service.status = Status.Finished;
-    }
-
-    /**
-     * @notice Allows the user who didn't initiate the service to reject it
-     * @param _serviceId Service identifier
-     */
-    function rejectService(uint256 _serviceId) public {
-        Service storage service = services[_serviceId];
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
-        require(service.status == Status.Filled || service.status == Status.Opened, "You can't reject this service");
-        service.status = Status.Rejected;
-
-        emit ServiceRejected(_serviceId, service.buyerId, service.sellerId, service.serviceDataUri);
-    }
-
-    /**
-     * @notice Allows any part of a service to update his state to finished
-     * @param _serviceId Service identifier
-     */
-    function finishService(uint256 _serviceId) public {
-        Service storage service = services[_serviceId];
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
-        require(service.status == Status.Confirmed, "You can't finish this service");
-        service.status = Status.Finished;
-
-        emit ServiceFinished(_serviceId, service.buyerId, service.sellerId, service.serviceDataUri);
-    }
-
-    /**
-     * @notice Allows the buyer to assign an seller to the service
-     * @param _serviceId Service identifier
-     * @param _sellerId Handle for the user
-     */
-    function assignSellerToService(uint256 _serviceId, uint256 _sellerId) public {
-        Service storage service = services[_serviceId];
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
-        tlId.isValid(_sellerId);
-
-        require(
-            service.status == Status.Opened || service.status == Status.Rejected,
-            "Service has to be Opened or Rejected"
-        );
-
-        require(senderId == service.buyerId, "You're not an buyer of this service");
-
-        require(_sellerId != service.buyerId, "Seller and buyer can't be the same");
-
-        service.sellerId = _sellerId;
-        service.status = Status.Filled;
-
-        emit ServiceSellerAssigned(_serviceId, _sellerId, service.status);
     }
 
     /**
