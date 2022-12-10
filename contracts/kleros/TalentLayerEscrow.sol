@@ -144,10 +144,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
     /** @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
      *  @param _serviceId The service ID
-     *  @param _transactionID The index of the transaction.
+     *  @param _transactionId The index of the transaction.
      *  @param _party The party who has to pay.
      */
-    event HasToPayFee(uint256 indexed _serviceId, uint256 indexed _transactionID, Party _party);
+    event HasToPayFee(uint256 indexed _serviceId, uint256 indexed _transactionId, Party _party);
 
     /** @dev Emitted when a transaction is created.
      *  @param _sender The party paying the escrow amount
@@ -162,7 +162,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      *  @param _arbitratorExtraData Extra data to set up the arbitration.
      */
     event TransactionCreated(
-        uint256 _transactionID,
+        uint256 _transactionId,
         address _sender,
         address _receiver,
         address _token,
@@ -472,10 +472,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     /** @notice Allows the sender of the transaction to pay the arbitration fee to raise a dispute.
      *  Note that the arbitrator can have createDispute throw, which will make this function throw and therefore lead to a party being timed-out.
      *  This is not a vulnerability as the arbitrator can rule in favor of one party anyway.
-     *  @param _transactionID Id of the transaction.
+     *  @param _transactionId Id of the transaction.
      */
-    function payArbitrationFeeBySender(uint256 _transactionID) public payable {
-        Transaction storage transaction = transactions[_transactionID];
+    function payArbitrationFeeBySender(uint256 _transactionId) public payable {
+        Transaction storage transaction = transactions[_transactionId];
         uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
 
         require(
@@ -493,19 +493,19 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         // The receiver still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction.receiverFee < arbitrationCost) {
             transaction.status = Status.WaitingReceiver;
-            emit HasToPayFee(transaction.serviceId, _transactionID, Party.Receiver);
+            emit HasToPayFee(transaction.serviceId, _transactionId, Party.Receiver);
         } else {
             // The receiver has also paid the fee. We create the dispute.
-            _raiseDispute(_transactionID, arbitrationCost);
+            _raiseDispute(_transactionId, arbitrationCost);
         }
     }
 
     /** @notice Allows the receiver of the transaction to pay the arbitration fee to raise a dispute.
      *  Note that this function mirrors payArbitrationFeeBySender.
-     *  @param _transactionID Id of the transaction.
+     *  @param _transactionId Id of the transaction.
      */
-    function payArbitrationFeeByReceiver(uint256 _transactionID) public payable {
-        Transaction storage transaction = transactions[_transactionID];
+    function payArbitrationFeeByReceiver(uint256 _transactionId) public payable {
+        Transaction storage transaction = transactions[_transactionId];
         uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
 
         require(
@@ -522,18 +522,18 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         // The sender still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction.senderFee < arbitrationCost) {
             transaction.status = Status.WaitingSender;
-            emit HasToPayFee(transaction.serviceId, _transactionID, Party.Sender);
+            emit HasToPayFee(transaction.serviceId, _transactionId, Party.Sender);
         } else {
             // The sender has also paid the fee. We create the dispute.
-            _raiseDispute(_transactionID, arbitrationCost);
+            _raiseDispute(_transactionId, arbitrationCost);
         }
     }
 
     /** @notice Reimburses sender if receiver fails to pay the arbitration fee.
-     *  @param _transactionID Id of the transaction.
+     *  @param _transactionId Id of the transaction.
      */
-    function timeOutBySender(uint256 _transactionID) public {
-        Transaction storage transaction = transactions[_transactionID];
+    function timeOutBySender(uint256 _transactionId) public {
+        Transaction storage transaction = transactions[_transactionId];
         require(transaction.status == Status.WaitingReceiver, "The transaction is not waiting on the receiver.");
         require(
             block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
@@ -547,14 +547,14 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             payable(transaction.receiver).transfer(receiverFee);
         }
 
-        _executeRuling(_transactionID, SENDER_WINS);
+        _executeRuling(_transactionId, SENDER_WINS);
     }
 
     /** @notice Pays receiver if sender fails to pay the arbitration fee.
-     *  @param _transactionID Id of the transaction.
+     *  @param _transactionId Id of the transaction.
      */
-    function timeOutByReceiver(uint256 _transactionID) public {
-        Transaction storage transaction = transactions[_transactionID];
+    function timeOutByReceiver(uint256 _transactionId) public {
+        Transaction storage transaction = transactions[_transactionId];
         require(transaction.status == Status.WaitingSender, "The transaction is not waiting on the sender.");
         require(
             block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
@@ -568,31 +568,31 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             payable(transaction.sender).transfer(senderFee);
         }
 
-        _executeRuling(_transactionID, RECEIVER_WINS);
+        _executeRuling(_transactionId, RECEIVER_WINS);
     }
 
     /** @notice Allows a party to submit a reference to evidence.
-     *  @param _transactionID The index of the transaction.
+     *  @param _transactionId The index of the transaction.
      *  @param _evidence A link to an evidence using its URI.
      */
-    function submitEvidence(uint256 _transactionID, string memory _evidence) public {
-        Transaction storage transaction = transactions[_transactionID];
+    function submitEvidence(uint256 _transactionId, string memory _evidence) public {
+        Transaction storage transaction = transactions[_transactionId];
         require(
             msg.sender == transaction.sender || msg.sender == transaction.receiver,
             "The caller must be the sender or the receiver."
         );
         require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
 
-        emit Evidence(transaction.arbitrator, _transactionID, msg.sender, _evidence);
+        emit Evidence(transaction.arbitrator, _transactionId, msg.sender, _evidence);
     }
 
     /** @notice Appeals an appealable ruling, paying the appeal fee to the arbitrator.
      *  Note that no checks are required as the checks are done by the arbitrator.
      *
-     *  @param _transactionID Id of the transaction.
+     *  @param _transactionId Id of the transaction.
      */
-    function appeal(uint256 _transactionID) public payable {
-        Transaction storage transaction = transactions[_transactionID];
+    function appeal(uint256 _transactionId) public payable {
+        Transaction storage transaction = transactions[_transactionId];
 
         transaction.arbitrator.appeal{value: msg.value}(transaction.disputeId, transaction.arbitratorExtraData);
     }
@@ -638,26 +638,26 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      *  @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
      */
     function rule(uint256 _disputeID, uint256 _ruling) public {
-        uint256 transactionID = disputeIDtoTransactionID[_disputeID];
-        Transaction storage transaction = transactions[transactionID];
+        uint256 transactionId = disputeIDtoTransactionID[_disputeID];
+        Transaction storage transaction = transactions[transactionId];
 
         require(msg.sender == address(transaction.arbitrator), "The caller must be the arbitrator.");
         require(transaction.status == Status.DisputeCreated, "The dispute has already been resolved.");
 
         emit Ruling(Arbitrator(msg.sender), _disputeID, _ruling);
 
-        _executeRuling(transactionID, _ruling);
+        _executeRuling(transactionId, _ruling);
     }
 
     // =========================== Internal functions ==============================
 
     /** @notice Creates a dispute, paying the arbitration fee to the arbitrator. Parties are refund if
      *          they overpaid for the arbitration fee.
-     *  @param _transactionID Id of the transaction.
+     *  @param _transactionId Id of the transaction.
      *  @param _arbitrationCost Amount to pay the arbitrator.
      */
-    function _raiseDispute(uint256 _transactionID, uint256 _arbitrationCost) internal {
-        Transaction storage transaction = transactions[_transactionID];
+    function _raiseDispute(uint256 _transactionId, uint256 _arbitrationCost) internal {
+        Transaction storage transaction = transactions[_transactionId];
         transaction.status = Status.DisputeCreated;
         Arbitrator arbitrator = transaction.arbitrator;
 
@@ -667,8 +667,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             AMOUNT_OF_CHOICES,
             toBytes(service.platformId)
         );
-        disputeIDtoTransactionID[transaction.disputeId] = _transactionID;
-        emit Dispute(arbitrator, transaction.disputeId, _transactionID, _transactionID);
+        disputeIDtoTransactionID[transaction.disputeId] = _transactionId;
+        emit Dispute(arbitrator, transaction.disputeId, _transactionId, _transactionId);
 
         // Refund sender if it overpaid.
         if (transaction.senderFee > _arbitrationCost) {
@@ -686,14 +686,14 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     }
 
     /** @notice Executes a ruling of a dispute. Sends the funds and reimburses the arbitration fee to the winning party.
-     *  @param _transactionID The index of the transaction.
+     *  @param _transactionId The index of the transaction.
      *  @param _ruling Ruling given by the arbitrator.
      *                 0: Refused to rule, split amount equally between sender and receiver.
      *                 1: Reimburse the sender
      *                 2: Pay the receiver
      */
-    function _executeRuling(uint256 _transactionID, uint256 _ruling) internal {
-        Transaction storage transaction = transactions[_transactionID];
+    function _executeRuling(uint256 _transactionId, uint256 _ruling) internal {
+        Transaction storage transaction = transactions[_transactionId];
         require(_ruling <= AMOUNT_OF_CHOICES, "Invalid ruling.");
 
         address payable sender = payable(transaction.sender);
