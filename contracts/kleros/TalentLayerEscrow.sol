@@ -91,12 +91,19 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
     /**
      * @notice Emitted after each payment
+     * @param _transactionId The id of the transaction.
      * @param _paymentType Whether the payment is a release or a reimbursement.
      * @param _amount The amount paid.
      * @param _token The address of the token used for the payment.
      * @param _serviceId The id of the concerned service.
      */
-    event Payment(PaymentType _paymentType, uint256 _amount, address _token, uint256 _serviceId);
+    event Payment(
+        uint256 _transactionId,
+        PaymentType _paymentType,
+        uint256 _amount,
+        address _token,
+        uint256 _serviceId
+    );
 
     /**
      * @notice Emitted after a service is finished
@@ -442,7 +449,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         transaction.amount -= _amount;
         _release(transaction, _amount);
 
-        emit Payment(PaymentType.Release, _amount, transaction.token, transaction.serviceId);
+        emit Payment(_transactionId, PaymentType.Release, _amount, transaction.token, transaction.serviceId);
 
         _distributeMessage(transaction.serviceId, transaction.amount);
     }
@@ -464,7 +471,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         transaction.amount -= _amount;
         _reimburse(transaction, _amount);
 
-        emit Payment(PaymentType.Reimburse, _amount, transaction.token, transaction.serviceId);
+        emit Payment(_transactionId, PaymentType.Reimburse, _amount, transaction.token, transaction.serviceId);
 
         _distributeMessage(transaction.serviceId, transaction.amount);
     }
