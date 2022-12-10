@@ -150,11 +150,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     event PlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
     /** @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
-     *  @param _serviceId The service ID
      *  @param _transactionId The index of the transaction.
      *  @param _party The party who has to pay.
      */
-    event HasToPayFee(uint256 indexed _serviceId, uint256 indexed _transactionId, Party _party);
+    event HasToPayFee(uint256 indexed _transactionId, Party _party);
 
     /** @notice Emitted when a party pais the arbitration fee for a dispute.
      *  @param _transactionId The index of the transaction.
@@ -509,7 +508,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         // The receiver still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction.receiverFee < arbitrationCost) {
             transaction.status = Status.WaitingReceiver;
-            emit HasToPayFee(transaction.serviceId, _transactionId, Party.Receiver);
+            emit HasToPayFee(_transactionId, Party.Receiver);
         } else {
             // The receiver has also paid the fee. We create the dispute.
             _raiseDispute(_transactionId, arbitrationCost);
@@ -541,7 +540,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         // The sender still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction.senderFee < arbitrationCost) {
             transaction.status = Status.WaitingSender;
-            emit HasToPayFee(transaction.serviceId, _transactionId, Party.Sender);
+            emit HasToPayFee(_transactionId, Party.Sender);
         } else {
             // The sender has also paid the fee. We create the dispute.
             _raiseDispute(_transactionId, arbitrationCost);
