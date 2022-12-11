@@ -753,14 +753,21 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         // Send the funds to the winner and reimburse the arbitration fee.
         if (_ruling == SENDER_WINS) {
-            sender.transfer(senderFee + amount);
+            sender.transfer(senderFee);
+            _transferBalance(sender, transaction.token, amount);
         } else if (_ruling == RECEIVER_WINS) {
-            receiver.transfer(receiverFee + amount);
+            receiver.transfer(receiverFee);
+            _transferBalance(receiver, transaction.token, amount);
         } else {
             // If no ruling is given split funds in half
-            uint256 split_amount = (senderFee + amount) / 2;
-            sender.transfer(split_amount);
-            receiver.transfer(split_amount);
+            uint256 splitFeeAmount = senderFee / 2;
+            uint256 splitTransactionAmount = amount / 2;
+
+            _transferBalance(sender, transaction.token, splitTransactionAmount);
+            _transferBalance(receiver, transaction.token, splitTransactionAmount);
+
+            sender.transfer(splitFeeAmount);
+            receiver.transfer(splitFeeAmount);
         }
 
         emit RulingExecuted(_transactionId, _ruling);
