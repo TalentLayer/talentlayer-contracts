@@ -22,6 +22,14 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     }
 
     /**
+     * @notice Arbitration fee payment type enum
+     */
+    enum ArbitrationFeePaymentType {
+        Pay,
+        Reimburse
+    }
+
+    /**
      * @notice party type enum
      */
     enum Party {
@@ -155,19 +163,18 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     event HasToPayFee(uint256 indexed _transactionId, Party _party);
 
-    /** @notice Emitted when a party pays the arbitration fee for a dispute.
+    /** @notice Emitted when a party either pays the arbitration fee or gets it reimbursed.
      *  @param _transactionId The id of the transaction.
-     *  @param _party The party who has paid.
-     * @param _amount The amount paid.
+     *  @param _paymentType Whether the party paid or got reimbursed.
+     *  @param _party The party who has paid/got reimbursed the fee.
+     * @param _amount The amount paid/reimbursed
      */
-    event ArbitrationFeePaid(uint256 indexed _transactionId, Party _party, uint256 _amount);
-
-    /** @notice Emitted when a party gets part of the arbitration fee reimbursed for having overpaid it.
-     *  @param _transactionId The id of the transaction.
-     *  @param _party The party who has paid.
-     * @param _amount The amount paid.
-     */
-    event ArbitrationFeeReimbursed(uint256 indexed _transactionId, Party _party, uint256 _amount);
+    event ArbitrationFeePayment(
+        uint256 indexed _transactionId,
+        ArbitrationFeePaymentType _paymentType,
+        Party _party,
+        uint256 _amount
+    );
 
     /**
      * @notice Emitted when a ruling is executed.
@@ -519,7 +526,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         transaction.lastInteraction = block.timestamp;
 
-        emit ArbitrationFeePaid(_transactionId, Party.Sender, msg.value);
+        emit ArbitrationFeePayment(_transactionId, ArbitrationFeePaymentType.Pay, Party.Sender, msg.value);
 
         // The receiver still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction.receiverFee < arbitrationCost) {
@@ -551,7 +558,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         transaction.lastInteraction = block.timestamp;
 
-        emit ArbitrationFeePaid(_transactionId, Party.Receiver, msg.value);
+        emit ArbitrationFeePayment(_transactionId, ArbitrationFeePaymentType.Pay, Party.Receiver, msg.value);
 
         // The sender still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
         if (transaction.senderFee < arbitrationCost) {
@@ -709,7 +716,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             uint256 extraFeeSender = transaction.senderFee - _arbitrationCost;
             transaction.senderFee = _arbitrationCost;
             payable(transaction.sender).transfer(extraFeeSender);
-            emit ArbitrationFeeReimbursed(_transactionId, Party.Sender, msg.value);
+            emit ArbitrationFeePayment(_transactionId, ArbitrationFeePaymentType.Reimburse, Party.Sender, msg.value);
         }
 
         // Refund receiver if it overpaid.
@@ -717,7 +724,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             uint256 extraFeeReceiver = transaction.receiverFee - _arbitrationCost;
             transaction.receiverFee = _arbitrationCost;
             payable(transaction.receiver).transfer(extraFeeReceiver);
-            emit ArbitrationFeeReimbursed(_transactionId, Party.Receiver, msg.value);
+            emit ArbitrationFeePayment(_transactionId, ArbitrationFeePaymentType.Reimburse, Party.Receiver, msg.value);
         }
     }
 
