@@ -155,12 +155,19 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     event HasToPayFee(uint256 indexed _transactionId, Party _party);
 
-    /** @notice Emitted when a party pais the arbitration fee for a dispute.
+    /** @notice Emitted when a party pays the arbitration fee for a dispute.
      *  @param _transactionId The id of the transaction.
      *  @param _party The party who has paid.
      * @param _amount The amount paid.
      */
     event ArbitrationFeePaid(uint256 indexed _transactionId, Party _party, uint256 _amount);
+
+    /** @notice Emitted when a party gets part of the arbitration fee reimbursed for having overpaid it.
+     *  @param _transactionId The id of the transaction.
+     *  @param _party The party who has paid.
+     * @param _amount The amount paid.
+     */
+    event ArbitrationFeeReimbursed(uint256 indexed _transactionId, Party _party, uint256 _amount);
 
     /**
      * @notice Emitted when a ruling is executed.
@@ -702,6 +709,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             uint256 extraFeeSender = transaction.senderFee - _arbitrationCost;
             transaction.senderFee = _arbitrationCost;
             payable(transaction.sender).transfer(extraFeeSender);
+            emit ArbitrationFeeReimbursed(_transactionId, Party.Sender, msg.value);
         }
 
         // Refund receiver if it overpaid.
@@ -709,6 +717,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             uint256 extraFeeReceiver = transaction.receiverFee - _arbitrationCost;
             transaction.receiverFee = _arbitrationCost;
             payable(transaction.receiver).transfer(extraFeeReceiver);
+            emit ArbitrationFeeReimbursed(_transactionId, Party.Receiver, msg.value);
         }
     }
 
