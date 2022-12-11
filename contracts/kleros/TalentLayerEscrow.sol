@@ -442,6 +442,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         // PlatformFee is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
 
+        require(msg.sender == sender, "Access denied.");
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
