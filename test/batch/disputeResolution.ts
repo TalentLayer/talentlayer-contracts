@@ -2,7 +2,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { BigNumber, Bytes, ContractTransaction } from 'ethers'
 import { ethers } from 'hardhat'
-import { TalentLayerArbitrator, TalentLayerEscrow, TalentLayerPlatformID } from '../../typechain-types'
+import { SimpleERC20, TalentLayerArbitrator, TalentLayerEscrow, TalentLayerPlatformID } from '../../typechain-types'
 
 enum TransactionStatus {
   NoDispute,
@@ -32,6 +32,7 @@ const feeDivider = 10000
  */
 async function deployAndSetup(
   arbitrationFeeTimeout: number,
+  tokenAddress: string,
 ): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator]> {
   const [deployer, alice, bob, carol] = await ethers.getSigners()
 
@@ -90,7 +91,7 @@ async function deployAndSetup(
   await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+  await serviceRegistry.connect(bob).createProposal(serviceId, tokenAddress, transactionAmount, 'cid')
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator]
 }
@@ -115,7 +116,7 @@ describe('Dispute Resolution, standard flow', function () {
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(3600)
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(3600, ethAddress)
   })
 
   describe('Transaction creation', async function () {
@@ -360,7 +361,7 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
 
   before(async function () {
     ;[, alice] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow] = await deployAndSetup(1)
+    ;[talentLayerPlatformID, talentLayerEscrow] = await deployAndSetup(1, ethAddress)
 
     // Create transaction
     const protocolFee = await talentLayerEscrow.protocolFee()
@@ -408,7 +409,7 @@ describe('Dispute Resolution, arbitrator abstaing from giving a ruling', functio
 
   before(async function () {
     ;[, alice, bob, carol] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(1)
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(1, ethAddress)
 
     // Create transaction
     const protocolFee = await talentLayerEscrow.protocolFee()
@@ -444,6 +445,66 @@ describe('Dispute Resolution, arbitrator abstaing from giving a ruling', functio
       await expect(tx).to.changeEtherBalances(
         [alice.address, bob.address, talentLayerEscrow.address],
         [halfAmount, halfAmount, -transactionAmount.add(arbitrationCost)],
+      )
+    })
+  })
+})
+
+describe('Dispute Resolution, with ERC20 token transaction', function () {
+  let alice: SignerWithAddress,
+    bob: SignerWithAddress,
+    carol: SignerWithAddress,
+    talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerEscrow: TalentLayerEscrow,
+    talentLayerArbitrator: TalentLayerArbitrator,
+    simpleERC20: SimpleERC20
+
+  const rulingId = 1
+
+  before(async function () {
+    ;[, alice, bob, carol] = await ethers.getSigners()
+
+    // Deploy SimpleERC20 token and transfer some tokens to Bob and Carol
+    const amount = ethers.utils.parseUnits('10', 18)
+    const SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
+    simpleERC20 = await SimpleERC20.deploy()
+    await simpleERC20.transfer(alice.address, amount)
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(1, simpleERC20.address)
+
+    // Allow TalentLayerEscrow to transfer tokens on behalf of Alice
+    await simpleERC20.connect(alice).approve(talentLayerEscrow.address, amount)
+
+    // Create transaction
+    await talentLayerEscrow.connect(alice).createTokenTransaction(metaEvidence, serviceId, proposalId)
+
+    // Alice wants to raise a dispute and pays the arbitration fee
+    await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+      value: arbitrationCost,
+    })
+
+    // Bob pays the arbitration fee and a dispute is created
+    await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
+      value: arbitrationCost,
+    })
+  })
+
+  describe('Submission of a ruling', async function () {
+    let tx: ContractTransaction
+
+    before(async function () {
+      // Rule in favor of the sender (Alice)
+      tx = await talentLayerArbitrator.connect(carol).giveRuling(disputeId, rulingId)
+    })
+
+    it('The winner of the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
+      await expect(tx).to.changeTokenBalances(
+        simpleERC20,
+        [alice.address, talentLayerEscrow.address],
+        [transactionAmount, -transactionAmount],
+      )
+      await expect(tx).to.changeEtherBalances(
+        [alice.address, talentLayerEscrow.address],
+        [arbitrationCost, -arbitrationCost],
       )
     })
   })
