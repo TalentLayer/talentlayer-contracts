@@ -29,13 +29,13 @@ interface ITalentLayerEscrow {
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId
-    ) external;
+    ) external returns (uint256);
 
     function createETHTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId
-    ) external payable;
+    ) external payable returns (uint256);
 
     function release(uint256 _transactionId, uint256 _amount) external;
 
