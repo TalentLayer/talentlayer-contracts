@@ -96,7 +96,6 @@ async function deployAndSetup(
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator]
 }
 
-// TODO: remove "only"
 describe('Dispute Resolution, standard flow', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
