@@ -703,11 +703,9 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         transaction.status = Status.DisputeCreated;
         Arbitrator arbitrator = transaction.arbitrator;
 
-        IServiceRegistry.Service memory service = _getService(transaction.serviceId);
-
         transaction.disputeId = arbitrator.createDispute{value: _arbitrationCost}(
             AMOUNT_OF_CHOICES,
-            toBytes(service.platformId)
+            transaction.arbitratorExtraData
         );
         disputeIDtoTransactionID[transaction.disputeId] = _transactionId;
         emit Dispute(arbitrator, transaction.disputeId, _transactionId, _transactionId);
@@ -1016,15 +1014,5 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         return
             _amount +
             (((_amount * protocolFee) + (_amount * originPlatformFee) + (_amount * _platformFee)) / FEE_DIVIDER);
-    }
-
-    /**
-     * @notice Converts a uint256 to bytes.
-     */
-    function toBytes(uint256 x) private pure returns (bytes memory b) {
-        b = new bytes(32);
-        assembly {
-            mstore(add(b, 32), x)
-        }
     }
 }

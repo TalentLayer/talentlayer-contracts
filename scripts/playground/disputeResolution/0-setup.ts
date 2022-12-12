@@ -13,7 +13,7 @@ const ethAddress = '0x0000000000000000000000000000000000000000'
 This script sets up the context for dispute resolution, specifically it does the following:
 - Sets the arbitration cost on the arbitrator
 - Adds the arbitrator to the platform available arbitrators
-- Mints platform id for Carol
+- Mints platform id for Carol, sets arbitrator and fee timeout, and updates arbitration cost
 - Mints TL Ids for Alice and Bob
 - Alice initiates an open service
 - Bob submits a proposal for the open service
@@ -52,9 +52,6 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerArbitrator),
   )
 
-  // Set arbitration cost on arbitrator
-  await talentLayerArbitrator.connect(deployer).setArbitrationPrice(arbitrationCost)
-
   // Grant Platform Id Mint role to Deployer and Bob
   const mintRole = await talentLayerPlatformID.MINT_ROLE()
   await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
@@ -65,12 +62,14 @@ async function main() {
   console.log('Minted platform id for Carol')
 
   // Add arbitrator to platform available arbitrators
-  await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address)
+  await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address, true)
 
-  // Update platform arbitrator, extra data and fee timeout
+  // Update platform arbitrator and fee timeout
   await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
-  await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)
   await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, arbitrationFeeTimeout)
+
+  // Update arbitration cost
+  await talentLayerArbitrator.connect(carol).setArbitrationPrice(carolPlatformId, arbitrationCost)
 
   // Mint TL Id for Alice and Bob
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')

@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { Contract, ContractFactory } from 'ethers'
+import { BigNumber, Contract, ContractFactory } from 'ethers'
 import { TalentLayerID } from '../../typechain-types'
 
 describe('TalentLayer', function () {
@@ -66,7 +66,7 @@ describe('TalentLayer', function () {
 
     // Deploy TalentLayerArbitrator
     TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-    talentLayerArbitrator = await TalentLayerArbitrator.deploy(0, talentLayerPlatformID.address)
+    talentLayerArbitrator = await TalentLayerArbitrator.deploy(talentLayerPlatformID.address)
 
     // Deploy TalentLayerEscrow
     TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
@@ -219,9 +219,12 @@ describe('TalentLayer', function () {
     })
 
     it('The deployer can add a new available arbitrator', async function () {
-      await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address)
+      await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address, true)
       const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
       expect(isValid).to.be.true
+
+      const isInternal = await talentLayerPlatformID.internalArbitrators(talentLayerArbitrator.address)
+      expect(isInternal).to.be.true
     })
 
     it('The platform owner can update the arbitrator only if is a valid one', async function () {
@@ -229,8 +232,13 @@ describe('TalentLayer', function () {
       expect(tx).to.be.revertedWith('The address must be of a valid arbitrator')
 
       await talentLayerPlatformID.connect(alice).updateArbitrator(1, talentLayerArbitrator.address)
-      const platform = await talentLayerPlatformID.getPlatform(1)
-      expect(platform.arbitrator).to.be.equal(talentLayerArbitrator.address)
+      const arbitrator = (await talentLayerPlatformID.getPlatform(1)).arbitrator
+      expect(arbitrator).to.be.equal(talentLayerArbitrator.address)
+
+      // Extra data is updated and is equal to the platform id since the arbitrator is internal
+      const arbitratorExtraData = (await talentLayerPlatformID.getPlatform(1)).arbitratorExtraData
+      const platformId = BigNumber.from(arbitratorExtraData)
+      expect(platformId).to.be.equal(1)
     })
 
     it('Only the owner of the platform can update its arbitrator', async function () {
@@ -242,6 +250,9 @@ describe('TalentLayer', function () {
       await talentLayerPlatformID.connect(deployer).removeArbitrator(talentLayerArbitrator.address)
       const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
       expect(isValid).to.be.false
+
+      const isInternal = await talentLayerPlatformID.internalArbitrators(talentLayerArbitrator.address)
+      expect(isInternal).to.be.false
     })
   })
 
