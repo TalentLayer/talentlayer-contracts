@@ -30,7 +30,7 @@ contract TalentLayerArbitrator is Arbitrator {
      * @param platformId Id of the platform where the dispute was created.
      * @param status Status of the dispute.
      */
-    struct DisputeStruct {
+    struct Dispute {
         Arbitrable arbitrated;
         uint256 choices;
         uint256 fee;
@@ -44,7 +44,7 @@ contract TalentLayerArbitrator is Arbitrator {
         _;
     }
 
-    DisputeStruct[] public disputes;
+    Dispute[] public disputes;
 
     /** @dev Constructor. Set the initial arbitration price.
      *  @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
@@ -100,7 +100,7 @@ contract TalentLayerArbitrator is Arbitrator {
         uint256 platformId = bytesToUint(_extraData);
 
         disputes.push(
-            DisputeStruct({
+            Dispute({
                 arbitrated: Arbitrable(msg.sender),
                 choices: _choices,
                 fee: msg.value,
@@ -118,7 +118,7 @@ contract TalentLayerArbitrator is Arbitrator {
      *  @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
      */
     function _giveRuling(uint256 _disputeID, uint256 _ruling) internal {
-        DisputeStruct storage dispute = disputes[_disputeID];
+        Dispute storage dispute = disputes[_disputeID];
         require(_ruling <= dispute.choices, "Invalid ruling.");
         require(dispute.status != DisputeStatus.Solved, "The dispute must not be solved already.");
 
@@ -134,7 +134,7 @@ contract TalentLayerArbitrator is Arbitrator {
      *  @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
      */
     function giveRuling(uint256 _disputeID, uint256 _ruling) public {
-        DisputeStruct storage dispute = disputes[_disputeID];
+        Dispute storage dispute = disputes[_disputeID];
 
         require(
             msg.sender == talentLayerPlatformIdContract.ownerOf(dispute.platformId),
