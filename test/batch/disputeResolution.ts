@@ -81,7 +81,7 @@ async function deployAndSetup(
   await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address, true)
 
   // Update platform arbitrator, and fee timeout
-  await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
+  await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address, [])
   await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, arbitrationFeeTimeout)
 
   // Update arbitration cost
