@@ -40,7 +40,7 @@ describe('TalentLayer', function () {
     mockProofOfHumanity.addSubmissionManually([alice.address, bob.address])
 
     // Deploy PlatformId
-    TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
+    const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
     talentLayerPlatformID = await TalentLayerPlatformID.deploy()
 
     // Deploy TalenLayerID
@@ -216,6 +216,32 @@ describe('TalentLayer', function () {
 
       // Contract balance is 0
       expect(contractBalanceAfter).to.be.equal(0)
+    })
+
+    it('The deployer can add a new available arbitrator', async function () {
+      await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address)
+      const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
+      expect(isValid).to.be.true
+    })
+
+    it('The platform owner can update the arbitrator only if is a valid one', async function () {
+      const tx = talentLayerPlatformID.connect(alice).updateArbitrator(1, dave.address)
+      expect(tx).to.be.revertedWith('The address must be of a valid arbitrator')
+
+      await talentLayerPlatformID.connect(alice).updateArbitrator(1, talentLayerArbitrator.address)
+      const platform = await talentLayerPlatformID.getPlatform(1)
+      expect(platform.arbitrator).to.be.equal(talentLayerArbitrator.address)
+    })
+
+    it('Only the owner of the platform can update its arbitrator', async function () {
+      const tx = talentLayerPlatformID.connect(bob).updateArbitrator(1, talentLayerArbitrator.address)
+      expect(tx).to.be.revertedWith("You're not the owner of this platform")
+    })
+
+    it('The deployer can remove an available arbitrator', async function () {
+      await talentLayerPlatformID.connect(deployer).removeArbitrator(talentLayerArbitrator.address)
+      const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
+      expect(isValid).to.be.false
     })
   })
 

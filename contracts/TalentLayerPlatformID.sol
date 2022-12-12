@@ -50,6 +50,11 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     mapping(address => bool) public hasBeenRecovered;
 
+    /**
+     * @notice Addresses which are available as arbitrators
+     */
+    mapping(address => bool) public validArbitrators;
+
     /// Price to mint a platform id (in wei, upgradable)
     uint256 public mintFee;
 
@@ -62,6 +67,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINT_ROLE, msg.sender);
         mintFee = 0;
+        validArbitrators[address(0)] = true; // The zero address means no arbitrator.
     }
 
     // =========================== View functions ==============================
@@ -171,6 +177,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function updateArbitrator(uint256 _platformId, Arbitrator _arbitrator) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+        require(validArbitrators[address(_arbitrator)], "The address must be of a valid arbitrator");
 
         platforms[_platformId].arbitrator = _arbitrator;
     }
@@ -220,6 +227,22 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) {
         (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
         require(sent, "Failed to withdraw Ether");
+    }
+
+    /**
+     * Adds a new available arbitrator.
+     * @param _arbitrator address of the arbitrator
+     */
+    function addArbitrator(address _arbitrator) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        validArbitrators[address(_arbitrator)] = true;
+    }
+
+    /**
+     * Removes an available arbitrator.
+     * @param _arbitrator address of the arbitrator
+     */
+    function removeArbitrator(address _arbitrator) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        validArbitrators[address(_arbitrator)] = false;
     }
 
     // =========================== Private functions ==============================
