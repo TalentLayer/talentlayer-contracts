@@ -19,7 +19,7 @@ https://www.talentlayer.org/
 
 ## Deployed on Goerli
 
-- roofOfHumanityAddress: 0xAEbc3646709765691045B56ae89556907852DbEE,
+- proofOfHumanityAddress: 0xAEbc3646709765691045B56ae89556907852DbEE,
 - talentLayerPlatformIdAddress: 0x29AcBBbfAb5e1AF98557C53CCcEF0C050FA18Bc8,
 - talentLayerIdAddress: 0x67c3AC531084aB5E6E04d4bB0FC7766e27b81546,
 - serviceRegistryAddress: 0x6f97FB242d2D3bCA9d19c05c975F6Ec8caB4d1a4,
