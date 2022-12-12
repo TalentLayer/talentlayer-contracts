@@ -21,6 +21,15 @@ contract TalentLayerArbitrator is Arbitrator {
      */
     mapping(uint256 => uint256) public arbitrationPrice;
 
+    /**
+     * @notice Dispute struct
+     * @param arbitrated The contract that created the dispute.
+     * @param choices Amount of choices the arbitrator can make in the dispute.
+     * @param fee Arbitration fee that has been paid for the dispute.
+     * @param ruling Current ruling of the dispute.
+     * @param platformId Id of the platform where the dispute was created.
+     * @param status Status of the dispute.
+     */
     struct DisputeStruct {
         Arbitrable arbitrated;
         uint256 choices;
