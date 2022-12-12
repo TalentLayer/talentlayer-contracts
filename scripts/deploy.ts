@@ -110,13 +110,12 @@ task('deploy')
 
       // Deploy TalentLayerArbitrator
       const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-      const talentLayerArbitratorArgs: [number, string] = [0, talentLayerPlatformID.address]
-      const talentLayerArbitrator = await TalentLayerArbitrator.deploy(...talentLayerArbitratorArgs)
+      const talentLayerArbitrator = await TalentLayerArbitrator.deploy(talentLayerPlatformID.address)
       if (verify) {
         await talentLayerArbitrator.deployTransaction.wait(5)
         await run('verify:verify', {
           address: talentLayerArbitrator.address,
-          constructorArguments: talentLayerArbitratorArgs,
+          constructorArguments: [talentLayerPlatformID.address],
         })
       }
       console.log('TalentLayerArbitrator contract address:', talentLayerArbitrator.address)
@@ -124,7 +123,7 @@ task('deploy')
       set(network.name as any as Network, ConfigProperty.TalentLayerArbitrator, talentLayerArbitrator.address)
 
       // Add TalentLayerArbitrator to platform available arbitrators
-      await talentLayerPlatformID.addArbitrator(talentLayerArbitrator.address)
+      await talentLayerPlatformID.addArbitrator(talentLayerArbitrator.address, true)
 
       // Deploy TalentLayerEscrow
       const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')

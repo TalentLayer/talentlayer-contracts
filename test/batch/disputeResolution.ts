@@ -19,7 +19,6 @@ const proposalId = bobTlId
 const transactionId = 0
 const transactionAmount = BigNumber.from(1000)
 const ethAddress = '0x0000000000000000000000000000000000000000'
-const arbitratorExtraData: Bytes = []
 const arbitrationCost = BigNumber.from(10)
 const disputeId = 0
 const metaEvidence = 'metaEvidence'
@@ -56,7 +55,7 @@ async function deployAndSetup(
 
   // Deploy TalentLayerArbitrator
   const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-  const talentLayerArbitrator = await TalentLayerArbitrator.deploy(arbitrationCost, talentLayerPlatformID.address)
+  const talentLayerArbitrator = await TalentLayerArbitrator.deploy(talentLayerPlatformID.address)
 
   // Deploy TalentLayerEscrow
   const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
@@ -79,12 +78,14 @@ async function deployAndSetup(
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Add arbitrator to platform available arbitrators
-  await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address)
+  await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address, true)
 
-  // Update platform arbitrator, extra data and fee timeout
+  // Update platform arbitrator, and fee timeout
   await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
-  await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)
   await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, arbitrationFeeTimeout)
+
+  // Update arbitration cost
+  await talentLayerArbitrator.connect(carol).setArbitrationPrice(carolPlatformId, arbitrationCost)
 
   // Mint TL Id for Alice and Bob
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
@@ -321,7 +322,7 @@ describe('Dispute Resolution, standard flow', function () {
 
     it('Fails if ruling is not given by the platform owner', async function () {
       const tx = talentLayerArbitrator.connect(dave).giveRuling(disputeId, rulingId)
-      await expect(tx).to.be.revertedWith('Only the owner of the platform can give a ruling')
+      await expect(tx).to.be.revertedWith("You're not the owner of the platform")
     })
 
     describe('Successfull submission of a ruling', async function () {

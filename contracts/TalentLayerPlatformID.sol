@@ -55,6 +55,12 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     mapping(address => bool) public validArbitrators;
 
+    /**
+     * @notice Whether arbitrators are internal (are part of TalentLayer) or not
+     *         Internal arbitrators will have the extra data set to the platform ID
+     */
+    mapping(address => bool) public internalArbitrators;
+
     /// Price to mint a platform id (in wei, upgradable)
     uint256 public mintFee;
 
@@ -180,6 +186,10 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         require(validArbitrators[address(_arbitrator)], "The address must be of a valid arbitrator");
 
         platforms[_platformId].arbitrator = _arbitrator;
+
+        if (internalArbitrators[address(_arbitrator)]) {
+            platforms[_platformId].arbitratorExtraData = abi.encodePacked(_platformId);
+        }
     }
 
     /**
@@ -188,6 +198,10 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function updateArbitratorExtraData(uint256 _platformId, bytes memory _extraData) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+        require(
+            !internalArbitrators[address(platforms[_platformId].arbitrator)],
+            "Extra data can't be updated for an internal arbitrator"
+        );
 
         platforms[_platformId].arbitratorExtraData = _extraData;
     }
@@ -232,9 +246,11 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     /**
      * Adds a new available arbitrator.
      * @param _arbitrator address of the arbitrator
+     * @param _isInternal whether the arbitrator is internal (is part of TalentLayer) or not
      */
-    function addArbitrator(address _arbitrator) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function addArbitrator(address _arbitrator, bool _isInternal) public onlyRole(DEFAULT_ADMIN_ROLE) {
         validArbitrators[address(_arbitrator)] = true;
+        internalArbitrators[address(_arbitrator)] = _isInternal;
     }
 
     /**
@@ -243,6 +259,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function removeArbitrator(address _arbitrator) public onlyRole(DEFAULT_ADMIN_ROLE) {
         validArbitrators[address(_arbitrator)] = false;
+        internalArbitrators[address(_arbitrator)] = false;
     }
 
     // =========================== Private functions ==============================

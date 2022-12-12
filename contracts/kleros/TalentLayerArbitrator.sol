@@ -9,13 +9,17 @@ import "../interfaces/ITalentLayerPlatformID.sol";
  */
 contract TalentLayerArbitrator is Arbitrator {
     address public owner = msg.sender;
-    uint256 arbitrationPrice; // Not public because arbitrationCost already acts as an accessor.
     uint256 constant NOT_PAYABLE_VALUE = (2**256 - 2) / 2; // High value to be sure that the appeal is too expensive.
 
     /**
      * @notice Instance of TalentLayerPlatformID.sol
      */
     ITalentLayerPlatformID private talentLayerPlatformIdContract;
+
+    /**
+     * @notice Mapping from platformId to arbitration price
+     */
+    mapping(uint256 => uint256) public arbitrationPrice;
 
     struct DisputeStruct {
         Arbitrable arbitrated;
@@ -34,19 +38,23 @@ contract TalentLayerArbitrator is Arbitrator {
     DisputeStruct[] public disputes;
 
     /** @dev Constructor. Set the initial arbitration price.
-     *  @param _arbitrationPrice Amount to be paid for arbitration.
      *  @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
      */
-    constructor(uint256 _arbitrationPrice, address _talentLayerPlatformIDAddress) {
-        arbitrationPrice = _arbitrationPrice;
+    constructor(address _talentLayerPlatformIDAddress) {
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
     }
 
     /** @dev Set the arbitration price. Only callable by the owner.
+     * @param _platformId Id of the platform to set the arbitration price for.
      *  @param _arbitrationPrice Amount to be paid for arbitration.
      */
-    function setArbitrationPrice(uint256 _arbitrationPrice) public onlyOwner {
-        arbitrationPrice = _arbitrationPrice;
+    function setArbitrationPrice(uint256 _platformId, uint256 _arbitrationPrice) public {
+        require(
+            msg.sender == talentLayerPlatformIdContract.ownerOf(_platformId),
+            "You're not the owner of the platform"
+        );
+
+        arbitrationPrice[_platformId] = _arbitrationPrice;
     }
 
     /** @dev Cost of arbitration. Accessor to arbitrationPrice.
@@ -54,7 +62,8 @@ contract TalentLayerArbitrator is Arbitrator {
      *  @return fee Amount to be paid.
      */
     function arbitrationCost(bytes memory _extraData) public view override returns (uint256 fee) {
-        return arbitrationPrice;
+        uint256 platformId = bytesToUint(_extraData);
+        return arbitrationPrice[platformId];
     }
 
     /** @dev Cost of appeal. Since it is not possible, it's a high value which can never be paid.
@@ -69,7 +78,7 @@ contract TalentLayerArbitrator is Arbitrator {
     /** @dev Create a dispute. Must be called by the arbitrable contract.
      *  Must be paid at least arbitrationCost().
      *  @param _choices Amount of choices the arbitrator can make in this dispute. When ruling ruling<=choices.
-     *  @param _extraData Can be used to give additional info on the dispute to be created.
+     *  @param _extraData Should be the id of the platform where the dispute is arising.
      *  @return disputeID ID of the dispute created.
      */
     function createDispute(uint256 _choices, bytes memory _extraData)
@@ -120,7 +129,7 @@ contract TalentLayerArbitrator is Arbitrator {
 
         require(
             msg.sender == talentLayerPlatformIdContract.ownerOf(dispute.platformId),
-            "Only the owner of the platform can give a ruling"
+            "You're not the owner of the platform"
         );
         return _giveRuling(_disputeID, _ruling);
     }
