@@ -12,6 +12,7 @@ const ethAddress = '0x0000000000000000000000000000000000000000'
 /*
 This script sets up the context for dispute resolution, specifically it does the following:
 - Sets the arbitration cost on the arbitrator
+- Adds the arbitrator to the platform available arbitrators
 - Mints platform id for Carol
 - Mints TL Ids for Alice and Bob
 - Alice initiates an open service
@@ -62,6 +63,9 @@ async function main() {
   const platformName = 'HireVibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
   console.log('Minted platform id for Carol')
+
+  // Add arbitrator to platform available arbitrators
+  await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address)
 
   // Update platform arbitrator, extra data and fee timeout
   await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)

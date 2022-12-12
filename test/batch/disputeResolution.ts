@@ -78,6 +78,9 @@ async function deployAndSetup(
   const platformName = 'HireVibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
+  // Add arbitrator to platform available arbitrators
+  await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address)
+
   // Update platform arbitrator, extra data and fee timeout
   await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address)
   await talentLayerPlatformID.connect(carol).updateArbitratorExtraData(carolPlatformId, arbitratorExtraData)

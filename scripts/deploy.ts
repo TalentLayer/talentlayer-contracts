@@ -123,6 +123,9 @@ task('deploy')
 
       set(network.name as any as Network, ConfigProperty.TalentLayerArbitrator, talentLayerArbitrator.address)
 
+      // Add TalentLayerArbitrator to platform available arbitrators
+      await talentLayerPlatformID.addArbitrator(talentLayerArbitrator.address)
+
       // Deploy TalentLayerEscrow
       const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
       const talentLayerEscrowArgs: [string, string, string] = [
