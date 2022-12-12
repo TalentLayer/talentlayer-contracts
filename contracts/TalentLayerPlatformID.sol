@@ -20,6 +20,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     /// @param name the name of the platform
     /// @param dataUri the IPFS URI of the Platform metadata
     /// @param fee the %fee (per ten thousands) asked by the platform for each job escrow transaction
+    /// @param arbitrator address of the arbitrator used by the platform
+    /// @param arbitratorExtraData extra information for the arbitrator
+    /// @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
     struct Platform {
         uint256 id;
         string name;
