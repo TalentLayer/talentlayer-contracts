@@ -40,7 +40,7 @@ describe('TalentLayer', function () {
     mockProofOfHumanity.addSubmissionManually([alice.address, bob.address])
 
     // Deploy PlatformId
-    const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
+    TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
     talentLayerPlatformID = await TalentLayerPlatformID.deploy()
 
     // Deploy TalenLayerID
