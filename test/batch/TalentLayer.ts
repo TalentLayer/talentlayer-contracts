@@ -228,10 +228,10 @@ describe('TalentLayer', function () {
     })
 
     it('The platform owner can update the arbitrator only if is a valid one', async function () {
-      const tx = talentLayerPlatformID.connect(alice).updateArbitrator(1, dave.address)
+      const tx = talentLayerPlatformID.connect(alice).updateArbitrator(1, dave.address, [])
       expect(tx).to.be.revertedWith('The address must be of a valid arbitrator')
 
-      await talentLayerPlatformID.connect(alice).updateArbitrator(1, talentLayerArbitrator.address)
+      await talentLayerPlatformID.connect(alice).updateArbitrator(1, talentLayerArbitrator.address, [])
       const arbitrator = (await talentLayerPlatformID.getPlatform(1)).arbitrator
       expect(arbitrator).to.be.equal(talentLayerArbitrator.address)
 
@@ -242,7 +242,7 @@ describe('TalentLayer', function () {
     })
 
     it('Only the owner of the platform can update its arbitrator', async function () {
-      const tx = talentLayerPlatformID.connect(bob).updateArbitrator(1, talentLayerArbitrator.address)
+      const tx = talentLayerPlatformID.connect(bob).updateArbitrator(1, talentLayerArbitrator.address, [])
       expect(tx).to.be.revertedWith("You're not the owner of this platform")
     })
 

@@ -179,9 +179,15 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     /**
      * @notice Allows a platform to update his arbitrator
-     * @param _arbitrator New arbitrator
+     * @param _arbitrator the arbitrator
+     * @param _extraData the extra data for arbitrator (this is only used for external arbitrators, for
+     *                   internal arbitrators it should be empty)
      */
-    function updateArbitrator(uint256 _platformId, Arbitrator _arbitrator) public {
+    function updateArbitrator(
+        uint256 _platformId,
+        Arbitrator _arbitrator,
+        bytes memory _extraData
+    ) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
         require(validArbitrators[address(_arbitrator)], "The address must be of a valid arbitrator");
 
@@ -189,21 +195,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
         if (internalArbitrators[address(_arbitrator)]) {
             platforms[_platformId].arbitratorExtraData = abi.encodePacked(_platformId);
+        } else {
+            platforms[_platformId].arbitratorExtraData = _extraData;
         }
-    }
-
-    /**
-     * @notice Allows a platform to update his extra data for arbitrator
-     * @param _extraData New extra data for arbitrator
-     */
-    function updateArbitratorExtraData(uint256 _platformId, bytes memory _extraData) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
-        require(
-            !internalArbitrators[address(platforms[_platformId].arbitrator)],
-            "Extra data can't be updated for an internal arbitrator"
-        );
-
-        platforms[_platformId].arbitratorExtraData = _extraData;
     }
 
     /**
