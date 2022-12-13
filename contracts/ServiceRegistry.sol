@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/Pausable.sol";
 
 /**
  * @title ServiceRegistry Contract
@@ -177,7 +178,10 @@ contract ServiceRegistry is AccessControl {
      * @param _platformId platform ID on which the Service token was minted
      * @param _serviceDataUri token Id to IPFS URI mapping
      */
-    function createOpenServiceFromBuyer(uint256 _platformId, string calldata _serviceDataUri) public returns (uint256) {
+    function createOpenServiceFromBuyer(
+        uint256 _platformId,
+        string calldata _serviceDataUri
+    ) public whenNotPaused returns (uint256) {
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         return _createService(Status.Opened, senderId, senderId, 0, _serviceDataUri, _platformId);
