@@ -370,13 +370,23 @@ describe('TalentLayer', function () {
   })
 
   describe('Service Registry & Proposal contract test', function () {
+    it('Bob cannot create a service if Alice Paused the createOpenServiceFromBuyer function', async function () {
+      const adminRole = await serviceRegistry.DEFAULT_ADMIN_ROLE()
+      await serviceRegistry.grantRole(adminRole, alice.address)
+      await serviceRegistry.connect(alice).pause()
+
+      expect(serviceRegistry.connect(bob).createOpenServiceFromBuyer(1, 'cidPause')).to.be.revertedWith(
+        'Pausable: paused',
+      )
+    })
+
     it("Dave, who doesn't have TalentLayerID, can't create a service", async function () {
       expect(serviceRegistry.connect(dave).createOpenServiceFromBuyer(1, 'haveNotTlid')).to.be.revertedWith(
         'You sould have a TalentLayerId',
       )
     })
 
-    it("Alice can't create a new service with a talentLayerId 0", async function () {
+    it('Alice can t create a new service with a talentLayerId 0', async function () {
       expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(0, 'cid0')).to.be.revertedWith(
         'Seller 0 is not a valid TalentLayerId',
       )
@@ -385,10 +395,23 @@ describe('TalentLayer', function () {
       )
     })
 
-    it('Alice the buyer can create a few Open service', async function () {
-      // Alice will create 4 Open services fo the whole unit test process
+    it('Alice can create her first service after unpause the createOpenServiceFromBuyer function', async function () {
+      // unpause the function
+      await serviceRegistry.connect(alice).unPause()
+
+      // service 1
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID1')
       const serviceData = await serviceRegistry.services(1)
+
+      expect(serviceData.status.toString()).to.be.equal('4')
+      expect(serviceData.buyerId.toString()).to.be.equal('1')
+      expect(serviceData.initiatorId.toString()).to.be.equal('1')
+      expect(serviceData.serviceDataUri).to.be.equal('CID1')
+      expect(serviceData.platformId).to.be.equal(1)
+    })
+
+    it('Alice the buyer can create a few Open service', async function () {
+      // Alice will create 3 other Open services fo the whole unit test process
 
       // service 2
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID2')
@@ -402,11 +425,11 @@ describe('TalentLayer', function () {
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID4')
       const serviceData4 = await serviceRegistry.services(4)
 
-      expect(serviceData.status.toString()).to.be.equal('4')
-      expect(serviceData.buyerId.toString()).to.be.equal('1')
-      expect(serviceData.initiatorId.toString()).to.be.equal('1')
-      expect(serviceData.serviceDataUri).to.be.equal('CID1')
-      expect(serviceData.platformId).to.be.equal(1)
+      expect(serviceData2.status.toString()).to.be.equal('4')
+      expect(serviceData2.buyerId.toString()).to.be.equal('1')
+      expect(serviceData2.initiatorId.toString()).to.be.equal('1')
+      expect(serviceData2.serviceDataUri).to.be.equal('CID2')
+      expect(serviceData2.platformId).to.be.equal(1)
     })
 
     it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function () {

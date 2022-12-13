@@ -4,13 +4,13 @@ pragma solidity ^0.8.9;
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
 /**
  * @title ServiceRegistry Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
-contract ServiceRegistry is AccessControl {
+contract ServiceRegistry is AccessControl, Pausable {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
@@ -154,6 +154,16 @@ contract ServiceRegistry is AccessControl {
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    // =========================== Pausable function ===========================
+
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    function unPause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
     }
 
     // =========================== View functions ==============================
