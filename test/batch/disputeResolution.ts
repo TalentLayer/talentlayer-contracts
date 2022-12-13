@@ -12,6 +12,7 @@ enum TransactionStatus {
   Resolved,
 }
 
+const aliceTlId = 1
 const bobTlId = 2
 const carolPlatformId = 1
 const serviceId = 1
@@ -110,16 +111,21 @@ describe('Dispute Resolution, standard flow', function () {
     talentLayerArbitrator: TalentLayerArbitrator,
     protocolFee: number,
     originPlatformFee: number,
-    platformFee: number
+    platformFee: number,
+    platform: TalentLayerPlatformID.PlatformStructOutput
 
   const transactionReleasedAmount = BigNumber.from(100)
   const transactionReimbursedAmount = BigNumber.from(50)
   let currentTransactionAmount = transactionAmount
   const rulingId = 1
+  const arbitrationFeeTimeout = 3600
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(3600, ethAddress)
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(
+      arbitrationFeeTimeout,
+      ethAddress,
+    )
   })
 
   describe('Transaction creation', async function () {
@@ -129,7 +135,9 @@ describe('Dispute Resolution, standard flow', function () {
     before(async function () {
       protocolFee = await talentLayerEscrow.protocolFee()
       originPlatformFee = await talentLayerEscrow.originPlatformFee()
-      platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+
+      platform = await talentLayerPlatformID.platforms(carolPlatformId)
+      platformFee = platform.fee
       totalTransactionAmount = transactionAmount.add(
         transactionAmount.mul(protocolFee + originPlatformFee + platformFee).div(feeDivider),
       )
@@ -148,6 +156,25 @@ describe('Dispute Resolution, standard flow', function () {
 
     it('MetaEvidence is submitted', async function () {
       await expect(tx).to.emit(talentLayerEscrow, 'MetaEvidence').withArgs(transactionId, metaEvidence)
+    })
+
+    it('MetaEvidence is submitted', async function () {
+      await expect(tx)
+        .to.emit(talentLayerEscrow, 'TransactionCreated')
+        .withArgs(
+          transactionId,
+          aliceTlId,
+          bobTlId,
+          ethAddress,
+          transactionAmount,
+          serviceId,
+          protocolFee,
+          originPlatformFee,
+          platformFee,
+          talentLayerArbitrator.address,
+          platform.arbitratorExtraData,
+          arbitrationFeeTimeout,
+        )
     })
   })
 
