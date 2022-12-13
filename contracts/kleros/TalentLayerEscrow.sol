@@ -586,7 +586,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         if (transaction.receiverFee != 0) {
             uint256 receiverFee = transaction.receiverFee;
             transaction.receiverFee = 0;
-            payable(transaction.receiver).transfer(receiverFee);
+            payable(transaction.receiver).call{value: receiverFee}("");
         }
 
         _executeRuling(_transactionId, SENDER_WINS);
@@ -607,7 +607,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         if (transaction.senderFee != 0) {
             uint256 senderFee = transaction.senderFee;
             transaction.senderFee = 0;
-            payable(transaction.sender).transfer(senderFee);
+            payable(transaction.sender).call{value: senderFee}("");
         }
 
         _executeRuling(_transactionId, RECEIVER_WINS);
@@ -714,7 +714,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         if (transaction.senderFee > _arbitrationCost) {
             uint256 extraFeeSender = transaction.senderFee - _arbitrationCost;
             transaction.senderFee = _arbitrationCost;
-            payable(transaction.sender).transfer(extraFeeSender);
+            payable(transaction.sender).call{value: extraFeeSender}("");
             emit ArbitrationFeePayment(_transactionId, ArbitrationFeePaymentType.Reimburse, Party.Sender, msg.value);
         }
 
@@ -722,7 +722,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         if (transaction.receiverFee > _arbitrationCost) {
             uint256 extraFeeReceiver = transaction.receiverFee - _arbitrationCost;
             transaction.receiverFee = _arbitrationCost;
-            payable(transaction.receiver).transfer(extraFeeReceiver);
+            payable(transaction.receiver).call{value: extraFeeReceiver}("");
             emit ArbitrationFeePayment(_transactionId, ArbitrationFeePaymentType.Reimburse, Party.Receiver, msg.value);
         }
     }
@@ -751,21 +751,21 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         // Send the funds to the winner and reimburse the arbitration fee.
         if (_ruling == SENDER_WINS) {
-            sender.transfer(senderFee);
-            _transferBalance(sender, transaction.token, amount);
+            sender.call{value: senderFee}("");
+            _safeTransferBalance(sender, transaction.token, amount);
         } else if (_ruling == RECEIVER_WINS) {
-            receiver.transfer(receiverFee);
-            _transferBalance(receiver, transaction.token, amount);
+            receiver.call{value: receiverFee}("");
+            _safeTransferBalance(receiver, transaction.token, amount);
         } else {
             // If no ruling is given split funds in half
             uint256 splitFeeAmount = senderFee / 2;
             uint256 splitTransactionAmount = amount / 2;
 
-            _transferBalance(sender, transaction.token, splitTransactionAmount);
-            _transferBalance(receiver, transaction.token, splitTransactionAmount);
+            _safeTransferBalance(sender, transaction.token, splitTransactionAmount);
+            _safeTransferBalance(receiver, transaction.token, splitTransactionAmount);
 
-            sender.transfer(splitFeeAmount);
-            receiver.transfer(splitFeeAmount);
+            sender.call{value: splitFeeAmount}("");
+            receiver.call{value: splitFeeAmount}("");
         }
 
         emit RulingExecuted(_transactionId, _ruling);
@@ -995,6 +995,18 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     ) private {
         if (address(0) == _tokenAddress) {
             _recipient.transfer(_amount);
+        } else {
+            IERC20(_tokenAddress).transfer(_recipient, _amount);
+        }
+    }
+
+    function _safeTransferBalance(
+        address payable _recipient,
+        address _tokenAddress,
+        uint256 _amount
+    ) private {
+        if (address(0) == _tokenAddress) {
+            (bool sent, ) = _recipient.call{value: _amount}("");
         } else {
             IERC20(_tokenAddress).transfer(_recipient, _amount);
         }
