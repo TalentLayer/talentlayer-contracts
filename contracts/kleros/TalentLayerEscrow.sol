@@ -184,8 +184,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     event RulingExecuted(uint256 indexed _transactionId, uint256 _ruling);
 
     /** @notice Emitted when a transaction is created.
-     *  @param _sender The TL Id of the party paying the escrow amount
-     *  @param _receiver The TL Id of the intended receiver of the escrow amount
+     *  @param _senderId The TL Id of the party paying the escrow amount
+     *  @param _receiverId The TL Id of the intended receiver of the escrow amount
      *  @param _token The token used for the transaction
      *  @param _amount The amount of the transaction EXCLUDING FEES
      *  @param _serviceId The ID of the associated service
@@ -197,8 +197,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     event TransactionCreated(
         uint256 _transactionId,
-        uint256 _sender,
-        uint256 _receiver,
+        uint256 _senderId,
+        uint256 _receiverId,
         address _token,
         uint256 _amount,
         uint256 _serviceId,
