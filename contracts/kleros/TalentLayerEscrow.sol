@@ -210,6 +210,14 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 _arbitrationFeeTimeout
     );
 
+    /**
+     * @notice Emitted when evidence is submitted.
+     * @param transactionId The id of the transaction.
+     * @param _party The party submitting the evidence.
+     * @param _evidenceUri The URI of the evidence.
+     */
+    event EvidenceSubmitted(uint256 indexed transactionId, address indexed _party, string _evidenceUri);
+
     // =========================== Declarations ==============================
 
     /**
@@ -626,6 +634,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
 
         emit Evidence(transaction.arbitrator, _transactionId, msg.sender, _evidence);
+        emit EvidenceSubmitted(_transactionId, msg.sender, _evidence);
     }
 
     /** @notice Appeals an appealable ruling, paying the appeal fee to the arbitrator.
