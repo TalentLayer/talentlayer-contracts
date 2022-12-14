@@ -212,11 +212,11 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
     /**
      * @notice Emitted when evidence is submitted.
-     * @param transactionId The id of the transaction.
-     * @param _party The party submitting the evidence.
+     * @param _transactionId The id of the transaction.
+     * @param _partyId The party submitting the evidence.
      * @param _evidenceUri The URI of the evidence.
      */
-    event EvidenceSubmitted(uint256 indexed transactionId, uint256 indexed _party, string _evidenceUri);
+    event EvidenceSubmitted(uint256 indexed _transactionId, uint256 indexed _partyId, string _evidenceUri);
 
     // =========================== Declarations ==============================
 
