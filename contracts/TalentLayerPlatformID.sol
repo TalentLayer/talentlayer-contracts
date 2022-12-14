@@ -172,12 +172,13 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     /**
      * @notice Allows a platform to update his fee
-     * @param _platformfee Platform fee to update
+     * @param _platformFee Platform fee to update
      */
-    function updatePlatformfee(uint256 _platformId, uint16 _platformfee) public {
+    function updatePlatformfee(uint256 _platformId, uint16 _platformFee) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
-        platforms[_platformId].fee = _platformfee;
+        platforms[_platformId].fee = _platformFee;
+        emit PlatformFeeUpdated(_platformId, _platformFee);
     }
 
     /**
@@ -201,6 +202,8 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         } else {
             platforms[_platformId].arbitratorExtraData = _extraData;
         }
+
+        emit ArbitratorUpdated(_platformId, _arbitrator, platforms[_platformId].arbitratorExtraData);
     }
 
     /**
@@ -211,6 +214,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
         platforms[_platformId].arbitrationFeeTimeout = _arbitrationFeeTimeout;
+        emit ArbitrationFeeTimeoutUpdated(_platformId, _arbitrationFeeTimeout);
     }
 
     // =========================== Owner functions ==============================
@@ -396,4 +400,25 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _mintFee The new mint fee
      */
     event MintFeeUpdated(uint256 _mintFee);
+
+    /**
+     * Emit when the fee is updated for a platform
+     * @param _platformFee The new fee
+     */
+    event PlatformFeeUpdated(uint256 _platformId, uint256 _platformFee);
+
+    /**
+     * Emit after the arbitrator is updated for a platform
+     * @param _platformId The ID of the platform
+     * @param _arbitrator The address of the new arbitrator
+     * @param _extraData The new extra data for the arbitrator
+     */
+    event ArbitratorUpdated(uint256 _platformId, Arbitrator _arbitrator, bytes _extraData);
+
+    /**
+     * Emit after the arbitration fee timeout is updated for a platform
+     * @param _platformId The ID of the platform
+     * @param _arbitrationFeeTimeout The new arbitration fee timeout
+     */
+    event ArbitrationFeeTimeoutUpdated(uint256 _platformId, uint256 _arbitrationFeeTimeout);
 }
