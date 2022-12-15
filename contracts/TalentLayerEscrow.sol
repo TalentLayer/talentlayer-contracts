@@ -4,13 +4,13 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../interfaces/IServiceRegistry.sol";
-import "../interfaces/ITalentLayerID.sol";
-import "../interfaces/ITalentLayerPlatformID.sol";
+import "./interfaces/IServiceRegistry.sol";
+import "./interfaces/ITalentLayerID.sol";
+import "./interfaces/ITalentLayerPlatformID.sol";
 import "./IArbitrable.sol";
 import "./Arbitrator.sol";
 
-contract TalentLayerMultipleArbitrableTransaction is Ownable {
+contract TalentLayerEscrow is Ownable {
     // =========================== Enum ==============================
 
     /**
@@ -466,11 +466,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _token The token to transfer
      * @param _amount The amount of tokens to transfer
      */
-    function _deposit(
-        address _sender,
-        address _token,
-        uint256 _amount
-    ) private {
+    function _deposit(address _sender, address _token, uint256 _amount) private {
         require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
     }
 
@@ -554,7 +550,10 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _proposalId The id of the proposal
      * @return proposal proposal struct, service The service struct, sender The sender address, receiver The receiver address
      */
-    function _getTalentLayerData(uint256 _serviceId, uint256 _proposalId)
+    function _getTalentLayerData(
+        uint256 _serviceId,
+        uint256 _proposalId
+    )
         private
         returns (
             IServiceRegistry.Proposal memory proposal,
@@ -576,11 +575,10 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _proposalId The id of the proposal
      * @return The Proposal struct
      */
-    function _getProposal(uint256 _serviceId, uint256 _proposalId)
-        private
-        view
-        returns (IServiceRegistry.Proposal memory)
-    {
+    function _getProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) private view returns (IServiceRegistry.Proposal memory) {
         return serviceRegistryContract.getProposal(_serviceId, _proposalId);
     }
 
@@ -599,11 +597,7 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
      */
-    function _transferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.transfer(_amount);
         } else {
@@ -617,11 +611,10 @@ contract TalentLayerMultipleArbitrableTransaction is Ownable {
      * @param _platformFee The platform fee
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformFee)
-        private
-        view
-        returns (uint256 totalEscrowAmount)
-    {
+    function _calculateTotalEscrowAmount(
+        uint256 _amount,
+        uint256 _platformFee
+    ) private view returns (uint256 totalEscrowAmount) {
         return
             _amount +
             (((_amount * protocolFee) + (_amount * originPlatformFee) + (_amount * _platformFee)) / FEE_DIVIDER);
