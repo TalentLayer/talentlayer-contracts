@@ -25,7 +25,7 @@ https://www.talentlayer.org/
 - serviceRegistryAddress: 0x6f97FB242d2D3bCA9d19c05c975F6Ec8caB4d1a4,
 - talentLayerReviewAddress: 0x59ff1f3ff159c17C48558cCf8269FF17aA0B8C8D,
 - talentLayerArbitratorAddress: 0x2Bb8A21458E35d632161dF96723F42De4034F581,
-- talentLayerMultipleArbitrableTransactionAddress: 0x4A6F0208a0b636E3A4918cb0A5B1367E4B338aD8,
+- TalentLayerEscrow: 0x4A6F0208a0b636E3A4918cb0A5B1367E4B338aD8,
 - simpleERC20Address: 0x652e712fD63D8AcB14FA7d2b2b5aCA0413E8E705
 - Registered Alice: 0x1caAb8ded4535bF42728feA90aFa7da1ac637E1E
 - Registered Bob: 0x5C7c844cB1E996a77EAC530A8EA0b99A1DDc565e
@@ -40,7 +40,7 @@ https://www.talentlayer.org/
 - Service Registry : 0x9EA2678d5A69CEDEc52ecafA367659b1d2Ff7824
 - TalentLayerReview : 0xD8c4fD1D8Dd2f3a6E4d26BeB167e73D9E28db7F0
 - TalentLayerArbitrator : 0xc779bA385Fe051De397d5e25eaedabef2d495f51
-- TalentLayerMultipleArbitrableTransaction : 0x8754a129D3F53222dd94Ce45749134c15C9Ed119
+- TalentLayerEscrow : 0x8754a129D3F53222dd94Ce45749134c15C9Ed119
 - simpleERC20 address: 0xaC174398bB8a3aD8b04D8CeE4B93E752AcddCD4b
 
 ## Playground

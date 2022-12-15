@@ -11,13 +11,13 @@ async function main() {
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
-  const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
-    'TalentLayerMultipleArbitrableTransaction',
-    get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
+  const talentLayerEscrow = await ethers.getContractAt(
+    'TalentLayerEscrow',
+    get(network as Network, ConfigProperty.TalentLayerEscrow),
   )
   const rateAmount = ethers.utils.parseUnits('0.003', 18)
 
-  const release = await talentLayerMultipleArbitrableTransaction.connect(alice).release(1, rateAmount)
+  const release = await talentLayerEscrow.connect(alice).release(1, rateAmount)
   release.wait()
 }
 

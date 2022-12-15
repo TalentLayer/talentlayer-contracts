@@ -5,6 +5,6 @@
   "serviceRegistryAddress": "0xC51537E03f56650C63A9Feca4cCb5a039c77c822",
   "talentLayerReviewAddress": "0x4F8f04B675B0ef2A0AA7C8B93D4c2d5FfFCd9Ae1",
   "talentLayerArbitratorAddress": "0x45E8F869Fd316741A9316f39bF09AD03Df88496f",
-  "talentLayerMultipleArbitrableTransactionAddress": "0x5dEcA1942678e9d6E146312e59eB135BB2da038e",
+  "talentLayerEscrowAddress": "0x5dEcA1942678e9d6E146312e59eB135BB2da038e",
   "simpleERC20Address": "0x6A5BF452108DA389B7B38284E871f538671Ad375"
 }
