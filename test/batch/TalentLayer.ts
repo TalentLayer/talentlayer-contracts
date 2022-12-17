@@ -154,13 +154,13 @@ describe('TalentLayer', function () {
       const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE()
 
       await talentLayerPlatformID.grantRole(adminRole, alice.address)
-      await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1)
+      await talentLayerPlatformID.connect(alice).updatePlatformFee(aliceUserId, 1)
 
       const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
 
       expect(alicePlatformData.fee).to.be.equal(1)
 
-      await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 6)
+      await talentLayerPlatformID.connect(alice).updatePlatformFee(aliceUserId, 6)
 
       const newAlicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
 
@@ -587,7 +587,7 @@ describe('TalentLayer', function () {
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
         const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
-        await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100)
+        await talentLayerPlatformID.connect(alice).updatePlatformFee(aliceUserId, 1100)
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
         const protocolFee = await talentLayerEscrow.protocolFee()
         const originPlatformFee = await talentLayerEscrow.originPlatformFee()
@@ -747,7 +747,7 @@ describe('TalentLayer', function () {
 
       it('Alice can NOT deposit eth to escrow yet.', async function () {
         const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
-        await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100)
+        await talentLayerPlatformID.connect(alice).updatePlatformFee(aliceUserId, 1100)
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
         const protocolFee = await talentLayerEscrow.protocolFee()
         const originPlatformFee = await talentLayerEscrow.originPlatformFee()
