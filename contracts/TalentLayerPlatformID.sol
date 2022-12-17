@@ -174,7 +174,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @notice Allows a platform to update his fee
      * @param _platformFee Platform fee to update
      */
-    function updatePlatformfee(uint256 _platformId, uint16 _platformFee) public {
+    function updatePlatformFee(uint256 _platformId, uint16 _platformFee) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
         platforms[_platformId].fee = _platformFee;

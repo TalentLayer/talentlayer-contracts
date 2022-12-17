@@ -42,8 +42,8 @@ async function main() {
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const updatePlatformfee = await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100)
-  updatePlatformfee.wait()
+  const updatePlatformFee = await platformIdContrat.connect(dave).updatePlatformFee(daveTlId, 1100)
+  updatePlatformFee.wait()
 
   const davePlatformData = await platformIdContrat.platforms(daveTlId)
   const protocolFee = ethers.BigNumber.from(await talentLayerEscrow.protocolFee())
