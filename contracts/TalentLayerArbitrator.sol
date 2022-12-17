@@ -67,7 +67,7 @@ contract TalentLayerArbitrator is Arbitrator {
     }
 
     /** @dev Cost of arbitration. Accessor to arbitrationPrice.
-     *  @param _extraData Not used by this contract.
+     *  @param _extraData Should be the id of the platform.
      *  @return fee Amount to be paid.
      */
     function arbitrationCost(bytes memory _extraData) public view override returns (uint256 fee) {
