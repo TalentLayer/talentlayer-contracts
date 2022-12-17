@@ -940,4 +940,21 @@ describe('TalentLayer', function () {
       expect(await reviewData1.platformId).to.be.equal(1)
     })
   })
+
+  describe('Talent Layer Arbitrator contract test', function () {
+    it('the owner of the platform can update the arbitration price', async function () {
+      const newArbitrationPrice = 1000
+      const platformId = 1
+
+      // It fails if the caller is not the owner of the platform
+      const tx = talentLayerArbitrator.connect(bob).setArbitrationPrice(platformId, newArbitrationPrice)
+      expect(tx).to.be.revertedWith("You're not the owner of the platform")
+
+      // It succeeds if the caller is the owner of the platform
+      await talentLayerArbitrator.connect(alice).setArbitrationPrice(platformId, newArbitrationPrice)
+      const extraData = ethers.utils.hexZeroPad(ethers.utils.hexlify(platformId), 32)
+      const updatedArbitrationPrice = await talentLayerArbitrator.arbitrationCost(extraData)
+      expect(updatedArbitrationPrice).to.be.equal(newArbitrationPrice)
+    })
+  })
 })

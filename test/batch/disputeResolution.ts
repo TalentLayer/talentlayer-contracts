@@ -12,6 +12,12 @@ enum TransactionStatus {
   Resolved,
 }
 
+enum DisputeStatus {
+  Waiting,
+  Appealable,
+  Solved,
+}
+
 const aliceTlId = 1
 const bobTlId = 2
 const carolPlatformId = 1
@@ -301,6 +307,11 @@ describe('Dispute Resolution, standard flow', function () {
         expect(dispute.arbitrated).to.be.eq(talentLayerEscrow.address)
         expect(dispute.fee).to.be.eq(arbitrationCost)
         expect(dispute.platformId).to.be.eq(carolPlatformId)
+
+        const status = await talentLayerArbitrator.disputeStatus(disputeId)
+        const ruling = await talentLayerArbitrator.currentRuling(disputeId)
+        expect(status).to.be.eq(DisputeStatus.Waiting)
+        expect(ruling).to.be.eq(0)
       })
     })
   })
@@ -378,9 +389,10 @@ describe('Dispute Resolution, standard flow', function () {
       })
 
       it('Dispute data is updated', async function () {
-        const dispute = await talentLayerArbitrator.connect(alice).disputes(transactionId)
-        expect(dispute.status).to.be.eq(2)
-        expect(dispute.ruling).to.be.eq(rulingId)
+        const status = await talentLayerArbitrator.disputeStatus(disputeId)
+        const ruling = await talentLayerArbitrator.currentRuling(disputeId)
+        expect(status).to.be.eq(DisputeStatus.Solved)
+        expect(ruling).to.be.eq(rulingId)
       })
     })
   })
