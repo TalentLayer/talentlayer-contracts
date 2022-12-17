@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {IERC721A} from "../libs/IERC721A.sol";
-import "../kleros/Arbitrator.sol";
+import "../Arbitrator.sol";
 
 /**
  * @title Platform ID Interface

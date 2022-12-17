@@ -6,7 +6,7 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 
-import "./kleros/Arbitrator.sol";
+import "./Arbitrator.sol";
 
 /**
  * @title Platform ID Contract
