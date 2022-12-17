@@ -405,7 +405,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * Emit when the fee is updated for a platform
      * @param _platformFee The new fee
      */
-    event PlatformFeeUpdated(uint256 _platformId, uint256 _platformFee);
+    event PlatformFeeUpdated(uint256 _platformId, uint16 _platformFee);
 
     /**
      * Emit after the arbitrator is updated for a platform
