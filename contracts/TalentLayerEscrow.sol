@@ -4,9 +4,9 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../interfaces/IServiceRegistry.sol";
-import "../interfaces/ITalentLayerID.sol";
-import "../interfaces/ITalentLayerPlatformID.sol";
+import "./interfaces/IServiceRegistry.sol";
+import "./interfaces/ITalentLayerID.sol";
+import "./interfaces/ITalentLayerPlatformID.sol";
 import "./IArbitrable.sol";
 import "./Arbitrator.sol";
 
