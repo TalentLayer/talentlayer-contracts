@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Arbitrator.sol";
-
 interface ITalentLayerEscrow {
     struct Transaction {
         address sender; //pays recipient using the escrow

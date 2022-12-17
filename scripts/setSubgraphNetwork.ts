@@ -26,8 +26,7 @@ async function main() {
     subgraphNetwork.fuji.TalentLayerID.address = config.talentLayerIdAddress
     subgraphNetwork.fuji.TalentLayerReview.address = config.talentLayerReviewAddress
     subgraphNetwork.fuji.ServiceRegistry.address = config.serviceRegistryAddress
-    subgraphNetwork.fuji.TalentLayerMultipleArbitrableTransaction.address =
-      config.talentLayerMultipleArbitrableTransactionAddress
+    subgraphNetwork.fuji.TalentLayerEscrow.address = config.talentLayerEscrowAddress
     subgraphNetwork.fuji.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
   }
 
