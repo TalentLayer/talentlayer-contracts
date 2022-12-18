@@ -521,14 +521,15 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     function payArbitrationFeeBySender(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
-        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
 
+        require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
         require(
             transaction.status < Status.DisputeCreated,
             "Dispute has already been created or because the transaction has been executed."
         );
         require(msg.sender == transaction.sender, "The caller must be the sender.");
 
+        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
         transaction.senderFee += msg.value;
         // The total fees paid by the sender should be at least the arbitration cost.
         require(transaction.senderFee == arbitrationCost, "The sender fee must be equal to the arbitration cost.");
@@ -553,14 +554,15 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     function payArbitrationFeeByReceiver(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
-        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
 
+        require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
         require(
             transaction.status < Status.DisputeCreated,
             "Dispute has already been created or because the transaction has been executed."
         );
         require(msg.sender == transaction.receiver, "The caller must be the receiver.");
 
+        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
         transaction.receiverFee += msg.value;
         // The total fees paid by the receiver should be at least the arbitration cost.
         require(transaction.receiverFee == arbitrationCost, "The receiver fee must be equal to the arbitration cost.");
@@ -627,6 +629,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     function submitEvidence(uint256 _transactionId, string memory _evidence) public {
         Transaction storage transaction = transactions[_transactionId];
+
+        require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
         require(
             msg.sender == transaction.sender || msg.sender == transaction.receiver,
             "The caller must be the sender or the receiver."
@@ -646,6 +650,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     function appeal(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
+
+        require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
 
         transaction.arbitrator.appeal{value: msg.value}(transaction.disputeId, transaction.arbitratorExtraData);
     }
