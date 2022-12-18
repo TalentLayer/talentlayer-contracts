@@ -20,7 +20,7 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerArbitrator),
   )
 
-  // Alice submits evidence
+  // Carol submits the ruling
   await talentLayerArbitrator.connect(carol).giveRuling(disputeId, rulingId)
 
   console.log('Ruling submitted by Carol')
