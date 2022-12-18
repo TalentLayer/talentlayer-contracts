@@ -1,6 +1,6 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import { BigNumber, Bytes, ContractTransaction } from 'ethers'
+import { BigNumber, ContractTransaction } from 'ethers'
 import { ethers } from 'hardhat'
 import {
   ServiceRegistry,
@@ -22,6 +22,11 @@ enum DisputeStatus {
   Waiting,
   Appealable,
   Solved,
+}
+
+enum PaymentType {
+  Release,
+  Reimburse,
 }
 
 const aliceTlId = 1
@@ -418,7 +423,7 @@ describe('Dispute Resolution, standard flow', function () {
       it('Emits the Payment event', async function () {
         await expect(tx)
           .to.emit(talentLayerEscrow, 'Payment')
-          .withArgs(transactionId, 1, currentTransactionAmount, ethAddress, serviceId)
+          .withArgs(transactionId, PaymentType.Reimburse, currentTransactionAmount, ethAddress, serviceId)
       })
     })
   })
@@ -542,6 +547,16 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
       const protocolBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(ethAddress)
       const protocolFeesPaid = halfTransactionAmount.mul(protocolFee).div(feeDivider)
       expect(protocolBalance).to.be.eq(protocolFeesPaid)
+    })
+
+    it('Emits the Payment events', async function () {
+      await expect(tx)
+        .to.emit(talentLayerEscrow, 'Payment')
+        .withArgs(transactionId, PaymentType.Release, halfTransactionAmount, ethAddress, serviceId)
+
+      await expect(tx)
+        .to.emit(talentLayerEscrow, 'Payment')
+        .withArgs(transactionId, PaymentType.Reimburse, halfTransactionAmount, ethAddress, serviceId)
     })
   })
 })
