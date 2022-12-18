@@ -7,8 +7,8 @@ import 'hardhat-contract-sizer'
 import './scripts/deploy'
 import './scripts/wallet'
 import './scripts/mintPlatformIdForAddress'
-import './scripts/tasks/addArbitrator'
-import './scripts/tasks/removeArbitrator'
+import './scripts/tasks/protocol/addArbitrator'
+import './scripts/tasks/protocol/removeArbitrator'
 import { Network } from './scripts/config'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
