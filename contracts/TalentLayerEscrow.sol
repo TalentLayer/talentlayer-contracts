@@ -69,6 +69,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param arbitratorExtraData Extra data to set up the arbitration.
      */
     struct Transaction {
+        uint256 id;
         address sender;
         address receiver;
         address token;
@@ -486,10 +487,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         transaction.amount -= _amount;
         _release(transaction, _amount);
-
-        emit Payment(_transactionId, PaymentType.Release, _amount, transaction.token, transaction.serviceId);
-
-        _distributeMessage(transaction.serviceId, transaction.amount);
     }
 
     /**
@@ -508,10 +505,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         transaction.amount -= _amount;
         _reimburse(transaction, _amount);
-
-        emit Payment(_transactionId, PaymentType.Reimburse, _amount, transaction.token, transaction.serviceId);
-
-        _distributeMessage(transaction.serviceId, transaction.amount);
     }
 
     /** @notice Allows the sender of the transaction to pay the arbitration fee to raise a dispute.
@@ -811,8 +804,11 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
 
+        uint256 id = transactions.length;
+
         transactions.push(
             Transaction({
+                id: id,
                 sender: sender,
                 receiver: receiver,
                 token: proposal.rateToken,
@@ -832,7 +828,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             })
         );
 
-        return transactions.length - 1;
+        return id;
     }
 
     /**
@@ -914,6 +910,15 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             originPlatformFeeAmount
         );
         emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformFeeAmount);
+        emit Payment(
+            _transaction.id,
+            PaymentType.Reimburse,
+            _releaseAmount,
+            _transaction.token,
+            _transaction.serviceId
+        );
+
+        _distributeMessage(_transaction.serviceId, _transaction.amount);
     }
 
     /**
@@ -929,6 +934,16 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
                 FEE_DIVIDER);
 
         _safeTransferBalance(payable(_transaction.sender), _transaction.token, totalReleaseAmount);
+
+        emit Payment(
+            _transaction.id,
+            PaymentType.Reimburse,
+            _releaseAmount,
+            _transaction.token,
+            _transaction.serviceId
+        );
+
+        _distributeMessage(_transaction.serviceId, _transaction.amount);
     }
 
     /**

@@ -2,7 +2,13 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { BigNumber, Bytes, ContractTransaction } from 'ethers'
 import { ethers } from 'hardhat'
-import { SimpleERC20, TalentLayerArbitrator, TalentLayerEscrow, TalentLayerPlatformID } from '../../typechain-types'
+import {
+  ServiceRegistry,
+  SimpleERC20,
+  TalentLayerArbitrator,
+  TalentLayerEscrow,
+  TalentLayerPlatformID,
+} from '../../typechain-types'
 
 enum TransactionStatus {
   NoDispute,
@@ -39,7 +45,7 @@ const feeDivider = 10000
 async function deployAndSetup(
   arbitrationFeeTimeout: number,
   tokenAddress: string,
-): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator]> {
+): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, ServiceRegistry]> {
   const [deployer, alice, bob, carol] = await ethers.getSigners()
 
   // Deploy MockProofOfHumanity
@@ -104,7 +110,7 @@ async function deployAndSetup(
   // Bob, the seller, creates a proposal for the service
   await serviceRegistry.connect(bob).createProposal(serviceId, tokenAddress, transactionAmount, 'cid')
 
-  return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator]
+  return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry]
 }
 
 describe('Dispute Resolution, standard flow', function () {
@@ -115,6 +121,7 @@ describe('Dispute Resolution, standard flow', function () {
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
+    serviceRegistry: ServiceRegistry,
     protocolFee: number,
     originPlatformFee: number,
     platformFee: number,
@@ -128,7 +135,7 @@ describe('Dispute Resolution, standard flow', function () {
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] = await deployAndSetup(
       arbitrationFeeTimeout,
       ethAddress,
     )
@@ -401,6 +408,17 @@ describe('Dispute Resolution, standard flow', function () {
         const ruling = await talentLayerArbitrator.currentRuling(disputeId)
         expect(status).to.be.eq(DisputeStatus.Solved)
         expect(ruling).to.be.eq(rulingId)
+      })
+
+      it('Sets the service as finished', async function () {
+        const service = await serviceRegistry.getService(serviceId)
+        expect(service.status).to.be.eq(2)
+      })
+
+      it('Emits the Payment event', async function () {
+        await expect(tx)
+          .to.emit(talentLayerEscrow, 'Payment')
+          .withArgs(transactionId, 1, currentTransactionAmount, ethAddress, serviceId)
       })
     })
   })
