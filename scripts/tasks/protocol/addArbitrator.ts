@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { Network } from '../config'
-import { ConfigProperty, get } from '../../configManager'
+import { Network } from '../../config'
+import { ConfigProperty, get } from '../../../configManager'
 
 /**
  * @notice This task is used to add a new arbitrator to the list of available arbitrators
