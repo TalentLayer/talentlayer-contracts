@@ -769,17 +769,17 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         // Send the funds to the winner and reimburse the arbitration fee.
         if (_ruling == SENDER_WINS) {
             sender.call{value: senderFee}("");
-            _safeTransferBalance(sender, transaction.token, amount);
+            _reimburse(transaction, amount);
         } else if (_ruling == RECEIVER_WINS) {
             receiver.call{value: receiverFee}("");
-            _safeTransferBalance(receiver, transaction.token, amount);
+            _release(transaction, amount);
         } else {
             // If no ruling is given split funds in half
             uint256 splitFeeAmount = senderFee / 2;
             uint256 splitTransactionAmount = amount / 2;
 
-            _safeTransferBalance(sender, transaction.token, splitTransactionAmount);
-            _safeTransferBalance(receiver, transaction.token, splitTransactionAmount);
+            _reimburse(transaction, splitTransactionAmount);
+            _release(transaction, splitTransactionAmount);
 
             sender.call{value: splitFeeAmount}("");
             receiver.call{value: splitFeeAmount}("");
@@ -905,14 +905,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         platformIdToTokenToBalance[originPlatformId][_transaction.token] += originPlatformFeeAmount;
         platformIdToTokenToBalance[platformId][_transaction.token] += platformFeeAmount;
 
-        if (_transaction.token == address(0)) {
-            payable(_transaction.receiver).transfer(_releaseAmount);
-        } else {
-            require(
-                IERC20(_transaction.token).transfer(_transaction.receiver, _releaseAmount),
-                "Transfer must not fail"
-            );
-        }
+        _safeTransferBalance(payable(_transaction.receiver), _transaction.token, _releaseAmount);
 
         emit OriginPlatformFeeReleased(
             originPlatformId,
@@ -935,14 +928,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             (((_transaction.protocolFee + _transaction.originPlatformFee + _transaction.platformFee) * _releaseAmount) /
                 FEE_DIVIDER);
 
-        if (_transaction.token == address(0)) {
-            payable(_transaction.sender).transfer(totalReleaseAmount);
-        } else {
-            require(
-                IERC20(_transaction.token).transfer(_transaction.sender, totalReleaseAmount),
-                "Transfer must not fail"
-            );
-        }
+        _safeTransferBalance(payable(_transaction.sender), _transaction.token, totalReleaseAmount);
     }
 
     /**
@@ -1026,7 +1012,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 _amount
     ) private {
         if (address(0) == _tokenAddress) {
-            (bool sent, ) = _recipient.call{value: _amount}("");
+            _recipient.call{value: _amount}("");
         } else {
             IERC20(_tokenAddress).transfer(_recipient, _amount);
         }
