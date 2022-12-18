@@ -531,7 +531,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         transaction.senderFee += msg.value;
         // The total fees paid by the sender should be at least the arbitration cost.
-        require(transaction.senderFee >= arbitrationCost, "The sender fee must cover arbitration costs.");
+        require(transaction.senderFee == arbitrationCost, "The sender fee must be equal to the arbitration cost.");
 
         transaction.lastInteraction = block.timestamp;
 
@@ -563,7 +563,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         transaction.receiverFee += msg.value;
         // The total fees paid by the receiver should be at least the arbitration cost.
-        require(transaction.receiverFee >= arbitrationCost, "The receiver fee must cover arbitration costs.");
+        require(transaction.receiverFee == arbitrationCost, "The receiver fee must be equal to the arbitration cost.");
 
         transaction.lastInteraction = block.timestamp;
 

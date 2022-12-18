@@ -223,7 +223,7 @@ describe('Dispute Resolution, standard flow', function () {
       const tx = talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
         value: arbitrationCost.sub(1),
       })
-      await expect(tx).to.be.revertedWith('The sender fee must cover arbitration costs.')
+      await expect(tx).to.be.revertedWith('The sender fee must be equal to the arbitration cost.')
     })
 
     describe('Successfull payment of arbitration fee', async function () {
@@ -273,7 +273,7 @@ describe('Dispute Resolution, standard flow', function () {
       const tx = talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
         value: arbitrationCost.sub(1),
       })
-      await expect(tx).to.be.revertedWith('The receiver fee must cover arbitration costs.')
+      await expect(tx).to.be.revertedWith('The receiver fee must be equal to the arbitration cost.')
     })
 
     describe('Successfull payment of arbitration fee', async function () {
