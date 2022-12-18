@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat'
 import { ConfigProperty, get } from '../../../configManager'
 import { Network } from '../../config'
+import postToIPFS from '../../ipfs'
 import { arbitrationCost, arbitrationFeeTimeout, arbitratorExtraData, transactionAmount } from './constants'
 
 const hre = require('hardhat')
@@ -85,9 +86,34 @@ async function main() {
   await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
   console.log('Proposal for service created by Bob')
 
+  // Upload meta evidence to IPFS
+  const metaEvidence = await postToIPFS(
+    JSON.stringify({
+      fileURI: '/ipfs/QmUQMJbfiQYX7k6SWt8xMpR7g4vwtAYY1BTeJ8UY8JWRs9',
+      fileHash: 'QmUQMJbfiQYX7k6SWt8xMpR7g4vwtAYY1BTeJ8UY8JWRs9',
+      fileTypeExtension: 'pdf',
+      category: 'Escrow',
+      title: 'Bob builds a website for Alice',
+      description:
+        'Bob is hired by Alice as a contractor to create a website for his company. When completed, the site will be hosted at https://my-site.com.',
+      aliases: {
+        [alice.address]: 'Alice',
+        [bob.address]: 'Bob',
+      },
+      question: 'Is the website compliant with the terms of the contract?',
+      rulingOptions: {
+        type: 'single-select',
+        titles: ['No', 'Yes'],
+        descriptions: [
+          'The website is not compliant. This will refund Alice.',
+          'The website is compliant. This will release the funds to Bob.',
+        ],
+      },
+    }),
+  )
+
   // Create transaction
   const proposalId = 2
-  const metaEvidence = 'metaEvidence'
   const feeDivider = 10000
   const protocolFee = await talentLayerEscrow.protocolFee()
   const originPlatformFee = await talentLayerEscrow.originPlatformFee()
@@ -98,7 +124,6 @@ async function main() {
   await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
     value: totalTransactionAmount,
   })
-  console.log('Proposal accepted by Alice with transaction')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
