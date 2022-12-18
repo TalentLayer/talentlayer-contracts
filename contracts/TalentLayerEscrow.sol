@@ -910,13 +910,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             originPlatformFeeAmount
         );
         emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformFeeAmount);
-        emit Payment(
-            _transaction.id,
-            PaymentType.Reimburse,
-            _releaseAmount,
-            _transaction.token,
-            _transaction.serviceId
-        );
+        emit Payment(_transaction.id, PaymentType.Release, _releaseAmount, _transaction.token, _transaction.serviceId);
 
         _distributeMessage(_transaction.serviceId, _transaction.amount);
     }
