@@ -453,7 +453,8 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
 })
 
 describe('Dispute Resolution, arbitrator abstaining from giving a ruling', function () {
-  let alice: SignerWithAddress,
+  let deployer: SignerWithAddress,
+    alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
     talentLayerPlatformID: TalentLayerPlatformID,
@@ -465,7 +466,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     platformFee: number
 
   before(async function () {
-    ;[, alice, bob, carol] = await ethers.getSigners()
+    ;[deployer, alice, bob, carol] = await ethers.getSigners()
     ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(1, ethAddress)
 
     // Create transaction
@@ -491,15 +492,14 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
   })
 
   describe('The arbitrator abstains form giving a ruling', async function () {
-    let tx: ContractTransaction
+    let tx: ContractTransaction, halfAmount: BigNumber
 
     before(async function () {
       tx = await talentLayerArbitrator.connect(carol).giveRuling(transactionId, 0)
+      halfAmount = transactionAmount.add(arbitrationCost).div(2)
     })
 
     it('Split funds and arbitration fee half and half between the parties', async function () {
-      const halfAmount = transactionAmount.add(arbitrationCost).div(2)
-
       // Transaction fees reimbursed to sender
       const fees = halfAmount.mul(protocolFee + originPlatformFee + platformFee).div(feeDivider)
       const senderAmount = halfAmount.add(fees)
@@ -509,6 +509,18 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
         [alice.address, bob.address, talentLayerEscrow.address],
         [senderAmount, halfAmount, -totalSentAmount],
       )
+    })
+
+    it('Increases platform token balance by the platform fee', async function () {
+      const carolPlatformBalance = await talentLayerEscrow.connect(carol).getClaimableFeeBalance(ethAddress)
+      const platformFeesPaid = halfAmount.mul(originPlatformFee + platformFee).div(feeDivider)
+      expect(carolPlatformBalance).to.be.eq(platformFeesPaid)
+    })
+
+    it('Increases protocol token balance by the protocol fee', async function () {
+      const protocolBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(ethAddress)
+      const protocolFeesPaid = halfAmount.mul(protocolFee).div(feeDivider)
+      expect(protocolBalance).to.be.eq(protocolFeesPaid)
     })
   })
 })
