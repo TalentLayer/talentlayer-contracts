@@ -509,17 +509,20 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     })
   })
 
-  describe('The arbitrator abstains form giving a ruling', async function () {
-    let tx: ContractTransaction, halfAmount: BigNumber
+  describe('The arbitrator abstains from giving a ruling', async function () {
+    let tx: ContractTransaction, halfTransactionAmount: BigNumber, halfArbitrationCost: BigNumber, halfAmount: BigNumber
 
     before(async function () {
       tx = await talentLayerArbitrator.connect(carol).giveRuling(transactionId, 0)
-      halfAmount = transactionAmount.add(arbitrationCost).div(2)
+      halfTransactionAmount = transactionAmount.div(2)
+      halfArbitrationCost = arbitrationCost.div(2)
+      halfAmount = halfTransactionAmount.add(halfArbitrationCost)
     })
 
     it('Split funds and arbitration fee half and half between the parties', async function () {
       // Transaction fees reimbursed to sender
-      const fees = halfAmount.mul(protocolFee + originPlatformFee + platformFee).div(feeDivider)
+      const fees = halfTransactionAmount.mul(protocolFee + originPlatformFee + platformFee).div(feeDivider)
+
       const senderAmount = halfAmount.add(fees)
       const totalSentAmount = transactionAmount.add(arbitrationCost).add(fees)
 
@@ -531,13 +534,13 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
 
     it('Increases platform token balance by the platform fee', async function () {
       const carolPlatformBalance = await talentLayerEscrow.connect(carol).getClaimableFeeBalance(ethAddress)
-      const platformFeesPaid = halfAmount.mul(originPlatformFee + platformFee).div(feeDivider)
+      const platformFeesPaid = halfTransactionAmount.mul(originPlatformFee + platformFee).div(feeDivider)
       expect(carolPlatformBalance).to.be.eq(platformFeesPaid)
     })
 
     it('Increases protocol token balance by the protocol fee', async function () {
       const protocolBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(ethAddress)
-      const protocolFeesPaid = halfAmount.mul(protocolFee).div(feeDivider)
+      const protocolFeesPaid = halfTransactionAmount.mul(protocolFee).div(feeDivider)
       expect(protocolBalance).to.be.eq(protocolFeesPaid)
     })
   })
