@@ -44,6 +44,7 @@
     "erc721a": "^4.2.0",
     "hardhat-contract-sizer": "^2.6.1",
     "ipfs-http-client": "^55.0.0",
-    "ipfs-utils": "^9.0.7"
+    "ipfs-utils": "^9.0.7",
+    "solc": "^0.8.17"
   }
 }
