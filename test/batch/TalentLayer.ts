@@ -242,6 +242,16 @@ describe('TalentLayer', function () {
       expect(platformId).to.be.equal(1)
     })
 
+    it('The platform owner can update the arbitration fee timeout', async function () {
+      const timeout = 3600 * 24
+      const tx = talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, timeout - 1)
+      expect(tx).to.be.revertedWith('The timeout must be greater than the minimum timeout')
+
+      await talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, timeout)
+      const arbitrationFeeTimeout = (await talentLayerPlatformID.getPlatform(1)).arbitrationFeeTimeout
+      expect(arbitrationFeeTimeout).to.be.equal(timeout)
+    })
+
     it('Only the owner of the platform can update its arbitrator', async function () {
       const tx = talentLayerPlatformID.connect(bob).updateArbitrator(1, talentLayerArbitrator.address, [])
       expect(tx).to.be.revertedWith("You're not the owner of this platform")
