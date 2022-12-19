@@ -41,6 +41,7 @@ const arbitrationCost = BigNumber.from(10)
 const disputeId = 0
 const metaEvidence = 'metaEvidence'
 const feeDivider = 10000
+const arbitrationFeeTimeout = 3600
 
 /**
  * Deploys contract and sets up the context for dispute resolution.
@@ -136,7 +137,6 @@ describe('Dispute Resolution, standard flow', function () {
   const transactionReimbursedAmount = BigNumber.from(50)
   let currentTransactionAmount = transactionAmount
   const rulingId = 1
-  const arbitrationFeeTimeout = 3600
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
@@ -490,7 +490,10 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
 
   before(async function () {
     ;[deployer, alice, bob, carol] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(1, ethAddress)
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(
+      arbitrationFeeTimeout,
+      ethAddress,
+    )
 
     // Create transaction
     protocolFee = await talentLayerEscrow.protocolFee()
@@ -579,7 +582,10 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
     // Deploy SimpleERC20 token and setup
     const SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
     simpleERC20 = await SimpleERC20.deploy()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(1, simpleERC20.address)
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(
+      arbitrationFeeTimeout,
+      simpleERC20.address,
+    )
 
     const protocolFee = await talentLayerEscrow.protocolFee()
     const originPlatformFee = await talentLayerEscrow.originPlatformFee()
