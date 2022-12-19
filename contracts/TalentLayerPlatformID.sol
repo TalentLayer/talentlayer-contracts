@@ -72,6 +72,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     bytes32 public constant MINT_ROLE = keccak256("MINT_ROLE");
 
+    /**
+     * @notice Minimum duration for arbitration fee timeout
+     */
     uint256 MIN_ARBITRATION_FEE_TIMEOUT = 1 days;
 
     constructor() ERC721A("TalentLayerPlatformID", "TPID") {
