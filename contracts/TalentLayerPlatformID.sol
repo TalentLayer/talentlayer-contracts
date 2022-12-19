@@ -72,7 +72,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     bytes32 public constant MINT_ROLE = keccak256("MINT_ROLE");
 
-    uint256 MIN_ARBITRATOR_FEE_TIMEOUT = 1 days;
+    uint256 MIN_ARBITRATION_FEE_TIMEOUT = 1 days;
 
     constructor() ERC721A("TalentLayerPlatformID", "TPID") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -215,7 +215,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     function updateArbitrationFeeTimeout(uint256 _platformId, uint256 _arbitrationFeeTimeout) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
         require(
-            _arbitrationFeeTimeout >= MIN_ARBITRATOR_FEE_TIMEOUT,
+            _arbitrationFeeTimeout >= MIN_ARBITRATION_FEE_TIMEOUT,
             "The timeout must be greater than the minimum timeout"
         );
 
