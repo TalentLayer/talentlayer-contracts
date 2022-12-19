@@ -1,3 +1,4 @@
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { BigNumber, ContractTransaction } from 'ethers'
@@ -41,7 +42,7 @@ const arbitrationCost = BigNumber.from(10)
 const disputeId = 0
 const metaEvidence = 'metaEvidence'
 const feeDivider = 10000
-const arbitrationFeeTimeout = 3600
+const arbitrationFeeTimeout = 3600 * 24
 
 /**
  * Deploys contract and sets up the context for dispute resolution.
@@ -437,7 +438,7 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
 
   before(async function () {
     ;[, alice] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow] = await deployAndSetup(1, ethAddress)
+    ;[talentLayerPlatformID, talentLayerEscrow] = await deployAndSetup(arbitrationFeeTimeout, ethAddress)
 
     // Create transaction
     const protocolFee = await talentLayerEscrow.protocolFee()
@@ -454,6 +455,9 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
     await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
       value: arbitrationCost,
     })
+
+    // Simulate arbitration fee timeout expiration
+    await time.increase(arbitrationFeeTimeout)
   })
 
   describe('One party (in our case receiver) fails to pay arbitration fee on time', function () {
