@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { Contract, ContractFactory } from 'ethers'
+import { BigNumber, Contract, ContractFactory } from 'ethers'
 import { TalentLayerID } from '../../typechain-types'
 
 describe('TalentLayer', function () {
@@ -68,7 +68,7 @@ describe('TalentLayer', function () {
 
     // Deploy TalentLayerArbitrator
     TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-    talentLayerArbitrator = await TalentLayerArbitrator.deploy(0)
+    talentLayerArbitrator = await TalentLayerArbitrator.deploy(talentLayerPlatformID.address)
 
     // Deploy TalentLayerEscrow
     TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
@@ -76,9 +76,6 @@ describe('TalentLayer', function () {
       serviceRegistry.address,
       talentLayerID.address,
       talentLayerPlatformID.address,
-      talentLayerArbitrator.address,
-      [],
-      3600 * 24 * 30,
     )
 
     // Deploy SimpleERC20 Token
@@ -157,13 +154,13 @@ describe('TalentLayer', function () {
       const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE()
 
       await talentLayerPlatformID.grantRole(adminRole, alice.address)
-      await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1)
+      await talentLayerPlatformID.connect(alice).updatePlatformFee(aliceUserId, 1)
 
       const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
 
       expect(alicePlatformData.fee).to.be.equal(1)
 
-      await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 6)
+      await talentLayerPlatformID.connect(alice).updatePlatformFee(aliceUserId, 6)
 
       const newAlicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
 
@@ -220,6 +217,53 @@ describe('TalentLayer', function () {
 
       // Contract balance is 0
       expect(contractBalanceAfter).to.be.equal(0)
+    })
+
+    it('The deployer can add a new available arbitrator', async function () {
+      await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address, true)
+      const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
+      expect(isValid).to.be.true
+
+      const isInternal = await talentLayerPlatformID.internalArbitrators(talentLayerArbitrator.address)
+      expect(isInternal).to.be.true
+    })
+
+    it('The platform owner can update the arbitrator only if is a valid one', async function () {
+      const tx = talentLayerPlatformID.connect(alice).updateArbitrator(1, dave.address, [])
+      expect(tx).to.be.revertedWith('The address must be of a valid arbitrator')
+
+      await talentLayerPlatformID.connect(alice).updateArbitrator(1, talentLayerArbitrator.address, [])
+      const arbitrator = (await talentLayerPlatformID.getPlatform(1)).arbitrator
+      expect(arbitrator).to.be.equal(talentLayerArbitrator.address)
+
+      // Extra data is updated and is equal to the platform id since the arbitrator is internal
+      const arbitratorExtraData = (await talentLayerPlatformID.getPlatform(1)).arbitratorExtraData
+      const platformId = BigNumber.from(arbitratorExtraData)
+      expect(platformId).to.be.equal(1)
+    })
+
+    it('The platform owner can update the arbitration fee timeout', async function () {
+      const timeout = 3600 * 24
+      const tx = talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, timeout - 1)
+      expect(tx).to.be.revertedWith('The timeout must be greater than the minimum timeout')
+
+      await talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, timeout)
+      const arbitrationFeeTimeout = (await talentLayerPlatformID.getPlatform(1)).arbitrationFeeTimeout
+      expect(arbitrationFeeTimeout).to.be.equal(timeout)
+    })
+
+    it('Only the owner of the platform can update its arbitrator', async function () {
+      const tx = talentLayerPlatformID.connect(bob).updateArbitrator(1, talentLayerArbitrator.address, [])
+      expect(tx).to.be.revertedWith("You're not the owner of this platform")
+    })
+
+    it('The deployer can remove an available arbitrator', async function () {
+      await talentLayerPlatformID.connect(deployer).removeArbitrator(talentLayerArbitrator.address)
+      const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
+      expect(isValid).to.be.false
+
+      const isInternal = await talentLayerPlatformID.internalArbitrators(talentLayerArbitrator.address)
+      expect(isInternal).to.be.false
     })
   })
 
@@ -553,7 +597,7 @@ describe('TalentLayer', function () {
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
         const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
-        await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100)
+        await talentLayerPlatformID.connect(alice).updatePlatformFee(aliceUserId, 1100)
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
         const protocolFee = await talentLayerEscrow.protocolFee()
         const originPlatformFee = await talentLayerEscrow.originPlatformFee()
@@ -565,7 +609,7 @@ describe('TalentLayer', function () {
 
         const transaction = await talentLayerEscrow
           .connect(alice)
-          .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob)
+          .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob)
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, alice, bob],
@@ -592,9 +636,7 @@ describe('TalentLayer', function () {
       it("Alice can NOT deposit funds for Carol's proposal.", async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountCarol)
         await expect(
-          talentLayerEscrow
-            .connect(alice)
-            .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdCarol),
+          talentLayerEscrow.connect(alice).createTokenTransaction('_metaEvidence', serviceId, proposalIdCarol),
         ).to.be.reverted
       })
 
@@ -702,6 +744,7 @@ describe('TalentLayer', function () {
         )
       })
     })
+
     describe('Successful use of Escrow for a service using ETH.', function () {
       const amountBob = 1000000
       const amountCarol = 200
@@ -714,7 +757,7 @@ describe('TalentLayer', function () {
 
       it('Alice can NOT deposit eth to escrow yet.', async function () {
         const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
-        await talentLayerPlatformID.connect(alice).updatePlatformfee(aliceUserId, 1100)
+        await talentLayerPlatformID.connect(alice).updatePlatformFee(aliceUserId, 1100)
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
         const protocolFee = await talentLayerEscrow.protocolFee()
         const originPlatformFee = await talentLayerEscrow.originPlatformFee()
@@ -723,11 +766,8 @@ describe('TalentLayer', function () {
         totalAmount = amountBob + (amountBob * (protocolFee + originPlatformFee + platformFee)) / 10000
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
-        await expect(
-          talentLayerEscrow
-            .connect(alice)
-            .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob),
-        ).to.be.reverted
+        await expect(talentLayerEscrow.connect(alice).createETHTransaction('_metaEvidence', serviceId, proposalIdBob))
+          .to.be.reverted
       })
 
       it('Bob can register a proposal.', async function () {
@@ -747,7 +787,7 @@ describe('TalentLayer', function () {
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
         const transaction = await talentLayerEscrow
           .connect(alice)
-          .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob, { value: totalAmount })
+          .createETHTransaction('_metaEvidence', serviceId, proposalIdBob, { value: totalAmount })
         await expect(transaction).to.changeEtherBalances(
           [talentLayerEscrow.address, alice, bob],
           [totalAmount, -totalAmount, 0],
@@ -775,7 +815,7 @@ describe('TalentLayer', function () {
         expect(
           talentLayerEscrow
             .connect(alice)
-            .createETHTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdCarol, { value: amountCarol }),
+            .createETHTransaction('_metaEvidence', serviceId, proposalIdCarol, { value: amountCarol }),
         ).to.be.reverted
       })
 
@@ -908,6 +948,23 @@ describe('TalentLayer', function () {
       expect(reviewData2.dataUri).to.be.equal('cidReview2')
 
       expect(await reviewData1.platformId).to.be.equal(1)
+    })
+  })
+
+  describe('Talent Layer Arbitrator contract test', function () {
+    it('the owner of the platform can update the arbitration price', async function () {
+      const newArbitrationPrice = 1000
+      const platformId = 1
+
+      // It fails if the caller is not the owner of the platform
+      const tx = talentLayerArbitrator.connect(bob).setArbitrationPrice(platformId, newArbitrationPrice)
+      expect(tx).to.be.revertedWith("You're not the owner of the platform")
+
+      // It succeeds if the caller is the owner of the platform
+      await talentLayerArbitrator.connect(alice).setArbitrationPrice(platformId, newArbitrationPrice)
+      const extraData = ethers.utils.hexZeroPad(ethers.utils.hexlify(platformId), 32)
+      const updatedArbitrationPrice = await talentLayerArbitrator.arbitrationCost(extraData)
+      expect(updatedArbitrationPrice).to.be.equal(newArbitrationPrice)
     })
   })
 })

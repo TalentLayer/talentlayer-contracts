@@ -29,6 +29,11 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
+  const talentLayerArbitrator = await ethers.getContractAt(
+    'TalentLayerArbitrator',
+    get(network as Network, ConfigProperty.TalentLayerArbitrator),
+  )
+
   const token = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
 
   const amountDave = ethers.utils.parseUnits('0.03', 18)
@@ -58,7 +63,6 @@ async function main() {
   console.log('serviceId', secondServiceId.toString())
 
   await talentLayerEscrow.connect(alice).createTokenTransaction(
-    3600 * 24 * 7,
     '_metaEvidence',
     secondServiceId,
     4, //proposalId/talentLayerId of Dave.

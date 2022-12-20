@@ -6,6 +6,8 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 
+import "./Arbitrator.sol";
+
 /**
  * @title Platform ID Contract
  * @author TalentLayer Team
@@ -18,11 +20,17 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     /// @param name the name of the platform
     /// @param dataUri the IPFS URI of the Platform metadata
     /// @param fee the %fee (per ten thousands) asked by the platform for each job escrow transaction
+    /// @param arbitrator address of the arbitrator used by the platform
+    /// @param arbitratorExtraData extra information for the arbitrator
+    /// @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
     struct Platform {
         uint256 id;
         string name;
         string dataUri;
         uint16 fee;
+        Arbitrator arbitrator;
+        bytes arbitratorExtraData;
+        uint256 arbitrationFeeTimeout;
     }
 
     /**
@@ -45,6 +53,17 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     mapping(address => bool) public hasBeenRecovered;
 
+    /**
+     * @notice Addresses which are available as arbitrators
+     */
+    mapping(address => bool) public validArbitrators;
+
+    /**
+     * @notice Whether arbitrators are internal (are part of TalentLayer) or not
+     *         Internal arbitrators will have the extra data set to the platform ID
+     */
+    mapping(address => bool) public internalArbitrators;
+
     /// Price to mint a platform id (in wei, upgradable)
     uint256 public mintFee;
 
@@ -53,10 +72,16 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     bytes32 public constant MINT_ROLE = keccak256("MINT_ROLE");
 
+    /**
+     * @notice Minimum duration for arbitration fee timeout
+     */
+    uint256 MIN_ARBITRATION_FEE_TIMEOUT = 1 days;
+
     constructor() ERC721A("TalentLayerPlatformID", "TPID") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINT_ROLE, msg.sender);
         mintFee = 0;
+        validArbitrators[address(0)] = true; // The zero address means no arbitrator.
     }
 
     // =========================== View functions ==============================
@@ -125,7 +150,12 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _platformName Platform name
      * @param _platformAddress Eth Address to assign the Platform Id to
      */
-    function mintForAddress(string memory _platformName, address _platformAddress) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
+    function mintForAddress(string memory _platformName, address _platformAddress)
+        public
+        payable
+        canMint(_platformName, _platformAddress)
+        onlyRole(MINT_ROLE)
+    {
         _safeMint(_platformAddress, 1);
         _afterMint(_platformName);
     }
@@ -147,13 +177,53 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     /**
      * @notice Allows a platform to update his fee
-     * @dev You need to have DEFAULT_ADMIN_ROLE to use this function
-     * @param _platformfee Platform fee to update
+     * @param _platformFee Platform fee to update
      */
-    function updatePlatformfee(uint256 _platformId, uint16 _platformfee) public {
+    function updatePlatformFee(uint256 _platformId, uint16 _platformFee) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
-        platforms[_platformId].fee = _platformfee;
+        platforms[_platformId].fee = _platformFee;
+        emit PlatformFeeUpdated(_platformId, _platformFee);
+    }
+
+    /**
+     * @notice Allows a platform to update his arbitrator
+     * @param _arbitrator the arbitrator
+     * @param _extraData the extra data for arbitrator (this is only used for external arbitrators, for
+     *                   internal arbitrators it should be empty)
+     */
+    function updateArbitrator(
+        uint256 _platformId,
+        Arbitrator _arbitrator,
+        bytes memory _extraData
+    ) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+        require(validArbitrators[address(_arbitrator)], "The address must be of a valid arbitrator");
+
+        platforms[_platformId].arbitrator = _arbitrator;
+
+        if (internalArbitrators[address(_arbitrator)]) {
+            platforms[_platformId].arbitratorExtraData = abi.encodePacked(_platformId);
+        } else {
+            platforms[_platformId].arbitratorExtraData = _extraData;
+        }
+
+        emit ArbitratorUpdated(_platformId, _arbitrator, platforms[_platformId].arbitratorExtraData);
+    }
+
+    /**
+     * @notice Allows a platform to update the timeout for paying the arbitration fee
+     * @param _arbitrationFeeTimeout The new timeout
+     */
+    function updateArbitrationFeeTimeout(uint256 _platformId, uint256 _arbitrationFeeTimeout) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+        require(
+            _arbitrationFeeTimeout >= MIN_ARBITRATION_FEE_TIMEOUT,
+            "The timeout must be greater than the minimum timeout"
+        );
+
+        platforms[_platformId].arbitrationFeeTimeout = _arbitrationFeeTimeout;
+        emit ArbitrationFeeTimeoutUpdated(_platformId, _arbitrationFeeTimeout);
     }
 
     // =========================== Owner functions ==============================
@@ -181,6 +251,25 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) {
         (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
         require(sent, "Failed to withdraw Ether");
+    }
+
+    /**
+     * Adds a new available arbitrator.
+     * @param _arbitrator address of the arbitrator
+     * @param _isInternal whether the arbitrator is internal (is part of TalentLayer) or not
+     */
+    function addArbitrator(address _arbitrator, bool _isInternal) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        validArbitrators[address(_arbitrator)] = true;
+        internalArbitrators[address(_arbitrator)] = _isInternal;
+    }
+
+    /**
+     * Removes an available arbitrator.
+     * @param _arbitrator address of the arbitrator
+     */
+    function removeArbitrator(address _arbitrator) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        validArbitrators[address(_arbitrator)] = false;
+        internalArbitrators[address(_arbitrator)] = false;
     }
 
     // =========================== Private functions ==============================
@@ -227,11 +316,19 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return ERC721A.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
 
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override(ERC721A) {
         revert("Not allowed");
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override(ERC721A) {
         revert("Not allowed");
     }
 
@@ -312,4 +409,25 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _mintFee The new mint fee
      */
     event MintFeeUpdated(uint256 _mintFee);
+
+    /**
+     * Emit when the fee is updated for a platform
+     * @param _platformFee The new fee
+     */
+    event PlatformFeeUpdated(uint256 _platformId, uint16 _platformFee);
+
+    /**
+     * Emit after the arbitrator is updated for a platform
+     * @param _platformId The ID of the platform
+     * @param _arbitrator The address of the new arbitrator
+     * @param _extraData The new extra data for the arbitrator
+     */
+    event ArbitratorUpdated(uint256 _platformId, Arbitrator _arbitrator, bytes _extraData);
+
+    /**
+     * Emit after the arbitration fee timeout is updated for a platform
+     * @param _platformId The ID of the platform
+     * @param _arbitrationFeeTimeout The new arbitration fee timeout
+     */
+    event ArbitrationFeeTimeoutUpdated(uint256 _platformId, uint256 _arbitrationFeeTimeout);
 }
