@@ -31,14 +31,19 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
+  const talentLayerArbitrator = await ethers.getContractAt(
+    'TalentLayerArbitrator',
+    get(network as Network, ConfigProperty.TalentLayerArbitrator),
+  )
+
   let nextServiceId = await serviceRegistry.nextServiceId()
   let firstServiceId = nextServiceId.sub(2) // service id #1
   console.log('serviceId', firstServiceId.toString())
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const updatePlatformfee = await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100)
-  updatePlatformfee.wait()
+  const updatePlatformFee = await platformIdContrat.connect(dave).updatePlatformFee(daveTlId, 1100)
+  updatePlatformFee.wait()
 
   const davePlatformData = await platformIdContrat.platforms(daveTlId)
   const protocolFee = ethers.BigNumber.from(await talentLayerEscrow.protocolFee())
@@ -51,7 +56,6 @@ async function main() {
   console.log('totalAmount', totalAmount.toString())
 
   await talentLayerEscrow.connect(alice).createETHTransaction(
-    3600 * 24 * 7,
     '_metaEvidence',
     firstServiceId,
     3, //proposalId/talentLayerId of carol.
