@@ -19,18 +19,18 @@ https://www.talentlayer.org/
 
 ## Deployed on Goerli
 
-- proofOfHumanityAddress: 0xAEbc3646709765691045B56ae89556907852DbEE,
-- talentLayerPlatformIdAddress: 0x29AcBBbfAb5e1AF98557C53CCcEF0C050FA18Bc8,
-- talentLayerIdAddress: 0x67c3AC531084aB5E6E04d4bB0FC7766e27b81546,
-- serviceRegistryAddress: 0x6f97FB242d2D3bCA9d19c05c975F6Ec8caB4d1a4,
-- talentLayerReviewAddress: 0x59ff1f3ff159c17C48558cCf8269FF17aA0B8C8D,
-- talentLayerArbitratorAddress: 0x2Bb8A21458E35d632161dF96723F42De4034F581,
-- TalentLayerEscrow: 0x4A6F0208a0b636E3A4918cb0A5B1367E4B338aD8,
-- simpleERC20Address: 0x652e712fD63D8AcB14FA7d2b2b5aCA0413E8E705
-- Registered Alice: 0x1caAb8ded4535bF42728feA90aFa7da1ac637E1E
-- Registered Bob: 0x5C7c844cB1E996a77EAC530A8EA0b99A1DDc565e
-- Registered Carol: 0x526D10c5EDF904B733B9e78273C9e3b3D0c19CBb
-- Registered Dave: 0xae61Cb2235Ef992E52579C41ccE5425Ec2d12C1f
+- proofOfHumanityAddress: 0x4c4fC831cfEd3432e128B09aff1C4acC256Dc2C9,
+- talentLayerPlatformIdAddress: 0xAC61364Ee74298cB5E96cCe46D281327Fd204740,
+- talentLayerIdAddress: 0x58E30982A38ec1f4432A80338c1c720fE8cdF813,
+- serviceRegistryAddress: 0x42c6532581aBb12A2C7b099caD398Ccbd818b9b8,
+- talentLayerReviewAddress: 0xFBc8e88190E80e5fA427ee780ac55b1a9f8aa93f,
+- talentLayerArbitratorAddress: 0x780910bc8d1E7e48d457Da7A3C4b96CB246FfB74,
+- TalentLayerEscrow: 0x5a2498aD599fE801E055d9C94b1Cc5FaBf1768b2,
+- simpleERC20Address: 0xdc4f5012a2C2B6a9ACf2A0423E122787B8ABd5C0
+- Registered Alice: 0x8d960334c2EF30f425b395C1506Ef7c5783789F3
+- Registered Bob: 0x0F45421E8DC47eF9edd8568a9D569b6fc7Aa7AC6
+- Registered Carol: 0x997b456Be586997A2F6d6D650FC14bF5843c92B2
+- Registered Dave: 0x26FddC1C2c84e61457734a17C6818a6E063644ec
 
 ## Deployed on Avalanche testnet (Fuji)
 
