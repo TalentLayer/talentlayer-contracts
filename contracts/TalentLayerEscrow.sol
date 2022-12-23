@@ -847,8 +847,6 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 sender = talentLayerIdContract.walletOfOwner(transaction.sender);
         uint256 receiver = talentLayerIdContract.walletOfOwner(transaction.receiver);
 
-        emit MetaEvidence(_transactionId, _metaEvidence);
-        emit ServiceProposalConfirmedWithDeposit(transaction.serviceId, _sellerId, _transactionId);
         emit TransactionCreated(
             _transactionId,
             sender,
@@ -863,6 +861,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             transaction.arbitratorExtraData,
             transaction.arbitrationFeeTimeout
         );
+        emit MetaEvidence(_transactionId, _metaEvidence);
+        emit ServiceProposalConfirmedWithDeposit(transaction.serviceId, _sellerId, _transactionId);
     }
 
     /**
