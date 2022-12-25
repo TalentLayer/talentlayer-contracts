@@ -2,22 +2,29 @@
 
 An interoperable identity system for freelancing marketplaces. Leverage one unified, self-owned, identity across many freelancing marketplaces. Realize #WorkSovereignty by owning your work reputation.
 
-https://www.talentlayer.org/
+- Learn more about the project: https://www.talentlayer.org
+- Documentation: https://docs.talentlayer.org
 
-## Deployed on Gnosis Chain
+
+## Scripts
+
+- playground: use on local or testnet to create fake data and test the protocol 
+- tasks: configurable commands to use in mainnet 
+    - protocol: Used to managed the protocol by TalentLayer (mint a platform, allow a new arbitrator...)
+    - platform: Used to managed a platform by there owner (update fee)
+- utils: common functions
+
+## Deployed
+
+### Gnosis Chain
 
 - TalentLayerId: 0x45Cd9E9C04d0701b23089C44Faa807932996717E
 - ServiceRegistry: 0xFAe97514c8e94501E66F0AEf84E4Cccb7eb2EB84
 - TalentLayerReview: 0x8685C7359DeE31703a1f47F8dabad7879148cFCf
 - Mock ProofOfHumanity: 0xc7729F499f3D81643597a1e1666E9b6F8D702F8D
 
-## Deployed on Kovan
 
-- TalentLayerId: 0x6A5BF452108DA389B7B38284E871f538671Ad375
-- ServiceRegistry: 0xF1F55da2bd610760A0Cbbd138Ad0B385ccB9b9f0
-- TalentLayerReview: 0x863751792aa2dab3554b08b5ba9b336b134ae3ed
-
-## Deployed on Goerli
+### Goerli
 
 - proofOfHumanityAddress: 0xB8805e67c476b1b237509B81b9738D129226D0C8,
 - talentLayerPlatformIdAddress: 0x08FB56537F118Cf35C4d3eB280444737f6D1bE46,
@@ -32,7 +39,7 @@ https://www.talentlayer.org/
 - Registered Carol: 0x997b456Be586997A2F6d6D650FC14bF5843c92B2
 - Registered Dave: 0x26FddC1C2c84e61457734a17C6818a6E063644ec
 
-## Deployed on Avalanche testnet (Fuji)
+### Avalanche testnet (Fuji)
 
 - Proof of humanity 0x435e586D8408f4dBCbF418208878041D700FE06A
 - TalentLayer Platform ID: 0x8799479a39b6e563969126328e2323cbA01e8742
@@ -43,6 +50,4 @@ https://www.talentlayer.org/
 - TalentLayerEscrow : 0x8754a129D3F53222dd94Ce45749134c15C9Ed119
 - simpleERC20 address: 0xaC174398bB8a3aD8b04D8CeE4B93E752AcddCD4b
 
-## Playground
 
-Please read the Makefile for more details.
