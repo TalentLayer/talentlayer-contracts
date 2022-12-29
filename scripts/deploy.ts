@@ -202,3 +202,27 @@ task('deploy')
       return 'FAILED'
     }
   })
+
+// Deploy Keyword Registry Contract
+task('deploy-keyword-registry')
+.addFlag('verify', 'verifies contracts on etherscan')
+.setAction(async (args, { ethers, run, network }) => {
+  try {
+    console.log('Deploying KeywordRegistry.sol to ' + network.name)
+    const KeywordRegistry = await ethers.getContractFactory('KeywordRegistry')
+    // const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+    const keywordRegistry = await KeywordRegistry.deploy()
+    if (args.verify) {
+      await keywordRegistry.deployTransaction.wait(5)
+      await run('verify:verify', {
+        address: keywordRegistry.address,
+        // constructorArguments: keywordRegistryArgs,
+      })
+    }
+    console.log('Keyword Registry address:', keywordRegistry.address)
+    set(network.name as any as Network, ConfigProperty.KeywordRegistry, keywordRegistry.address)
+  } catch (e) {
+    console.log("Failed with deploying KeywordRegistry.sol to " + network.name)
+    console.log(e)
+  }
+})
