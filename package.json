@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "solhint": "solhint --fix contracts/**/*.sol"
+    "solhint": "solhint --fix contracts/**/*.sol",
+    "mythx": "mythx analyze contracts/TalentLayerId.sol --mode quick --solc-json remap.json "
   },
   "repository": {
     "type": "git",
@@ -43,8 +44,10 @@
     "dotenv": "^16.0.1",
     "erc721a": "^4.2.0",
     "hardhat-contract-sizer": "^2.6.1",
+    "hardhat-dependency-compiler": "^1.1.3",
     "ipfs-http-client": "^55.0.0",
     "ipfs-utils": "^9.0.7",
-    "solc": "^0.8.17"
+    "solc": "^0.8.17",
+    "truffle": "^5.7.0"
   }
 }

@@ -8,6 +8,7 @@ import './scripts/deploy'
 import './scripts/wallet'
 import './scripts/mintPlatformIdForAddress'
 import { Network } from './scripts/config'
+import dependencyCompiler from 'hardhat-dependency-compiler'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
 
@@ -58,6 +59,13 @@ function getChainConfig(chain: Network): NetworkUserConfig {
 }
 
 const config: HardhatUserConfig = {
+  dependencyCompiler: {
+    paths: [
+      'hardhat-deploy/solc_0.8/openzeppelin/proxy/transparent/ProxyAdmin.sol',
+      'hardhat-deploy/solc_0.8/proxy/OptimizedTransparentUpgradeableProxy.sol',
+    ],
+    keep: true,
+  },
   defaultNetwork: 'hardhat',
   etherscan: {
     apiKey: {
