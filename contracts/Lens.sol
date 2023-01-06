@@ -2,10 +2,11 @@
 pragma solidity ^0.8.9;
 
 import "./interfaces/ITalentLayerID.sol";
+import "./interfaces/ISocialPlatform.sol";
 
 // Concrete implementation of PartnershipContract for the Bloup platform
 
-contract Lens {
+contract Lens is ISocialPlatform {
     // =========================== Events ==============================
     /// @notice Emitted after a link between a Lens ID and a TalentLayer ID is created
     /// @param _lensId the lensId
@@ -24,6 +25,8 @@ contract Lens {
      */
     ITalentLayerID private talentLayerIdContract;
 
+    string socialPlatformName = "Lens";
+
     // =========================== Constructor ==============================
 
     /**
@@ -33,10 +36,6 @@ contract Lens {
     constructor(address _talentLayerIDAddress) {
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
     }
-
-    // =========================== Constructor ==============================
-
-    string socialPlatformName = "Lens";
 
     // =========================== User functions ==============================
 
