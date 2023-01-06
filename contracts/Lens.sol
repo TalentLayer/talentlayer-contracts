@@ -3,8 +3,7 @@ pragma solidity ^0.8.9;
 
 import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ISocialPlatform.sol";
-
-// Concrete implementation of PartnershipContract for the Bloup platform
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract Lens is ISocialPlatform {
     // =========================== Events ==============================
@@ -46,7 +45,7 @@ contract Lens is ISocialPlatform {
      * @param _LensId Social platform Id ID
      * @param _talentLayerId TalentLayer ID
      */
-    function setExternalIdMapping(bytes32 _LensId, uint256 _talentLayerId) external {
+    function setExternalIdMapping(bytes32 _LensId, uint256 _talentLayerId) external onlyOwner {
         // get the Talent Layer id from the wallet
         _talentLayerId = talentLayerIdContract.walletOfOwner(msg.sender);
 
