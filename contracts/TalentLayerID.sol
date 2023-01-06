@@ -15,8 +15,10 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 contract TalentLayerID is ERC721A, Ownable {
     // =========================== Structs ==============================
 
-    struct SocialPlatform {
-        bytes32 socialPlatformsId;
+    /// @param socialPlatformsId The social platform Id linked to the TlId
+    /// @param platformName the name of the social platform
+    struct UserSocialPlatform {
+        bytes32 socialPlatformId;
         string handle;
     }
 
@@ -33,7 +35,7 @@ contract TalentLayerID is ERC721A, Ownable {
         address pohAddress;
         uint256 platformId;
         string dataUri;
-        SocialPlatform socialPlatforms;
+        UserSocialPlatform[] userSocialPlatforms;
     }
 
     // =========================== Mappings ==============================
@@ -182,8 +184,8 @@ contract TalentLayerID is ERC721A, Ownable {
         Profile storage profiles = profiles[tokenId];
 
         // Update the social platform information in the profile
-        profiles.socialPlatforms.socialPlatformsId = _socialId;
-        profiles.socialPlatforms.handle = _socialPlatformName;
+        UserSocialPlatform memory newUserSocialPlatform = UserSocialPlatform(_socialId, _socialPlatformName);
+        profiles.userSocialPlatforms.push(newUserSocialPlatform);
 
         emit SocialIdUpdated(tokenId, _socialPlatformName, _socialId);
     }
