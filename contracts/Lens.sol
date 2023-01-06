@@ -3,9 +3,9 @@ pragma solidity ^0.8.9;
 
 import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ISocialPlatform.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Lens is ISocialPlatform {
+contract Lens is ISocialPlatform, Ownable {
     // =========================== Events ==============================
     /// @notice Emitted after a link between a Lens ID and a TalentLayer ID is created
     /// @param _lensId the lensId
