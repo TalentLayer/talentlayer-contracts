@@ -50,6 +50,7 @@ contract Lens is ISocialPlatform, Ownable {
         _talentLayerId = talentLayerIdContract.walletOfOwner(msg.sender);
 
         //TODO : check if the Lens ID is valid in the Lens contract
+        //https://github.com/lens-protocol/core/blob/main/contracts/libraries/PublishingLogic.sol
 
         // check if the Talent Layer id is valid
         talentLayerIdContract.isValid(_talentLayerId);
