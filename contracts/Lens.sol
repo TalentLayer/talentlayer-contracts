@@ -16,6 +16,9 @@ contract Lens {
     // =========================== Mappings ==============================
     // Add a mapping to associate Lens IDs with TalentLayer IDs
     mapping(bytes32 => uint256) public lensToTalentLayerId;
+
+    // =========================== Declaration ==============================
+
     /**
      * @notice Instance of TalentLayerID.sol
      */
@@ -38,6 +41,12 @@ contract Lens {
     // =========================== User functions ==============================
 
     // Link the Lens ID to the TalentLayer ID
+
+    /**
+     * @dev Called on contract deployment
+     * @param _LensId Social platform Id ID
+     * @param _talentLayerId TalentLayer ID
+     */
     function setExternalIdMapping(bytes32 _LensId, uint256 _talentLayerId) external {
         // get the Talent Layer id from the wallet
         _talentLayerId = talentLayerIdContract.walletOfOwner(msg.sender);
