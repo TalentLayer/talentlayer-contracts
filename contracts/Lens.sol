@@ -24,7 +24,7 @@ contract Lens is ISocialPlatform, Ownable {
      */
     ITalentLayerID private talentLayerIdContract;
 
-    string socialPlatformName;
+    string constant socialPlatformName = "Lens";
 
     // =========================== Constructor ==============================
 
@@ -48,6 +48,8 @@ contract Lens is ISocialPlatform, Ownable {
     function setExternalIdMapping(bytes32 _LensId, uint256 _talentLayerId) external onlyOwner {
         // get the Talent Layer id from the wallet
         _talentLayerId = talentLayerIdContract.walletOfOwner(msg.sender);
+
+        //TODO : check if the Lens ID is valid in the Lens contract
 
         // check if the Talent Layer id is valid
         talentLayerIdContract.isValid(_talentLayerId);
