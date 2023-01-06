@@ -24,7 +24,7 @@ contract Lens is ISocialPlatform, Ownable {
      */
     ITalentLayerID private talentLayerIdContract;
 
-    string socialPlatformName = "Lens";
+    string socialPlatformName;
 
     // =========================== Constructor ==============================
 
