@@ -58,7 +58,7 @@ task('deploy')
 
       set(network.name as any as Network, ConfigProperty.TalentLayerPlatformID, talentLayerPlatformID.address)
 
-      // Deploy ID contract
+      // Deploy Talent layer ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
       const talentLayerIDArgs: [string, string] = [pohAddress, talentLayerPlatformID.address]
       const talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
@@ -167,6 +167,18 @@ task('deploy')
 
         set(network.name as any as Network, ConfigProperty.SimpleERC20, simpleERC20.address)
       }
+
+      // Deploy Lens contract
+      const Lens = await ethers.getContractFactory('Lens')
+      const lens = await Lens.deploy(talentLayerID.address)
+      if (verify) {
+        await lens.deployTransaction.wait(5)
+        await run('verify:verify', {
+          address: lens.address,
+          constructorArguments: [talentLayerID.address],
+        })
+      }
+      console.log('Lens contract address:', lens.address)
 
       // Grant escrow role
       const escrowRole = await serviceRegistry.ESCROW_ROLE()

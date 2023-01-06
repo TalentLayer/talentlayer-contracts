@@ -15,18 +15,25 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 contract TalentLayerID is ERC721A, Ownable {
     // =========================== Structs ==============================
 
+    struct SocialPlatform {
+        bytes32 socialPlatformsId;
+        string handle;
+    }
+
     /// @notice TalentLayer Profile information struct
     /// @param profileId the talentLayerId of the profile
     /// @param handle the handle of the profile
     /// @param pohAddress the proof of humanity address of the profile
     /// @param platformId the TalentLayer Platform Id linked to the profile
     /// @param dataUri the IPFS URI of the profile metadata
+    /// @param socialPlatforms the social platforms name linked to the social platforms profile
     struct Profile {
         uint256 id;
         string handle;
         address pohAddress;
         uint256 platformId;
         string dataUri;
+        SocialPlatform socialPlatforms;
     }
 
     // =========================== Mappings ==============================
@@ -167,6 +174,20 @@ contract TalentLayerID is ERC721A, Ownable {
         emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handle);
     }
 
+    function setSocialId(string memory _socialPlatformName, bytes32 _socialId) public {
+        require(bytes32(_socialId).length > 0, "Should provide a valid social ID");
+        uint256 tokenId = walletOfOwner(msg.sender);
+        require(tokenId > 0, "You need to have a TalentLayerID to set a social ID");
+
+        Profile storage profiles = profiles[tokenId];
+
+        // Update the social platform information in the profile
+        profiles.socialPlatforms.socialPlatformsId = _socialId;
+        profiles.socialPlatforms.handle = _socialPlatformName;
+
+        emit SocialIdUpdated(tokenId, _socialPlatformName, _socialId);
+    }
+
     /**
      * Update user data.
      * @dev we are trusting the user to provide the valid IPFS URI (changing in v2)
@@ -253,11 +274,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function _afterMint(
-        string memory _handle,
-        bool _poh,
-        uint256 _platformId
-    ) private {
+    function _afterMint(string memory _handle, bool _poh, uint256 _platformId) private {
         uint256 userTokenId = _nextTokenId() - 1;
         Profile storage profile = profiles[userTokenId];
         profile.platformId = _platformId;
@@ -278,17 +295,9 @@ contract TalentLayerID is ERC721A, Ownable {
 
     // =========================== Overrides ==============================
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721A) {}
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {}
 
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721A) {}
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {}
 
     function tokenURI(uint256 tokenId) public view virtual override(ERC721A) returns (string memory) {
         return _buildTokenURI(tokenId);
@@ -392,4 +401,13 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _mintFee The new mint fee
      */
     event MintFeeUpdated(uint256 _mintFee);
+
+    /**
+     * Emit when mint fee is updated
+     * @param _tokenId TalentLayer ID for the user
+     * @param _socialPlatformName Social platform name
+     * @param _socialId Social platform ID
+     */
+
+    event SocialIdUpdated(uint256 _tokenId, string _socialPlatformName, bytes32 _socialId);
 }
