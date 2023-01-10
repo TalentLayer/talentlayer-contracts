@@ -219,6 +219,13 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      */
     event EvidenceSubmitted(uint256 indexed _transactionId, uint256 indexed _partyId, string _evidenceUri);
 
+    /**
+     * @notice Emitted when evidence is submitted.
+     * @param _protocolFee The protocol fee.
+     * @param _originPlatformFee The origin platform fee.
+     */
+    event ProtocolFeeSetUp(uint256 _protocolFee, uint256 _originPlatformFee);
+
     // =========================== Declarations ==============================
 
     /**
@@ -298,17 +305,15 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
      */
-    constructor(
-        address _serviceRegistryAddress,
-        address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress
-    ) {
+    constructor(address _serviceRegistryAddress, address _talentLayerIDAddress, address _talentLayerPlatformIDAddress) {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
         protocolFee = 100;
         originPlatformFee = 200;
         protocolWallet = payable(owner());
+
+        emit ProtocolFeeSetUp(protocolFee, originPlatformFee);
     }
 
     // =========================== View functions ==============================
@@ -837,11 +842,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _metaEvidence The meta evidence of the transaction
      * @param _sellerId The ID of the seller
      */
-    function _afterCreateTransaction(
-        uint256 _transactionId,
-        string memory _metaEvidence,
-        uint256 _sellerId
-    ) internal {
+    function _afterCreateTransaction(uint256 _transactionId, string memory _metaEvidence, uint256 _sellerId) internal {
         Transaction storage transaction = transactions[_transactionId];
 
         uint256 sender = talentLayerIdContract.walletOfOwner(transaction.sender);
@@ -871,11 +872,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _token The token to transfer
      * @param _amount The amount of tokens to transfer
      */
-    function _deposit(
-        address _sender,
-        address _token,
-        uint256 _amount
-    ) private {
+    function _deposit(address _sender, address _token, uint256 _amount) private {
         require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
     }
 
@@ -958,7 +955,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _proposalId The id of the proposal
      * @return proposal proposal struct, service The service struct, sender The sender address, receiver The receiver address
      */
-    function _getTalentLayerData(uint256 _serviceId, uint256 _proposalId)
+    function _getTalentLayerData(
+        uint256 _serviceId,
+        uint256 _proposalId
+    )
         private
         returns (
             IServiceRegistry.Proposal memory proposal,
@@ -980,11 +980,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _proposalId The id of the proposal
      * @return The Proposal struct
      */
-    function _getProposal(uint256 _serviceId, uint256 _proposalId)
-        private
-        view
-        returns (IServiceRegistry.Proposal memory)
-    {
+    function _getProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) private view returns (IServiceRegistry.Proposal memory) {
         return serviceRegistryContract.getProposal(_serviceId, _proposalId);
     }
 
@@ -1003,11 +1002,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
      */
-    function _transferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.transfer(_amount);
         } else {
@@ -1015,11 +1010,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         }
     }
 
-    function _safeTransferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _safeTransferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.call{value: _amount}("");
         } else {
@@ -1033,11 +1024,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _platformFee The platform fee
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformFee)
-        private
-        view
-        returns (uint256 totalEscrowAmount)
-    {
+    function _calculateTotalEscrowAmount(
+        uint256 _amount,
+        uint256 _platformFee
+    ) private view returns (uint256 totalEscrowAmount) {
         return
             _amount +
             (((_amount * protocolFee) + (_amount * originPlatformFee) + (_amount * _platformFee)) / FEE_DIVIDER);
