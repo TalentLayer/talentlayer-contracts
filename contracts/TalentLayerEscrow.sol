@@ -224,7 +224,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _protocolFee The protocol fee.
      * @param _originPlatformFee The origin platform fee.
      */
-    event ProtocolFeeSetUp(uint256 _protocolFee, uint256 _originPlatformFee);
+    event ProtocolFeeSetUp(uint16 _protocolFee, uint16 _originPlatformFee);
 
     // =========================== Declarations ==============================
 
