@@ -220,8 +220,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     event EvidenceSubmitted(uint256 indexed _transactionId, uint256 indexed _partyId, string _evidenceUri);
 
     /**
-     * @notice Emitted when evidence is submitted.
-     * @param _protocolFee The protocol fee.
+     * @notice Emitted when the contract is deployed.
+     * @param _protocolFee The protocol fee (escrowFee).
      * @param _originPlatformFee The origin platform fee.
      */
     event ProtocolFeeSetUp(uint16 _protocolFee, uint16 _originPlatformFee);
