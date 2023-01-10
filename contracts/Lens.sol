@@ -3,6 +3,8 @@ pragma solidity ^0.8.9;
 
 import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ISocialPlatform.sol";
+import "./interfaces/ILensHub.sol";
+import "./libs/IERC721Time.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Lens is ISocialPlatform, Ownable {
@@ -14,8 +16,8 @@ contract Lens is ISocialPlatform, Ownable {
     event LensLink(bytes32 _lensId, uint256 _talentLayerId);
 
     // =========================== Mappings ==============================
-    // Add a mapping to associate Lens IDs with TalentLayer IDs
-    mapping(bytes32 => uint256) public lensToTalentLayerId;
+    // Add a mapping to associate Lens Handke with TalentLayer IDs
+    mapping(string => uint256) public lensToTalentLayerId;
 
     // =========================== Declaration ==============================
 
@@ -24,16 +26,30 @@ contract Lens is ISocialPlatform, Ownable {
      */
     ITalentLayerID private talentLayerIdContract;
 
+    /**
+     * @notice Instance of ILensHub.sol
+     */
+    ILensHub private iLensHub;
+
+    /**
+     * @notice Instance of IERC721Time.sol
+     */
+    IERC721Time private iERC721Time;
+
     string constant socialPlatformName = "Lens";
+
+    address constant _proxyAddress = 0x60Ae865ee4C725cd04353b5AAb364553f56ceF82;
 
     // =========================== Constructor ==============================
 
+    // Do we have to pass the address of the TalentLayerID contract in the constructor or in the setExternalIdMapping function ?
     /**
      * @dev Called on contract deployment
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      */
-    constructor(address _talentLayerIDAddress) {
+    constructor(address _talentLayerIDAddress, address payable _proxyAddress) {
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
+        iLensHub = ILensHub(_proxyAddress);
     }
 
     // =========================== User functions ==============================
@@ -42,27 +58,30 @@ contract Lens is ISocialPlatform, Ownable {
 
     /**
      * @dev Called on contract deployment
-     * @param _LensId Social platform Id ID
+     * @param _socialHandle Social platform handle => handle.lens
      * @param _talentLayerId TalentLayer ID
      */
-    function setExternalIdMapping(bytes32 _LensId, uint256 _talentLayerId) external onlyOwner {
+    function setExternalIdMapping(string memory _socialHandle, uint256 _talentLayerId) external onlyOwner {
         // get the Talent Layer id from the wallet
         _talentLayerId = talentLayerIdContract.walletOfOwner(msg.sender);
 
-        //TODO : check if the Lens ID is valid in the Lens contract
-        //https://github.com/lens-protocol/core/blob/main/contracts/libraries/PublishingLogic.sol
+        //We first get the Profile with the handle (getProfileByHandle) with kyubi.test we should get 25017
+        uint256 profileId = iLensHub.getProfileIdByHandle(_socialHandle);
+
+        // then we check the owner address of the profile (ownerOf) with 25017 we should get 0x3Fba71369E5E2E947AE2320274b1677de7D28120
+        //address ownerAddress = IERC721Time.ownerOf(profileId);
 
         // check if the Talent Layer id is valid
         talentLayerIdContract.isValid(_talentLayerId);
 
         // store the mapping in Lens contract
-        lensToTalentLayerId[_LensId] = _talentLayerId;
+        lensToTalentLayerId[_socialHandle] = _talentLayerId;
 
         // we store the mapping in the TalentLayerID contract
-        talentLayerIdContract.setSocialId(socialPlatformName, _LensId);
+        talentLayerIdContract.setSocialId(socialPlatformName, _socialHandle);
 
         // emit event
-        emit LensLink(_LensId, _talentLayerId);
+        emit LensLink(_socialHandle, _talentLayerId);
     }
 
     // =========================== View functions ==============================
