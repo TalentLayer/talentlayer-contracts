@@ -17,13 +17,6 @@ import {IStrategies} from "./interfaces/IStrategies.sol";
 contract TalentLayerID is ERC721A, Ownable {
     // =========================== Structs ==============================
 
-    /// @param socialPlatformsId The social platform Id linked to the TlId
-    /// @param platformName the name of the social platform
-    struct UserStratPlatform {
-        bytes32 stratId;
-        string stratHandle;
-    }
-
     /// @notice TalentLayer Profile information struct
     /// @param profileId the talentLayerId of the profile
     /// @param handle the handle of the profile
@@ -36,7 +29,7 @@ contract TalentLayerID is ERC721A, Ownable {
         address pohAddress;
         uint256 platformId;
         string dataUri;
-        UserStratPlatform userStratPlatforms;
+        bytes externalId;
     }
 
     // =========================== Declaration ===========================
@@ -64,8 +57,11 @@ contract TalentLayerID is ERC721A, Ownable {
     /// Token ID to Profile struct
     mapping(uint256 => Profile) public profiles;
 
-    // mapping the strategies contract address to the name of the strategy
-    mapping(string => address) public nameStrategiesToAddress;
+    // Strategy id to strategy contract address
+    mapping(uint256 => address) public strategies;
+
+    // mapping from TokenId to strategy id to externalId
+    mapping(uint256 => mapping(uint256 => bytes)) public profileIdToStrategyIdToExternalId;
 
     /// Addresses that have successfully recovered their account
     mapping(address => bool) public hasBeenRecovered;
@@ -150,7 +146,26 @@ contract TalentLayerID is ERC721A, Ownable {
         require(_tokenId > 0 && _tokenId <= totalSupply(), "Your ID is not a valid token ID");
     }
 
+    /**
+     * Get the strategy contract address for a given strategy id
+     * @param _strategyId strategy id
+     */
+    function getStrategy(uint256 _strategyId) public view returns (address) {
+        return strategies[_strategyId];
+    }
+
     // =========================== User functions ==============================
+
+    /**
+     * We store the strategies id link to the stragegy contract address
+     * @param _strategyId  Strategy ID
+     * @param _strategyAddress Strategy contract address
+     */
+    function setStrategy(uint256 _strategyId, address _strategyAddress) public onlyOwner {
+        require(_strategyId != 0, "Strategy id cannot be 0, reserved for none strategy");
+        require(_strategyAddress != address(0), "Strategy address cannot be 0");
+        strategies[_strategyId] = _strategyAddress;
+    }
 
     /**
      * Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
@@ -160,15 +175,6 @@ contract TalentLayerID is ERC721A, Ownable {
     function mint(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
         _safeMint(msg.sender, 1);
         _afterMint(_handle, false, _platformId);
-    }
-
-    /**
-     * We store the strategies contract address in a mapping
-     * @param _strategieName Name of the strategy
-     * @param _strategieAddress Address of the strategy
-     */
-    function storeStrategiesContract(string memory _strategieName, address _strategieAddress) public onlyOwner {
-        nameStrategiesToAddress[_strategieName] = _strategieAddress;
     }
 
     /**
@@ -200,61 +206,45 @@ contract TalentLayerID is ERC721A, Ownable {
      * Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
      * @param _platformId Platform ID from which UserId minted
      * @param _handle Handle for the user
-     * @param _strategiesAddress Contract Address of the strategy
+     * @param _strategiesID Array of strategies ID
      */
-
-    function mintWithStrategie(
-        uint256 _platformId,
-        string memory _handle,
-        address _strategiesAddress
-    ) public payable canMint(_handle, _platformId) {
-        strategyContract = IStrategies(_strategiesAddress);
-
-        // we check with the user address if the user is registered on the platform
-        require(
-            strategyContract.isRegistered(msg.sender),
-            "You need to use an address registered on the selected platform"
-        );
-        // we get data we need and store it in the profile
-        (string memory _stratHandle, bytes32 _stratId) = strategyContract.getStratInfo(msg.sender);
-
-        _safeMint(msg.sender, 1);
-        uint256 userTokenId = _nextTokenId() - 1;
-        // we store Strat info in UserStratPlatform struct in Profile struct
-        profiles[userTokenId].userStratPlatforms = UserStratPlatform(_stratHandle, _stratId);
-
-        _afterMint(_handle, false, _platformId);
-    }
-
-    // OR
 
     function mintWithMultipleStrategie(
         uint256 _platformId,
         string memory _handle,
-        address[] memory _strategiesAddress
+        uint256[] memory _strategiesID
     ) public payable canMint(_handle, _platformId) {
-        for (uint i = 0; i < _strategiesAddress.length; i++) {
-            strategyContract = IStrategies(_strategiesAddress[i]);
-            // we check with the user address if the user is registered on the platform
+        for (uint i = 0; i < _strategiesID.length; i++) {
+            strategyContract = IStrategies(getStrategy([i]));
+
+            // we check if the user is registered on the strategy
             require(
                 strategyContract.isRegistered(msg.sender),
                 "You need to use an address registered on the selected platform"
             );
-            // we get data we need and store it in the profile
-            (string memory _stratHandle, bytes32 _stratId) = strategyContract.getStratInfo(msg.sender);
+        }
 
-            _safeMint(msg.sender, 1);
-            uint256 userTokenId = _nextTokenId() - 1;
-            // we store Strat info in UserStratPlatform struct in Profile struct
-            profiles[userTokenId].userStratPlatforms = UserStratPlatform(_stratHandle, _stratId);
+        _safeMint(msg.sender, 1);
+        uint256 userTokenId = _nextTokenId() - 1;
+        _afterMint(_handle, true, _platformId);
+
+        // now we will link the new minted token to the strategies
+        for (uint i = 0; i < _strategiesID.length; i++) {
+            // we get
+
+            profileIdToStrategyIdToExternalId[userTokenId][_strategiesID[i]] = strategyContract.getExternalId(
+                msg.sender
+            );
         }
     }
 
     /**
      * Link Proof of Humanity to previously non-linked TalentLayerID.
-     * @param _tokenId Token ID to link
+     * @param _strategyId The strategy ID
+     * @param _profileId The profile ID
+     * @param _externalID The external ID
      */
-    function activateStrat(uint256 _tokenId) public {
+    function associateExternalIDs(uint256 _strategyId, uint256 _profileId, uint256 _externalID) public {
         require(ownerOf(_tokenId) == msg.sender);
         require(
             strategyContract.isRegistered(msg.sender),
@@ -265,13 +255,6 @@ contract TalentLayerID is ERC721A, Ownable {
 
         // we store Strat info in UserStratPlatform struct in Profile struct
         profiles[_tokenId].userStratPlatforms = UserStratPlatform(_stratHandle, _stratId);
-
-        emit stratActivated(
-            msg.sender,
-            _tokenId,
-            profiles[_tokenId].userStratPlatforms.stratId,
-            profiles[_tokenId].userStratPlatforms.stratHandle
-        );
     }
 
     /**
