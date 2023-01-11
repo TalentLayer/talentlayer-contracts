@@ -2,11 +2,13 @@
 pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {IStrategies} from "./interfaces/IStrategies.sol";
 
 /**
  * @title TalentLayer ID Contract
@@ -17,9 +19,9 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /// @param socialPlatformsId The social platform Id linked to the TlId
     /// @param platformName the name of the social platform
-    struct UserSocialPlatform {
-        bytes32 socialPlatformId;
-        string handle;
+    struct UserStratPlatform {
+        bytes32 stratId;
+        string stratHandle;
     }
 
     /// @notice TalentLayer Profile information struct
@@ -28,17 +30,16 @@ contract TalentLayerID is ERC721A, Ownable {
     /// @param pohAddress the proof of humanity address of the profile
     /// @param platformId the TalentLayer Platform Id linked to the profile
     /// @param dataUri the IPFS URI of the profile metadata
-    /// @param socialPlatforms the social platforms name linked to the social platforms profile
     struct Profile {
         uint256 id;
         string handle;
         address pohAddress;
         uint256 platformId;
         string dataUri;
-        UserSocialPlatform[] userSocialPlatforms;
+        UserStratPlatform userStratPlatforms;
     }
 
-    // =========================== Mappings ==============================
+    // =========================== Declaration ===========================
 
     /// Proof of Humanity registry
     IProofOfHumanity public pohRegistry;
@@ -46,20 +47,30 @@ contract TalentLayerID is ERC721A, Ownable {
     /// TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
+    /// Strategy contract instance
+    IStrategies public strategyContract;
+
+    /// Account recovery merkle root
+    bytes32 public recoveryRoot;
+
+    // Price to mint an id (in wei, upgradable)
+    uint256 public mintFee;
+
+    // =========================== Mappings ==============================
+
     /// Taken handles
     mapping(string => bool) public takenHandles;
 
     /// Token ID to Profile struct
     mapping(uint256 => Profile) public profiles;
 
-    /// Account recovery merkle root
-    bytes32 public recoveryRoot;
+    // mapping the strategies contract address to the name of the strategy
+    mapping(string => address) public nameStrategiesToAddress;
 
     /// Addresses that have successfully recovered their account
     mapping(address => bool) public hasBeenRecovered;
 
-    /// Price to mint an id (in wei, upgradable)
-    uint256 public mintFee;
+    // =========================== Constructor ==============================
 
     /**
      * @param _pohAddress Proof of Humanity registry address
@@ -152,6 +163,15 @@ contract TalentLayerID is ERC721A, Ownable {
     }
 
     /**
+     * We store the strategies contract address in a mapping
+     * @param _strategieName Name of the strategy
+     * @param _strategieAddress Address of the strategy
+     */
+    function storeStrategiesContract(string memory _strategieName, address _strategieAddress) public onlyOwner {
+        nameStrategiesToAddress[_strategieName] = _strategieAddress;
+    }
+
+    /**
      * Allows a user to mint a new TalentLayerID with Proof of Humanity.
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
@@ -176,18 +196,82 @@ contract TalentLayerID is ERC721A, Ownable {
         emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handle);
     }
 
-    function setSocialId(string memory _socialPlatformName, bytes32 _socialId) public {
-        require(bytes32(_socialId).length > 0, "Should provide a valid social ID");
-        uint256 tokenId = walletOfOwner(msg.sender);
-        require(tokenId > 0, "You need to have a TalentLayerID to set a social ID");
+    /**
+     * Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
+     * @param _platformId Platform ID from which UserId minted
+     * @param _handle Handle for the user
+     * @param _strategiesAddress Contract Address of the strategy
+     */
 
-        Profile storage profiles = profiles[tokenId];
+    function mintWithStrategie(
+        uint256 _platformId,
+        string memory _handle,
+        address _strategiesAddress
+    ) public payable canMint(_handle, _platformId) {
+        strategyContract = IStrategies(_strategiesAddress);
 
-        // Update the social platform information in the profile
-        UserSocialPlatform memory newUserSocialPlatform = UserSocialPlatform(_socialId, _socialPlatformName);
-        profiles.userSocialPlatforms.push(newUserSocialPlatform);
+        // we check with the user address if the user is registered on the platform
+        require(
+            strategyContract.isRegistered(msg.sender),
+            "You need to use an address registered on the selected platform"
+        );
+        // we get data we need and store it in the profile
+        (string memory _stratHandle, bytes32 _stratId) = strategyContract.getStratInfo(msg.sender);
 
-        emit SocialIdUpdated(tokenId, _socialPlatformName, _socialId);
+        _safeMint(msg.sender, 1);
+        uint256 userTokenId = _nextTokenId() - 1;
+        // we store Strat info in UserStratPlatform struct in Profile struct
+        profiles[userTokenId].userStratPlatforms = UserStratPlatform(_stratHandle, _stratId);
+
+        _afterMint(_handle, false, _platformId);
+    }
+
+    // OR
+
+    function mintWithMultipleStrategie(
+        uint256 _platformId,
+        string memory _handle,
+        address[] memory _strategiesAddress
+    ) public payable canMint(_handle, _platformId) {
+        for (uint i = 0; i < _strategiesAddress.length; i++) {
+            strategyContract = IStrategies(_strategiesAddress[i]);
+            // we check with the user address if the user is registered on the platform
+            require(
+                strategyContract.isRegistered(msg.sender),
+                "You need to use an address registered on the selected platform"
+            );
+            // we get data we need and store it in the profile
+            (string memory _stratHandle, bytes32 _stratId) = strategyContract.getStratInfo(msg.sender);
+
+            _safeMint(msg.sender, 1);
+            uint256 userTokenId = _nextTokenId() - 1;
+            // we store Strat info in UserStratPlatform struct in Profile struct
+            profiles[userTokenId].userStratPlatforms = UserStratPlatform(_stratHandle, _stratId);
+        }
+    }
+
+    /**
+     * Link Proof of Humanity to previously non-linked TalentLayerID.
+     * @param _tokenId Token ID to link
+     */
+    function activateStrat(uint256 _tokenId) public {
+        require(ownerOf(_tokenId) == msg.sender);
+        require(
+            strategyContract.isRegistered(msg.sender),
+            "You need to use an address registered on the selected platform"
+        );
+        // we get data we need and store it in the profile
+        (string memory _stratHandle, bytes32 _stratId) = strategyContract.getStratInfo(msg.sender);
+
+        // we store Strat info in UserStratPlatform struct in Profile struct
+        profiles[_tokenId].userStratPlatforms = UserStratPlatform(_stratHandle, _stratId);
+
+        emit stratActivated(
+            msg.sender,
+            _tokenId,
+            profiles[_tokenId].userStratPlatforms.stratId,
+            profiles[_tokenId].userStratPlatforms.stratHandle
+        );
     }
 
     /**
@@ -411,5 +495,5 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _socialId Social platform ID
      */
 
-    event SocialIdUpdated(uint256 _tokenId, string _socialPlatformName, bytes32 _socialId);
+    event stratActivated(uint256 _tokenId, string _socialPlatformName, bytes32 _socialId);
 }

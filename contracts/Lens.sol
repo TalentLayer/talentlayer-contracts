@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./interfaces/ITalentLayerID.sol";
-import "./interfaces/ISocialPlatform.sol";
+import "./interfaces/IStrategies.sol";
+import "./interfaces/ILensHub.sol";
+import "./libs/IERC721Time.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Lens is ISocialPlatform, Ownable {
+contract Lens is IStrategies, Ownable {
     // =========================== Events ==============================
     /// @notice Emitted after a link between a Lens ID and a TalentLayer ID is created
     /// @param _lensId the lensId
@@ -20,49 +21,44 @@ contract Lens is ISocialPlatform, Ownable {
     // =========================== Declaration ==============================
 
     /**
-     * @notice Instance of TalentLayerID.sol
+     * @notice Instance of ILensHub.sol
      */
-    ITalentLayerID private talentLayerIdContract;
+    ILensHub private iLensHub;
+
+    /**
+     * @notice Instance of IERC721Time.sol
+     */
+    IERC721Time private iERC721Time;
 
     string constant socialPlatformName = "Lens";
+
+    address constant _proxyAddress = 0x60Ae865ee4C725cd04353b5AAb364553f56ceF82;
+
+    // =========================== Event ====================================
+
+    event StratInfo(bytes32 _stratId, uint256 _stratType);
 
     // =========================== Constructor ==============================
 
     /**
      * @dev Called on contract deployment
-     * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
+     * @param _proxyAddress LensHub proxy address
      */
-    constructor(address _talentLayerIDAddress) {
-        talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
+    constructor(address payable _proxyAddress) {
+        iLensHub = ILensHub(_proxyAddress);
     }
 
-    // =========================== User functions ==============================
+    // =========================== User functions ============================
 
-    // Link the Lens ID to the TalentLayer ID
+    // we check with the user address if the user is registered on the platform
+    function isRegistered(address _user) external view {}
 
-    /**
-     * @dev Called on contract deployment
-     * @param _LensId Social platform Id ID
-     * @param _talentLayerId TalentLayer ID
-     */
-    function setExternalIdMapping(bytes32 _LensId, uint256 _talentLayerId) external onlyOwner {
-        // get the Talent Layer id from the wallet
-        _talentLayerId = talentLayerIdContract.walletOfOwner(msg.sender);
+    // We get the Strat Id from the platform partner
+    function getStratInfo(address _user) public view returns (bytes32) {
+        // we can store it in a mapping in Lens contract ?? could be useful for Lens maybe ?
 
-        //TODO : check if the Lens ID is valid in the Lens contract
-        //https://github.com/lens-protocol/core/blob/main/contracts/libraries/PublishingLogic.sol
-
-        // check if the Talent Layer id is valid
-        talentLayerIdContract.isValid(_talentLayerId);
-
-        // store the mapping in Lens contract
-        lensToTalentLayerId[_LensId] = _talentLayerId;
-
-        // we store the mapping in the TalentLayerID contract
-        talentLayerIdContract.setSocialId(socialPlatformName, _LensId);
-
-        // emit event
-        emit LensLink(_LensId, _talentLayerId);
+        // do we need
+        emit StratInfo();
     }
 
     // =========================== View functions ==============================
