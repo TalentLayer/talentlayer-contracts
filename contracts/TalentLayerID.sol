@@ -8,7 +8,7 @@ import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
-import {IStrategies} from "./interfaces/IStrategies.sol";
+import {IExternalID} from "./interfaces/IExternalID.sol";
 
 /**
  * @title TalentLayer ID Contract
@@ -41,7 +41,7 @@ contract TalentLayerID is ERC721A, Ownable {
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
     /// Strategy contract instance
-    IStrategies public strategyContract;
+    IExternalID public strategyContract;
 
     /// Account recovery merkle root
     bytes32 public recoveryRoot;
@@ -209,13 +209,13 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _strategiesID Array of strategies ID
      */
 
-    function mintWithMultipleStrategie(
+    function mintWithExternalID(
         uint256 _platformId,
         string memory _handle,
         uint256[] memory _strategiesID
     ) public payable canMint(_handle, _platformId) {
         for (uint i = 0; i < _strategiesID.length; i++) {
-            strategyContract = IStrategies(getStrategy([i]));
+            strategyContract = IExternalID(getStrategy([i]));
 
             // we check if the user is registered on the strategy
             require(
