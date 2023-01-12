@@ -1,6 +1,6 @@
 import fs from 'fs'
 import hre from 'hardhat'
-import { getConfig } from '../configManager'
+import { getConfig } from '../../configManager'
 
 async function main() {
   const network = await hre.network.name
@@ -43,7 +43,7 @@ function saveJSON(subgraphNetwork: any) {
   return fs.writeFileSync(filename, JSON.stringify(subgraphNetwork, null, 2))
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error(error)
   process.exitCode = 1
 })

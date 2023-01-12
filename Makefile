@@ -21,10 +21,10 @@ deploy-verify:
 
 ifeq ($(OS),Windows_NT)
 copy-configuration: 
-	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/utils/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 else
 copy-configuration: 
-	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/utils/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 endif
 
 #--------------PLAYGROUND LOCAL----------------#
