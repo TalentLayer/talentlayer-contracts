@@ -141,7 +141,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function mint(string memory _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
         _safeMint(msg.sender, 1);
-        _afterMint(_platformName);
+        _afterMint(_platformName, msg.sender);
     }
 
     /**
@@ -157,7 +157,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         onlyRole(MINT_ROLE)
     {
         _safeMint(_platformAddress, 1);
-        _afterMint(_platformName);
+        _afterMint(_platformName, _platformAddress);
     }
 
     /**
@@ -278,14 +278,14 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @notice Update Platform name mapping and emit event after mint.
      * @param _platformName Name of the platform
      */
-    function _afterMint(string memory _platformName) private {
+    function _afterMint(string memory _platformName, address _platformAddress) private {
         uint256 platformId = _nextTokenId() - 1;
         Platform storage platform = platforms[platformId];
         platform.name = _platformName;
         platform.id = platformId;
         takenNames[_platformName] = true;
 
-        emit Mint(msg.sender, platformId, _platformName, mintFee);
+        emit Mint(_platformAddress, platformId, _platformName, mintFee);
     }
 
     // =========================== Internal functions ==============================
