@@ -8,6 +8,8 @@ import './scripts/deploy'
 import './scripts/wallet'
 import './scripts/mintPlatformIdForAddress'
 import './scripts/mintTalentLayerId'
+import './scripts/tasks/protocol/addArbitrator'
+import './scripts/tasks/protocol/removeArbitrator'
 import { Network } from './scripts/config'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })

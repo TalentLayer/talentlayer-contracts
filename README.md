@@ -2,37 +2,44 @@
 
 An interoperable identity system for freelancing marketplaces. Leverage one unified, self-owned, identity across many freelancing marketplaces. Realize #WorkSovereignty by owning your work reputation.
 
-https://www.talentlayer.org/
+- Learn more about the project: https://www.talentlayer.org
+- Documentation: https://docs.talentlayer.org
 
-## Deployed on Gnosis Chain
+
+## Scripts
+
+- playground: use on local or testnet to create fake data and test the protocol 
+- tasks: configurable commands to use in mainnet 
+    - protocol: Used to managed the protocol by TalentLayer (mint a platform, allow a new arbitrator...)
+    - platform: Used to managed a platform by there owner (update fee)
+- utils: common functions
+
+## Deployed
+
+### Gnosis Chain
 
 - TalentLayerId: 0x45Cd9E9C04d0701b23089C44Faa807932996717E
 - ServiceRegistry: 0xFAe97514c8e94501E66F0AEf84E4Cccb7eb2EB84
 - TalentLayerReview: 0x8685C7359DeE31703a1f47F8dabad7879148cFCf
 - Mock ProofOfHumanity: 0xc7729F499f3D81643597a1e1666E9b6F8D702F8D
 
-## Deployed on Kovan
 
-- TalentLayerId: 0x6A5BF452108DA389B7B38284E871f538671Ad375
-- ServiceRegistry: 0xF1F55da2bd610760A0Cbbd138Ad0B385ccB9b9f0
-- TalentLayerReview: 0x863751792aa2dab3554b08b5ba9b336b134ae3ed
+### Goerli
 
-## Deployed on Goerli
+- proofOfHumanityAddress: 0xB8805e67c476b1b237509B81b9738D129226D0C8,
+- talentLayerPlatformIdAddress: 0x08FB56537F118Cf35C4d3eB280444737f6D1bE46,
+- talentLayerIdAddress: 0x11119eD887aeC1302e2cAF49942F891667A31BBc,
+- serviceRegistryAddress: 0xf0EECbBf164D81261C7Ce4D22D16f38DC63fBAbd,
+- talentLayerReviewAddress: 0xCf7577fB4749fA9Ae38296D52C53C654F9A9367f,
+- talentLayerArbitratorAddress: 0xB1cade7e543dC14c76191BdcD1CA15625d77dFDb,
+- TalentLayerEscrow: 0x34FCF4b0A418011682F6EdC86c49a0Faacc8A667,
+- simpleERC20Address: 0xd80D331d3B6dca0A20F4af2edC9C9645cD1F10C8
+- Registered Alice: 0x8d960334c2EF30f425b395C1506Ef7c5783789F3
+- Registered Bob: 0x0F45421E8DC47eF9edd8568a9D569b6fc7Aa7AC6
+- Registered Carol: 0x997b456Be586997A2F6d6D650FC14bF5843c92B2
+- Registered Dave: 0x26FddC1C2c84e61457734a17C6818a6E063644ec
 
-- proofOfHumanityAddress: 0xAEbc3646709765691045B56ae89556907852DbEE,
-- talentLayerPlatformIdAddress: 0x29AcBBbfAb5e1AF98557C53CCcEF0C050FA18Bc8,
-- talentLayerIdAddress: 0x67c3AC531084aB5E6E04d4bB0FC7766e27b81546,
-- serviceRegistryAddress: 0x6f97FB242d2D3bCA9d19c05c975F6Ec8caB4d1a4,
-- talentLayerReviewAddress: 0x59ff1f3ff159c17C48558cCf8269FF17aA0B8C8D,
-- talentLayerArbitratorAddress: 0x2Bb8A21458E35d632161dF96723F42De4034F581,
-- talentLayerMultipleArbitrableTransactionAddress: 0x4A6F0208a0b636E3A4918cb0A5B1367E4B338aD8,
-- simpleERC20Address: 0x652e712fD63D8AcB14FA7d2b2b5aCA0413E8E705
-- Registered Alice: 0x1caAb8ded4535bF42728feA90aFa7da1ac637E1E
-- Registered Bob: 0x5C7c844cB1E996a77EAC530A8EA0b99A1DDc565e
-- Registered Carol: 0x526D10c5EDF904B733B9e78273C9e3b3D0c19CBb
-- Registered Dave: 0xae61Cb2235Ef992E52579C41ccE5425Ec2d12C1f
-
-## Deployed on Avalanche testnet (Fuji)
+### Avalanche testnet (Fuji)
 
 - Proof of humanity 0x435e586D8408f4dBCbF418208878041D700FE06A
 - TalentLayer Platform ID: 0x8799479a39b6e563969126328e2323cbA01e8742
@@ -40,9 +47,7 @@ https://www.talentlayer.org/
 - Service Registry : 0x9EA2678d5A69CEDEc52ecafA367659b1d2Ff7824
 - TalentLayerReview : 0xD8c4fD1D8Dd2f3a6E4d26BeB167e73D9E28db7F0
 - TalentLayerArbitrator : 0xc779bA385Fe051De397d5e25eaedabef2d495f51
-- TalentLayerMultipleArbitrableTransaction : 0x8754a129D3F53222dd94Ce45749134c15C9Ed119
+- TalentLayerEscrow : 0x8754a129D3F53222dd94Ce45749134c15C9Ed119
 - simpleERC20 address: 0xaC174398bB8a3aD8b04D8CeE4B93E752AcddCD4b
 
-## Playground
 
-Please read the Makefile for more details.

@@ -21,11 +21,9 @@ deploy-verify:
 
 ifeq ($(OS),Windows_NT)
 copy-configuration: 
-	# Copy "$(CONTRACTS_FOLDER)\talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)\src\config\talent.config_$(DEPLOY_NETWORK).json"
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 else
 copy-configuration: 
-	# cp "$(CONTRACTS_FOLDER)/talent.config_$(DEPLOY_NETWORK).json" "$(DAPP_FOLDER)/src/config/talent.config_$(DEPLOY_NETWORK).json"
 	npx hardhat run scripts/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
 endif
 
@@ -160,3 +158,17 @@ reviews:
 claim-balance:
 	npx hardhat run scripts/playground/9-claim.ts --network $(DEPLOY_NETWORK)
 
+dispute/setup:
+	npx hardhat run scripts/playground/disputeResolution/0-setup.ts --network $(DEPLOY_NETWORK)
+
+dispute/pay-arbitration-fee:
+	npx hardhat run scripts/playground/disputeResolution/1-pay-arbitration-fee.ts --network $(DEPLOY_NETWORK)
+
+dispute/create-dispute:
+	npx hardhat run scripts/playground/disputeResolution/2-create-dispute.ts --network $(DEPLOY_NETWORK)
+
+dispute/submit-evidence:
+	npx hardhat run scripts/playground/disputeResolution/3-submit-evidence.ts --network $(DEPLOY_NETWORK)
+
+dispute/submit-ruling:
+	npx hardhat run scripts/playground/disputeResolution/4-submit-ruling.ts --network $(DEPLOY_NETWORK)

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-interface ITalentLayerMultipleArbitrableTransaction {
+interface ITalentLayerEscrow {
     struct Transaction {
         address sender; //pays recipient using the escrow
         address receiver; //intended recipient of the escrow
@@ -24,22 +24,16 @@ interface ITalentLayerMultipleArbitrableTransaction {
     function updateProtocolWallet(address payable _protocolWallet) external;
 
     function createTokenTransaction(
-        uint256 _timeoutPayment,
         string memory _metaEvidence,
-        address _adminWallet,
-        uint256 _adminFeeAmount,
         uint256 _serviceId,
         uint256 _proposalId
-    ) external;
+    ) external returns (uint256);
 
     function createETHTransaction(
-        uint256 _timeoutPayment,
         string memory _metaEvidence,
-        address _adminWallet,
-        uint256 _adminFeeAmount,
         uint256 _serviceId,
         uint256 _proposalId
-    ) external payable;
+    ) external payable returns (uint256);
 
     function release(uint256 _transactionId, uint256 _amount) external;
 
