@@ -29,12 +29,12 @@ contract LensID is IExternalID, Ownable {
     // we check with the user address if the user is registered on the platform
     function isRegistered(address _userAddress) external view returns (bool, bytes memory) {
         // convert the address to bytes
-        bytes memory _userExtrenalId = abi.encodePacked(_userAddress);
+        bytes memory _userExtrenalId = iLensHub.defaultProfile(_userAddress);
 
-        if (iLensHub.defaultProfile(_userAddress) > 0) {
+        if (_userExtrenalId > 0) {
             return (true, _userExtrenalId);
         } else {
-            return (false, "User is not registered");
+            return (false);
         }
     }
 }

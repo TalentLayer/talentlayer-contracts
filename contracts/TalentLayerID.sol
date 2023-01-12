@@ -29,7 +29,6 @@ contract TalentLayerID is ERC721A, Ownable {
         address pohAddress;
         uint256 platformId;
         string dataUri;
-        bytes externalId;
     }
 
     // =========================== Declaration ===========================
@@ -88,9 +87,25 @@ contract TalentLayerID is ERC721A, Ownable {
         return balanceOf(_user);
     }
 
+    /**
+     * Allows to get the User Profile infos from the TalentLayerID
+     * @param _profileId TlID
+     * @return the number of tokens minted by the user
+     */
     function getProfile(uint256 _profileId) external view returns (Profile memory) {
         require(_exists(_profileId), "TalentLayerID: Profile does not exist");
         return profiles[_profileId];
+    }
+
+    /**
+     * Allows to get the externalId linked to a TlID and a strategy
+     * @param _profileId TlID
+     * @param _strategyId Strategy ID
+     * @return the number of tokens minted by the user
+     */
+    function getExternalId(uint256 _profileId, uint256 _strategyId) external view returns (bytes memory) {
+        require(_exists(_profileId), "TalentLayerID: Profile does not exist");
+        return profileIdToStrategyIdToExternalId[_profileId][_strategyId];
     }
 
     /**
@@ -162,7 +177,6 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _strategyAddress Strategy contract address
      */
     function setStrategy(uint256 _strategyId, address _strategyAddress) public onlyOwner {
-        require(_strategyId != 0, "Strategy id cannot be 0, reserved for none strategy");
         require(_strategyAddress != address(0), "Strategy address cannot be 0");
         strategies[_strategyId] = _strategyAddress;
     }
@@ -209,52 +223,54 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _strategiesID Array of strategies ID
      */
 
-    function mintWithExternalID(
+    function mintWithExternalIDs(
         uint256 _platformId,
         string memory _handle,
         uint256[] memory _strategiesID
     ) public payable canMint(_handle, _platformId) {
-        for (uint i = 0; i < _strategiesID.length; i++) {
-            strategyContract = IExternalID(getStrategy([i]));
+        uint256 userTokenId = _nextTokenId();
+
+        for (uint256 i = 0; i < _strategiesID.length; i++) {
+            strategyContract = IExternalID(getStrategy(_strategiesID[i]));
 
             // we check if the user is registered on the strategy
-            require(
-                strategyContract.isRegistered(msg.sender),
-                "You need to use an address registered on the selected platform"
-            );
+            [isRegistered, externalId] = strategyContract.isRegistered(msg.sender);
+            require(isRegistered, "You need to use an address registered on the selected platform");
+
+            profileIdToStrategyIdToExternalId[userTokenId][_strategiesID[i]] = externalId;
+
+            emitExternalIDLinked(msg.sender, userTokenId, _strategiesID[i], externalId);
         }
 
         _safeMint(msg.sender, 1);
-        uint256 userTokenId = _nextTokenId() - 1;
         _afterMint(_handle, true, _platformId);
-
-        // now we will link the new minted token to the strategies
-        for (uint i = 0; i < _strategiesID.length; i++) {
-            // we get
-
-            profileIdToStrategyIdToExternalId[userTokenId][_strategiesID[i]] = strategyContract.getExternalId(
-                msg.sender
-            );
-        }
     }
 
     /**
-     * Link Proof of Humanity to previously non-linked TalentLayerID.
+     * Link External ID to previously non-linked TalentLayerID.
      * @param _strategyId The strategy ID
      * @param _profileId The profile ID
-     * @param _externalID The external ID
+     * @param _strategiesID Array of strategies ID
      */
-    function associateExternalIDs(uint256 _strategyId, uint256 _profileId, uint256 _externalID) public {
+    function associateExternalIDs(
+        uint256 _strategyId,
+        uint256 _profileId,
+        uint256[] memory _strategiesID
+    ) public {
         require(ownerOf(_tokenId) == msg.sender);
-        require(
-            strategyContract.isRegistered(msg.sender),
-            "You need to use an address registered on the selected platform"
-        );
-        // we get data we need and store it in the profile
-        (string memory _stratHandle, bytes32 _stratId) = strategyContract.getStratInfo(msg.sender);
+        uint256 userTokenId = _nextTokenId();
 
-        // we store Strat info in UserStratPlatform struct in Profile struct
-        profiles[_tokenId].userStratPlatforms = UserStratPlatform(_stratHandle, _stratId);
+        for (uint256 i = 0; i < _strategiesID.length; i++) {
+            strategyContract = IExternalID(getStrategy(_strategiesID[i]));
+
+            // we check if the user is registered on the strategy
+            [isRegistered, externalId] = strategyContract.isRegistered(msg.sender);
+            require(isRegistered, "You need to use an address registered on the selected platform");
+
+            profileIdToStrategyIdToExternalId[userTokenId][_strategiesID[i]] = externalId;
+
+            emitExternalIDActivated(msg.sender, userTokenId, _strategiesID[i], externalId);
+        }
     }
 
     /**
@@ -343,7 +359,11 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function _afterMint(string memory _handle, bool _poh, uint256 _platformId) private {
+    function _afterMint(
+        string memory _handle,
+        bool _poh,
+        uint256 _platformId
+    ) private {
         uint256 userTokenId = _nextTokenId() - 1;
         Profile storage profile = profiles[userTokenId];
         profile.platformId = _platformId;
@@ -364,9 +384,17 @@ contract TalentLayerID is ERC721A, Ownable {
 
     // =========================== Overrides ==============================
 
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {}
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override(ERC721A) {}
 
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721A) {}
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override(ERC721A) {}
 
     function tokenURI(uint256 tokenId) public view virtual override(ERC721A) returns (string memory) {
         return _buildTokenURI(tokenId);
@@ -479,4 +507,25 @@ contract TalentLayerID is ERC721A, Ownable {
      */
 
     event stratActivated(uint256 _tokenId, string _socialPlatformName, bytes32 _socialId);
+
+    /**
+     * Emit when mint fee is updated
+     * @param _tokenId TalentLayer ID for the user
+     * @param _externalID External ID og a user Strategy
+     * @param _strategiesID Id associated with the strategy
+     * @param _strategiesID Id associated with the strategy
+     */
+    event ExternalIDLinked(
+        address indexed _user,
+        uint256 _tokenId,
+        uint256 _strategiesID,
+        string _externalID,
+    );
+
+    event ExternalIDActivated(
+        address indexed _user,
+        uint256 _tokenId,
+        uint256 _strategiesID,
+        string _externalID,
+    );
 }
