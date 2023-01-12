@@ -2,7 +2,7 @@ import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
 const hre = require('hardhat')
-import postToIPFS from '../ipfs'
+import postToIPFS from '../utils/ipfs'
 
 /*
 In this script Alice will create a two services.
