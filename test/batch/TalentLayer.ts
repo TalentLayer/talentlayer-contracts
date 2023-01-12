@@ -22,14 +22,16 @@ describe('TalentLayer', function () {
     MockProofOfHumanity: ContractFactory,
     SimpleERC20: ContractFactory,
     LensID: ContractFactory,
+    MockLensHub: ContractFactory,
     serviceRegistry: Contract,
     talentLayerID: Contract,
     talentLayerPlatformID: Contract,
     talentLayerReview: Contract,
     talentLayerEscrow: Contract,
     talentLayerArbitrator: Contract,
-    lensID: Contract,
     mockProofOfHumanity: Contract,
+    lensID: Contract,
+    mockLensHub: Contract,
     token: Contract,
     platformName: string,
     platformId: string,
@@ -85,9 +87,26 @@ describe('TalentLayer', function () {
     SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
     token = await SimpleERC20.deploy()
 
-    // Deploy LensID contract and setup strategy
+    // Deploy Mock & LensID contract and setup strategy
+
+    const MockLensHub = await ethers.getContractFactory('MockLensHub')
+    const mockLensHub = await MockLensHub.deploy()
+    console.log('mockLensHub:', mockLensHub.address)
+
     LensID = await ethers.getContractFactory('LensID')
-    lensID = await LensID.deploy()
+    lensID = await LensID.deploy(mockLensHub.address)
+
+    mockLensHub.addLensProfileManually([
+      alice.address,
+      bob.address,
+      carol.address,
+      dave.address,
+      eve.address,
+      frank.address,
+    ])
+    const checkAliceProfile = await mockLensHub.defaultProfile(alice.address)
+    console.log('checkAliceProfile:', checkAliceProfile)
+
     await talentLayerID.setStrategy(0, lensID.address)
 
     // Grant escrow role
