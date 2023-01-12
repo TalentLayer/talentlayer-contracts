@@ -283,6 +283,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         Platform storage platform = platforms[platformId];
         platform.name = _platformName;
         platform.id = platformId;
+        platform.arbitrationFeeTimeout = MIN_ARBITRATION_FEE_TIMEOUT;
         takenNames[_platformName] = true;
 
         emit Mint(_platformAddress, platformId, _platformName, mintFee);
