@@ -306,12 +306,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
-        protocolFee = 100;
-        originPlatformFee = 200;
         protocolWallet = payable(owner());
 
-        updateProtocolFee(protocolFee);
-        updateOriginPlatformFee(originPlatformFee);
+        updateProtocolFee(100);
+        updateOriginPlatformFee(200);
     }
 
     // =========================== View functions ==============================
