@@ -234,12 +234,12 @@ contract TalentLayerID is ERC721A, Ownable {
             strategyContract = IExternalID(getStrategy(_strategiesID[i]));
 
             // we check if the user is registered on the strategy
-            [isRegistered, externalId] = strategyContract.isRegistered(msg.sender);
+            (bool isRegistered, bytes memory externalId) = strategyContract.isRegistered(msg.sender);
             require(isRegistered, "You need to use an address registered on the selected platform");
 
             profileIdToStrategyIdToExternalId[userTokenId][_strategiesID[i]] = externalId;
 
-            emitExternalIDLinked(msg.sender, userTokenId, _strategiesID[i], externalId);
+            emit ExternalIDLinked(msg.sender, userTokenId, _strategiesID[i], externalId);
         }
 
         _safeMint(msg.sender, 1);
@@ -255,21 +255,21 @@ contract TalentLayerID is ERC721A, Ownable {
     function associateExternalIDs(
         uint256 _strategyId,
         uint256 _profileId,
+        uint256 _tokenId,
         uint256[] memory _strategiesID
     ) public {
         require(ownerOf(_tokenId) == msg.sender);
-        uint256 userTokenId = _nextTokenId();
 
         for (uint256 i = 0; i < _strategiesID.length; i++) {
             strategyContract = IExternalID(getStrategy(_strategiesID[i]));
 
             // we check if the user is registered on the strategy
-            [isRegistered, externalId] = strategyContract.isRegistered(msg.sender);
+            (bool isRegistered, bytes memory externalId) = strategyContract.isRegistered(msg.sender);
             require(isRegistered, "You need to use an address registered on the selected platform");
 
-            profileIdToStrategyIdToExternalId[userTokenId][_strategiesID[i]] = externalId;
+            profileIdToStrategyIdToExternalId[_tokenId][_strategiesID[i]] = externalId;
 
-            emitExternalIDActivated(msg.sender, userTokenId, _strategiesID[i], externalId);
+            emit ExternalIDActivated(msg.sender, _tokenId, _strategiesID[i], externalId);
         }
     }
 
@@ -510,22 +510,19 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /**
      * Emit when mint fee is updated
+     * @param _user The user address
      * @param _tokenId TalentLayer ID for the user
+     * @param _strategiesID Id associated with the strategy
      * @param _externalID External ID og a user Strategy
-     * @param _strategiesID Id associated with the strategy
-     * @param _strategiesID Id associated with the strategy
      */
-    event ExternalIDLinked(
-        address indexed _user,
-        uint256 _tokenId,
-        uint256 _strategiesID,
-        string _externalID,
-    );
+    event ExternalIDLinked(address indexed _user, uint256 _tokenId, uint256 _strategiesID, bytes _externalID);
 
-    event ExternalIDActivated(
-        address indexed _user,
-        uint256 _tokenId,
-        uint256 _strategiesID,
-        string _externalID,
-    );
+    /**
+     * Emit when mint fee is updated
+     * @param _user The user address
+     * @param _tokenId TalentLayer ID for the user
+     * @param _strategiesID Id associated with the strategy
+     * @param _externalID External ID og a user Strategy
+     */
+    event ExternalIDActivated(address indexed _user, uint256 _tokenId, uint256 _strategiesID, bytes _externalID);
 }
