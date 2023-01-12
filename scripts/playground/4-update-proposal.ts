@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
-import postToIPFS from '../ipfs'
+import postToIPFS from '../utils/ipfs'
 const hre = require('hardhat')
 
 /*

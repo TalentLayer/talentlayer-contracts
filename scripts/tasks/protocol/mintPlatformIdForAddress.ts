@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { Network } from './config'
-import { ConfigProperty, get } from '../configManager'
+import { Network } from '../../config'
+import { ConfigProperty, get } from '../../../configManager'
 
 /**
  * @notice This task is used to mint a new platform ID for a given address
@@ -19,7 +19,7 @@ task('mint-platform-id', 'Mints platform Ids to addresses')
 
     const platformIdContract = await ethers.getContractAt(
       'TalentLayerPlatformID',
-      get((network.name as any) as Network, ConfigProperty.TalentLayerPlatformID),
+      get(network.name as any as Network, ConfigProperty.TalentLayerPlatformID),
       deployer,
     )
 
