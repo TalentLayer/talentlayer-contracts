@@ -130,7 +130,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @notice Emitted after the origin platform fee was updated
      * @param _originPlatformFee The new origin platform fee
      */
-    event OriginPlatformFeeUpdated(uint256 _originPlatformFee);
+    event OriginPlatformFeeUpdated(uint16 _originPlatformFee);
 
     /**
      * @notice Emitted after a platform withdraws its balance
@@ -306,9 +306,10 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
-        protocolFee = 100;
-        originPlatformFee = 200;
         protocolWallet = payable(owner());
+
+        updateProtocolFee(100);
+        updateOriginPlatformFee(200);
     }
 
     // =========================== View functions ==============================
@@ -359,7 +360,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @dev Only the owner can call this function
      * @param _protocolFee The new protocol fee
      */
-    function updateProtocolFee(uint16 _protocolFee) external onlyOwner {
+    function updateProtocolFee(uint16 _protocolFee) public onlyOwner {
         protocolFee = _protocolFee;
         emit ProtocolFeeUpdated(_protocolFee);
     }
@@ -369,7 +370,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @dev Only the owner can call this function
      * @param _originPlatformFee The new origin platform fee
      */
-    function updateOriginPlatformFee(uint16 _originPlatformFee) external onlyOwner {
+    function updateOriginPlatformFee(uint16 _originPlatformFee) public onlyOwner {
         originPlatformFee = _originPlatformFee;
         emit OriginPlatformFeeUpdated(_originPlatformFee);
     }
