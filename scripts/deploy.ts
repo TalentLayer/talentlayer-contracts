@@ -169,16 +169,19 @@ task('deploy')
       }
 
       // Deploy Lens contract
-      const Lens = await ethers.getContractFactory('Lens')
-      const lens = await Lens.deploy(talentLayerID.address)
+      const LensID = await ethers.getContractFactory('LensID')
+      const lensID = await LensID.deploy()
       if (verify) {
-        await lens.deployTransaction.wait(5)
+        await lensID.deployTransaction.wait(5)
         await run('verify:verify', {
-          address: lens.address,
+          address: lensID.address,
           constructorArguments: [talentLayerID.address],
         })
       }
-      console.log('Lens contract address:', lens.address)
+
+      const setStrategy = await talentLayerID.setStrategy(0, lensID.address)
+
+      console.log('LensID contract address:', lensID.address)
 
       // Grant escrow role
       const escrowRole = await serviceRegistry.ESCROW_ROLE()
