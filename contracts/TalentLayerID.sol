@@ -137,9 +137,9 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
+    function mint(uint256 _platformId, string memory _handle) public payable canPay() canMint(msg.sender, _handle, _platformId) {
         _safeMint(msg.sender, 1);
-        _afterMint(_handle, false, _platformId);
+        _afterMint(msg.sender, _handle, false, _platformId, msg.value);
     }
 
     /**
@@ -147,12 +147,12 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
+    function mintWithPoh(uint256 _platformId, string memory _handle) public payable canPay() canMint(msg.sender, _handle, _platformId) {
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
         _safeMint(msg.sender, 1);
         uint256 userTokenId = _nextTokenId() - 1;
         profiles[userTokenId].pohAddress = msg.sender;
-        _afterMint(_handle, true, _platformId);
+        _afterMint(msg.sender, _handle, true, _platformId, msg.value);
     }
 
     /**
@@ -246,6 +246,16 @@ contract TalentLayerID is ERC721A, Ownable {
         require(sent, "Failed to withdraw Ether");
     }
 
+    /**
+     * Allows the owner to mint a new TalentLayerID for a user for free without the need of Proof of Humanity.
+     * @param _handle Handle for the user
+     * @param _platformId Platform ID from which UserId wad minted
+     */
+    function freeMint(uint256 _platformId, address _userAddress, string memory _handle) public canMint(_userAddress, _handle, _platformId) onlyOwner{
+        _safeMint(_userAddress, 1);
+        _afterMint(_userAddress, _handle, false, _platformId, 0);
+    }
+
     // =========================== Private functions ==============================
 
     /**
@@ -254,9 +264,11 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _platformId Platform ID from which UserId wad minted
      */
     function _afterMint(
+        address _userAddress,
         string memory _handle,
         bool _poh,
-        uint256 _platformId
+        uint256 _platformId,
+        uint256 _fee
     ) private {
         uint256 userTokenId = _nextTokenId() - 1;
         Profile storage profile = profiles[userTokenId];
@@ -264,7 +276,7 @@ contract TalentLayerID is ERC721A, Ownable {
         profile.handle = _handle;
         takenHandles[_handle] = true;
 
-        emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId, mintFee);
+        emit Mint(_userAddress, userTokenId, _handle, _poh, _platformId, _fee);
     }
 
     // =========================== Internal functions ==============================
@@ -329,21 +341,28 @@ contract TalentLayerID is ERC721A, Ownable {
     }
 
     // =========================== Modifiers ==============================
+    /**
+     * Check if msg.sender can pay the mint fee.
+     */
+    modifier canPay() {
+        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
+        _;
+    }
 
     /**
-     * Check if user is able to mint a new TalentLayerID.
+     * Check if it is possible to mint a new TalentLayerID for a given address.
+     * @param _userAddress Address to mint TalentLayer for.
      * @param _handle Handle for the user
+     * @param _platformId Platform that wants to mint the TalentLayerID
      */
-    modifier canMint(string memory _handle, uint256 _platformId) {
-        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
-        require(numberMinted(msg.sender) == 0, "You already have a TalentLayerID");
+    modifier canMint(address _userAddress, string memory _handle, uint256 _platformId) {
+        require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
         talentLayerPlatformIdContract.isValid(_platformId);
         _;
     }
-
     // =========================== Events ==============================
 
     /**

@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../config'
-import { waitConfirmations } from '../utils'
+import { waitConfirmations } from '../utils/waitConfirmations'
 const hre = require('hardhat')
 
 /*
