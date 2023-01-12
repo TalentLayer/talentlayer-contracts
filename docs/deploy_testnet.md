@@ -36,7 +36,7 @@
 ### Update configuration 
 
 - Update the abis from the contract folder to the graph folder
-- Update network.json file with the new deployed addresses: `npx hardhat run scripts/setSubgraphNetwork.ts --network goerli`
+- Update network.json file with the new deployed addresses: `npx hardhat run scripts/utils/setSubgraphNetwork.ts --network goerli`
 - Update the start block in the network.json. Use the block number of the first contract deployed
 
 ### Deploy your subgraph
