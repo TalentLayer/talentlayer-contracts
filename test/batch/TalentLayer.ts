@@ -12,6 +12,7 @@ describe('TalentLayer', function () {
     carol: SignerWithAddress,
     dave: SignerWithAddress,
     eve: SignerWithAddress,
+    frank: SignerWithAddress,
     ServiceRegistry: ContractFactory,
     TalentLayerID: ContractFactory,
     TalentLayerPlatformID: ContractFactory,
@@ -20,12 +21,14 @@ describe('TalentLayer', function () {
     TalentLayerArbitrator: ContractFactory,
     MockProofOfHumanity: ContractFactory,
     SimpleERC20: ContractFactory,
+    LensID: ContractFactory,
     serviceRegistry: Contract,
     talentLayerID: Contract,
     talentLayerPlatformID: Contract,
     talentLayerReview: Contract,
     talentLayerEscrow: Contract,
     talentLayerArbitrator: Contract,
+    lensID: Contract,
     mockProofOfHumanity: Contract,
     token: Contract,
     platformName: string,
@@ -34,7 +37,7 @@ describe('TalentLayer', function () {
 
   before(async function () {
     // Get the Signers
-    ;[deployer, alice, bob, carol, dave, eve] = await ethers.getSigners()
+    ;[deployer, alice, bob, carol, dave, eve, frank] = await ethers.getSigners()
 
     // Deploy MockProofOfHumanity
     MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
@@ -81,6 +84,11 @@ describe('TalentLayer', function () {
     // Deploy SimpleERC20 Token
     SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
     token = await SimpleERC20.deploy()
+
+    // Deploy LensID contract and setup strategy
+    LensID = await ethers.getContractFactory('LensID')
+    lensID = await LensID.deploy()
+    await talentLayerID.setStrategy(0, lensID.address)
 
     // Grant escrow role
     const escrowRole = await serviceRegistry.ESCROW_ROLE()
@@ -321,6 +329,17 @@ describe('TalentLayer', function () {
       // TalentLayer id contract balance is increased by the mint fee
       const contractBalanceAfter = await ethers.provider.getBalance(talentLayerID.address)
       expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
+    })
+
+    // Fred can mint a TalentLayerId with an External Id
+
+    it('Fred can mint a talentLayerId linked to two external Id', async function () {
+      const externalId = [lensID.address]
+      console.log('externalId', externalId)
+
+      await talentLayerID.connect(frank).mintWithExternalIDs('1', 'frank', externalId, { value: mintFee })
+
+      // expect(await talentLayerID.walletOfOwner(fred.address)).to.be.equal('1')
     })
 
     it("The deployer can withdraw the contract's balance", async function () {

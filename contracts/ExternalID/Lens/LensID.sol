@@ -13,14 +13,12 @@ contract LensID is IExternalID, Ownable {
      */
     ILensHub private iLensHub;
 
-    address constant _proxyAddress = 0x60Ae865ee4C725cd04353b5AAb364553f56ceF82;
-
     // =========================== Constructor ==============================
 
     /**
      * @dev Called on contract deployment
      */
-    constructor() {
+    constructor(address _proxyAddress) {
         iLensHub = ILensHub(_proxyAddress);
     }
 

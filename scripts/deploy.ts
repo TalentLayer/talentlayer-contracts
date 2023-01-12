@@ -168,9 +168,23 @@ task('deploy')
         set(network.name as any as Network, ConfigProperty.SimpleERC20, simpleERC20.address)
       }
 
+      // Deploy MockLensHub
+      const MockLensHub = await ethers.getContractFactory('MockLensHub')
+      const mockLensHub = await MockLensHub.deploy()
+      console.log('MockLensHub address:', mockLensHub.address)
+      // Add the addLensProfileManually to add Lens user
+      const addLensProfileManually = await mockLensHub.addLensProfileManually([
+        alice.address,
+        bob.address,
+        carol.address,
+        dave.address,
+      ])
+      const checkAliceProfile = await mockLensHub.defaultProfile(alice.address)
+      console.log('checkAliceProfile:', checkAliceProfile)
+
       // Deploy Lens contract
       const LensID = await ethers.getContractFactory('LensID')
-      const lensID = await LensID.deploy()
+      const lensID = await LensID.deploy(mockLensHub.address)
       if (verify) {
         await lensID.deployTransaction.wait(5)
         await run('verify:verify', {
@@ -178,9 +192,7 @@ task('deploy')
           constructorArguments: [talentLayerID.address],
         })
       }
-
       const setStrategy = await talentLayerID.setStrategy(0, lensID.address)
-
       console.log('LensID contract address:', lensID.address)
 
       // Grant escrow role
