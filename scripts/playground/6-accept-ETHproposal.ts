@@ -7,7 +7,7 @@ const hre = require('hardhat')
 In this script Alice will accept Carol's proposal with an ETH transaction
 We need to add to the rateAmount the protocolFee, originPlatformFee and platformFee
 First Dave will update his platformFee to 11% then we get the plateFormFee from TalentLayerPlatformID
-and the protocolFee and originPlatformFee from TalentLayerMultipleArbitrableTransaction
+and the protocolFee and originPlatformFee from TalentLayerEscrow
 */
 
 // Alice accept the Carol proposal
@@ -21,14 +21,19 @@ async function main() {
     get(network as Network, ConfigProperty.ServiceRegistry),
   )
 
-  const talentLayerMultipleArbitrableTransaction = await ethers.getContractAt(
-    'TalentLayerMultipleArbitrableTransaction',
-    get(network as Network, ConfigProperty.TalentLayerMultipleArbitrableTransaction),
+  const talentLayerEscrow = await ethers.getContractAt(
+    'TalentLayerEscrow',
+    get(network as Network, ConfigProperty.TalentLayerEscrow),
   )
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
+  )
+
+  const talentLayerArbitrator = await ethers.getContractAt(
+    'TalentLayerArbitrator',
+    get(network as Network, ConfigProperty.TalentLayerArbitrator),
   )
 
   let nextServiceId = await serviceRegistry.nextServiceId()
@@ -37,12 +42,12 @@ async function main() {
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const updatePlatformfee = await platformIdContrat.connect(dave).updatePlatformfee(daveTlId, 1100)
-  updatePlatformfee.wait()
+  const updatePlatformFee = await platformIdContrat.connect(dave).updatePlatformFee(daveTlId, 1100)
+  updatePlatformFee.wait()
 
   const davePlatformData = await platformIdContrat.platforms(daveTlId)
-  const protocolFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.protocolFee())
-  const originPlatformFee = ethers.BigNumber.from(await talentLayerMultipleArbitrableTransaction.originPlatformFee())
+  const protocolFee = ethers.BigNumber.from(await talentLayerEscrow.protocolFee())
+  const originPlatformFee = ethers.BigNumber.from(await talentLayerEscrow.originPlatformFee())
   const platformFee = ethers.BigNumber.from(davePlatformData.fee)
 
   const totalAmount = rateAmount.add(
@@ -50,8 +55,7 @@ async function main() {
   )
   console.log('totalAmount', totalAmount.toString())
 
-  await talentLayerMultipleArbitrableTransaction.connect(alice).createETHTransaction(
-    3600 * 24 * 7,
+  await talentLayerEscrow.connect(alice).createETHTransaction(
     '_metaEvidence',
     firstServiceId,
     3, //proposalId/talentLayerId of carol.

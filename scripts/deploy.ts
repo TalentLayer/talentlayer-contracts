@@ -110,52 +110,39 @@ task('deploy')
 
       // Deploy TalentLayerArbitrator
       const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
-      const talentLayerArbitratorArgs: [number] = [0]
-      const talentLayerArbitrator = await TalentLayerArbitrator.deploy(...talentLayerArbitratorArgs)
+      const talentLayerArbitrator = await TalentLayerArbitrator.deploy(talentLayerPlatformID.address)
       if (verify) {
         await talentLayerArbitrator.deployTransaction.wait(5)
         await run('verify:verify', {
           address: talentLayerArbitrator.address,
-          constructorArguments: talentLayerArbitratorArgs,
+          constructorArguments: [talentLayerPlatformID.address],
         })
       }
       console.log('TalentLayerArbitrator contract address:', talentLayerArbitrator.address)
 
       set(network.name as any as Network, ConfigProperty.TalentLayerArbitrator, talentLayerArbitrator.address)
 
-      // Deploy TalentLayerMultipleArbitrableTransaction
-      const TalentLayerMultipleArbitrableTransaction = await ethers.getContractFactory(
-        'TalentLayerMultipleArbitrableTransaction',
-      )
-      const feeTimeout: number = 3600 * 24 * 30
-      const talentLayerMultipleArbitrableTransactionArgs: [string, string, string, string, any, number] = [
+      // Add TalentLayerArbitrator to platform available arbitrators
+      await talentLayerPlatformID.addArbitrator(talentLayerArbitrator.address, true)
+
+      // Deploy TalentLayerEscrow
+      const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
+      const talentLayerEscrowArgs: [string, string, string] = [
         serviceRegistry.address,
         talentLayerID.address,
         talentLayerPlatformID.address,
-        talentLayerArbitrator.address,
-        [],
-        feeTimeout,
       ]
-      const talentLayerMultipleArbitrableTransaction = await TalentLayerMultipleArbitrableTransaction.deploy(
-        ...talentLayerMultipleArbitrableTransactionArgs,
-      )
+      const talentLayerEscrow = await TalentLayerEscrow.deploy(...talentLayerEscrowArgs)
       if (verify) {
-        await talentLayerMultipleArbitrableTransaction.deployTransaction.wait(5)
+        await talentLayerEscrow.deployTransaction.wait(5)
         await run('verify:verify', {
-          address: talentLayerMultipleArbitrableTransaction.address,
-          constructorArguments: talentLayerMultipleArbitrableTransactionArgs,
+          address: talentLayerEscrow.address,
+          constructorArguments: talentLayerEscrowArgs,
         })
       }
-      console.log(
-        'TalentLayerMultipleArbitrableTransaction contract address:',
-        talentLayerMultipleArbitrableTransaction.address,
-      )
+      console.log('TalentLayerEscrow contract address:', talentLayerEscrow.address)
 
-      set(
-        network.name as any as Network,
-        ConfigProperty.TalentLayerMultipleArbitrableTransaction,
-        talentLayerMultipleArbitrableTransaction.address,
-      )
+      set(network.name as any as Network, ConfigProperty.TalentLayerEscrow, talentLayerEscrow.address)
 
       if (useTestErc20) {
         // Deploy ERC20 contract
@@ -183,7 +170,7 @@ task('deploy')
 
       // Grant escrow role
       const escrowRole = await serviceRegistry.ESCROW_ROLE()
-      await serviceRegistry.grantRole(escrowRole, talentLayerMultipleArbitrableTransaction.address)
+      await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
 
       if (usePohmock && mockProofOfHumanity) {
         // Register Alice, Bob, Carol, Dave
