@@ -105,6 +105,7 @@ contract TalentLayerID is ERC721A, Ownable {
      */
     function getExternalId(uint256 _profileId, uint256 _strategyId) external view returns (bytes memory) {
         require(_exists(_profileId), "TalentLayerID: Profile does not exist");
+        require(strategies[_strategyId] != address(0), "TalentLayerID: Strategy does not exist");
         return profileIdToStrategyIdToExternalId[_profileId][_strategyId];
     }
 
@@ -231,15 +232,14 @@ contract TalentLayerID is ERC721A, Ownable {
         uint256 userTokenId = _nextTokenId();
 
         for (uint256 i = 0; i < _strategiesID.length; i++) {
+            require(getStrategy(_strategiesID[i]) != address(0), "Invalid strategy ID");
             strategyContract = IExternalID(getStrategy(_strategiesID[i]));
 
-            // we check if the user is registered on the strategy
             (bool isRegistered, bytes memory externalId) = strategyContract.isRegistered(msg.sender);
             require(isRegistered, "You need to use an address registered on the selected platform");
-
             profileIdToStrategyIdToExternalId[userTokenId][_strategiesID[i]] = externalId;
 
-            emit ExternalIDLinked(msg.sender, userTokenId, _strategiesID[i], externalId);
+            emit ExternalIDLinked(msg.sender, userTokenId, _strategiesID, externalId);
         }
 
         _safeMint(msg.sender, 1);
@@ -515,7 +515,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _strategiesID Id associated with the strategy
      * @param _externalID External ID og a user Strategy
      */
-    event ExternalIDLinked(address indexed _user, uint256 _tokenId, uint256 _strategiesID, bytes _externalID);
+    event ExternalIDLinked(address indexed _user, uint256 _tokenId, uint256[] _strategiesID, bytes _externalID);
 
     /**
      * Emit when mint fee is updated

@@ -91,7 +91,6 @@ describe('TalentLayer', function () {
 
     const MockLensHub = await ethers.getContractFactory('MockLensHub')
     const mockLensHub = await MockLensHub.deploy()
-    console.log('mockLensHub:', mockLensHub.address)
 
     LensID = await ethers.getContractFactory('LensID')
     lensID = await LensID.deploy(mockLensHub.address)
@@ -104,10 +103,9 @@ describe('TalentLayer', function () {
       eve.address,
       frank.address,
     ])
-    const checkAliceProfile = await mockLensHub.defaultProfile(alice.address)
-    console.log('checkAliceProfile:', checkAliceProfile)
 
     await talentLayerID.setStrategy(0, lensID.address)
+    const externalStrategies = await talentLayerID.getStrategy(0)
 
     // Grant escrow role
     const escrowRole = await serviceRegistry.ESCROW_ROLE()
@@ -350,17 +348,6 @@ describe('TalentLayer', function () {
       expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
     })
 
-    // Fred can mint a TalentLayerId with an External Id
-
-    it('Fred can mint a talentLayerId linked to two external Id', async function () {
-      const externalId = [lensID.address]
-      console.log('externalId', externalId)
-
-      await talentLayerID.connect(frank).mintWithExternalIDs('1', 'frank', externalId, { value: mintFee })
-
-      // expect(await talentLayerID.walletOfOwner(fred.address)).to.be.equal('1')
-    })
-
     it("The deployer can withdraw the contract's balance", async function () {
       const deployerBalanceBefore = await deployer.getBalance()
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
@@ -381,6 +368,34 @@ describe('TalentLayer', function () {
 
       // Contract balance is 0
       expect(contractBalanceAfter).to.be.equal(0)
+    })
+
+    // Fred can't mint a TalentLayerId with a wrong External Id
+    it('Fred cant mint a TalentLayerId with a wrong External strategy Id', async function () {
+      const strategiesID = [1]
+      expect(
+        talentLayerID.connect(frank).mintWithExternalIDs('1', 'frank', strategiesID, { value: mintFee }),
+      ).to.be.revertedWith('Invalid strategy ID')
+    })
+
+    // Fred can mint a TalentLayerId with an External Id
+    it('Fred can mint a talentLayerId linked to an external Id and the event is well emitted', async function () {
+      const strategiesID = [0]
+      // Frank mint his TalentLayerId with an external Id
+      const mintWithExternalIDs = await talentLayerID
+        .connect(frank)
+        .mintWithExternalIDs('1', 'frank', strategiesID, { value: mintFee })
+
+      const frankUserId = await talentLayerID.walletOfOwner(frank.address)
+      expect(await talentLayerID.walletOfOwner(frank.address)).to.be.equal(frankUserId)
+
+      const externalId = await talentLayerID.getExternalId(frankUserId, strategiesID[0])
+      const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [5])
+      expect(externalId).to.be.equal(frankIdBytes)
+      // we check if the event is well emitted
+      await expect(mintWithExternalIDs)
+        .to.emit(talentLayerID, 'ExternalIDLinked')
+        .withArgs(frank.address, frankUserId, strategiesID, externalId)
     })
   })
 

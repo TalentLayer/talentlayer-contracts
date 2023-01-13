@@ -2,22 +2,30 @@
 pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ILensHub} from "../ExternalID/Lens/ILensHub.sol";
 
-contract MockLensHub is Ownable {
+contract MockLensHub is Ownable, ILensHub {
     struct LensProfile {
-        bool isRegistered;
-        bytes userExternalId;
+        uint256 userExternalId;
     }
 
     mapping(address => LensProfile) public lensProfiles;
 
-    function addLensProfileManually(address[] calldata _lensUSerAddress) external onlyOwner {
-        for (uint256 i = 0; i < _lensUSerAddress.length; i++) {
-            lensProfiles[_lensUSerAddress[i]] = LensProfile(true, abi.encode(_lensUSerAddress[i]));
+    /**
+     * We add manually the users to the Lens Hub
+     * @param _lensUsersAddress  Array of users address
+     */
+    function addLensProfileManually(address[] memory _lensUsersAddress) external onlyOwner {
+        for (uint256 i = 0; i < _lensUsersAddress.length; i++) {
+            lensProfiles[_lensUsersAddress[i]] = LensProfile(i);
         }
     }
 
-    function defaultProfile(address wallet) external view returns (LensProfile memory) {
-        return lensProfiles[wallet];
+    /**
+     * We get the default profile of the user with the address
+     * @param _lensUsersAddress  Address of the user
+     */
+    function defaultProfile(address _lensUsersAddress) external view returns (uint256) {
+        return lensProfiles[_lensUsersAddress].userExternalId;
     }
 }
