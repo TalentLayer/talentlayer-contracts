@@ -10,6 +10,8 @@ export enum ConfigProperty {
   TalentLayerEscrow = 'talentLayerEscrowAddress',
   SimpleERC20 = 'simpleERC20Address',
   TalentLayerPlatformID = 'talentLayerPlatformIdAddress',
+  MockLensHub = 'mockLensHubAddress',
+  LensID = 'lensIdAddress',
 }
 
 const loadJSON = (network: Network) => {

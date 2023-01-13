@@ -179,8 +179,8 @@ task('deploy')
         carol.address,
         dave.address,
       ])
-      const checkAliceProfile = await mockLensHub.defaultProfile(alice.address)
-      console.log('checkAliceProfile:', checkAliceProfile)
+      set(network.name as any as Network, ConfigProperty.MockLensHub, mockLensHub.address)
+      console.log('MockLensHub address:', mockLensHub.address)
 
       // Deploy Lens contract
       const LensID = await ethers.getContractFactory('LensID')
@@ -193,6 +193,7 @@ task('deploy')
         })
       }
       const setStrategy = await talentLayerID.setStrategy(0, lensID.address)
+      set(network.name as any as Network, ConfigProperty.LensID, lensID.address)
       console.log('LensID contract address:', lensID.address)
 
       // Grant escrow role
