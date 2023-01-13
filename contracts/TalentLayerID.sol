@@ -494,15 +494,6 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /**
      * Emit when mint fee is updated
-     * @param _tokenId TalentLayer ID for the user
-     * @param _socialPlatformName Social platform name
-     * @param _socialId Social platform ID
-     */
-
-    event stratActivated(uint256 _tokenId, string _socialPlatformName, bytes32 _socialId);
-
-    /**
-     * Emit when mint fee is updated
      * @param _user The user address
      * @param _tokenId TalentLayer ID for the user
      * @param _strategiesID Id associated with the strategy
