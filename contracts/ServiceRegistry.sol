@@ -4,12 +4,13 @@ pragma solidity ^0.8.9;
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IPUSHCommInterface.sol";
 
 /**
  * @title ServiceRegistry Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
-contract ServiceRegistry is AccessControl {
+contract ServiceRegistry is AccessControl, IPUSHCommInterface {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
@@ -128,14 +129,19 @@ contract ServiceRegistry is AccessControl {
     /// @param sellerId the talentLayerId of the seller
     event ProposalRejected(uint256 serviceId, uint256 sellerId);
 
+    address public talentLayerPushChannel;
+
     /// @notice incremental service Id
     uint256 public nextServiceId = 1;
 
-    /// @notice TalentLayerId address
+    /// @notice TalentLayerId contract instance
     ITalentLayerID private tlId;
 
-    /// TalentLayer Platform ID registry
+    /// @notice TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
+
+    /// @notice PUSH protocol Notification contract
+    IPUSHCommInterface public pushCommContract;
 
     /// @notice services mappings index by ID
     mapping(uint256 => Service) public services;
@@ -148,11 +154,16 @@ contract ServiceRegistry is AccessControl {
 
     /**
      * @param _talentLayerIdAddress TalentLayerId address
+     * @param _pushCommContract Push Notification contract address
      */
-    constructor(address _talentLayerIdAddress, address _talentLayerPlatformIdAddress) {
+    constructor(address _talentLayerIdAddress,
+        address _talentLayerPlatformIdAddress,
+        address _pushCommContract
+    ) {
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        pushCommContract = IPUSHCommInterface(_pushCommContract);
     }
 
     // =========================== View functions ==============================
@@ -171,6 +182,14 @@ contract ServiceRegistry is AccessControl {
     }
 
     // =========================== User functions ==============================
+
+    /**
+     * @notice Allows the admin to update the Push channel address
+     * @param _newAddress New address of the Push channel
+     */
+    function updateTalentLayerPushChannelAddress(address _newAddress) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        talentLayerPushChannel = _newAddress;
+    }
 
     /**
      * @notice Allows an buyer to initiate an open service
@@ -251,6 +270,27 @@ contract ServiceRegistry is AccessControl {
         emit ProposalUpdated(_serviceId, senderId, _proposalDataUri, _rateToken, _rateAmount);
     }
 
+//    function sendANotification(uint256 _serviceId) public {
+//        address buyerAddress = tlId.ownerOf(service.buyerId);
+//        pushCommContract.sendNotification(talentLayerPushChannel, buyerAddress,
+//            bytes(
+//                string(
+//                // We are passing identity here: https://docs.epns.io/developers/developer-guides/sending-notifications/advanced/notification-payload-types/identity/payload-identity-implementations
+//                    abi.encodePacked(
+//                        "0", // this is notification identity: https://docs.epns.io/developers/developer-guides/sending-notifications/advanced/notification-payload-types/identity/payload-identity-implementations
+//                        "+", // segregator
+//                        "3", // this is payload type: https://docs.epns.io/developers/developer-guides/sending-notifications/advanced/notification-payload-types/payload (1, 3 or 4) = (Broadcast, targetted or subset)
+//                        "+", // segregator
+//                        "Proposal ",
+//                        uint2str(_serviceId),
+//                        " Accepted", // this is notificaiton title
+//                        "+", // segregator
+//                        "Test Notification" // notification body
+//                    )
+//                )
+//            ));
+//    }
+
     /**
      * @notice Allows the buyer to validate a proposal
      * @param _serviceId Service identifier
@@ -267,6 +307,25 @@ contract ServiceRegistry is AccessControl {
         require(senderId == service.buyerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Validated;
+
+//        address buyerAddress = tlId.ownerOf(service.buyerId);
+//        pushCommContract.sendNotification(talentLayerPushChannel, buyerAddress,
+//            bytes(
+//                string(
+//                // We are passing identity here: https://docs.epns.io/developers/developer-guides/sending-notifications/advanced/notification-payload-types/identity/payload-identity-implementations
+//                    abi.encodePacked(
+//                        "0", // this is notification identity: https://docs.epns.io/developers/developer-guides/sending-notifications/advanced/notification-payload-types/identity/payload-identity-implementations
+//                        "+", // segregator
+//                        "3", // this is payload type: https://docs.epns.io/developers/developer-guides/sending-notifications/advanced/notification-payload-types/payload (1, 3 or 4) = (Broadcast, targetted or subset)
+//                        "+", // segregator
+//                        "Proposal ",
+//                        uint2str(_proposalId),
+//                        " Accepted", // this is notificaiton title
+//                        "+", // segregator
+//                        "XXXX" // notification body
+//                    )
+//                )
+//            ));
 
         emit ProposalValidated(_serviceId, _proposalId);
     }

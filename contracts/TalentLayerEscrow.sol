@@ -9,8 +9,9 @@ import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ITalentLayerPlatformID.sol";
 import "./IArbitrable.sol";
 import "./Arbitrator.sol";
+import "./interfaces/IPUSHCommInterface.sol";
 
-contract TalentLayerEscrow is Ownable, IArbitrable {
+contract TalentLayerEscrow is Ownable, IArbitrable, IPUSHCommInterface {
     // =========================== Enum ==============================
 
     /**
@@ -256,6 +257,11 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     ITalentLayerPlatformID private talentLayerPlatformIdContract;
 
     /**
+     * @notice PUSH protocol Notification contract
+     */
+    IPUSHCommInterface public pushCommContract;
+
+    /**
      * @notice Percentage paid to the protocol (per 10,000, upgradable)
      */
     uint16 public protocolFee;
@@ -297,15 +303,18 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param _serviceRegistryAddress Contract address to ServiceRegistry.sol
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
+     * @param _pushCommContract Push Notification contract address
      */
     constructor(
         address _serviceRegistryAddress,
         address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress
+        address _talentLayerPlatformIDAddress,
+        address _pushCommContract
     ) {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
+        pushCommContract = IPUSHCommInterface(_pushCommContract);
         protocolFee = 100;
         originPlatformFee = 200;
         protocolWallet = payable(owner());
