@@ -397,6 +397,21 @@ describe('TalentLayer', function () {
         .to.emit(talentLayerID, 'ExternalIDLinked')
         .withArgs(frank.address, frankUserId, strategiesID, externalId)
     })
+
+    // Alice can link an external Id to her TalentLayerId
+    it('Alice can link an external Id to her TalentLayerId', async function () {
+      const strategiesID = [0]
+      const AliceUserId = await talentLayerID.walletOfOwner(alice.address)
+      const linkToExternalIDs = await talentLayerID.connect(alice).associateExternalIDs(AliceUserId, strategiesID)
+      const externalId = await talentLayerID.getExternalId(AliceUserId, strategiesID[0])
+      const aliceIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [0])
+
+      expect(externalId).to.be.equal(aliceIdBytes)
+      // we check if the event is well emitted
+      await expect(linkToExternalIDs)
+        .to.emit(talentLayerID, 'ExternalIDLinked')
+        .withArgs(alice.address, AliceUserId, strategiesID, externalId)
+    })
   })
 
   describe('SimpleERC20 contract contract test', function () {

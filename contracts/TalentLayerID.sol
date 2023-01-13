@@ -248,28 +248,21 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /**
      * Link External ID to previously non-linked TalentLayerID.
-     * @param _strategyId The strategy ID
      * @param _profileId The profile ID
      * @param _strategiesID Array of strategies ID
      */
-    function associateExternalIDs(
-        uint256 _strategyId,
-        uint256 _profileId,
-        uint256 _tokenId,
-        uint256[] memory _strategiesID
-    ) public {
-        require(ownerOf(_tokenId) == msg.sender);
+    function associateExternalIDs(uint256 _profileId, uint256[] memory _strategiesID) public {
+        require(ownerOf(_profileId) == msg.sender);
 
         for (uint256 i = 0; i < _strategiesID.length; i++) {
+            require(getStrategy(_strategiesID[i]) != address(0), "Invalid strategy ID");
             strategyContract = IExternalID(getStrategy(_strategiesID[i]));
 
-            // we check if the user is registered on the strategy
             (bool isRegistered, bytes memory externalId) = strategyContract.isRegistered(msg.sender);
             require(isRegistered, "You need to use an address registered on the selected platform");
+            profileIdToStrategyIdToExternalId[_profileId][_strategiesID[i]] = externalId;
 
-            profileIdToStrategyIdToExternalId[_tokenId][_strategiesID[i]] = externalId;
-
-            emit ExternalIDActivated(msg.sender, _tokenId, _strategiesID[i], externalId);
+            emit ExternalIDLinked(msg.sender, _profileId, _strategiesID, externalId);
         }
     }
 
