@@ -18,8 +18,6 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerID),
   )
 
-  const lensID = await ethers.getContractAt('LensID', get(network as Network, ConfigProperty.LensID))
-
   const mockLensHub = await ethers.getContractAt('MockLensHub', get(network as Network, ConfigProperty.MockLensHub))
 
   await mockLensHub.addLensProfileManually([
