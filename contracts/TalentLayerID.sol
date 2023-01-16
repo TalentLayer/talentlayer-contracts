@@ -8,7 +8,7 @@ import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
-import {IExternalID} from "./interfaces/IExternalID.sol";
+import {IThirdPartyID} from "./interfaces/IThirdPartyID.sol";
 
 /**
  * @title TalentLayer ID Contract
@@ -40,7 +40,7 @@ contract TalentLayerID is ERC721A, Ownable {
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
     /// Strategy contract instance
-    IExternalID public strategyContract;
+    IThirdPartyID public strategyContract;
 
     /// Account recovery merkle root
     bytes32 public recoveryRoot;
@@ -59,8 +59,8 @@ contract TalentLayerID is ERC721A, Ownable {
     // Strategy id to strategy contract address
     mapping(uint256 => address) public strategies;
 
-    // mapping from TokenId to strategy id to externalId
-    mapping(uint256 => mapping(uint256 => bytes)) public profileIdToStrategyIdToExternalId;
+    // mapping from TokenId to strategy id to thirdPartyId
+    mapping(uint256 => mapping(uint256 => bytes)) public profileIdToStrategyIdToThirdPartiesId;
 
     /// Addresses that have successfully recovered their account
     mapping(address => bool) public hasBeenRecovered;
@@ -98,15 +98,15 @@ contract TalentLayerID is ERC721A, Ownable {
     }
 
     /**
-     * Allows to get the externalId linked to a TlID and a strategy
+     * Allows to get the thirdPartyId linked to a TlID and a strategy
      * @param _profileId TlID
      * @param _strategyId Strategy ID
      * @return the number of tokens minted by the user
      */
-    function getExternalId(uint256 _profileId, uint256 _strategyId) external view returns (bytes memory) {
+    function getThirdPartyId(uint256 _profileId, uint256 _strategyId) external view returns (bytes memory) {
         require(_exists(_profileId), "TalentLayerID: Profile does not exist");
         require(strategies[_strategyId] != address(0), "TalentLayerID: Strategy does not exist");
-        return profileIdToStrategyIdToExternalId[_profileId][_strategyId];
+        return profileIdToStrategyIdToThirdPartiesId[_profileId][_strategyId];
     }
 
     /**
@@ -183,16 +183,6 @@ contract TalentLayerID is ERC721A, Ownable {
     }
 
     /**
-     * Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
-     * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
-     */
-    function mint(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
-        _safeMint(msg.sender, 1);
-        _afterMint(_handle, false, _platformId);
-    }
-
-    /**
      * Allows a user to mint a new TalentLayerID with Proof of Humanity.
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
@@ -219,31 +209,21 @@ contract TalentLayerID is ERC721A, Ownable {
 
     /**
      * Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
-     * @param _platformId Platform ID from which UserId minted
      * @param _handle Handle for the user
+     * @param _platformId Platform ID from which UserId wad minted
      * @param _strategiesID Array of strategies ID
      */
 
-    function mintWithExternalIDs(
+    function mint(
         uint256 _platformId,
         string memory _handle,
         uint256[] memory _strategiesID
     ) public payable canMint(_handle, _platformId) {
         uint256 userTokenId = _nextTokenId();
 
-        for (uint256 i = 0; i < _strategiesID.length; i++) {
-            require(getStrategy(_strategiesID[i]) != address(0), "Invalid strategy ID");
-            strategyContract = IExternalID(getStrategy(_strategiesID[i]));
-
-            (bool isRegistered, bytes memory externalId) = strategyContract.isRegistered(msg.sender);
-            require(isRegistered, "You need to use an address registered on the selected platform");
-            profileIdToStrategyIdToExternalId[userTokenId][_strategiesID[i]] = externalId;
-
-            emit ExternalIDLinked(msg.sender, userTokenId, _strategiesID, externalId);
-        }
-
         _safeMint(msg.sender, 1);
-        _afterMint(_handle, true, _platformId);
+        _afterMint(_handle, false, _platformId);
+        _thirdPartiesLink(userTokenId, _strategiesID);
     }
 
     /**
@@ -251,19 +231,9 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _profileId The profile ID
      * @param _strategiesID Array of strategies ID
      */
-    function associateExternalIDs(uint256 _profileId, uint256[] memory _strategiesID) public {
+    function associateThirdPartiesIDs(uint256 _profileId, uint256[] memory _strategiesID) public {
         require(ownerOf(_profileId) == msg.sender);
-
-        for (uint256 i = 0; i < _strategiesID.length; i++) {
-            require(getStrategy(_strategiesID[i]) != address(0), "Invalid strategy ID");
-            strategyContract = IExternalID(getStrategy(_strategiesID[i]));
-
-            (bool isRegistered, bytes memory externalId) = strategyContract.isRegistered(msg.sender);
-            require(isRegistered, "You need to use an address registered on the selected platform");
-            profileIdToStrategyIdToExternalId[_profileId][_strategiesID[i]] = externalId;
-
-            emit ExternalIDLinked(msg.sender, _profileId, _strategiesID, externalId);
-        }
+        _thirdPartiesLink(_profileId, _strategiesID);
     }
 
     /**
@@ -364,6 +334,26 @@ contract TalentLayerID is ERC721A, Ownable {
         takenHandles[_handle] = true;
 
         emit Mint(msg.sender, userTokenId, _handle, _poh, _platformId, mintFee);
+    }
+
+    /**
+     * Update handle address mapping and emit event after mint.
+     * @param _tokenId The profile ID
+     * @param _strategiesID Array of strategies ID
+     */
+    function _thirdPartiesLink(uint256 _tokenId, uint256[] memory _strategiesID) private {
+        require(ownerOf(_tokenId) == msg.sender);
+
+        for (uint256 i = 0; i < _strategiesID.length; i++) {
+            require(getStrategy(_strategiesID[i]) != address(0), "Invalid strategy ID");
+            strategyContract = IThirdPartyID(getStrategy(_strategiesID[i]));
+
+            (bool isRegistered, bytes memory thirdPartyId) = strategyContract.isRegistered(msg.sender);
+            require(isRegistered, "You need to use an address registered on the selected platform");
+            profileIdToStrategyIdToThirdPartiesId[_tokenId][_strategiesID[i]] = thirdPartyId;
+
+            emit ThirdPartiesLinked(msg.sender, _tokenId, _strategiesID, thirdPartyId);
+        }
     }
 
     // =========================== Internal functions ==============================
@@ -497,16 +487,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _user The user address
      * @param _tokenId TalentLayer ID for the user
      * @param _strategiesID Id associated with the strategy
-     * @param _externalID External ID og a user Strategy
+     * @param _thirdPartyId External ID og a user Strategy
      */
-    event ExternalIDLinked(address indexed _user, uint256 _tokenId, uint256[] _strategiesID, bytes _externalID);
-
-    /**
-     * Emit when mint fee is updated
-     * @param _user The user address
-     * @param _tokenId TalentLayer ID for the user
-     * @param _strategiesID Id associated with the strategy
-     * @param _externalID External ID og a user Strategy
-     */
-    event ExternalIDActivated(address indexed _user, uint256 _tokenId, uint256 _strategiesID, bytes _externalID);
+    event ThirdPartiesLinked(address indexed _user, uint256 _tokenId, uint256[] _strategiesID, bytes _thirdPartyId);
 }

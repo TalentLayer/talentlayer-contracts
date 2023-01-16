@@ -2,11 +2,11 @@
 pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ILensHub} from "../ExternalID/Lens/ILensHub.sol";
+import {ILensHub} from "../ThirdParties/Lens/ILensHub.sol";
 
 contract MockLensHub is Ownable, ILensHub {
     struct LensProfile {
-        uint256 userExternalId;
+        uint256 userThirdPartyId;
     }
 
     mapping(address => LensProfile) public lensProfiles;
@@ -26,6 +26,6 @@ contract MockLensHub is Ownable, ILensHub {
      * @param _lensUsersAddress  Address of the user
      */
     function defaultProfile(address _lensUsersAddress) external view returns (uint256) {
-        return lensProfiles[_lensUsersAddress].userExternalId;
+        return lensProfiles[_lensUsersAddress].userThirdPartyId;
     }
 }

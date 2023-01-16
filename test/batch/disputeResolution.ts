@@ -108,8 +108,8 @@ async function deployAndSetup(
   await talentLayerArbitrator.connect(carol).setArbitrationPrice(carolPlatformId, arbitrationCost)
 
   // Mint TL Id for Alice and Bob
-  await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
-  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
+  await talentLayerID.connect(alice).mint(carolPlatformId, 'alice', [])
+  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob', [])
 
   // Alice, the buyer, initiates a new open service
   await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')

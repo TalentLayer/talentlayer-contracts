@@ -35,7 +35,7 @@ async function main() {
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
   console.log('Dave talentLayerIdPLatform', daveTalentLayerIdPLatform)
 
-  await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPLatform, 'alice.lens')
+  await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPLatform, 'alice.lens', [])
   console.log('alice.lens registered')
 
   await talentLayerIdContract.connect(bob).mintWithPoh(daveTalentLayerIdPLatform, 'bob.lens')

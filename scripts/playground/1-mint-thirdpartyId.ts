@@ -41,12 +41,12 @@ async function main() {
   const getStrategyId = await talentLayerIdContract.getStrategy(strategiesID[0])
   console.log('getStrategyId', getStrategyId)
 
-  await talentLayerIdContract.connect(frank).mintWithExternalIDs(daveTalentLayerIdPLatform, 'frank', strategiesID)
+  await talentLayerIdContract.connect(frank).mint(daveTalentLayerIdPLatform, 'frank', strategiesID)
 
   const frankUserId = await talentLayerIdContract.walletOfOwner(frank.address)
   console.log('frankUserId', frankUserId)
-  const externalId = await talentLayerIdContract.getExternalId(frankUserId, strategiesID[0])
-  console.log('externalId', externalId)
+  const thirdPartyId = await talentLayerIdContract.getThirdPartyId(frankUserId, strategiesID[0])
+  console.log('thirdPartyId', thirdPartyId)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

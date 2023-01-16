@@ -73,8 +73,8 @@ async function main() {
   await talentLayerArbitrator.connect(carol).setArbitrationPrice(carolPlatformId, arbitrationCost)
 
   // Mint TL Id for Alice and Bob
-  await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
-  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
+  await talentLayerID.connect(alice).mint(carolPlatformId, 'alice', [])
+  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob', [])
   console.log('Minted TL Id for Alice')
   console.log('Minted TL Id for Bob')
 

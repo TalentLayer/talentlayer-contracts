@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "../../interfaces/IExternalID.sol";
+import "../../interfaces/IThirdPartyID.sol";
 import "./ILensHub.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LensID is IExternalID, Ownable {
+contract LensID is IThirdPartyID, Ownable {
     // =========================== Declaration ==============================
 
     /**
@@ -29,12 +29,12 @@ contract LensID is IExternalID, Ownable {
      * @param _userAddress address of the user
      */
     function isRegistered(address _userAddress) external view returns (bool, bytes memory) {
-        bytes memory _userExtrenalId = abi.encode(iLensHub.defaultProfile(_userAddress));
+        bytes memory _userThirdPartyId = abi.encode(iLensHub.defaultProfile(_userAddress));
 
-        if (_userExtrenalId.length > 0) {
-            return (true, _userExtrenalId);
+        if (_userThirdPartyId.length > 0) {
+            return (true, _userThirdPartyId);
         } else {
-            return (false, _userExtrenalId);
+            return (false, _userThirdPartyId);
         }
     }
 }

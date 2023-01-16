@@ -300,7 +300,7 @@ describe('TalentLayer', function () {
       expect(talentLayerID.connect(carol).mintWithPoh('1', 'carol')).to.be.revertedWith(
         'You need to use an address registered on Proof of Humanity',
       )
-      await talentLayerID.connect(carol).mint('1', 'carol')
+      await talentLayerID.connect(carol).mint('1', 'carol', [])
       expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal('1')
       expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal('2')
       expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal('3')
@@ -333,10 +333,10 @@ describe('TalentLayer', function () {
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
 
       // Mint fails if not enough ETH is sent
-      expect(talentLayerID.connect(eve).mint('1', 'eve')).to.be.revertedWith('Incorrect amount of ETH for mint fee')
+      expect(talentLayerID.connect(eve).mint('1', 'eve', [])).to.be.revertedWith('Incorrect amount of ETH for mint fee')
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
-      await talentLayerID.connect(eve).mint('1', 'eve', { value: mintFee })
+      await talentLayerID.connect(eve).mint('1', 'eve', [], { value: mintFee })
       expect(await talentLayerID.walletOfOwner(eve.address)).to.be.equal('4')
 
       // Eve balance is decreased by the mint fee (+ gas fees)
@@ -373,44 +373,44 @@ describe('TalentLayer', function () {
     // Fred can't mint a TalentLayerId with a wrong External Id
     it('Fred cant mint a TalentLayerId with a wrong External strategy Id', async function () {
       const strategiesID = [1]
-      expect(
-        talentLayerID.connect(frank).mintWithExternalIDs('1', 'frank', strategiesID, { value: mintFee }),
-      ).to.be.revertedWith('Invalid strategy ID')
+      expect(talentLayerID.connect(frank).mint('1', 'frank', strategiesID, { value: mintFee })).to.be.revertedWith(
+        'Invalid strategy ID',
+      )
     })
 
     // Fred can mint a TalentLayerId with an External Id
     it('Fred can mint a talentLayerId linked to an external Id and the event is well emitted', async function () {
       const strategiesID = [0]
       // Frank mint his TalentLayerId with an external Id
-      const mintWithExternalIDs = await talentLayerID
-        .connect(frank)
-        .mintWithExternalIDs('1', 'frank', strategiesID, { value: mintFee })
+      const mint = await talentLayerID.connect(frank).mint('1', 'frank', strategiesID, { value: mintFee })
 
       const frankUserId = await talentLayerID.walletOfOwner(frank.address)
       expect(await talentLayerID.walletOfOwner(frank.address)).to.be.equal(frankUserId)
 
-      const externalId = await talentLayerID.getExternalId(frankUserId, strategiesID[0])
+      const thirdPartyId = await talentLayerID.getThirdPartyId(frankUserId, strategiesID[0])
       const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [5])
-      expect(externalId).to.be.equal(frankIdBytes)
+      expect(thirdPartyId).to.be.equal(frankIdBytes)
       // we check if the event is well emitted
-      await expect(mintWithExternalIDs)
-        .to.emit(talentLayerID, 'ExternalIDLinked')
-        .withArgs(frank.address, frankUserId, strategiesID, externalId)
+      await expect(mint)
+        .to.emit(talentLayerID, 'ThirdPartiesLinked')
+        .withArgs(frank.address, frankUserId, strategiesID, thirdPartyId)
     })
 
     // Alice can link an external Id to her TalentLayerId
     it('Alice can link an external Id to her TalentLayerId', async function () {
       const strategiesID = [0]
       const AliceUserId = await talentLayerID.walletOfOwner(alice.address)
-      const linkToExternalIDs = await talentLayerID.connect(alice).associateExternalIDs(AliceUserId, strategiesID)
-      const externalId = await talentLayerID.getExternalId(AliceUserId, strategiesID[0])
+      const linkToThirdPartiesId = await talentLayerID
+        .connect(alice)
+        .associateThirdPartiesIDs(AliceUserId, strategiesID)
+      const thirdPartyId = await talentLayerID.getThirdPartyId(AliceUserId, strategiesID[0])
       const aliceIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [0])
 
-      expect(externalId).to.be.equal(aliceIdBytes)
+      expect(thirdPartyId).to.be.equal(aliceIdBytes)
       // we check if the event is well emitted
-      await expect(linkToExternalIDs)
-        .to.emit(talentLayerID, 'ExternalIDLinked')
-        .withArgs(alice.address, AliceUserId, strategiesID, externalId)
+      await expect(linkToThirdPartiesId)
+        .to.emit(talentLayerID, 'ThirdPartiesLinked')
+        .withArgs(alice.address, AliceUserId, strategiesID, thirdPartyId)
     })
   })
 
