@@ -22,4 +22,6 @@ interface ILensHub {
      * @return uint256 The default profile id, which will be 0 if not mapped.
      */
     function defaultProfile(address wallet) external view returns (uint256);
+
+    function addLensProfileManually(address[] memory _lensUsersAddress) external;
 }

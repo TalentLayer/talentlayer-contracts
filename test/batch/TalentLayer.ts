@@ -13,6 +13,7 @@ describe('TalentLayer', function () {
     dave: SignerWithAddress,
     eve: SignerWithAddress,
     frank: SignerWithAddress,
+    lili: SignerWithAddress,
     ServiceRegistry: ContractFactory,
     TalentLayerID: ContractFactory,
     TalentLayerPlatformID: ContractFactory,
@@ -39,7 +40,7 @@ describe('TalentLayer', function () {
 
   before(async function () {
     // Get the Signers
-    ;[deployer, alice, bob, carol, dave, eve, frank] = await ethers.getSigners()
+    ;[deployer, alice, bob, carol, dave, eve, frank, lili] = await ethers.getSigners()
 
     // Deploy MockProofOfHumanity
     MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
@@ -95,17 +96,20 @@ describe('TalentLayer', function () {
     LensID = await ethers.getContractFactory('LensID')
     lensID = await LensID.deploy(mockLensHub.address)
 
+    //ROMAIN : check about the 0 mapping problem
     mockLensHub.addLensProfileManually([
-      alice.address,
-      bob.address,
-      carol.address,
-      dave.address,
-      eve.address,
-      frank.address,
+      deployer.address, // id 0
+      alice.address, // id 1
+      bob.address, // id 2
+      //carol.address - carol is not register in Lens
+      dave.address, // id 3
+      eve.address, // id 4
+      frank.address, // id 5
+      //lili.address - lili is not register in Lens
     ])
 
-    await talentLayerID.setStrategy(0, lensID.address)
-    const externalStrategies = await talentLayerID.getStrategy(0)
+    await talentLayerID.setThirdPartyStrategy(0, lensID.address)
+    const externalStrategies = await talentLayerID.getThirdPartyStrategy(0)
 
     // Grant escrow role
     const escrowRole = await serviceRegistry.ESCROW_ROLE()
@@ -370,16 +374,16 @@ describe('TalentLayer', function () {
       expect(contractBalanceAfter).to.be.equal(0)
     })
 
-    // Fred can't mint a TalentLayerId with a wrong External Id
-    it('Fred cant mint a TalentLayerId with a wrong External strategy Id', async function () {
+    // frank can't mint a TalentLayerId with a wrong External Id
+    it('frank cant mint a TalentLayerId with a wrong External strategy Id', async function () {
       const strategiesID = [1]
       expect(talentLayerID.connect(frank).mint('1', 'frank', strategiesID, { value: mintFee })).to.be.revertedWith(
         'Invalid strategy ID',
       )
     })
 
-    // Fred can mint a TalentLayerId with an External Id
-    it('Fred can mint a talentLayerId linked to an external Id and the event is well emitted', async function () {
+    // frank can mint a TalentLayerId with an External Id
+    it('frank can mint a talentLayerId linked to an external Id and the event is well emitted', async function () {
       const strategiesID = [0]
       // Frank mint his TalentLayerId with an external Id
       const mint = await talentLayerID.connect(frank).mint('1', 'frank', strategiesID, { value: mintFee })
@@ -391,9 +395,29 @@ describe('TalentLayer', function () {
       const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [5])
       expect(thirdPartyId).to.be.equal(frankIdBytes)
       // we check if the event is well emitted
-      await expect(mint)
-        .to.emit(talentLayerID, 'ThirdPartiesLinked')
-        .withArgs(frank.address, frankUserId, strategiesID, thirdPartyId)
+      await expect(mint).to.emit(talentLayerID, 'ThirdPartyLinked').withArgs(frankUserId, strategiesID, thirdPartyId)
+    })
+
+    // we check check if the strategy is well registered
+    it('we check check if the strategy is well registered', async function () {
+      const strategiesID = [0]
+      const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [5])
+      const frankIsRegisteredData = await lensID.isRegistered(frank.address)
+      await expect(frankIsRegisteredData[0]).to.be.equal(true)
+      await expect(frankIsRegisteredData[1]).to.be.equal(frankIdBytes)
+    })
+
+    // Lili will try to mint a talentLayerId with an Lens Id but she is not registered in Lens
+    it('Lili will try to mint a talentLayerId with an Lens Id but she is not registered in Lens', async function () {
+      expect(lensID.isRegistered(lili.address)).to.be.revertedWith('User not registered')
+    })
+
+    // Alice can't mint a TalentLayerId with a wrong External Id
+    it('lili cant mint a TalentLayerId with a wrong External strategy Id', async function () {
+      const strategiesID = [1]
+      expect(talentLayerID.connect(lili).mint('1', 'lili', strategiesID, { value: mintFee })).to.be.revertedWith(
+        'User not registered',
+      )
     })
 
     // Alice can link an external Id to her TalentLayerId
@@ -404,13 +428,13 @@ describe('TalentLayer', function () {
         .connect(alice)
         .associateThirdPartiesIDs(AliceUserId, strategiesID)
       const thirdPartyId = await talentLayerID.getThirdPartyId(AliceUserId, strategiesID[0])
-      const aliceIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [0])
+      const aliceIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [1])
 
       expect(thirdPartyId).to.be.equal(aliceIdBytes)
       // we check if the event is well emitted
       await expect(linkToThirdPartiesId)
-        .to.emit(talentLayerID, 'ThirdPartiesLinked')
-        .withArgs(alice.address, AliceUserId, strategiesID, thirdPartyId)
+        .to.emit(talentLayerID, 'ThirdPartyLinked')
+        .withArgs(AliceUserId, strategiesID, thirdPartyId)
     })
   })
 

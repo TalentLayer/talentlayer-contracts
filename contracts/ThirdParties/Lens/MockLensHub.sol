@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ILensHub} from "../ThirdParties/Lens/ILensHub.sol";
+import {ILensHub} from "./ILensHub.sol";
 
 contract MockLensHub is Ownable, ILensHub {
     struct LensProfile {

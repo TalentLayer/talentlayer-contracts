@@ -22,8 +22,6 @@ interface ITalentLayerID {
 
     function activatePoh(uint256 _tokenId) external;
 
-    function setSocialId(string memory _socialPlatformName, bytes32 _socialId) external;
-
     function updateProfileData(uint256 _tokenId, string memory _newCid) external;
 
     function recoverAccount(

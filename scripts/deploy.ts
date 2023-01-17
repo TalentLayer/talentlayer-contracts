@@ -192,9 +192,22 @@ task('deploy')
           constructorArguments: [talentLayerID.address],
         })
       }
-      const setStrategy = await talentLayerID.setStrategy(0, lensID.address)
       set(network.name as any as Network, ConfigProperty.LensID, lensID.address)
       console.log('LensID contract address:', lensID.address)
+
+      // Set Lens and POH Strategies
+      const setLensStrategy = await talentLayerID.setThirdPartyStrategy(0, lensID.address)
+      const getLensStrategy = await talentLayerID.getThirdPartyStrategy(0)
+      console.log('Lens Strategy address', getLensStrategy)
+
+      if (usePohmock) {
+        const setPohStrategy = await talentLayerID.setThirdPartyStrategy(1, pohAddress)
+        const getPohStrategy = await talentLayerID.getThirdPartyStrategy(1)
+        console.log('POH Strategy address', getPohStrategy)
+      } else {
+        //ROMAIN  check if this is a good strategy
+        await talentLayerID.setThirdPartyStrategy(1, '0x0000000000000000000000000000000000000000')
+      }
 
       // Grant escrow role
       const escrowRole = await serviceRegistry.ESCROW_ROLE()
