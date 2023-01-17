@@ -295,7 +295,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
         takenNames[_platformName] = true;
 
-        emit Mint(_platformAddress, platformId, _platformName, mintFee);
+        emit Mint(_platformAddress, platformId, _platformName, mintFee, minArbitrationFeeTimeout);
     }
 
     // =========================== Internal functions ==============================
@@ -404,8 +404,15 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _tokenId New Platform ID
      * @param _platformName Name of the platform
      * @param _fee Fee paid to mint the Platform ID
+     * @param _arbitrationFeeTimeout Timeout to pay arbitration fee
      */
-    event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName, uint256 _fee);
+    event Mint(
+        address indexed _platformOwnerAddress,
+        uint256 _tokenId,
+        string _platformName,
+        uint256 _fee,
+        uint256 _arbitrationFeeTimeout
+    );
 
     /**
      * Emit when Cid is updated for a platform.
