@@ -279,6 +279,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      */
     function updateMinArbitrationFeeTimeout(uint256 _minArbitrationFeeTimeout) public onlyRole(DEFAULT_ADMIN_ROLE) {
         minArbitrationFeeTimeout = _minArbitrationFeeTimeout;
+        emit MinArbitrationFeeTimeoutUpdated(_minArbitrationFeeTimeout);
     }
 
     // =========================== Private functions ==============================
@@ -447,4 +448,10 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _arbitrationFeeTimeout The new arbitration fee timeout
      */
     event ArbitrationFeeTimeoutUpdated(uint256 _platformId, uint256 _arbitrationFeeTimeout);
+
+    /**
+     * Emit after the minimum arbitration fee timeout is updated
+     * @param _arbitrationFeeTimeout The new arbitration fee timeout
+     */
+    event MinArbitrationFeeTimeoutUpdated(uint256 _arbitrationFeeTimeout);
 }
