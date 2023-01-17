@@ -45,6 +45,9 @@ function getChainConfig(chain: Network): NetworkUserConfig {
     case Network.FUJI:
       jsonRpcUrl = 'https://avalanche-fuji.infura.io/v3/' + infuraApiKey
       break
+    case Network.MUMBAI:
+      jsonRpcUrl = 'https://polygon-mumbai.infura.io/v3/' + infuraApiKey
+      break
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey
   }
@@ -70,6 +73,7 @@ const config: HardhatUserConfig = {
       kovan: process.env.ETHERSCAN_API_KEY || '',
       avalanche: process.env.SNOWTRACE_API_KEY || '',
       avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || '',
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
     },
   },
   gasReporter: {
@@ -102,6 +106,7 @@ const config: HardhatUserConfig = {
     kovan: getChainConfig(Network.KOVAN),
     avalanche: getChainConfig(Network.AVALANCHE),
     fuji: getChainConfig(Network.FUJI),
+    mumbai: getChainConfig(Network.MUMBAI),
   },
   paths: {
     artifacts: './artifacts',
