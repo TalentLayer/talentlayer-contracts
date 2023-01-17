@@ -5,13 +5,12 @@ An interoperable identity system for freelancing marketplaces. Leverage one unif
 - Learn more about the project: https://www.talentlayer.org
 - Documentation: https://docs.talentlayer.org
 
-
 ## Scripts
 
-- playground: use on local or testnet to create fake data and test the protocol 
-- tasks: configurable commands to use in mainnet 
-    - protocol: Used to managed the protocol by TalentLayer (mint a platform, allow a new arbitrator...)
-    - platform: Used to managed a platform by there owner (update fee)
+- playground: use on local or testnet to create fake data and test the protocol
+- tasks: configurable commands to use in mainnet
+  - protocol: Used to managed the protocol by TalentLayer (mint a platform, allow a new arbitrator...)
+  - platform: Used to managed a platform by there owner (update fee)
 - utils: common functions
 
 ## Deployed
@@ -22,7 +21,6 @@ An interoperable identity system for freelancing marketplaces. Leverage one unif
 - ServiceRegistry: 0xFAe97514c8e94501E66F0AEf84E4Cccb7eb2EB84
 - TalentLayerReview: 0x8685C7359DeE31703a1f47F8dabad7879148cFCf
 - Mock ProofOfHumanity: 0xc7729F499f3D81643597a1e1666E9b6F8D702F8D
-
 
 ### Goerli
 
@@ -50,4 +48,13 @@ An interoperable identity system for freelancing marketplaces. Leverage one unif
 - TalentLayerEscrow : 0x8754a129D3F53222dd94Ce45749134c15C9Ed119
 - simpleERC20 address: 0xaC174398bB8a3aD8b04D8CeE4B93E752AcddCD4b
 
+### Polygon testnet (Mumbai)
 
+- Mock proof of humanity address: 0xd78C3fae7AFE37DF386cD331CD6B446eD4095306
+- TalentLayerPlatformID address: 0x2deB8a32638c99310AD84E3b335e07737F8a61aE
+- TalentLayerID address: 0xcfF1C0A9A78512Fb3757fF61fC794d8F77Ee535f
+- Service Registry address: 0x28409B9A38BF5B0897c08C5812Bd91D9313743AB
+- Reviews contract address: 0xe33725A94e24A6808AA6351551ee96c80736e8Dc
+- TalentLayerArbitrator contract address: 0x7f606e9868283A46c050515eD70ac13B46dB845b
+- TalentLayerEscrow contract address: 0x8564BD74CFdcE620F6C89C6d5326614B24CDcbae
+- SimpleERC20 address: 0x2f9E87f44a9931632144c0CDe7a822071998baE1
