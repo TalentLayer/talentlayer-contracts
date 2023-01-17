@@ -245,14 +245,23 @@ describe('TalentLayer', function () {
       expect(platformId).to.be.equal(1)
     })
 
-    it('The platform owner can update the arbitration fee timeout', async function () {
-      const timeout = 3600 * 24
-      const tx = talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, timeout - 1)
-      expect(tx).to.be.revertedWith('The timeout must be greater than the minimum timeout')
+    it('The deployer can update the minimum arbitration fee timeout', async function () {
+      const minArbitrationFeeTimeout = 3600 * 10
+      await talentLayerPlatformID.connect(deployer).updateMinArbitrationFeeTimeout(minArbitrationFeeTimeout)
+      const updatedMinArbitrationFeeTimeout = await talentLayerPlatformID.minArbitrationFeeTimeout()
 
-      await talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, timeout)
-      const arbitrationFeeTimeout = (await talentLayerPlatformID.getPlatform(1)).arbitrationFeeTimeout
-      expect(arbitrationFeeTimeout).to.be.equal(timeout)
+      expect(updatedMinArbitrationFeeTimeout).to.be.equal(minArbitrationFeeTimeout)
+    })
+
+    it('The platform owner can update the arbitration fee timeout', async function () {
+      const minArbitrationFeeTimeout = await talentLayerPlatformID.minArbitrationFeeTimeout()
+      const tx = talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, minArbitrationFeeTimeout - 1)
+      await expect(tx).to.be.revertedWith('The timeout must be greater than the minimum timeout')
+
+      const arbitrationFeeTimeout = minArbitrationFeeTimeout + 3600 * 2
+      await talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, arbitrationFeeTimeout)
+      const updatedArbitrationFeeTimeout = (await talentLayerPlatformID.getPlatform(1)).arbitrationFeeTimeout
+      expect(updatedArbitrationFeeTimeout).to.be.equal(arbitrationFeeTimeout)
     })
 
     it('Only the owner of the platform can update its arbitrator', async function () {
@@ -348,7 +357,7 @@ describe('TalentLayer', function () {
       expect(contractBalanceAfter).to.be.equal(0)
     })
 
-    it("Deployer can mint TalentLayerID without poh for free", async function () {
+    it('Deployer can mint TalentLayerID without poh for free', async function () {
       const deployerBalanceBefore = await deployer.getBalance()
       const graceBalanceBefore = await grace.getBalance()
 
@@ -357,16 +366,19 @@ describe('TalentLayer', function () {
       const gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       const deployerBalanceAfter = await deployer.getBalance()
       const graceBalanceAfter = await grace.getBalance()
-      
-      await expect(deployerBalanceAfter, "Deployer only pays for gas costs when minting").to.be.equal(deployerBalanceBefore.sub(gasUsed))
-      await expect(graceBalanceAfter, "Address minted for does not pay anything").to.be.equal(graceBalanceBefore)
-    });
 
-    it("Alice can NOT mint TalentLayerIDs without paying the mint fee", async function () {
-      await expect(talentLayerID.connect(alice).freeMint('1', heidi.address, 'heidi'), "Alice tries to mint talentLayer ID for heidi for free.")
-      .to.be.revertedWith("Ownable: caller is not the owner")
+      await expect(deployerBalanceAfter, 'Deployer only pays for gas costs when minting').to.be.equal(
+        deployerBalanceBefore.sub(gasUsed),
+      )
+      await expect(graceBalanceAfter, 'Address minted for does not pay anything').to.be.equal(graceBalanceBefore)
     })
-    
+
+    it('Alice can NOT mint TalentLayerIDs without paying the mint fee', async function () {
+      await expect(
+        talentLayerID.connect(alice).freeMint('1', heidi.address, 'heidi'),
+        'Alice tries to mint talentLayer ID for heidi for free.',
+      ).to.be.revertedWith('Ownable: caller is not the owner')
+    })
   })
 
   describe('SimpleERC20 contract contract test', function () {

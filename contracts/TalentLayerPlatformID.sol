@@ -73,15 +73,16 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     bytes32 public constant MINT_ROLE = keccak256("MINT_ROLE");
 
     /**
-     * @notice Minimum duration for arbitration fee timeout
+     * @notice Minimum timeout to pay arbitration fee
      */
-    uint256 MIN_ARBITRATION_FEE_TIMEOUT = 1 days;
+    uint256 public minArbitrationFeeTimeout;
 
     constructor() ERC721A("TalentLayerPlatformID", "TPID") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINT_ROLE, msg.sender);
         mintFee = 0;
         validArbitrators[address(0)] = true; // The zero address means no arbitrator.
+        updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
     }
 
     // =========================== View functions ==============================
@@ -218,7 +219,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
     function updateArbitrationFeeTimeout(uint256 _platformId, uint256 _arbitrationFeeTimeout) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
         require(
-            _arbitrationFeeTimeout >= MIN_ARBITRATION_FEE_TIMEOUT,
+            _arbitrationFeeTimeout >= minArbitrationFeeTimeout,
             "The timeout must be greater than the minimum timeout"
         );
 
@@ -272,6 +273,15 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         internalArbitrators[address(_arbitrator)] = false;
     }
 
+    /**
+     * Updates the minimum timeout for paying the arbitration fee.
+     * @param _minArbitrationFeeTimeout The new minimum timeout
+     */
+    function updateMinArbitrationFeeTimeout(uint256 _minArbitrationFeeTimeout) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        minArbitrationFeeTimeout = _minArbitrationFeeTimeout;
+        emit MinArbitrationFeeTimeoutUpdated(_minArbitrationFeeTimeout);
+    }
+
     // =========================== Private functions ==============================
 
     /**
@@ -283,9 +293,10 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         Platform storage platform = platforms[platformId];
         platform.name = _platformName;
         platform.id = platformId;
+        platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
         takenNames[_platformName] = true;
 
-        emit Mint(_platformAddress, platformId, _platformName, mintFee);
+        emit Mint(_platformAddress, platformId, _platformName, mintFee, minArbitrationFeeTimeout);
     }
 
     // =========================== Internal functions ==============================
@@ -394,8 +405,15 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _tokenId New Platform ID
      * @param _platformName Name of the platform
      * @param _fee Fee paid to mint the Platform ID
+     * @param _arbitrationFeeTimeout Timeout to pay arbitration fee
      */
-    event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName, uint256 _fee);
+    event Mint(
+        address indexed _platformOwnerAddress,
+        uint256 _tokenId,
+        string _platformName,
+        uint256 _fee,
+        uint256 _arbitrationFeeTimeout
+    );
 
     /**
      * Emit when Cid is updated for a platform.
@@ -430,4 +448,10 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
      * @param _arbitrationFeeTimeout The new arbitration fee timeout
      */
     event ArbitrationFeeTimeoutUpdated(uint256 _platformId, uint256 _arbitrationFeeTimeout);
+
+    /**
+     * Emit after the minimum arbitration fee timeout is updated
+     * @param _minArbitrationFeeTimeout The new arbitration fee timeout
+     */
+    event MinArbitrationFeeTimeoutUpdated(uint256 _minArbitrationFeeTimeout);
 }
