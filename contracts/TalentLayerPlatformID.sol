@@ -82,7 +82,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         _setupRole(MINT_ROLE, msg.sender);
         mintFee = 0;
         validArbitrators[address(0)] = true; // The zero address means no arbitrator.
-        minArbitrationFeeTimeout = 1 days; // TODO: update this value
+        updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
     }
 
     // =========================== View functions ==============================
