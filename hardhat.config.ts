@@ -10,6 +10,7 @@ import './scripts/tasks/protocol/mintPlatformIdForAddress'
 import './scripts/tasks/protocol/mintTalentLayerId'
 import './scripts/tasks/protocol/addArbitrator'
 import './scripts/tasks/protocol/removeArbitrator'
+import './scripts/tasks/protocol/updateMinArbitrationFeeTimeout'
 import { Network } from './scripts/config'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
