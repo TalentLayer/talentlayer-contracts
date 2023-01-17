@@ -451,7 +451,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     /**
      * Emit after the minimum arbitration fee timeout is updated
-     * @param _arbitrationFeeTimeout The new arbitration fee timeout
+     * @param _minArbitrationFeeTimeout The new arbitration fee timeout
      */
-    event MinArbitrationFeeTimeoutUpdated(uint256 _arbitrationFeeTimeout);
+    event MinArbitrationFeeTimeoutUpdated(uint256 _minArbitrationFeeTimeout);
 }
