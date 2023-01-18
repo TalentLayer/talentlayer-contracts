@@ -11,7 +11,7 @@ allScripts: deploy copy-configuration setup-allFakeData
 #--------------DEPLOY----------------#
 
 deploy: 
-	npx hardhat deploy --use-pohmock --use-test-erc20 --network $(DEPLOY_NETWORK)
+	npx hardhat deploy --use-pohmock --use-lensmock --use-test-erc20 --network $(DEPLOY_NETWORK)
 
 deploy-verify: 
 	npx hardhat deploy --use-pohmock --use-test-erc20 --verify --network $(DEPLOY_NETWORK)

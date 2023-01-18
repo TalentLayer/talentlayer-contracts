@@ -328,7 +328,7 @@ describe('TalentLayer', function () {
       )
     })
 
-    it('Carol can registered to the POH', async function () {
+    it('Carol can register to the POH', async function () {
       await mockProofOfHumanity.addSubmissionManually([carol.address])
       const checkIfCarolPohRegistered = await mockProofOfHumanity.isRegistered(carol.address)
       console.log(checkIfCarolPohRegistered)
