@@ -236,7 +236,7 @@ contract TalentLayerID is ERC721A, Ownable {
             keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
             "Invalid handle"
         );
-        // ROMAIN
+
         (bool isRegistered, bytes memory thirdPartyId) = pohRegistry.isRegistered(msg.sender);
         require(isRegistered, "You need to use an address registered on Proof of Humanity");
 
@@ -450,8 +450,8 @@ contract TalentLayerID is ERC721A, Ownable {
     /**
      * Emit when mint fee is updated
      * @param _tokenId TalentLayer ID for the user
-     * @param _strategiesID Id associated with the strategy
-     * @param _thirdPartyId External ID og a user Strategy
+     * @param _thirdPartiesStrategiesID Id associated with the strategy
+     * @param thirdPartyId External ID og a user Strategy
      */
-    event ThirdPartyLinked(uint256 _tokenId, uint256[] _strategiesID, bytes _thirdPartyId);
+    event ThirdPartyLinked(uint256 _tokenId, uint256[] _thirdPartiesStrategiesID, bytes thirdPartyId);
 }
