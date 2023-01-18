@@ -8,6 +8,7 @@ import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import {IThirdPartyID} from "./interfaces/IThirdPartyID.sol";
+import {IProofOfHumanity} from "./ThirdParties/POH/IProofOfHumanity.sol";
 
 /**
  * @title TalentLayer ID Contract
@@ -216,35 +217,39 @@ contract TalentLayerID is ERC721A, Ownable {
     //  * @param _handle User handle
     //  * @param _merkleProof Merkle proof
     //  */
-    // function recoverAccount(
-    //     address _oldAddress,
-    //     uint256 _tokenId,
-    //     uint256 _index,
-    //     uint256 _recoveryKey,
-    //     string calldata _handle,
-    //     bytes32[] calldata _merkleProof
-    // ) public {
-    //     require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
-    //     require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
-    //     require(numberMinted(msg.sender) == 0, "You already have a token");
-    //     require(profiles[_tokenId].pohAddress == address(0), "Your old address was not linked to Proof of Humanity");
-    //     require(
-    //         keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
-    //         "Invalid handle"
-    //     );
-    //     // ROMAIN
-    //     require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
+    function recoverAccount(
+        address _oldAddress,
+        uint256 _tokenId,
+        uint256 _index,
+        uint256 _recoveryKey,
+        string calldata _handle,
+        bytes32[] calldata _merkleProof
+    ) public {
+        //ROMAIN
+        /// Proof of Humanity registry
+        IProofOfHumanity pohRegistry;
+        require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
+        require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
+        require(numberMinted(msg.sender) == 0, "You already have a token");
+        // require(profiles[_tokenId].pohAddress == address(0), "Your old address was not linked to Proof of Humanity");
+        require(
+            keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
+            "Invalid handle"
+        );
+        // ROMAIN
+        (bool isRegistered, bytes memory thirdPartyId) = pohRegistry.isRegistered(msg.sender);
+        require(isRegistered, "You need to use an address registered on Proof of Humanity");
 
-    //     bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
-    //     require(MerkleProof.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
+        bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
+        require(MerkleProof.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
 
-    //     hasBeenRecovered[_oldAddress] = true;
-    //     profiles[_tokenId].handle = _handle;
-    //     profiles[_tokenId].pohAddress = msg.sender;
-    //     _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
+        hasBeenRecovered[_oldAddress] = true;
+        profiles[_tokenId].handle = _handle;
+        // profiles[_tokenId].pohAddress = msg.sender;
+        _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
 
-    //     emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
-    // }
+        emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
+    }
 
     // =========================== Owner functions ==============================
 
