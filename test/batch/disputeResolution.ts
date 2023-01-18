@@ -65,7 +65,7 @@ async function deployAndSetup(
 
   // Deploy TalenLayerID
   const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-  const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
+  const talentLayerIDArgs: [string] = [talentLayerPlatformID.address]
   const talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
 
   // Deploy ServiceRegistry

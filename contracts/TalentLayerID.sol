@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
-import {IProofOfHumanity} from "./ThirdParties/POH/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import {IThirdPartyID} from "./interfaces/IThirdPartyID.sol";
 
@@ -26,15 +25,11 @@ contract TalentLayerID is ERC721A, Ownable {
     struct Profile {
         uint256 id;
         string handle;
-        address pohAddress;
         uint256 platformId;
         string dataUri;
     }
 
     // =========================== Declaration ===========================
-
-    /// Proof of Humanity registry
-    IProofOfHumanity public pohRegistry;
 
     /// TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
@@ -65,10 +60,9 @@ contract TalentLayerID is ERC721A, Ownable {
     // =========================== Constructor ==============================
 
     /**
-     * @param _pohAddress Proof of Humanity registry address
+     * @param _talentLayerPlatformIdAddress TalentLayer Platform ID contract address
      */
-    constructor(address _pohAddress, address _talentLayerPlatformIdAddress) ERC721A("TalentLayerID", "TID") {
-        pohRegistry = IProofOfHumanity(_pohAddress);
+    constructor(address _talentLayerPlatformIdAddress) ERC721A("TalentLayerID", "TID") {
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         mintFee = 0;
     }
@@ -104,15 +98,6 @@ contract TalentLayerID is ERC721A, Ownable {
         require(_exists(_profileId), "TalentLayerID: Profile does not exist");
         require(thirdPartiesIdStrategies[_strategyId] != address(0), "TalentLayerID: Strategy does not exist");
         return profileIdToStrategyIdToThirdPartyId[_profileId][_strategyId];
-    }
-
-    /**
-     * Allows checking if Proof of Humanity address linked to the TalentLayerID is registered.
-     * @param _tokenId Token ID to check
-     * @return true if Proof of Humanity address is registered, false otherwise
-     */
-    function isTokenPohRegistered(uint256 _tokenId) public view returns (bool) {
-        return pohRegistry.isRegistered(profiles[_tokenId].pohAddress);
     }
 
     /**
@@ -180,31 +165,6 @@ contract TalentLayerID is ERC721A, Ownable {
     }
 
     /**
-     * Allows a user to mint a new TalentLayerID with Proof of Humanity.
-     * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId minted
-     */
-    function mintWithPoh(uint256 _platformId, string memory _handle) public payable canMint(_handle, _platformId) {
-        require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
-        _safeMint(msg.sender, 1);
-        uint256 userTokenId = _nextTokenId() - 1;
-        profiles[userTokenId].pohAddress = msg.sender;
-        _afterMint(_handle, true, _platformId);
-    }
-
-    /**
-     * Link Proof of Humanity to previously non-linked TalentLayerID.
-     * @param _tokenId Token ID to link
-     */
-    function activatePoh(uint256 _tokenId) public {
-        require(ownerOf(_tokenId) == msg.sender);
-        require(pohRegistry.isRegistered(msg.sender), "You're address is not registerd for poh");
-        profiles[_tokenId].pohAddress = msg.sender;
-
-        emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handle);
-    }
-
-    /**
      * Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
@@ -247,43 +207,44 @@ contract TalentLayerID is ERC721A, Ownable {
         emit CidUpdated(_tokenId, _newCid);
     }
 
-    /**
-     * Allows recovery of a user's account with zero knowledge proofs.
-     * @param _oldAddress Old user address
-     * @param _tokenId Token ID to recover
-     * @param _index Index in the merkle tree
-     * @param _recoveryKey Recovery key
-     * @param _handle User handle
-     * @param _merkleProof Merkle proof
-     */
-    function recoverAccount(
-        address _oldAddress,
-        uint256 _tokenId,
-        uint256 _index,
-        uint256 _recoveryKey,
-        string calldata _handle,
-        bytes32[] calldata _merkleProof
-    ) public {
-        require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
-        require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
-        require(numberMinted(msg.sender) == 0, "You already have a token");
-        require(profiles[_tokenId].pohAddress == address(0), "Your old address was not linked to Proof of Humanity");
-        require(
-            keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
-            "Invalid handle"
-        );
-        require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
+    // /**
+    //  * Allows recovery of a user's account with zero knowledge proofs.
+    //  * @param _oldAddress Old user address
+    //  * @param _tokenId Token ID to recover
+    //  * @param _index Index in the merkle tree
+    //  * @param _recoveryKey Recovery key
+    //  * @param _handle User handle
+    //  * @param _merkleProof Merkle proof
+    //  */
+    // function recoverAccount(
+    //     address _oldAddress,
+    //     uint256 _tokenId,
+    //     uint256 _index,
+    //     uint256 _recoveryKey,
+    //     string calldata _handle,
+    //     bytes32[] calldata _merkleProof
+    // ) public {
+    //     require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
+    //     require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
+    //     require(numberMinted(msg.sender) == 0, "You already have a token");
+    //     require(profiles[_tokenId].pohAddress == address(0), "Your old address was not linked to Proof of Humanity");
+    //     require(
+    //         keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
+    //         "Invalid handle"
+    //     );
+    //     // ROMAIN
+    //     require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
 
-        bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
-        require(MerkleProof.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
+    //     bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
+    //     require(MerkleProof.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
 
-        hasBeenRecovered[_oldAddress] = true;
-        profiles[_tokenId].handle = _handle;
-        profiles[_tokenId].pohAddress = msg.sender;
-        _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
+    //     hasBeenRecovered[_oldAddress] = true;
+    //     profiles[_tokenId].handle = _handle;
+    //     profiles[_tokenId].pohAddress = msg.sender;
+    //     _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
 
-        emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
-    }
+    //     emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
+    // }
 
     // =========================== Owner functions ==============================
 
@@ -348,7 +309,7 @@ contract TalentLayerID is ERC721A, Ownable {
             strategyContract = IThirdPartyID(getThirdPartyStrategy(_thirdPartiesStrategiesID[i]));
 
             (bool isRegistered, bytes memory thirdPartyId) = strategyContract.isRegistered(msg.sender);
-            require(isRegistered, "You need to use an address registered on the selected platform");
+            require(isRegistered, "You need to use an address registered on the selected third party platform");
             profileIdToStrategyIdToThirdPartyId[_tokenId][_thirdPartiesStrategiesID[i]] = thirdPartyId;
 
             emit ThirdPartyLinked(_tokenId, _thirdPartiesStrategiesID, thirdPartyId);

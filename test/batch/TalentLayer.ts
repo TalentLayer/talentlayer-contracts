@@ -53,7 +53,7 @@ describe('TalentLayer', function () {
 
     // Deploy TalenLayerID
     TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-    const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
+    const talentLayerIDArgs: [string] = [talentLayerPlatformID.address]
     talentLayerID = (await TalentLayerID.deploy(...talentLayerIDArgs)) as TalentLayerID
 
     // Deploy ServiceRegistry
@@ -101,15 +101,21 @@ describe('TalentLayer', function () {
       deployer.address, // id 0
       alice.address, // id 1
       bob.address, // id 2
-      //carol.address - carol is not register in Lens
-      dave.address, // id 3
-      eve.address, // id 4
-      frank.address, // id 5
+      carol.address, // id 3
+      dave.address, // id 4
+      eve.address, // id 5
+      frank.address, // id 6
       //lili.address - lili is not register in Lens
     ])
 
+    // Setup POH and Lens strategy
     await talentLayerID.setThirdPartyStrategy(0, lensID.address)
     const externalStrategies = await talentLayerID.getThirdPartyStrategy(0)
+    console.log('Lens strat', externalStrategies)
+
+    await talentLayerID.setThirdPartyStrategy(1, mockProofOfHumanity.address)
+    const externalStrategies2 = await talentLayerID.getThirdPartyStrategy(1)
+    console.log('poh strat', externalStrategies2)
 
     // Grant escrow role
     const escrowRole = await serviceRegistry.ESCROW_ROLE()
@@ -298,13 +304,15 @@ describe('TalentLayer', function () {
 
   describe('Talent Layer ID contract test', function () {
     it('Alice, Bob and Carol can mint a talentLayerId', async function () {
-      await talentLayerID.connect(alice).mintWithPoh('1', 'alice')
-      await talentLayerID.connect(bob).mintWithPoh('1', 'bob')
+      await talentLayerID.connect(alice).mint('1', 'alice', [0])
+      await talentLayerID.connect(bob).mint('1', 'bob', [0])
 
-      expect(talentLayerID.connect(carol).mintWithPoh('1', 'carol')).to.be.revertedWith(
-        'You need to use an address registered on Proof of Humanity',
-      )
-      await talentLayerID.connect(carol).mint('1', 'carol', [])
+      //DELETE
+      // expect(talentLayerID.connect(carol).mint('1', 'carol', [1])).to.be.revertedWith(
+      //   'You need to use an address registered on Proof of Humanity',
+      // )
+
+      await talentLayerID.connect(carol).mint('1', 'carol', [0])
       expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal('1')
       expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal('2')
       expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal('3')
@@ -313,16 +321,38 @@ describe('TalentLayer', function () {
       expect(profileData.platformId).to.be.equal('1')
     })
 
-    it('Carol can activate POH on her talentLayerID', async function () {
-      expect(talentLayerID.connect(carol).mintWithPoh(1, 'carol')).to.be.revertedWith(
-        "You're address is not registerd for poh",
+    it('Carol should not be able to activate POH strat as she is not registered', async function () {
+      // ROMAIN shouldn't work
+      expect(talentLayerID.connect(carol).associateThirdPartiesIDs(1, [1])).to.be.revertedWith(
+        'You need to use an address registered on the selected third party platform',
       )
-      await mockProofOfHumanity.addSubmissionManually([carol.address])
-      await talentLayerID.connect(carol).activatePoh(3)
-      const profileData = await talentLayerID.profiles(3)
+    })
 
-      expect(await talentLayerID.isTokenPohRegistered(3)).to.be.equal(true)
-      expect(await profileData.pohAddress).to.be.equal(carol.address)
+    it('Carol can registered to the POH', async function () {
+      await mockProofOfHumanity.addSubmissionManually([carol.address])
+      const checkIfCarolPohRegistered = await mockProofOfHumanity.isRegistered(carol.address)
+      console.log(checkIfCarolPohRegistered)
+
+      expect(await mockProofOfHumanity.isRegistered(carol.address)).to.deep.equal([
+        true,
+        '0x000000000000000000000000a59aad1b1af2e053ffc84e6511fdf61bc447d7ad',
+      ])
+    })
+
+    it('Carol can now associate her Tlid and her POH id', async function () {
+      // she can now activate POH on her talentLayerID
+      const strategiesPohID = [1]
+      const carolUserId = await talentLayerID.walletOfOwner(carol.address)
+      const linkToThirdPartiesId = await talentLayerID
+        .connect(carol)
+        .associateThirdPartiesIDs(carolUserId, strategiesPohID)
+
+      const thirdPartyCarolPohId = await talentLayerID.getThirdPartyId(carolUserId, 1)
+      console.log('thirdPartyCarolPohId', thirdPartyCarolPohId)
+
+      expect(await thirdPartyCarolPohId).to.be.equal(
+        '0x000000000000000000000000a59aad1b1af2e053ffc84e6511fdf61bc447d7ad',
+      )
     })
 
     it('The deployer can update the mint fee', async function () {
@@ -392,7 +422,7 @@ describe('TalentLayer', function () {
       expect(await talentLayerID.walletOfOwner(frank.address)).to.be.equal(frankUserId)
 
       const thirdPartyId = await talentLayerID.getThirdPartyId(frankUserId, strategiesID[0])
-      const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [5])
+      const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [6])
       expect(thirdPartyId).to.be.equal(frankIdBytes)
       // we check if the event is well emitted
       await expect(mint).to.emit(talentLayerID, 'ThirdPartyLinked').withArgs(frankUserId, strategiesID, thirdPartyId)
@@ -401,7 +431,7 @@ describe('TalentLayer', function () {
     // we check check if the strategy is well registered
     it('we check check if the strategy is well registered', async function () {
       const strategiesID = [0]
-      const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [5])
+      const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [6])
       const frankIsRegisteredData = await lensID.isRegistered(frank.address)
       await expect(frankIsRegisteredData[0]).to.be.equal(true)
       await expect(frankIsRegisteredData[1]).to.be.equal(frankIdBytes)
@@ -423,18 +453,18 @@ describe('TalentLayer', function () {
     // Alice can link an external Id to her TalentLayerId
     it('Alice can link an external Id to her TalentLayerId', async function () {
       const strategiesID = [0]
-      const AliceUserId = await talentLayerID.walletOfOwner(alice.address)
+      const aliceUserId = await talentLayerID.walletOfOwner(alice.address)
       const linkToThirdPartiesId = await talentLayerID
         .connect(alice)
-        .associateThirdPartiesIDs(AliceUserId, strategiesID)
-      const thirdPartyId = await talentLayerID.getThirdPartyId(AliceUserId, strategiesID[0])
+        .associateThirdPartiesIDs(aliceUserId, strategiesID)
+      const thirdPartyId = await talentLayerID.getThirdPartyId(aliceUserId, strategiesID[0])
       const aliceIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [1])
 
       expect(thirdPartyId).to.be.equal(aliceIdBytes)
       // we check if the event is well emitted
       await expect(linkToThirdPartiesId)
         .to.emit(talentLayerID, 'ThirdPartyLinked')
-        .withArgs(AliceUserId, strategiesID, thirdPartyId)
+        .withArgs(aliceUserId, strategiesID, thirdPartyId)
     })
   })
 
