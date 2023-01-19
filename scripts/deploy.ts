@@ -91,7 +91,7 @@ task('deploy')
         console.log('Proof of humanity strategy address:', proofOfHumanityID.address)
         set(network.name as any as Network, ConfigProperty.ProofOfHumanityID, proofOfHumanityID.address)
 
-        // Set POH LensStrategies - STRAT 0
+        // Set POH poh Strategies - STRAT 0
         const setPohStrategy = await talentLayerID.setThirdPartyStrategy(0, proofOfHumanityIDAddress)
         const getPohStrategy = await talentLayerID.getThirdPartyStrategy(0)
         console.log('Proof of Humanity Strategy address', getPohStrategy)
@@ -194,16 +194,21 @@ task('deploy')
 
       // Deploy MockLensHub
       if (useLensstrategy) {
-        if (process.env.DEPLOY_NETWORK === 'localhost') {
+        let lensHubAddress
+        if (process.env.DEPLOY_NETWORK === 'polygon') {
+          lensHubAddress = process.env.LENS_PROXY_POLYGON as string
+          set(network.name as any as Network, ConfigProperty.MockLensHub, process.env.LENS_PROXY_POLYGON || '')
+          console.log('MockLensHub address:', lensHubAddress)
+        } else if (process.env.DEPLOY_NETWORK === 'mumbai') {
+          lensHubAddress = process.env.LENS_PROXY_MUMBAI as string
+          set(network.name as any as Network, ConfigProperty.MockLensHub, process.env.LENS_PROXY_MUMBAI || '')
+          console.log('MockLensHub address:', lensHubAddress)
+        } else {
           const MockLensHub = await ethers.getContractFactory('MockLensHub')
           const mockLensHub = await MockLensHub.deploy()
+          lensHubAddress = mockLensHub.address
           set(network.name as any as Network, ConfigProperty.MockLensHub, mockLensHub.address)
           console.log('MockLensHub address:', mockLensHub.address)
-
-          const LensID = await ethers.getContractFactory('LensID')
-          const lensID = await LensID.deploy(mockLensHub.address)
-          set(network.name as any as Network, ConfigProperty.LensID, lensID.address)
-          console.log('LensID contract address:', lensID.address)
 
           // Add the addLensProfileManually to add Lens user
           const addLensProfileManually = await mockLensHub.addLensProfileManually([
@@ -212,18 +217,15 @@ task('deploy')
             carol.address,
             dave.address,
           ])
-
-          // Set LensStrategies - STRAT 1
-          const setLensStrategy = await talentLayerID.setThirdPartyStrategy(1, lensID.address)
-          const getLensStrategy = await talentLayerID.getThirdPartyStrategy(1)
-          console.log('Lens Strategy address', getLensStrategy)
-        } else if (process.env.DEPLOY_NETWORK === 'polygon') {
-          set(network.name as any as Network, ConfigProperty.MockLensHub, process.env.LENS_PROXY_POLYGON || '')
-          console.log('MockLensHub address:', process.env.LENS_PROXY_POLYGON)
-        } else if (process.env.DEPLOY_NETWORK === 'mumbai') {
-          set(network.name as any as Network, ConfigProperty.MockLensHub, process.env.LENS_PROXY_MUMBAI || '')
-          console.log('MockLensHub address:', process.env.LENS_PROXY_MUMBAI)
         }
+        const LensID = await ethers.getContractFactory('LensID')
+        const lensID = await LensID.deploy(lensHubAddress)
+        set(network.name as any as Network, ConfigProperty.LensID, lensID.address)
+        console.log('LensID contract address:', lensID.address)
+        // Set LensStrategies - STRAT 1
+        await talentLayerID.setThirdPartyStrategy(1, lensID.address)
+        const getLensStrategy = await talentLayerID.getThirdPartyStrategy(1)
+        console.log('Lens Strategy address', getLensStrategy)
       }
 
       // Grant escrow role

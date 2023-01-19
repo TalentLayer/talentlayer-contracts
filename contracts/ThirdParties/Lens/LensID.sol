@@ -11,15 +11,15 @@ contract LensID is IThirdPartyID, Ownable {
     /**
      * @notice Instance of ILensHub.sol
      */
-    ILensHub private iLensHub;
+    ILensHub private lensHub;
 
     // =========================== Constructor ==============================
 
     /**
      * @dev Called on contract deployment
      */
-    constructor(address _proxyAddress) {
-        iLensHub = ILensHub(_proxyAddress);
+    constructor(address _address) {
+        lensHub = ILensHub(_address);
     }
 
     // =========================== User functions ============================
@@ -29,12 +29,13 @@ contract LensID is IThirdPartyID, Ownable {
      * @param _userAddress address of the user
      */
     function isRegistered(address _userAddress) external view returns (bool, bytes memory) {
-        bytes memory _userThirdPartyId = abi.encode(iLensHub.defaultProfile(_userAddress));
+        uint256 userThirdPartyId = lensHub.defaultProfile(_userAddress);
 
-        if (_userThirdPartyId.length > 0) {
-            return (true, _userThirdPartyId);
+        if (userThirdPartyId > 0) {
+            return (true, abi.encode(userThirdPartyId));
         } else {
-            return (false, _userThirdPartyId);
+            // TODO
+            return (false, bytes(""));
         }
     }
 }
