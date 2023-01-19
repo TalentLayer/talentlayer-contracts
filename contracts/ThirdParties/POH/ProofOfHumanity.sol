@@ -5,7 +5,7 @@ import "../../interfaces/IThirdPartyID.sol";
 import "./ILensHub.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LensID is IThirdPartyID, Ownable {
+contract ProofOfHumanity is IThirdPartyID, Ownable {
     // =========================== Declaration ==============================
 
     /**
@@ -29,6 +29,9 @@ contract LensID is IThirdPartyID, Ownable {
      * @param _userAddress address of the user
      */
     function isRegistered(address _userAddress) external view returns (bool, bytes memory) {
+        //ROMAIN check
+        require(iLensHub.defaultProfile(_userAddress) != uint256(0), "User not registered");
+
         bytes memory _userThirdPartyId = abi.encode(iLensHub.defaultProfile(_userAddress));
 
         if (_userThirdPartyId.length > 0) {

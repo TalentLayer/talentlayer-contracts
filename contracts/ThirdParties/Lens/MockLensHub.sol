@@ -16,7 +16,7 @@ contract MockLensHub is Ownable, ILensHub {
      * @param _lensUsersAddress  Array of users address
      */
     function addLensProfileManually(address[] calldata _lensUsersAddress) external onlyOwner {
-        for (uint256 i = 0; i < _lensUsersAddress.length; i++) {
+        for (uint256 i = 1; i < _lensUsersAddress.length; i++) {
             lensProfiles[_lensUsersAddress[i]] = LensProfile(i);
         }
     }

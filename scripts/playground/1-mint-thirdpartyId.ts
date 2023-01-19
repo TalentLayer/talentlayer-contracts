@@ -1,5 +1,6 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
+import { lens } from '../../typechain-types/factories/contracts/ThirdParties'
 import { Network } from '../config'
 const hre = require('hardhat')
 
@@ -24,6 +25,8 @@ async function main() {
   )
 
   const mockLensHub = await ethers.getContractAt('MockLensHub', get(network as Network, ConfigProperty.MockLensHub))
+
+  const lens = await ethers.getContractAt('LensID', get(network as Network, ConfigProperty.LensID))
 
   const mockProofOfHumanity = await ethers.getContractAt(
     'MockProofOfHumanity',
@@ -63,6 +66,14 @@ async function main() {
 
   const thirdPartyIdIndexOne = await talentLayerIdContract.getThirdPartyId(frankUserId, 1)
   console.log('thirdPartyIdIndexOne', thirdPartyIdIndexOne)
+
+  // we check if frank is Registerd on Lens
+  const frankIsRegisteredOnLens = await lens.isRegistered(frank.address)
+  console.log('frankIsRegisteredOnLens', frankIsRegisteredOnLens)
+
+  // we check if frank is Registerd on ProofOfHumanity
+  const frankIsRegisteredOnProofOfHumanity = await mockProofOfHumanity.isRegistered(frank.address)
+  console.log('frankIsRegisteredOnProofOfHumanity', frankIsRegisteredOnProofOfHumanity)
 
   // frank address
   console.log('frank address', frank.address)

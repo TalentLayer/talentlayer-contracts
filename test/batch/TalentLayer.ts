@@ -414,6 +414,8 @@ describe('TalentLayer', function () {
 
     // frank can mint a TalentLayerId with an External Id
     it('frank can mint a talentLayerId linked to an external Id and the event is well emitted', async function () {
+      // mockProofOfHumanity.addSubmissionManually([frank.address])
+
       const strategiesID = [0]
       // Frank mint his TalentLayerId with an external Id
       const mint = await talentLayerID.connect(frank).mint('1', 'frank', strategiesID, { value: mintFee })

@@ -210,7 +210,7 @@ task('deploy')
         console.log('POH Strategy address', getPohStrategy)
       } else {
         //ROMAIN  check if this is a good strategy
-        await talentLayerID.setThirdPartyStrategy(1, '0x0000000000000000000000000000000000000000')
+        await talentLayerID.setThirdPartyStrategy(1, '0x0000000000000000000000000000000000000019')
       }
 
       // Grant escrow role
