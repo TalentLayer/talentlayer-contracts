@@ -5,13 +5,13 @@ import { set, ConfigProperty } from '../configManager'
 
 // npx hardhat deploy --use-pohmock --use-test-erc20  --verify --network goerli
 task('deploy')
-  .addFlag('usePohmock', 'deploy a mock of POH')
-  .addFlag('useLensmock', 'deploy a mock ofLens')
+  .addFlag('usePohstrategy', 'deploy a mock of POH')
+  .addFlag('useLensstrategy', 'deploy a mock ofLens')
   .addFlag('useTestErc20', 'deploy a mock ERC20 contract')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, run, network }) => {
     try {
-      const { verify, usePohmock, useTestErc20, useLensmock } = args
+      const { verify, usePohstrategy, useTestErc20, useLensstrategy } = args
       const [alice, bob, carol, dave] = await ethers.getSigners()
       const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
       const networkConfig: NetworkConfig = getConfig(chainId)
@@ -26,25 +26,6 @@ task('deploy')
       console.log('  ETH', formatEther(await alice.getBalance()))
 
       await run('compile')
-
-      let pohAddress, mockProofOfHumanity
-      if (usePohmock) {
-        // Deploy Mock proof of humanity contract
-        const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-        mockProofOfHumanity = await MockProofOfHumanity.deploy()
-        if (verify) {
-          await mockProofOfHumanity.deployTransaction.wait(5)
-          await run('verify:verify', {
-            address: mockProofOfHumanity.address,
-          })
-        }
-        console.log('Mock proof of humanity address:', mockProofOfHumanity.address)
-        pohAddress = mockProofOfHumanity.address
-        set(network.name as any as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
-      } else {
-        pohAddress = networkConfig.proofOfHumanityAddress
-        set(network.name as any as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
-      }
 
       // Deploy TalentLayerPlatformID contract
       const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
@@ -73,6 +54,48 @@ task('deploy')
       console.log('talentLayerID address:', talentLayerID.address)
 
       set(network.name as any as Network, ConfigProperty.TalentLayerID, talentLayerID.address)
+
+      // Deploy Mock proof of humanity contract
+      let pohAddress, mockProofOfHumanity
+      if (usePohstrategy) {
+        const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
+        mockProofOfHumanity = await MockProofOfHumanity.deploy()
+        if (verify) {
+          await mockProofOfHumanity.deployTransaction.wait(5)
+          await run('verify:verify', {
+            address: mockProofOfHumanity.address,
+          })
+        }
+        console.log('Mock proof of humanity address:', mockProofOfHumanity.address)
+        pohAddress = mockProofOfHumanity.address
+        set(network.name as any as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
+      } else {
+        pohAddress = networkConfig.proofOfHumanityAddress
+        set(network.name as any as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
+      }
+
+      // Deploy Proof of humanity strategy contract
+      let proofOfHumanityID
+      if (usePohstrategy) {
+        const ProofOfHumanityID = await ethers.getContractFactory('ProofOfHumanityID')
+        proofOfHumanityID = await ProofOfHumanityID.deploy()
+
+        if (verify) {
+          await proofOfHumanityID.deployTransaction.wait(5)
+          await run('verify:verify', {
+            address: proofOfHumanityID.address,
+          })
+        }
+
+        const proofOfHumanityIDAddress = proofOfHumanityID.address
+        console.log('Proof of humanity strategy address:', proofOfHumanityID.address)
+        set(network.name as any as Network, ConfigProperty.ProofOfHumanityID, proofOfHumanityID.address)
+
+        // Set POH LensStrategies - STRAT 0
+        const setPohStrategy = await talentLayerID.setThirdPartyStrategy(0, proofOfHumanityIDAddress)
+        const getPohStrategy = await talentLayerID.getThirdPartyStrategy(0)
+        console.log('Proof of Humanity Strategy address', getPohStrategy)
+      }
 
       // Deploy Service Registry Contract
       const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
@@ -170,7 +193,7 @@ task('deploy')
       }
 
       // Deploy MockLensHub
-      if (useLensmock) {
+      if (useLensstrategy) {
         if (process.env.DEPLOY_NETWORK === 'localhost') {
           const MockLensHub = await ethers.getContractFactory('MockLensHub')
           const mockLensHub = await MockLensHub.deploy()
@@ -190,9 +213,9 @@ task('deploy')
             dave.address,
           ])
 
-          // Set LensStrategies
-          const setLensStrategy = await talentLayerID.setThirdPartyStrategy(0, lensID.address)
-          const getLensStrategy = await talentLayerID.getThirdPartyStrategy(0)
+          // Set LensStrategies - STRAT 1
+          const setLensStrategy = await talentLayerID.setThirdPartyStrategy(1, lensID.address)
+          const getLensStrategy = await talentLayerID.getThirdPartyStrategy(1)
           console.log('Lens Strategy address', getLensStrategy)
         } else if (process.env.DEPLOY_NETWORK === 'polygon') {
           set(network.name as any as Network, ConfigProperty.MockLensHub, process.env.LENS_PROXY_POLYGON || '')
@@ -203,21 +226,11 @@ task('deploy')
         }
       }
 
-      // Set POH strategies
-      if (usePohmock) {
-        const setPohStrategy = await talentLayerID.setThirdPartyStrategy(1, pohAddress)
-        const getPohStrategy = await talentLayerID.getThirdPartyStrategy(1)
-        console.log('POH Strategy address', getPohStrategy)
-      } else {
-        //ROMAIN  check if this is a good strategy
-        await talentLayerID.setThirdPartyStrategy(1, '0x0000000000000000000000000000000000000019')
-      }
-
       // Grant escrow role
       const escrowRole = await serviceRegistry.ESCROW_ROLE()
       await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
 
-      if (usePohmock && mockProofOfHumanity) {
+      if (usePohstrategy && mockProofOfHumanity) {
         // Register Alice, Bob, Carol, Dave
         // const mockProofOfHumanity = await ethers.getContractAt('MockProofOfHumanity', "0x78939ABA66D1F73B0D76E9289BA79bc79dC079Dc")
         await mockProofOfHumanity.addSubmissionManually([alice.address, bob.address, carol.address, dave.address])

@@ -2,9 +2,8 @@
 pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IProofOfHumanity} from "./IProofOfHumanity.sol";
 
-contract MockProofOfHumanity is Ownable, IProofOfHumanity {
+contract ProofOfHumanityID is Ownable {
     enum Status {
         None,
         Vouching,
@@ -33,8 +32,10 @@ contract MockProofOfHumanity is Ownable, IProofOfHumanity {
         }
     }
 
-    function isRegistered(address _submissionID) external view returns (bool) {
+    function isRegistered(address _submissionID) external view returns (bool, bytes memory) {
         Submission storage submission = submissions[_submissionID];
-        return submission.registered && block.timestamp - submission.submissionTime <= submissionDuration;
+        bool isRegistered = submission.registered && block.timestamp - submission.submissionTime <= submissionDuration;
+        bytes memory _submissionIDBytes = abi.encode(_submissionID);
+        return (isRegistered, _submissionIDBytes);
     }
 }
