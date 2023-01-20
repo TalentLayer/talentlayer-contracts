@@ -8,6 +8,9 @@ install: deploy copy-configuration setup-fakedata
 
 allScripts: deploy copy-configuration setup-allFakeData
 
+deploy-thirdParty: deploy copy-configuration mint-platformid mint-thirdId
+
+
 #--------------DEPLOY----------------#
 
 deploy: 
@@ -15,6 +18,7 @@ deploy:
 
 deploy-verify: 
 	npx hardhat deploy --use-pohmock --use-test-erc20 --verify --network $(DEPLOY_NETWORK)
+
 
 #--------------COPY FILES----------------#
 
@@ -124,6 +128,9 @@ mint-platformid:
 
 mint-id:
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+
+mint-thirdId:
+	npx hardhat run scripts/playground/1-mint-thirdpartyId.ts --network $(DEPLOY_NETWORK)
 
 create-service:
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)

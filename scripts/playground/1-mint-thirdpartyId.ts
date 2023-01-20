@@ -26,11 +26,16 @@ async function main() {
 
   const mockLensHub = await ethers.getContractAt('MockLensHub', get(network as Network, ConfigProperty.MockLensHub))
 
-  const lens = await ethers.getContractAt('LensID', get(network as Network, ConfigProperty.LensID))
+  const lensID = await ethers.getContractAt('LensID', get(network as Network, ConfigProperty.LensID))
 
   const mockProofOfHumanity = await ethers.getContractAt(
     'MockProofOfHumanity',
     get(network as Network, ConfigProperty.MockProofOfHumanity),
+  )
+
+  const proofOfHumanityID = await ethers.getContractAt(
+    'ProofOfHumanityID',
+    get(network as Network, ConfigProperty.ProofOfHumanityID),
   )
 
   // add user to strategies
@@ -61,18 +66,18 @@ async function main() {
   const frankUserId = await talentLayerIdContract.walletOfOwner(frank.address)
   console.log('frankUserId', frankUserId)
 
-  const thirdPartyIdIndexZero = await talentLayerIdContract.getThirdPartyId(frankUserId, 0)
-  console.log('thirdPartyIdIndexZero', thirdPartyIdIndexZero)
+  const frankPohId = await talentLayerIdContract.getThirdPartyId(frankUserId, 0)
+  console.log('thirdPartyIdIndexZero', frankPohId)
 
-  const thirdPartyIdIndexOne = await talentLayerIdContract.getThirdPartyId(frankUserId, 1)
-  console.log('thirdPartyIdIndexOne', thirdPartyIdIndexOne)
+  const frankLensId = await talentLayerIdContract.getThirdPartyId(frankUserId, 1)
+  console.log('thirdPartyIdIndexOne', frankLensId)
 
   // we check if frank is Registerd on Lens
-  const frankIsRegisteredOnLens = await lens.isRegistered(frank.address)
+  const frankIsRegisteredOnLens = await lensID.isRegistered(frank.address)
   console.log('frankIsRegisteredOnLens', frankIsRegisteredOnLens)
 
   // we check if frank is Registerd on ProofOfHumanity
-  const frankIsRegisteredOnProofOfHumanity = await mockProofOfHumanity.isRegistered(frank.address)
+  const frankIsRegisteredOnProofOfHumanity = await proofOfHumanityID.isRegistered(frank.address)
   console.log('frankIsRegisteredOnProofOfHumanity', frankIsRegisteredOnProofOfHumanity)
 
   // frank address

@@ -2,8 +2,17 @@ import { Network } from './scripts/config'
 const fs = require('fs')
 
 export enum ConfigProperty {
-  MockProofOfHumanity = 'mockProofOfHumanityAddress',
-  ProofOfHumanityID = 'proofOfHumanityIdAddress',
+  // POH
+  MainnetProofOfHumanity = 'mainnetProofOfHumanityAddress', // mainnet deployment
+  ProofOfHumanityID = 'proofOfHumanityIdAddress', // POH strategy
+  MockProofOfHumanity = 'mockProofOfHumanityAddress', // testnet deployment
+  // LENS
+  PolygonLensHub = 'polygonLensHubAddress', // mainnet deployment
+  MumbaiLensHub = 'mumbaiLensHubAddress', // testnet deployment
+  MockLensHub = 'mockLensHubAddress', // testnet deployment
+  LensID = 'lensIdAddress', // LENS strategy
+
+  // TALENT LAYER CONTRACT
   TalentLayerID = 'talentLayerIdAddress',
   ServiceRegistry = 'serviceRegistryAddress',
   Reviewscontract = 'talentLayerReviewAddress',
@@ -11,8 +20,6 @@ export enum ConfigProperty {
   TalentLayerEscrow = 'talentLayerEscrowAddress',
   SimpleERC20 = 'simpleERC20Address',
   TalentLayerPlatformID = 'talentLayerPlatformIdAddress',
-  MockLensHub = 'mockLensHubAddress',
-  LensID = 'lensIdAddress',
 }
 
 const loadJSON = (network: Network) => {
