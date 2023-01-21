@@ -317,7 +317,7 @@ contract TalentLayerID is ERC721A, Ownable {
             require(isRegistered, "You need to use an address registered on the selected third party platform");
             profileIdToStrategyIdToThirdPartyId[_tokenId][_thirdPartiesStrategiesID[i]] = thirdPartyId;
 
-            emit ThirdPartyLinked(_tokenId, _thirdPartiesStrategiesID, thirdPartyId);
+            emit ThirdPartyLinked(_tokenId, _thirdPartiesStrategiesID[i], thirdPartyId);
         }
     }
 
@@ -453,5 +453,5 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _thirdPartiesStrategiesID Id associated with the strategy
      * @param thirdPartyId External ID og a user Strategy
      */
-    event ThirdPartyLinked(uint256 _tokenId, uint256[] _thirdPartiesStrategiesID, bytes thirdPartyId);
+    event ThirdPartyLinked(uint256 _tokenId, uint256 _thirdPartiesStrategiesID, bytes thirdPartyId);
 }
