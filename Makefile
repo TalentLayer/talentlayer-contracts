@@ -8,7 +8,9 @@ install: deploy copy-configuration setup-fakedata
 
 allScripts: deploy copy-configuration setup-allFakeData
 
-deploy-thirdParty: deploy copy-configuration mint-platformid mint-thirdId
+deploy-thirdParty: deploy copy-configuration setup-allFakeData
+
+deploy-thirdtest: deploy copy-configuration mint-platformid mint-thirdId
 
 
 #--------------DEPLOY----------------#
@@ -33,8 +35,8 @@ endif
 
 #--------------PLAYGROUND LOCAL----------------#
 
-wait_localhost = 5
-wait_other_network = 60
+wait_localhost = 1
+wait_other_network = 1
 
 ifeq ($(DEPLOY_NETWORK),localhost)
 	w := $(wait_localhost)
@@ -48,7 +50,7 @@ setup-fakedata:
 	timeout $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
 	timeout $(w)
-	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/playground/1-mint-thirdpartyId.ts --network $(DEPLOY_NETWORK)
 	timeout $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
 	timeout $(w)
@@ -58,7 +60,7 @@ setup-fakedata:
 	sleep $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
 	sleep $(w)
-	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/playground/1-mint-thirdpartyId.ts --network $(DEPLOY_NETWORK)
 	sleep $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
 	sleep $(w)
@@ -70,7 +72,7 @@ setup-allFakeData:
 	timeout $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
 	timeout $(w)
-	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/playground/1-mint-thirdpartyId.ts --network $(DEPLOY_NETWORK)
 	timeout $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
 	timeout $(w)
@@ -98,7 +100,7 @@ setup-allFakeData:
 	sleep $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
 	sleep $(w)
-	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+	npx hardhat run scripts/playground/1-mint-thirdpartyId.ts --network $(DEPLOY_NETWORK)
 	sleep $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
 	sleep $(w)

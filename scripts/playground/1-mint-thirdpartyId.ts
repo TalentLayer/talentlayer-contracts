@@ -54,40 +54,40 @@ async function main() {
     frank.address,
   ])
 
-  // We check if bob is Registerd on ProofOfHumanity and Lens
+  // We check if bob is Registered on ProofOfHumanity and Lens
   const bobIsRegisteredOnProofOfHumanity = await proofOfHumanityID.isRegistered(bob.address)
   console.log('Bob Is Registered On ProofOfHumanity', bobIsRegisteredOnProofOfHumanity)
 
   const bobIsRegisteredOnLens = await lensID.isRegistered(bob.address)
   console.log('Bob Is Registered On Lens', bobIsRegisteredOnLens)
 
-  // we check if carol is Registerd on ProofOfHumanity
+  // we check if carol is Registered on ProofOfHumanity
   const carolIsRegisteredOnProofOfHumanity = await proofOfHumanityID.isRegistered(carol.address)
   console.log('carol Is Registered On ProofOfHumanity', carolIsRegisteredOnProofOfHumanity)
-
-  // we check that eve is well registerd on Lens
-  const eveIsRegisteredOnLens = await lensID.isRegistered(eve.address)
-  console.log('eve Is Registered On Lens', eveIsRegisteredOnLens)
 
   // We get the platform ID of Dave
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
 
+  // Alice can mint a Talent Layer Id without strategy
+  await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPLatform, 'Alice', [])
+  console.log('Alice is not registered on Lens or Poh')
+
+  // Bob can mint a Talent Layer Id with strategy ProofOfHumanity and Lens
   await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPLatform, 'Bob', [0, 1])
+  console.log('Bob is registered on Lens and Poh')
+  // Carol can mint a Talent Layer Id with strategy ProofOfHumanity
   await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPLatform, 'Carol', [0])
-  await talentLayerIdContract.connect(eve).mint(daveTalentLayerIdPLatform, 'Eve', [1])
+  console.log('carol is registered on POh')
 
-  // A few checks
-  const bobUserId = await talentLayerIdContract.walletOfOwner(bob.address)
-  console.log('frankUserId', bobUserId)
-
-  const frankPohId = await talentLayerIdContract.getThirdPartyId(bobUserId, 0)
-  console.log('Bob poh Id', frankPohId)
-
-  const frankLensId = await talentLayerIdContract.getThirdPartyId(bobUserId, 1)
-  console.log('Bob Lens Id', frankLensId)
-
-  // frank address
-  console.log('bob address', bob.address)
+  // Dave can mint a Talent Layer Id
+  // ------ 1 : without strategy
+  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPLatform, 'Dave', [])
+  console.log('Dave minted without third party Id')
+  // ------ 2 : we link his Talent Layer Id to his Lens Id
+  const DaveUserId = await talentLayerIdContract.walletOfOwner(dave.address)
+  console.log('Dave Talent Layer Id', DaveUserId)
+  await talentLayerIdContract.connect(dave).associateThirdPartiesIDs(DaveUserId, [1])
+  console.log('Dave linked his Talent Layer Id to his Lens Id after the minting')
 }
 
 // We recommend this pattern to be able to use async/await everywhere

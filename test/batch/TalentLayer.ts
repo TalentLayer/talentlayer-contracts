@@ -381,7 +381,7 @@ describe('TalentLayer', function () {
       expect(updatedMintFee).to.be.equal(mintFee)
     })
 
-    it('Eve can mint a talentLayerId by paying the mint fee', async function () {
+    it('Eve can mint a talentLayerId without strategies and by paying the mint fee', async function () {
       const eveBalanceBefore = await eve.getBalance()
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
 
