@@ -34,7 +34,6 @@ contract LensID is IThirdPartyID, Ownable {
         if (userThirdPartyId > 0) {
             return (true, abi.encode(userThirdPartyId));
         } else {
-            // TODO
             return (false, bytes(""));
         }
     }

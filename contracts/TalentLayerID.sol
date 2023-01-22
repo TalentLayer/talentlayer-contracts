@@ -225,7 +225,6 @@ contract TalentLayerID is ERC721A, Ownable {
         string calldata _handle,
         bytes32[] calldata _merkleProof
     ) public {
-        //ROMAIN
         /// Proof of Humanity registry
         IProofOfHumanity pohRegistry;
         require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
