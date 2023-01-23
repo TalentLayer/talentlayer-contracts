@@ -2,8 +2,10 @@
 pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
+import {ERC2771Recipient} from "@opengsn/contracts/src/ERC2771Recipient.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
@@ -12,7 +14,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  * @title TalentLayer ID Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
-contract TalentLayerID is ERC721A, Ownable {
+contract TalentLayerID is ERC2771Recipient, ERC721A, Ownable {
     // =========================== Structs ==============================
 
     /// @notice TalentLayer Profile information struct
@@ -137,9 +139,14 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle) public payable canPay() canMint(msg.sender, _handle, _platformId) {
-        _safeMint(msg.sender, 1);
-        _afterMint(msg.sender, _handle, false, _platformId, msg.value);
+    function mint(uint256 _platformId, string memory _handle)
+        public
+        payable
+        canPay
+        canMint(_msgSender(), _handle, _platformId)
+    {
+        _safeMint(_msgSender(), 1);
+        _afterMint(_msgSender(), _handle, false, _platformId, msg.value);
     }
 
     /**
@@ -147,12 +154,17 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle) public payable canPay() canMint(msg.sender, _handle, _platformId) {
-        require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
-        _safeMint(msg.sender, 1);
+    function mintWithPoh(uint256 _platformId, string memory _handle)
+        public
+        payable
+        canPay
+        canMint(_msgSender(), _handle, _platformId)
+    {
+        require(pohRegistry.isRegistered(_msgSender()), "You need to use an address registered on Proof of Humanity");
+        _safeMint(_msgSender(), 1);
         uint256 userTokenId = _nextTokenId() - 1;
-        profiles[userTokenId].pohAddress = msg.sender;
-        _afterMint(msg.sender, _handle, true, _platformId, msg.value);
+        profiles[userTokenId].pohAddress = _msgSender();
+        _afterMint(_msgSender(), _handle, true, _platformId, msg.value);
     }
 
     /**
@@ -160,11 +172,11 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _tokenId Token ID to link
      */
     function activatePoh(uint256 _tokenId) public {
-        require(ownerOf(_tokenId) == msg.sender);
-        require(pohRegistry.isRegistered(msg.sender), "You're address is not registerd for poh");
-        profiles[_tokenId].pohAddress = msg.sender;
+        require(ownerOf(_tokenId) == _msgSender());
+        require(pohRegistry.isRegistered(_msgSender()), "You're address is not registerd for poh");
+        profiles[_tokenId].pohAddress = _msgSender();
 
-        emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handle);
+        emit PohActivated(_msgSender(), _tokenId, profiles[_tokenId].handle);
     }
 
     /**
@@ -174,7 +186,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _newCid New IPFS URI
      */
     function updateProfileData(uint256 _tokenId, string memory _newCid) public {
-        require(ownerOf(_tokenId) == msg.sender);
+        require(ownerOf(_tokenId) == _msgSender());
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profiles[_tokenId].dataUri = _newCid;
 
@@ -200,23 +212,23 @@ contract TalentLayerID is ERC721A, Ownable {
     ) public {
         require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
         require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
-        require(numberMinted(msg.sender) == 0, "You already have a token");
+        require(numberMinted(_msgSender()) == 0, "You already have a token");
         require(profiles[_tokenId].pohAddress == address(0), "Your old address was not linked to Proof of Humanity");
         require(
             keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
             "Invalid handle"
         );
-        require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
+        require(pohRegistry.isRegistered(_msgSender()), "You need to use an address registered on Proof of Humanity");
 
         bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
         require(MerkleProof.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
 
         hasBeenRecovered[_oldAddress] = true;
         profiles[_tokenId].handle = _handle;
-        profiles[_tokenId].pohAddress = msg.sender;
-        _internalTransferFrom(_oldAddress, msg.sender, _tokenId);
+        profiles[_tokenId].pohAddress = _msgSender();
+        _internalTransferFrom(_oldAddress, _msgSender(), _tokenId);
 
-        emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
+        emit AccountRecovered(_msgSender(), _oldAddress, _handle, _tokenId);
     }
 
     // =========================== Owner functions ==============================
@@ -242,7 +254,7 @@ contract TalentLayerID is ERC721A, Ownable {
      * Withdraws the contract balance to the owner.
      */
     function withdraw() public onlyOwner {
-        (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
+        (bool sent, ) = payable(_msgSender()).call{value: address(this).balance}("");
         require(sent, "Failed to withdraw Ether");
     }
 
@@ -251,7 +263,11 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function freeMint(uint256 _platformId, address _userAddress, string memory _handle) public canMint(_userAddress, _handle, _platformId) onlyOwner{
+    function freeMint(
+        uint256 _platformId,
+        address _userAddress,
+        string memory _handle
+    ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, 1);
         _afterMint(_userAddress, _handle, false, _platformId, 0);
     }
@@ -340,9 +356,21 @@ contract TalentLayerID is ERC721A, Ownable {
             );
     }
 
+    function _msgSender() internal view virtual override(Context, ERC2771Recipient) returns (address ret) {
+        return ERC2771Recipient._msgSender();
+    }
+
+    function _msgData() internal view virtual override(Context, ERC2771Recipient) returns (bytes calldata ret) {
+        return ERC2771Recipient._msgData();
+    }
+
+    function _msgSenderERC721A() internal view virtual override returns (address ret) {
+        return _msgSender();
+    }
+
     // =========================== Modifiers ==============================
     /**
-     * Check if msg.sender can pay the mint fee.
+     * Check if _msgSender() can pay the mint fee.
      */
     modifier canPay() {
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
@@ -355,7 +383,11 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform that wants to mint the TalentLayerID
      */
-    modifier canMint(address _userAddress, string memory _handle, uint256 _platformId) {
+    modifier canMint(
+        address _userAddress,
+        string memory _handle,
+        uint256 _platformId
+    ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
