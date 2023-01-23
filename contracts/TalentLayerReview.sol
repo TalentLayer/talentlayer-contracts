@@ -459,11 +459,11 @@ contract TalentLayerReview is ERC2771Recipient, Context, ERC165, IERC721, IERC72
         _safeTransfer(from, to, tokenId, data);
     }
 
-    function _msgSender() internal view virtual override(Context, ERC2771Recipient) returns (address ret) {
+    function _msgSender() internal view virtual override(Context, ERC2771Recipient) returns (address) {
         return ERC2771Recipient._msgSender();
     }
 
-    function _msgData() internal view virtual override(Context, ERC2771Recipient) returns (bytes calldata ret) {
+    function _msgData() internal view virtual override(Context, ERC2771Recipient) returns (bytes calldata) {
         return ERC2771Recipient._msgData();
     }
 
