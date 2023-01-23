@@ -3,13 +3,14 @@ pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {ERC2771Recipient} from "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title ServiceRegistry Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
-contract ServiceRegistry is AccessControl {
+contract ServiceRegistry is ERC2771Recipient, AccessControl {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
@@ -152,7 +153,7 @@ contract ServiceRegistry is AccessControl {
     constructor(address _talentLayerIdAddress, address _talentLayerPlatformIdAddress) {
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
     // =========================== View functions ==============================
@@ -179,7 +180,7 @@ contract ServiceRegistry is AccessControl {
      */
     function createOpenServiceFromBuyer(uint256 _platformId, string calldata _serviceDataUri) public returns (uint256) {
         talentLayerPlatformIdContract.isValid(_platformId);
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         return _createService(Status.Opened, senderId, senderId, 0, _serviceDataUri, _platformId);
     }
 
@@ -196,7 +197,7 @@ contract ServiceRegistry is AccessControl {
         uint256 _rateAmount,
         string calldata _proposalDataUri
     ) public {
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -234,7 +235,7 @@ contract ServiceRegistry is AccessControl {
         uint256 _rateAmount,
         string calldata _proposalDataUri
     ) public {
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -257,7 +258,7 @@ contract ServiceRegistry is AccessControl {
      * @param _proposalId Proposal identifier
      */
     function validateProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -277,7 +278,7 @@ contract ServiceRegistry is AccessControl {
      * @param _proposalId Proposal identifier
      */
     function rejectProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -335,7 +336,7 @@ contract ServiceRegistry is AccessControl {
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
         );
-        require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can update the service");
+        require(service.initiatorId == tlId.walletOfOwner(_msgSender()), "Only the initiator can update the service");
         require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.serviceDataUri = _newServiceDataUri;
@@ -347,7 +348,7 @@ contract ServiceRegistry is AccessControl {
 
     /**
      * @notice Update handle address mapping and emit event after mint.
-     * @param _senderId the talentLayerId of the msg.sender address
+     * @param _senderId the talentLayerId of the _msgSender() address
      * @param _buyerId the talentLayerId of the buyer
      * @param _sellerId the talentLayerId of the seller
      * @param _serviceDataUri token Id to IPFS URI mapping
@@ -380,5 +381,15 @@ contract ServiceRegistry is AccessControl {
         emit ServiceDataCreated(id, _serviceDataUri);
 
         return id;
+    }
+
+    // =========================== Overrides ==============================
+
+    function _msgSender() internal view virtual override(Context, ERC2771Recipient) returns (address ret) {
+        return ERC2771Recipient._msgSender();
+    }
+
+    function _msgData() internal view virtual override(Context, ERC2771Recipient) returns (bytes calldata ret) {
+        return ERC2771Recipient._msgData();
     }
 }
