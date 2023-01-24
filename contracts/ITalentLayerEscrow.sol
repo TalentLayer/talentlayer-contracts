@@ -17,9 +17,9 @@ interface ITalentLayerEscrow {
 
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory);
 
-    function updateProtocolFee(uint16 _protocolEscrowFeeRate) external;
+    function updateProtocolEscrowFeeRate(uint16 _protocolEscrowFeeRate) external;
 
-    function updateOriginPlatformFee(uint16 _originPlatformEscrowFeeRate) external;
+    function updateOriginPlatformEscrowFeeRate(uint16 _originPlatformEscrowFeeRate) external;
 
     function updateProtocolWallet(address payable _protocolWallet) external;
 
