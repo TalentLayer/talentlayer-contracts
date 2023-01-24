@@ -636,10 +636,11 @@ describe('TalentLayer', function () {
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
         const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
         const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
-        const platformFee = alicePlatformData.fee
+        const platformEscrowFeeRate = alicePlatformData.fee
 
         totalAmount =
-          amountBob + (amountBob * (protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee)) / 10000
+          amountBob +
+          (amountBob * (protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)) / 10000
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
 
@@ -686,7 +687,7 @@ describe('TalentLayer', function () {
           .getTransactionDetails(transactionId.toString())
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
         const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
-        const platformFee = transactionDetails.platformFee
+        const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
 
         const transaction = await talentLayerEscrow.connect(alice).release(transactionId, amountBob / 2)
         await expect(transaction).to.changeTokenBalances(
@@ -696,9 +697,9 @@ describe('TalentLayer', function () {
         )
         const platformBalance = await talentLayerEscrow.connect(alice).getClaimableFeeBalance(token.address)
         const deployerBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(token.address)
-        // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
+        // Alice gets both platformEscrowFeeRate & OriginPlatformFee as her platform onboarded the seller & handled the transaction
         await expect(platformBalance.toString()).to.be.equal(
-          (((amountBob / 2) * (platformFee + originPlatformEscrowFeeRate)) / 10000).toString(),
+          (((amountBob / 2) * (platformEscrowFeeRate + originPlatformEscrowFeeRate)) / 10000).toString(),
         )
         await expect(deployerBalance.toString()).to.be.equal(
           (((amountBob / 2) * protocolEscrowFeeRate) / 10000).toString(),
@@ -711,7 +712,7 @@ describe('TalentLayer', function () {
           .getTransactionDetails(transactionId.toString())
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
         const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
-        const platformFee = transactionDetails.platformFee
+        const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
 
         const transaction = await talentLayerEscrow.connect(alice).release(transactionId, amountBob / 4)
         await expect(transaction).to.changeTokenBalances(
@@ -722,9 +723,9 @@ describe('TalentLayer', function () {
 
         const platformBalance = await talentLayerEscrow.connect(alice).getClaimableFeeBalance(token.address)
         const deployerBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(token.address)
-        // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
+        // Alice gets both platformEscrowFeeRate & OriginPlatformFee as her platform onboarded the seller & handled the transaction
         await expect(platformBalance.toString()).to.be.equal(
-          ((((3 * amountBob) / 4) * (platformFee + originPlatformEscrowFeeRate)) / 10000).toString(),
+          ((((3 * amountBob) / 4) * (platformEscrowFeeRate + originPlatformEscrowFeeRate)) / 10000).toString(),
         )
         await expect(deployerBalance.toString()).to.be.equal(
           ((((3 * amountBob) / 4) * protocolEscrowFeeRate) / 10000).toString(),
@@ -801,10 +802,11 @@ describe('TalentLayer', function () {
         const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
         const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
         const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
-        const platformFee = alicePlatformData.fee
+        const platformEscrowFeeRate = alicePlatformData.fee
 
         totalAmount =
-          amountBob + (amountBob * (protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee)) / 10000
+          amountBob +
+          (amountBob * (protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)) / 10000
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
         await expect(talentLayerEscrow.connect(alice).createETHTransaction('_metaEvidence', serviceId, proposalIdBob))
@@ -870,7 +872,7 @@ describe('TalentLayer', function () {
           .getTransactionDetails(transactionId.toString())
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
         const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
-        const platformFee = transactionDetails.platformFee
+        const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
 
         const transaction = await talentLayerEscrow.connect(alice).release(transactionId, amountBob / 2)
         await expect(transaction).to.changeEtherBalances(
@@ -880,9 +882,9 @@ describe('TalentLayer', function () {
 
         const platformBalance = await talentLayerEscrow.connect(alice).getClaimableFeeBalance(ethAddress)
         const deployerBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(ethAddress)
-        // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
+        // Alice gets both platformEscrowFeeRate & OriginPlatformFee as her platform onboarded the seller & handled the transaction
         await expect(platformBalance.toString()).to.be.equal(
-          (((amountBob / 2) * (platformFee + originPlatformEscrowFeeRate)) / 10000).toString(),
+          (((amountBob / 2) * (platformEscrowFeeRate + originPlatformEscrowFeeRate)) / 10000).toString(),
         )
         await expect(deployerBalance.toString()).to.be.equal(
           (((amountBob / 2) * protocolEscrowFeeRate) / 10000).toString(),
@@ -895,7 +897,7 @@ describe('TalentLayer', function () {
           .getTransactionDetails(transactionId.toString())
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
         const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
-        const platformFee = transactionDetails.platformFee
+        const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
 
         const transaction = await talentLayerEscrow.connect(alice).release(transactionId, amountBob / 4)
         await expect(transaction).to.changeEtherBalances(
@@ -904,9 +906,9 @@ describe('TalentLayer', function () {
         )
         const platformBalance = await talentLayerEscrow.connect(alice).getClaimableFeeBalance(ethAddress)
         const deployerBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(ethAddress)
-        // Alice gets both platformFee & OriginPlatformFee as her platform onboarded the seller & handled the transaction
+        // Alice gets both platformEscrowFeeRate & OriginPlatformFee as her platform onboarded the seller & handled the transaction
         await expect(platformBalance.toString()).to.be.equal(
-          ((((3 * amountBob) / 4) * (platformFee + originPlatformEscrowFeeRate)) / 10000).toString(),
+          ((((3 * amountBob) / 4) * (platformEscrowFeeRate + originPlatformEscrowFeeRate)) / 10000).toString(),
         )
         await expect(deployerBalance.toString()).to.be.equal(
           ((((3 * amountBob) / 4) * protocolEscrowFeeRate) / 10000).toString(),

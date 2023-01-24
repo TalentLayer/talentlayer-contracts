@@ -59,7 +59,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @param serviceId The ID of the associated service
      * @param protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
      * @param originPlatformEscrowFeeRate The %fee (per ten thousands) paid to the platform who onboarded the user
-     * @param platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
+     * @param platformEscrowFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
      * @param disputeId The ID of the dispute, if it exists
      * @param senderFee Total fees paid by the sender.
      * @param receiverFee Total fees paid by the receiver.
@@ -77,7 +77,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 serviceId;
         uint16 protocolEscrowFeeRate;
         uint16 originPlatformEscrowFeeRate;
-        uint16 platformFee;
+        uint16 platformEscrowFeeRate;
         uint256 disputeId;
         uint256 senderFee;
         uint256 receiverFee;
@@ -192,7 +192,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      *  @param _serviceId The ID of the associated service
      *  @param _protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
      *  @param _originPlatformEscrowFeeRate The %fee (per ten thousands) paid to the platform who onboarded the user
-     *  @param _platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
+     *  @param _platformEscrowFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
      *  @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
      *  @param _arbitratorExtraData Extra data to set up the arbitration.
      */
@@ -205,7 +205,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 _serviceId,
         uint16 _protocolEscrowFeeRate,
         uint16 _originPlatformEscrowFeeRate,
-        uint16 _platformFee,
+        uint16 _platformEscrowFeeRate,
         Arbitrator _arbitrator,
         bytes _arbitratorExtraData,
         uint256 _arbitrationFeeTimeout
@@ -787,13 +787,13 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     /**
      * @notice Called to record on chain all the information of a transaction in the 'transactions' array.
      * @param _serviceId The ID of the associated service
-     * @param _platformFee The %fee (per ten thousands) paid to the protocol's owner
+     * @param _platformEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
      * @return The ID of the transaction
      */
     function _saveTransaction(
         uint256 _serviceId,
         uint256 _proposalId,
-        uint16 _platformFee,
+        uint16 _platformEscrowFeeRate,
         Arbitrator _arbitrator,
         bytes memory _arbitratorExtraData,
         uint256 _arbitrationFeeTimeout
@@ -817,7 +817,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
                 serviceId: _serviceId,
                 protocolEscrowFeeRate: protocolEscrowFeeRate,
                 originPlatformEscrowFeeRate: originPlatformEscrowFeeRate,
-                platformFee: _platformFee,
+                platformEscrowFeeRate: _platformEscrowFeeRate,
                 disputeId: 0,
                 senderFee: 0,
                 receiverFee: 0,
@@ -857,7 +857,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             transaction.serviceId,
             protocolEscrowFeeRate,
             originPlatformEscrowFeeRate,
-            transaction.platformFee,
+            transaction.platformEscrowFeeRate,
             transaction.arbitrator,
             transaction.arbitratorExtraData,
             transaction.arbitrationFeeTimeout
@@ -896,12 +896,12 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 protocolEscrowFeeRateAmount = (_transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
         uint256 originPlatformEscrowFeeRateAmount = (_transaction.originPlatformEscrowFeeRate * _releaseAmount) /
             FEE_DIVIDER;
-        uint256 platformFeeAmount = (_transaction.platformFee * _releaseAmount) / FEE_DIVIDER;
+        uint256 platformEscrowFeeRateAmount = (_transaction.platformEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
 
         //Index zero represents protocol's balance
         platformIdToTokenToBalance[0][_transaction.token] += protocolEscrowFeeRateAmount;
         platformIdToTokenToBalance[originPlatformId][_transaction.token] += originPlatformEscrowFeeRateAmount;
-        platformIdToTokenToBalance[platformId][_transaction.token] += platformFeeAmount;
+        platformIdToTokenToBalance[platformId][_transaction.token] += platformEscrowFeeRateAmount;
 
         _safeTransferBalance(payable(_transaction.receiver), _transaction.token, _releaseAmount);
 
@@ -911,7 +911,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
             _transaction.token,
             originPlatformEscrowFeeRateAmount
         );
-        emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformFeeAmount);
+        emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformEscrowFeeRateAmount);
         emit Payment(_transaction.id, PaymentType.Release, _releaseAmount, _transaction.token, _transaction.serviceId);
 
         _distributeMessage(_transaction.serviceId, _transaction.amount);
@@ -928,7 +928,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         uint256 totalReleaseAmount = _releaseAmount +
             (((_transaction.protocolEscrowFeeRate +
                 _transaction.originPlatformEscrowFeeRate +
-                _transaction.platformFee) * _releaseAmount) / FEE_DIVIDER);
+                _transaction.platformEscrowFeeRate) * _releaseAmount) / FEE_DIVIDER);
 
         _safeTransferBalance(payable(_transaction.sender), _transaction.token, totalReleaseAmount);
 
@@ -1033,17 +1033,18 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     /**
      * @notice Utility function to calculate the total amount to be paid by the buyer to validate a proposal.
      * @param _amount The core escrow amount
-     * @param _platformFee The platform fee
+     * @param _platformEscrowFeeRate The platform fee
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformFee)
+    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformEscrowFeeRate)
         private
         view
         returns (uint256 totalEscrowAmount)
     {
         return
             _amount +
-            (((_amount * protocolEscrowFeeRate) + (_amount * originPlatformEscrowFeeRate) + (_amount * _platformFee)) /
-                FEE_DIVIDER);
+            (((_amount * protocolEscrowFeeRate) +
+                (_amount * originPlatformEscrowFeeRate) +
+                (_amount * _platformEscrowFeeRate)) / FEE_DIVIDER);
     }
 }

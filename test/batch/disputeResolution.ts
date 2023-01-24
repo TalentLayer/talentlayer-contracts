@@ -131,7 +131,7 @@ describe('Dispute Resolution, standard flow', function () {
     serviceRegistry: ServiceRegistry,
     protocolEscrowFeeRate: number,
     originPlatformEscrowFeeRate: number,
-    platformFee: number,
+    platformEscrowFeeRate: number,
     platform: TalentLayerPlatformID.PlatformStructOutput
 
   const transactionReleasedAmount = BigNumber.from(100)
@@ -149,7 +149,7 @@ describe('Dispute Resolution, standard flow', function () {
     protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
     originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
     platform = await talentLayerPlatformID.platforms(carolPlatformId)
-    platformFee = platform.fee
+    platformEscrowFeeRate = platform.fee
   })
 
   describe('Transaction creation', async function () {
@@ -159,7 +159,9 @@ describe('Dispute Resolution, standard flow', function () {
     before(async function () {
       // Calculate total transaction amount, including fees
       totalTransactionAmount = transactionAmount.add(
-        transactionAmount.mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee).div(feeDivider),
+        transactionAmount
+          .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
+          .div(feeDivider),
       )
 
       tx = await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
@@ -190,7 +192,7 @@ describe('Dispute Resolution, standard flow', function () {
           serviceId,
           protocolEscrowFeeRate,
           originPlatformEscrowFeeRate,
-          platformFee,
+          platformEscrowFeeRate,
           talentLayerArbitrator.address,
           platform.arbitratorExtraData,
           arbitrationFeeTimeout,
@@ -211,7 +213,7 @@ describe('Dispute Resolution, standard flow', function () {
 
     it('On reimbursement funds and fees are sent from escrow to buyer (Alice)', async function () {
       const reimbursedFees = transactionReimbursedAmount
-        .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee)
+        .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
         .div(feeDivider)
       const totalReimbursedAmount = transactionReimbursedAmount.add(reimbursedFees)
 
@@ -390,7 +392,7 @@ describe('Dispute Resolution, standard flow', function () {
         const totalAmountSent = currentTransactionAmount
           .add(
             currentTransactionAmount
-              .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee)
+              .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
               .div(feeDivider),
           )
           .add(arbitrationCost)
@@ -447,9 +449,11 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
     // Create transaction
     const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
     const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
-    const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+    const platformEscrowFeeRate = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
     totalTransactionAmount = transactionAmount.add(
-      transactionAmount.mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee).div(feeDivider),
+      transactionAmount
+        .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
+        .div(feeDivider),
     )
     await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
       value: totalTransactionAmount,
@@ -494,7 +498,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     totalTransactionAmount: BigNumber,
     protocolEscrowFeeRate: number,
     originPlatformEscrowFeeRate: number,
-    platformFee: number
+    platformEscrowFeeRate: number
 
   before(async function () {
     ;[deployer, alice, bob, carol] = await ethers.getSigners()
@@ -506,9 +510,11 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     // Create transaction
     protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
     originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
-    platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+    platformEscrowFeeRate = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
     totalTransactionAmount = transactionAmount.add(
-      transactionAmount.mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee).div(feeDivider),
+      transactionAmount
+        .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
+        .div(feeDivider),
     )
     await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
       value: totalTransactionAmount,
@@ -538,7 +544,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     it('Split funds and arbitration fee half and half between the parties', async function () {
       // Transaction fees reimbursed to sender
       const fees = halfTransactionAmount
-        .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee)
+        .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
         .div(feeDivider)
 
       const senderAmount = halfAmount.add(fees)
@@ -552,8 +558,10 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
 
     it('Increases platform token balance by the platform fee', async function () {
       const carolPlatformBalance = await talentLayerEscrow.connect(carol).getClaimableFeeBalance(ethAddress)
-      const platformFeesPaid = halfTransactionAmount.mul(originPlatformEscrowFeeRate + platformFee).div(feeDivider)
-      expect(carolPlatformBalance).to.be.eq(platformFeesPaid)
+      const platformEscrowFeeRatesPaid = halfTransactionAmount
+        .mul(originPlatformEscrowFeeRate + platformEscrowFeeRate)
+        .div(feeDivider)
+      expect(carolPlatformBalance).to.be.eq(platformEscrowFeeRatesPaid)
     })
 
     it('Increases protocol token balance by the protocol fee', async function () {
@@ -599,9 +607,11 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
 
     const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
     const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
-    const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+    const platformEscrowFeeRate = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
     totalTransactionAmount = transactionAmount.add(
-      transactionAmount.mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformFee).div(feeDivider),
+      transactionAmount
+        .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
+        .div(feeDivider),
     )
 
     // Transfer tokens to Alice
