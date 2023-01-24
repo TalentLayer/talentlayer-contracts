@@ -96,7 +96,7 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
         return balanceOf(_platformAddress);
     }
 
-    function getPlatformFee(uint256 _platformId) external view returns (uint16) {
+    function getPlatformEscrowFeeRate(uint256 _platformId) external view returns (uint16) {
         return platforms[_platformId].fee;
     }
 
@@ -178,13 +178,13 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     /**
      * @notice Allows a platform to update his fee
-     * @param _platformFee Platform fee to update
+     * @param _platformEscrowFeeRate Platform fee to update
      */
-    function updatePlatformFee(uint256 _platformId, uint16 _platformFee) public {
+    function updatePlatformEscrowFeeRate(uint256 _platformId, uint16 _platformEscrowFeeRate) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
-        platforms[_platformId].fee = _platformFee;
-        emit PlatformFeeUpdated(_platformId, _platformFee);
+        platforms[_platformId].fee = _platformEscrowFeeRate;
+        emit PlatformEscrowFeeRateUpdated(_platformId, _platformEscrowFeeRate);
     }
 
     /**
@@ -430,9 +430,9 @@ contract TalentLayerPlatformID is ERC721A, AccessControl {
 
     /**
      * Emit when the fee is updated for a platform
-     * @param _platformFee The new fee
+     * @param _platformEscrowFeeRate The new fee
      */
-    event PlatformFeeUpdated(uint256 _platformId, uint16 _platformFee);
+    event PlatformEscrowFeeRateUpdated(uint256 _platformId, uint16 _platformEscrowFeeRate);
 
     /**
      * Emit after the arbitrator is updated for a platform

@@ -124,13 +124,13 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @notice Emitted after the protocol fee was updated
      * @param _protocolEscrowFeeRate The new protocol fee
      */
-    event ProtocolFeeUpdated(uint16 _protocolEscrowFeeRate);
+    event ProtocolEscrowFeeRateUpdated(uint16 _protocolEscrowFeeRate);
 
     /**
      * @notice Emitted after the origin platform fee was updated
      * @param _originPlatformEscrowFeeRate The new origin platform fee
      */
-    event OriginPlatformFeeUpdated(uint16 _originPlatformEscrowFeeRate);
+    event OriginPlatformEscrowFeeRateUpdated(uint16 _originPlatformEscrowFeeRate);
 
     /**
      * @notice Emitted after a platform withdraws its balance
@@ -141,22 +141,22 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     event FeesClaimed(uint256 _platformId, address indexed _token, uint256 _amount);
 
     /**
-     * @notice Emitted after an OriginPlatformFee is released to a platform's balance
+     * @notice Emitted after an OriginPlatformEscrowFeeRate is released to a platform's balance
      * @param _platformId The platform ID.
      * @param _serviceId The related service ID.
      * @param _token The address of the token used for the payment.
      * @param _amount The amount released.
      */
-    event OriginPlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
+    event OriginPlatformEscrowFeeRateReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
     /**
-     * @notice Emitted after a PlatformFee is released to a platform's balance
+     * @notice Emitted after a PlatformEscrowFeeRate is released to a platform's balance
      * @param _platformId The platform ID.
      * @param _serviceId The related service ID.
      * @param _token The address of the token used for the payment.
      * @param _amount The amount released.
      */
-    event PlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
+    event PlatformEscrowFeeRateReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
     /** @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
      *  @param _transactionId The id of the transaction.
@@ -308,8 +308,8 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
         protocolWallet = payable(owner());
 
-        updateProtocolFee(100);
-        updateOriginPlatformFee(200);
+        updateProtocolEscrowFeeRate(100);
+        updateOriginPlatformEscrowFeeRate(200);
     }
 
     // =========================== View functions ==============================
@@ -360,9 +360,9 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @dev Only the owner can call this function
      * @param _protocolEscrowFeeRate The new protocol fee
      */
-    function updateProtocolFee(uint16 _protocolEscrowFeeRate) public onlyOwner {
+    function updateProtocolEscrowFeeRate(uint16 _protocolEscrowFeeRate) public onlyOwner {
         protocolEscrowFeeRate = _protocolEscrowFeeRate;
-        emit ProtocolFeeUpdated(_protocolEscrowFeeRate);
+        emit ProtocolEscrowFeeRateUpdated(_protocolEscrowFeeRate);
     }
 
     /**
@@ -370,9 +370,9 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
      * @dev Only the owner can call this function
      * @param _originPlatformEscrowFeeRate The new origin platform fee
      */
-    function updateOriginPlatformFee(uint16 _originPlatformEscrowFeeRate) public onlyOwner {
+    function updateOriginPlatformEscrowFeeRate(uint16 _originPlatformEscrowFeeRate) public onlyOwner {
         originPlatformEscrowFeeRate = _originPlatformEscrowFeeRate;
-        emit OriginPlatformFeeUpdated(_originPlatformEscrowFeeRate);
+        emit OriginPlatformEscrowFeeRateUpdated(_originPlatformEscrowFeeRate);
     }
 
     /**
@@ -406,7 +406,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory platform = talentLayerPlatformIdContract.getPlatform(service.platformId);
 
-        // PlatformFee is per ten thousands
+        // PlatformEscrowFeeRate is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
         require(msg.sender == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
@@ -449,7 +449,7 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory platform = talentLayerPlatformIdContract.getPlatform(service.platformId);
 
-        // PlatformFee is per ten thousands
+        // PlatformEscrowFeeRate is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
 
         require(msg.sender == sender, "Access denied.");
@@ -905,13 +905,13 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         _safeTransferBalance(payable(_transaction.receiver), _transaction.token, _releaseAmount);
 
-        emit OriginPlatformFeeReleased(
+        emit OriginPlatformEscrowFeeRateReleased(
             originPlatformId,
             _transaction.serviceId,
             _transaction.token,
             originPlatformEscrowFeeRateAmount
         );
-        emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformEscrowFeeRateAmount);
+        emit PlatformEscrowFeeRateReleased(platformId, _transaction.serviceId, _transaction.token, platformEscrowFeeRateAmount);
         emit Payment(_transaction.id, PaymentType.Release, _releaseAmount, _transaction.token, _transaction.serviceId);
 
         _distributeMessage(_transaction.serviceId, _transaction.amount);
