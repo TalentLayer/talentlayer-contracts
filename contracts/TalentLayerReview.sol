@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
@@ -19,7 +20,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  * @title TalentLayer Review Contract
  * @author TalentLayer Team
  */
-contract TalentLayerReview is ERC2771Recipient, Context, ERC165, IERC721, IERC721Metadata {
+contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata, Ownable {
     using Address for address;
     using Strings for uint256;
 
@@ -158,6 +159,16 @@ contract TalentLayerReview is ERC2771Recipient, Context, ERC165, IERC721, IERC72
         }
 
         _mint(_serviceId, toId, _rating, _reviewUri, _platformId);
+    }
+
+    // =========================== Owner functions ==============================
+
+    /**
+     * Allows the owner to update the trusted forwarder for meta transactions.
+     * @param _forwarder New forwarder address
+     */
+    function setTrustedForwarder(address _forwarder) external onlyOwner {
+        _setTrustedForwarder(_forwarder);
     }
 
     // =========================== Private functions ===========================

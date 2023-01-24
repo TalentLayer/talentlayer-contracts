@@ -344,6 +344,16 @@ contract ServiceRegistry is ERC2771Recipient, AccessControl {
         emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
     }
 
+    // =========================== Owner functions ==============================
+
+    /**
+     * Allows the owner to update the trusted forwarder for meta transactions.
+     * @param _forwarder New forwarder address
+     */
+    function setTrustedForwarder(address _forwarder) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setTrustedForwarder(_forwarder);
+    }
+
     // =========================== Private functions ==============================
 
     /**
