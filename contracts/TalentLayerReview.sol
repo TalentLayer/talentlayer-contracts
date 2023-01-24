@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@opengsn/contracts/src/ERC2771Recipient.sol";
+import {ERC2771Recipient} from "./libs/ERC2771Recipient.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
@@ -20,7 +20,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  * @title TalentLayer Review Contract
  * @author TalentLayer Team
  */
-contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata, Ownable {
+contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata {
     using Address for address;
     using Strings for uint256;
 
@@ -159,16 +159,6 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
         }
 
         _mint(_serviceId, toId, _rating, _reviewUri, _platformId);
-    }
-
-    // =========================== Owner functions ==============================
-
-    /**
-     * Allows the owner to update the trusted forwarder for meta transactions.
-     * @param _forwarder New forwarder address
-     */
-    function setTrustedForwarder(address _forwarder) external onlyOwner {
-        _setTrustedForwarder(_forwarder);
     }
 
     // =========================== Private functions ===========================
@@ -468,14 +458,6 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
     ) public virtual override {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
         _safeTransfer(from, to, tokenId, data);
-    }
-
-    function _msgSender() internal view virtual override(Context, ERC2771Recipient) returns (address) {
-        return ERC2771Recipient._msgSender();
-    }
-
-    function _msgData() internal view virtual override(Context, ERC2771Recipient) returns (bytes calldata) {
-        return ERC2771Recipient._msgData();
     }
 
     // =========================== Modifiers ===================================

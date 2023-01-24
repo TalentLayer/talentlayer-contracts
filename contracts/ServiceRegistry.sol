@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
-import {ERC2771Recipient} from "@opengsn/contracts/src/ERC2771Recipient.sol";
+import {ERC2771Recipient} from "./libs/ERC2771Recipient.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
@@ -342,16 +342,6 @@ contract ServiceRegistry is ERC2771Recipient, AccessControl {
         service.serviceDataUri = _newServiceDataUri;
 
         emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
-    }
-
-    // =========================== Owner functions ==============================
-
-    /**
-     * Allows the owner to update the trusted forwarder for meta transactions.
-     * @param _forwarder New forwarder address
-     */
-    function setTrustedForwarder(address _forwarder) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _setTrustedForwarder(_forwarder);
     }
 
     // =========================== Private functions ==============================
