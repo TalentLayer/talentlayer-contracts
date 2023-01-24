@@ -16,12 +16,37 @@ task('set-trusted-forwarder', 'Sets trusted forwarder for meta transactions.')
     console.log('network', network.name)
     console.log('Address: ', address)
 
-    const talentLayerIdContract = await ethers.getContractAt(
+    const talentLayerId = await ethers.getContractAt(
       'TalentLayerID',
       get(network.name as any as Network, ConfigProperty.TalentLayerID),
     )
 
-    await talentLayerIdContract.setTrustedForwarder(address)
+    const serviceRegistry = await ethers.getContractAt(
+      'ServiceRegistry',
+      get(network.name as any as Network, ConfigProperty.ServiceRegistry),
+    )
+
+    const talentLayerReview = await ethers.getContractAt(
+      'TalentLayerReview',
+      get(network.name as any as Network, ConfigProperty.Reviewscontract),
+    )
+
+    const talentLayerEscrow = await ethers.getContractAt(
+      'TalentLayerEscrow',
+      get(network.name as any as Network, ConfigProperty.TalentLayerEscrow),
+    )
+
+    const talentLayerIdTx = await talentLayerId.addTrustedForwarder(address)
+    await talentLayerIdTx.wait()
+
+    const serviceRegistryTx = await serviceRegistry.addTrustedForwarder(address)
+    await serviceRegistryTx.wait()
+
+    const talentLayerReviewTx = await talentLayerReview.addTrustedForwarder(address)
+    await talentLayerReviewTx.wait()
+
+    const talentLayerEscrowTx = await talentLayerEscrow.addTrustedForwarder(address)
+    await talentLayerEscrowTx.wait()
 
     console.log(`Set trusted forwarder: ${address}`)
   })
