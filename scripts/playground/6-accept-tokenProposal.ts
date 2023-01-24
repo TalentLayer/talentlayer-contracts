@@ -40,17 +40,19 @@ async function main() {
   console.log('amountBob', amountDave.toString())
 
   //Protocol fee
-  const protocolFee = ethers.BigNumber.from(await talentLayerEscrow.protocolFee())
-  console.log('protocolFee', protocolFee.toString())
+  const protocolEscrowFeeRate = ethers.BigNumber.from(await talentLayerEscrow.protocolEscrowFeeRate())
+  console.log('protocolEscrowFeeRate', protocolEscrowFeeRate.toString())
 
   //Origin platform fee && platform fee
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
   const davePlatformData = await platformIdContrat.platforms(daveTlId)
-  const originPlatformFee = ethers.BigNumber.from(await talentLayerEscrow.originPlatformFee())
-  const platformFee = ethers.BigNumber.from(davePlatformData.fee)
+  const originPlatformEscrowFeeRate = ethers.BigNumber.from(await talentLayerEscrow.originPlatformEscrowFeeRate())
+  const platformEscrowFeeRate = ethers.BigNumber.from(davePlatformData.fee)
 
   const totalAmount = amountDave.add(
-    amountDave.mul(protocolFee.add(originPlatformFee).add(platformFee)).div(ethers.BigNumber.from(10000)),
+    amountDave
+      .mul(protocolEscrowFeeRate.add(originPlatformEscrowFeeRate).add(platformEscrowFeeRate))
+      .div(ethers.BigNumber.from(10000)),
   )
   console.log('totalAmount', totalAmount.toString())
 
