@@ -272,6 +272,14 @@ contract TalentLayerID is ERC2771Recipient, ERC721A, Ownable {
         _afterMint(_userAddress, _handle, false, _platformId, 0);
     }
 
+    /**
+     * Allows the owner to update the trusted forwarder for meta transactions.
+     * @param _forwarder New forwarder address
+     */
+    function setTrustedForwarder(address _forwarder) external onlyOwner {
+        _setTrustedForwarder(_forwarder);
+    }
+
     // =========================== Private functions ==============================
 
     /**
