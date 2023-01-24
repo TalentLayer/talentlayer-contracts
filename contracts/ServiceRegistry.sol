@@ -3,13 +3,16 @@ pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title ServiceRegistry Contract
- * @author TalentLayer Team @ ETHCC22 Hackathon
+ * @author TalentLayer Team
  */
-contract ServiceRegistry is AccessControl {
+contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, AccessControlUpgradeable {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
@@ -129,7 +132,7 @@ contract ServiceRegistry is AccessControl {
     event ProposalRejected(uint256 serviceId, uint256 sellerId);
 
     /// @notice incremental service Id
-    uint256 public nextServiceId = 1;
+    uint256 public nextServiceId;
 
     /// @notice TalentLayerId address
     ITalentLayerID private tlId;
@@ -146,13 +149,24 @@ contract ServiceRegistry is AccessControl {
     // @notice
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
+
+    // =========================== Initializers ==============================
+
     /**
-     * @param _talentLayerIdAddress TalentLayerId address
+     * @notice First initializer function
+     * @param _talentLayerIdAddress TalentLayerId contract address
+     * @param _talentLayerPlatformIdAddress TalentLayerPlatformId contract address
      */
-    constructor(address _talentLayerIdAddress, address _talentLayerPlatformIdAddress) {
+    function initialize(address _talentLayerIdAddress, address _talentLayerPlatformIdAddress) public initializer {
+        __Ownable_init();
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        nextServiceId = 1;
     }
 
     // =========================== View functions ==============================
@@ -381,4 +395,13 @@ contract ServiceRegistry is AccessControl {
 
         return id;
     }
+
+    // =========================== Internal functions ==============================
+
+    /**
+     * @notice Function that revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * {upgradeTo} and {upgradeToAndCall}.
+     * @param newImplementation address of the new contract implementation
+     */
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
