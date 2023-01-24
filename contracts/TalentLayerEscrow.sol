@@ -3,15 +3,15 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC2771Recipient} from "@opengsn/contracts/src/ERC2771Recipient.sol";
 
 import "./interfaces/IServiceRegistry.sol";
 import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ITalentLayerPlatformID.sol";
+import "./libs/ERC2771Recipient.sol";
 import "./IArbitrable.sol";
 import "./Arbitrator.sol";
 
-contract TalentLayerEscrow is ERC2771Recipient, Ownable, IArbitrable {
+contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
     // =========================== Enum ==============================
 
     /**
@@ -383,14 +383,6 @@ contract TalentLayerEscrow is ERC2771Recipient, Ownable, IArbitrable {
      */
     function updateProtocolWallet(address payable _protocolWallet) external onlyOwner {
         protocolWallet = _protocolWallet;
-    }
-
-    /**
-     * Allows the owner to update the trusted forwarder for meta transactions.
-     * @param _forwarder New forwarder address
-     */
-    function setTrustedForwarder(address _forwarder) external onlyOwner {
-        _setTrustedForwarder(_forwarder);
     }
 
     // =========================== User functions ==============================
@@ -1051,15 +1043,5 @@ contract TalentLayerEscrow is ERC2771Recipient, Ownable, IArbitrable {
         return
             _amount +
             (((_amount * protocolFee) + (_amount * originPlatformFee) + (_amount * _platformFee)) / FEE_DIVIDER);
-    }
-
-    // =========================== Overrides ==============================
-
-    function _msgSender() internal view virtual override(Context, ERC2771Recipient) returns (address) {
-        return ERC2771Recipient._msgSender();
-    }
-
-    function _msgData() internal view virtual override(Context, ERC2771Recipient) returns (bytes calldata) {
-        return ERC2771Recipient._msgData();
     }
 }

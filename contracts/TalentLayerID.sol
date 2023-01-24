@@ -5,7 +5,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
-import {ERC2771Recipient} from "@opengsn/contracts/src/ERC2771Recipient.sol";
+import {ERC2771Recipient} from "./libs/ERC2771Recipient.sol";
 import {ERC721A} from "./libs/ERC721A.sol";
 import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
@@ -14,7 +14,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  * @title TalentLayer ID Contract
  * @author TalentLayer Team @ ETHCC22 Hackathon
  */
-contract TalentLayerID is ERC2771Recipient, ERC721A, Ownable {
+contract TalentLayerID is ERC2771Recipient, ERC721A {
     // =========================== Structs ==============================
 
     /// @notice TalentLayer Profile information struct
@@ -272,14 +272,6 @@ contract TalentLayerID is ERC2771Recipient, ERC721A, Ownable {
         _afterMint(_userAddress, _handle, false, _platformId, 0);
     }
 
-    /**
-     * Allows the owner to update the trusted forwarder for meta transactions.
-     * @param _forwarder New forwarder address
-     */
-    function setTrustedForwarder(address _forwarder) external onlyOwner {
-        _setTrustedForwarder(_forwarder);
-    }
-
     // =========================== Private functions ==============================
 
     /**
@@ -362,14 +354,6 @@ contract TalentLayerID is ERC2771Recipient, ERC721A, Ownable {
                     )
                 )
             );
-    }
-
-    function _msgSender() internal view virtual override(Context, ERC2771Recipient) returns (address) {
-        return ERC2771Recipient._msgSender();
-    }
-
-    function _msgData() internal view virtual override(Context, ERC2771Recipient) returns (bytes calldata) {
-        return ERC2771Recipient._msgData();
     }
 
     function _msgSenderERC721A() internal view virtual override returns (address ret) {
