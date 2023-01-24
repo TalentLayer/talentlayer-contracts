@@ -3,12 +3,12 @@ import { Network } from '../../config'
 import { ConfigProperty, get } from '../../../configManager'
 
 /**
- * @notice This task is used to add a trusted forwarder for meta transactions.
+ * @notice This task is used to remove a trusted forwarder for meta transactions.
  * @param {uint} address - the address of the forwarder
  * @dev Example of script use:
- * npx hardhat add-trusted-forwarder --network localhost --address 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
+ * npx hardhat remove-trusted-forwarder --network localhost --address 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
  */
-task('add-trusted-forwarder', 'Adds a trusted forwarder for meta transactions.')
+task('remove-trusted-forwarder', 'Removes a trusted forwarder for meta transactions.')
   .addParam('address', "The forwarder's address")
   .setAction(async (taskArgs, { network, ethers }) => {
     const { address } = taskArgs
@@ -35,17 +35,17 @@ task('add-trusted-forwarder', 'Adds a trusted forwarder for meta transactions.')
       get(network.name as any as Network, ConfigProperty.TalentLayerEscrow),
     )
 
-    const talentLayerIdTx = await talentLayerId.addTrustedForwarder(address)
+    const talentLayerIdTx = await talentLayerId.removeTrustedForwarder(address)
     await talentLayerIdTx.wait()
 
-    const serviceRegistryTx = await serviceRegistry.addTrustedForwarder(address)
+    const serviceRegistryTx = await serviceRegistry.removeTrustedForwarder(address)
     await serviceRegistryTx.wait()
 
-    const talentLayerReviewTx = await talentLayerReview.addTrustedForwarder(address)
+    const talentLayerReviewTx = await talentLayerReview.removeTrustedForwarder(address)
     await talentLayerReviewTx.wait()
 
-    const talentLayerEscrowTx = await talentLayerEscrow.addTrustedForwarder(address)
+    const talentLayerEscrowTx = await talentLayerEscrow.removeTrustedForwarder(address)
     await talentLayerEscrowTx.wait()
 
-    console.log(`Added trusted forwarder: ${address}`)
+    console.log(`Removed trusted forwarder: ${address}`)
   })
