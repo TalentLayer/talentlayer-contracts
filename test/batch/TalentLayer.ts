@@ -129,11 +129,10 @@ describe('TalentLayer', function () {
       )
     })
 
-    // TODO
     it("ALice can't mint a platformId for someone else", async function () {
       const mintRole = await talentLayerPlatformID.MINT_ROLE()
-      expect(talentLayerPlatformID.connect(alice).mintForAddress('platId2', dave.address)).to.be.revertedWith(
-        `Error: VM Exception while processing transaction: reverted with reason string 'AccessControl:account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}'`,
+      await expect(talentLayerPlatformID.connect(alice).mintForAddress('platId2', dave.address)).to.be.revertedWith(
+        `AccessControl: account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}`,
       )
     })
 
@@ -207,10 +206,10 @@ describe('TalentLayer', function () {
       const deployerBalanceBefore = await deployer.getBalance()
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
 
-      // TODO
       // Withdraw fails if the caller is not an admin
+      const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE()
       await expect(talentLayerPlatformID.connect(bob).withdraw()).to.be.revertedWith(
-        'AccessControl: account 0x8ba19f7c6f731d4fcbb5c3a63d9818fd15715dfc is missing role 0x0000000000000000000000000000000000000000000000000000000000000000',
+        `AccessControl: account ${bob.address.toLowerCase()} is missing role ${adminRole.toLowerCase()}`,
       )
 
       // Withdraw is successful if the caller is the deployer
@@ -311,7 +310,7 @@ describe('TalentLayer', function () {
       const profileData = await talentLayerID.profiles(3)
 
       expect(await talentLayerID.isTokenPohRegistered(3)).to.be.equal(true)
-      expect(await profileData.pohAddress).to.be.equal(carol.address)
+      expect(profileData.pohAddress).to.be.equal(carol.address)
     })
 
     it('The deployer can update the mint fee', async function () {
@@ -407,7 +406,6 @@ describe('TalentLayer', function () {
         expect(totalSupply).to.equal(deployerBalance)
       })
 
-      //TODO
       it('Should transfer 10000000 tokens to alice', async function () {
         // await loadFixture(deployTokenFixture);
         expect(token.transfer(alice.address, 10000000)).to.changeTokenBalances(token, [deployer, alice], [-1000, 1000])
@@ -482,15 +480,15 @@ describe('TalentLayer', function () {
 
       // service 2
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID2')
-      const serviceData2 = await serviceRegistry.services(2)
+      await serviceRegistry.services(2)
 
       // service 3
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID3')
-      const serviceData3 = await serviceRegistry.services(3)
+      await serviceRegistry.services(3)
 
       // service 4
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID4')
-      const serviceData4 = await serviceRegistry.services(4)
+      await serviceRegistry.services(4)
 
       expect(serviceData.status.toString()).to.be.equal('4')
       expect(serviceData.buyerId.toString()).to.be.equal('1')
@@ -541,10 +539,10 @@ describe('TalentLayer', function () {
     it('Carol can create her first proposal (will be rejected by Alice) ', async function () {
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
       await serviceRegistry.connect(carol).createProposal(1, rateToken, 2, 'proposal1FromCarolToAlice1Service')
-      const serviceData = await serviceRegistry.services(1)
+      await serviceRegistry.services(1)
       // get proposal info
       const carolTid = await talentLayerID.walletOfOwner(carol.address)
-      const proposalData = await serviceRegistry.getProposal(1, carolTid)
+      await serviceRegistry.getProposal(1, carolTid)
     })
 
     it('Bob can update his first proposal ', async function () {
@@ -593,17 +591,12 @@ describe('TalentLayer', function () {
       let proposalIdCarol = 0 //Will be set later
       let totalAmount = 0 //Will be set later
 
-      //TODO
       it('Alice can NOT deposit tokens to escrow yet.', async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountBob)
-        expect(
-          talentLayerEscrow
-            .connect(alice)
-            .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob),
-        ).to.be.reverted
+        await expect(talentLayerEscrow.connect(alice).createTokenTransaction('_metaEvidence', serviceId, proposalIdBob))
+          .to.be.reverted
       })
 
-      //TODO
       it('Bob can make a second proposal on the Alice service n°2', async function () {
         proposalIdBob = await talentLayerID.walletOfOwner(bob.address)
         await serviceRegistry
@@ -611,7 +604,6 @@ describe('TalentLayer', function () {
           .createProposal(serviceId, token.address, amountBob, 'proposal2FromBobToAlice2Service')
       })
 
-      //TODO
       it('Carol can make her second proposal on the Alice service n°2', async function () {
         proposalIdCarol = await talentLayerID.walletOfOwner(carol.address)
         await serviceRegistry
@@ -821,7 +813,6 @@ describe('TalentLayer', function () {
           .to.be.reverted
       })
 
-      //TODO
       it('Bob can register a proposal.', async function () {
         proposalIdBob = await talentLayerID.walletOfOwner(bob.address)
         await serviceRegistry
@@ -829,7 +820,6 @@ describe('TalentLayer', function () {
           .createProposal(serviceId, ethAddress, amountBob, 'proposal3FromBobToAlice3Service')
       })
 
-      //TODO
       it('Carol can register a proposal.', async function () {
         proposalIdCarol = await talentLayerID.walletOfOwner(carol.address)
         await serviceRegistry
@@ -984,10 +974,14 @@ describe('TalentLayer', function () {
         "You're not an actor of this service",
       )
     })
-    // TODO
+
     it("Alice and Bob can't write a review for the same Service", async function () {
-      expect(talentLayerReview.connect(alice).addReview(1, 'cidReview', 0)).to.be.revertedWith('ReviewAlreadyMinted()')
-      expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3)).to.be.revertedWith('ReviewAlreadyMinted()')
+      await expect(talentLayerReview.connect(alice).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
+        'The service is not finished yet',
+      )
+      await expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
+        `You're not an actor of this service`,
+      )
     })
 
     it('Alice and Bob can write a review now and we can get review data', async function () {
