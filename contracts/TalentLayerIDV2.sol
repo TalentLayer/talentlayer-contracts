@@ -61,9 +61,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
 
-
     uint256 public testVariable;
-
 
     // =========================== Initializers ==============================
 
@@ -100,9 +98,9 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
     function totalSupply() public view returns (uint256) {
         // Counter underflow is impossible as _burnCounter cannot be incremented
         // more than `nextTokenId.current() - _startTokenId()` times.
-    unchecked {
-        return nextTokenId.current() - _burnCounter.current() - _startTokenId();
-    }
+        unchecked {
+            return nextTokenId.current() - _burnCounter.current() - _startTokenId();
+        }
     }
 
     /**
@@ -175,7 +173,12 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle) public payable canPay() canMint(msg.sender, _handle, _platformId) {
+    function mint(uint256 _platformId, string memory _handle)
+        public
+        payable
+        canPay
+        canMint(msg.sender, _handle, _platformId)
+    {
         _safeMint(msg.sender, nextTokenId.current());
         _afterMint(msg.sender, _handle, false, _platformId, msg.value);
     }
@@ -185,7 +188,12 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle) public payable canPay() canMint(msg.sender, _handle, _platformId) {
+    function mintWithPoh(uint256 _platformId, string memory _handle)
+        public
+        payable
+        canPay
+        canMint(msg.sender, _handle, _platformId)
+    {
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
         uint256 userTokenId = nextTokenId.current();
         _safeMint(msg.sender, userTokenId);
@@ -289,7 +297,11 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function freeMint(uint256 _platformId, address _userAddress, string memory _handle) public canMint(_userAddress, _handle, _platformId) onlyOwner{
+    function freeMint(
+        uint256 _platformId,
+        address _userAddress,
+        string memory _handle
+    ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, nextTokenId.current());
         _afterMint(_userAddress, _handle, false, _platformId, 0);
     }
@@ -404,22 +416,22 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
             )
         );
         return
-        string(
-        abi.encodePacked(
-        "data:application/json;base64,",
-        Base64.encode(
-        bytes(
-        abi.encodePacked(
-        '{"name":"',
-        username,
-        '", "image":"',
-        image,
-        unicode'", "description": "TalentLayer ID"}'
-        )
-        )
-        )
-        )
-        );
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(
+                        bytes(
+                            abi.encodePacked(
+                                '{"name":"',
+                                username,
+                                '", "image":"',
+                                image,
+                                unicode'", "description": "TalentLayer ID"}'
+                            )
+                        )
+                    )
+                )
+            );
     }
 
     // =========================== Modifiers ==============================
@@ -437,7 +449,11 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param _handle Handle for the user
      * @param _platformId Platform that wants to mint the TalentLayerID
      */
-    modifier canMint(address _userAddress, string memory _handle, uint256 _platformId) {
+    modifier canMint(
+        address _userAddress,
+        string memory _handle,
+        uint256 _platformId
+    ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
