@@ -10,7 +10,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /**
  * @title TalentLayer ID Contract
- * @author TalentLayer Team @ ETHCC22 Hackathon
+ * @author TalentLayer Team
  */
 contract TalentLayerID is ERC721A, Ownable {
     // =========================== Structs ==============================
@@ -137,7 +137,12 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle) public payable canPay() canMint(msg.sender, _handle, _platformId) {
+    function mint(uint256 _platformId, string memory _handle)
+        public
+        payable
+        canPay
+        canMint(msg.sender, _handle, _platformId)
+    {
         _safeMint(msg.sender, 1);
         _afterMint(msg.sender, _handle, false, _platformId, msg.value);
     }
@@ -147,7 +152,12 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle) public payable canPay() canMint(msg.sender, _handle, _platformId) {
+    function mintWithPoh(uint256 _platformId, string memory _handle)
+        public
+        payable
+        canPay
+        canMint(msg.sender, _handle, _platformId)
+    {
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
         _safeMint(msg.sender, 1);
         uint256 userTokenId = _nextTokenId() - 1;
@@ -251,7 +261,11 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function freeMint(uint256 _platformId, address _userAddress, string memory _handle) public canMint(_userAddress, _handle, _platformId) onlyOwner{
+    function freeMint(
+        uint256 _platformId,
+        address _userAddress,
+        string memory _handle
+    ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, 1);
         _afterMint(_userAddress, _handle, false, _platformId, 0);
     }
@@ -355,7 +369,11 @@ contract TalentLayerID is ERC721A, Ownable {
      * @param _handle Handle for the user
      * @param _platformId Platform that wants to mint the TalentLayerID
      */
-    modifier canMint(address _userAddress, string memory _handle, uint256 _platformId) {
+    modifier canMint(
+        address _userAddress,
+        string memory _handle,
+        uint256 _platformId
+    ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
         require(bytes(_handle).length <= 10, "Handle too long");
