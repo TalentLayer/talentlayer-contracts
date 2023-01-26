@@ -2,8 +2,8 @@ const { upgrades } = require('hardhat')
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import {TalentLayerID, TalentLayerPlatformID} from '../../typechain-types'
-import {TalentLayerIDV2} from "../../typechain-types/contracts/TalentLayerIDV2.sol";
+import { TalentLayerID, TalentLayerPlatformID } from '../../typechain-types'
+import { TalentLayerIDV2 } from '../../typechain-types/contracts/TalentLayerIDV2.sol'
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1
@@ -14,10 +14,7 @@ const carolPlatformId = 1
  */
 async function deployAndSetup(): Promise<[TalentLayerPlatformID, TalentLayerID]> {
   const [deployer, alice, bob, carol] = await ethers.getSigners()
-  const [
-    talentLayerID,
-    talentLayerPlatformID,
-  ] = await deploy(false)
+  const [talentLayerID, talentLayerPlatformID] = await deploy(false)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'
@@ -30,7 +27,7 @@ async function deployAndSetup(): Promise<[TalentLayerPlatformID, TalentLayerID]>
   return [talentLayerPlatformID, talentLayerID]
 }
 
-describe('TalentLayerId V2 migration testing', function() {
+describe('TalentLayerId V2 migration testing', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
@@ -39,13 +36,13 @@ describe('TalentLayerId V2 migration testing', function() {
     talentLayerID: TalentLayerID,
     talentLayerIDV2: TalentLayerIDV2
 
-  before(async function() {
+  before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
     ;[talentLayerPlatformID, talentLayerID] = await deployAndSetup()
   })
 
-  describe('Migrate to V2', async function() {
-    it('Should deploy the V2 keeping the same address', async function() {
+  describe('Migrate to V2', async function () {
+    it('Should deploy the V2 keeping the same address', async function () {
       const TalentLayerIDV2 = await ethers.getContractFactory('TalentLayerIDV2')
       talentLayerIDV2 = await upgrades.upgradeProxy(talentLayerID.address, TalentLayerIDV2)
 
