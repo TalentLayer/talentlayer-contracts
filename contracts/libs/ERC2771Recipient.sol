@@ -11,6 +11,18 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  */
 abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
 
+    /**
+     * Emitted when a new trusted forwarder is added.
+     * @param forwarder The address of the forwarder.
+     */
+    event TrustedForwarderAdded(address forwarder);
+
+    /**
+     * Emitted when a trusted forwarder is removed.
+     * @param forwarder The address of the forwarder.
+     */
+    event TrustedForwarderRemoved(address forwarder);
+
     /*
      * Trusted forwarders we accept calls from
     */
@@ -22,6 +34,7 @@ abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
      */
     function addTrustedForwarder(address _forwarder) external onlyOwner {
         _trustedForwarders[_forwarder] = true;
+        emit TrustedForwarderAdded(_forwarder);
     }
 
     /**
@@ -30,6 +43,7 @@ abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
      */
     function removeTrustedForwarder(address _forwarder) external onlyOwner {
         _trustedForwarders[_forwarder] = false;
+        emit TrustedForwarderRemoved(_forwarder);
     }
 
     /// @inheritdoc IERC2771Recipient
