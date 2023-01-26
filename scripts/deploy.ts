@@ -61,7 +61,7 @@ task('deploy')
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
       const talentLayerIDArgs: [string, string] = [pohAddress, talentLayerPlatformID.address]
-      const talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
+      const talentLayerID = await upgrades.deployProxy(TalentLayerID, talentLayerIDArgs);
       if (verify) {
         await talentLayerID.deployTransaction.wait(5)
         await run('verify:verify', {
