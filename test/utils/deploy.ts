@@ -40,7 +40,12 @@ export async function deploy(
   // Deploy TalenLayerID
   const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
   const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
-  const talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
+  let talentLayerID = await upgrades.deployProxy(TalentLayerID, ...talentLayerIDArgs)
+
+  if (applyUpgrade) {
+    const TalentLayerIDV2 = await ethers.getContractFactory('TalentLayerIDV2')
+    talentLayerID = await upgrades.upgradeProxy(talentLayerID.address, TalentLayerIDV2)
+  }
 
   // Deploy ServiceRegistry
   const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
