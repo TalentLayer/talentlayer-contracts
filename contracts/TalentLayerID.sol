@@ -15,7 +15,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 /**
  * @title TalentLayer ID Contract
- * @author TalentLayer Team @ ETHCC22 Hackathon
+ * @author TalentLayer Team
  */
 contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
