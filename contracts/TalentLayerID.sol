@@ -12,7 +12,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /**
  * @title TalentLayer ID Contract
- * @author TalentLayer Team @ ETHCC22 Hackathon
+ * @author TalentLayer Team
  */
 contract TalentLayerID is ERC2771Recipient, ERC721A {
     // =========================== Structs ==============================

@@ -4,8 +4,8 @@ pragma solidity ^0.8.9;
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import {ERC2771Recipient} from "./libs/ERC2771Recipient.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -14,7 +14,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  * @title ServiceRegistry Contract
  * @author TalentLayer Team
  */
-contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, AccessControlUpgradeable {
+contract ServiceRegistryV2 is Initializable, ERC2771Recipient, UUPSUpgradeable, AccessControlUpgradeable {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
@@ -23,7 +23,8 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
         Confirmed,
         Finished,
         Rejected,
-        Opened
+        Opened,
+        Flagged
     }
 
     /// @notice Enum service status
@@ -85,6 +86,10 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
     /// @param id The service ID (incremental)
     /// @param serviceDataUri token Id to IPFS URI mapping
     event ServiceDataCreated(uint256 id, string serviceDataUri);
+
+    /// @notice Emitted after a service is flaged by the platform
+    /// @param id The service ID (incremental)
+    event ServiceFlagged(uint256 id);
 
     /**
      * Emit when Cid is updated for a Service
@@ -195,7 +200,7 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
      */
     function createOpenServiceFromBuyer(uint256 _platformId, string calldata _serviceDataUri) public returns (uint256) {
         talentLayerPlatformIdContract.isValid(_platformId);
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
         return _createService(Status.Opened, senderId, senderId, 0, _serviceDataUri, _platformId);
     }
 
@@ -212,7 +217,7 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
         uint256 _rateAmount,
         string calldata _proposalDataUri
     ) public {
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -250,7 +255,7 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
         uint256 _rateAmount,
         string calldata _proposalDataUri
     ) public {
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -273,7 +278,7 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
      * @param _proposalId Proposal identifier
      */
     function validateProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -293,7 +298,7 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
      * @param _proposalId Proposal identifier
      */
     function rejectProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
+        uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -351,7 +356,7 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
         );
-        require(service.initiatorId == tlId.walletOfOwner(_msgSender()), "Only the initiator can update the service");
+        require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can update the service");
         require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.serviceDataUri = _newServiceDataUri;
@@ -359,11 +364,23 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
         emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
     }
 
+    /**
+     * @notice Allows the platform to flag a service
+     * @param _serviceId Service identifier
+     */
+    function flagService(uint256 _serviceId) public {
+        uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(msg.sender);
+        Service storage service = services[_serviceId];
+        require(platformId == service.platformId, "Only a platform can flag a service");
+        service.status = Status.Flagged;
+        emit ServiceFlagged(_serviceId);
+    }
+
     // =========================== Private functions ==============================
 
     /**
      * @notice Update handle address mapping and emit event after mint.
-     * @param _senderId the talentLayerId of the _msgSender() address
+     * @param _senderId the talentLayerId of the msg.sender address
      * @param _buyerId the talentLayerId of the buyer
      * @param _sellerId the talentLayerId of the seller
      * @param _serviceDataUri token Id to IPFS URI mapping
