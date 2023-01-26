@@ -1,6 +1,6 @@
 # Variables
 
-## ESCROW CONTRACT
+### ESCROW CONTRACT
 
 - protocolEscrowFeeRate : [protocol] [Escrow] [Fee] [Rate] 
 The protocole receive fees set up in escrow contrat, the rate fees are per ten thousands
