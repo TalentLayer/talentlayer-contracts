@@ -21,7 +21,6 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter nextTokenId;
     CountersUpgradeable.Counter private _burnCounter;
-    uint256 public testVariable;
 
     // =========================== Structs ==============================
 
@@ -61,6 +60,9 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
 
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
+
+
+    uint256 public testVariable;
 
 
     // =========================== Initializers ==============================
@@ -288,7 +290,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param _platformId Platform ID from which UserId wad minted
      */
     function freeMint(uint256 _platformId, address _userAddress, string memory _handle) public canMint(_userAddress, _handle, _platformId) onlyOwner{
-        _safeMint(_userAddress, 1);
+        _safeMint(_userAddress, nextTokenId.current());
         _afterMint(_userAddress, _handle, false, _platformId, 0);
     }
 
