@@ -5,6 +5,10 @@ import {IERC2771Recipient} from "@opengsn/contracts/src/interfaces/IERC2771Recip
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
+/**
+ * @title ERC2771Recipient
+ * @dev Based on ERC2771Recipient from OpenGSN, but adding support for multiple forwarders
+ */
 abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
 
     /*
