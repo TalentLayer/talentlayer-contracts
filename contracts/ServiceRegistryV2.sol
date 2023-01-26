@@ -12,7 +12,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  * @title ServiceRegistry Contract
  * @author TalentLayer Team
  */
-contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, AccessControlUpgradeable {
+contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable, AccessControlUpgradeable {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
@@ -21,7 +21,8 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         Confirmed,
         Finished,
         Rejected,
-        Opened
+        Opened,
+        Flagged
     }
 
     /// @notice Enum service status
@@ -83,6 +84,10 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     /// @param id The service ID (incremental)
     /// @param serviceDataUri token Id to IPFS URI mapping
     event ServiceDataCreated(uint256 id, string serviceDataUri);
+
+    /// @notice Emitted after a service is flaged by the platform
+    /// @param id The service ID (incremental)
+    event ServiceFlagged(uint256 id);
 
     /**
      * Emit when Cid is updated for a Service
@@ -355,6 +360,18 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         service.serviceDataUri = _newServiceDataUri;
 
         emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
+    }
+
+    /**
+     * @notice Allows the platform to flag a service
+     * @param _serviceId Service identifier
+     */
+    function flagService(uint256 _serviceId) public {
+        uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(msg.sender);
+        Service storage service = services[_serviceId];
+        require(platformId == service.platformId, "Only a platform can flag a service");
+        service.status = Status.Flagged;
+        emit ServiceFlagged(_serviceId);
     }
 
     // =========================== Private functions ==============================
