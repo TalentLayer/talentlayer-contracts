@@ -1,3 +1,4 @@
+require('@openzeppelin/hardhat-upgrades');
 import type { HardhatUserConfig } from 'hardhat/config'
 import type { NetworkUserConfig } from 'hardhat/types'
 import { config as dotenvConfig } from 'dotenv'
