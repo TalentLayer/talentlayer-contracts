@@ -134,7 +134,6 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
             if (owner == _owner) {
                 return currentTokenId;
-                break;
             }
 
             currentTokenId++;
