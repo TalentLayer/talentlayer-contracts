@@ -129,12 +129,7 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
      * @param _rating The review rate
      * @param _platformId The platform ID
      */
-    function addReview(
-        uint256 _serviceId,
-        string calldata _reviewUri,
-        uint256 _rating,
-        uint256 _platformId
-    ) public {
+    function addReview(uint256 _serviceId, string calldata _reviewUri, uint256 _rating, uint256 _platformId) public {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
         uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
@@ -210,12 +205,7 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
      * @param _tokenId The ID of the review token
      * @param _data Additional data with no specified format
      */
-    function _safeTransfer(
-        address _from,
-        address _to,
-        uint256 _tokenId,
-        bytes memory _data
-    ) internal virtual {
+    function _safeTransfer(address _from, address _to, uint256 _tokenId, bytes memory _data) internal virtual {
         _transfer(_from, _to, _tokenId);
         require(
             _checkOnERC721Received(_from, _to, _tokenId, _data),
@@ -282,11 +272,7 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
      * @param _to The address of the recipient
      * @param _tokenId The ID of the review token
      */
-    function _transfer(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) internal virtual {}
+    function _transfer(address _from, address _to, uint256 _tokenId) internal virtual {}
 
     /**
      * @dev Approves an operator to perform operations on a token
@@ -304,11 +290,7 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
      * @param _operator The operator
      * @param _approved The approval status
      */
-    function _setApprovalForAll(
-        address _owner,
-        address _operator,
-        bool _approved
-    ) internal virtual {
+    function _setApprovalForAll(address _owner, address _operator, bool _approved) internal virtual {
         require(_owner != _operator, "TalentLayerReview: approve to caller");
         _operatorApprovals[_owner][_operator] = _approved;
         emit ApprovalForAll(_owner, _operator, _approved);
@@ -317,20 +299,12 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
     /**
      * @dev Unused hook.
      */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
 
     /**
      * @dev Unused hook.
      */
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
+    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
 
     // =========================== External functions ==========================
 
@@ -425,11 +399,7 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
     /**
      * @dev See {IER721A-transferFrom}.
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
         //solhint-disable-next-line max-line-length
         require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
 
@@ -439,23 +409,14 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
     /**
      * @dev See {IER721A-safeTransferFrom}.
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override {
         safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
      * @dev See {IER721A-safeTransferFrom}.
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) public virtual override {
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual override {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
         _safeTransfer(from, to, tokenId, data);
     }

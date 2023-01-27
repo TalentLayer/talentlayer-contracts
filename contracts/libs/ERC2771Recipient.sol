@@ -10,7 +10,6 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  * @dev Based on ERC2771Recipient from OpenGSN, but adding support for multiple forwarders
  */
 abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
-
     /**
      * Emitted when a new trusted forwarder is added.
      * @param forwarder The address of the forwarder.
@@ -25,7 +24,7 @@ abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
 
     /*
      * Trusted forwarders we accept calls from
-    */
+     */
     mapping(address => bool) private _trustedForwarders;
 
     /**
@@ -47,18 +46,18 @@ abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
     }
 
     /// @inheritdoc IERC2771Recipient
-    function isTrustedForwarder(address forwarder) public virtual override view returns(bool) {
+    function isTrustedForwarder(address forwarder) public view virtual override returns (bool) {
         return _trustedForwarders[forwarder];
     }
 
     /// @inheritdoc IERC2771Recipient
-    function _msgSender() internal override(Context, IERC2771Recipient) virtual view returns (address ret) {
+    function _msgSender() internal view virtual override(Context, IERC2771Recipient) returns (address ret) {
         if (msg.data.length >= 20 && isTrustedForwarder(msg.sender)) {
             // At this point we know that the sender is a trusted forwarder,
             // so we trust that the last bytes of msg.data are the verified sender address.
             // extract sender address from the end of msg.data
             assembly {
-                ret := shr(96,calldataload(sub(calldatasize(),20)))
+                ret := shr(96, calldataload(sub(calldatasize(), 20)))
             }
         } else {
             ret = msg.sender;
@@ -66,9 +65,9 @@ abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
     }
 
     /// @inheritdoc IERC2771Recipient
-    function _msgData() internal override(Context, IERC2771Recipient) virtual view returns (bytes calldata ret) {
+    function _msgData() internal view virtual override(Context, IERC2771Recipient) returns (bytes calldata ret) {
         if (msg.data.length >= 20 && isTrustedForwarder(msg.sender)) {
-            return msg.data[0:msg.data.length-20];
+            return msg.data[0:msg.data.length - 20];
         } else {
             return msg.data;
         }
