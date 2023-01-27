@@ -3,8 +3,7 @@ pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
-import {ERC2771Recipient} from "./libs/ERC2771Recipient.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -14,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  * @title ServiceRegistry Contract
  * @author TalentLayer Team
  */
-contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, AccessControlUpgradeable {
+contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, AccessControlUpgradeable {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
@@ -165,7 +164,7 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
         __Ownable_init();
         __AccessControl_init();
         __UUPSUpgradeable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         nextServiceId = 1;
@@ -400,18 +399,18 @@ contract ServiceRegistry is  Initializable, ERC2771Recipient, UUPSUpgradeable, A
 
     // =========================== Overrides ==============================
 
-    function _msgSender() internal view virtual override(ContextUpgradeable, ERC2771Recipient) returns (address) {
-        return ERC2771Recipient._msgSender();
+    function _msgSender() internal view virtual override(ContextUpgradeable, ERC2771RecipientUpgradeable) returns (address) {
+        return ERC2771RecipientUpgradeable._msgSender();
     }
 
-    function _msgData() internal view virtual override(ContextUpgradeable, ERC2771Recipient) returns (bytes calldata) {
-        return ERC2771Recipient._msgData();
+    function _msgData() internal view virtual override(ContextUpgradeable, ERC2771RecipientUpgradeable) returns (bytes calldata) {
+        return ERC2771RecipientUpgradeable._msgData();
     }
 
     // =========================== Internal functions ==============================
 
     /**
-     * @notice Function that revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
      * {upgradeTo} and {upgradeToAndCall}.
      * @param newImplementation address of the new contract implementation
      */
