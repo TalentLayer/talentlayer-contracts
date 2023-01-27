@@ -141,22 +141,22 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
     event FeesClaimed(uint256 _platformId, address indexed _token, uint256 _amount);
 
     /**
-     * @notice Emitted after an OriginPlatformEscrowFeeRate is released to a platform's balance
+     * @notice Emitted after an OriginPlatformFeeReleased is released to a platform's balance
      * @param _platformId The platform ID.
      * @param _serviceId The related service ID.
      * @param _token The address of the token used for the payment.
      * @param _amount The amount released.
      */
-    event OriginPlatformEscrowFeeRateReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
+    event OriginPlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
     /**
-     * @notice Emitted after a PlatformEscrowFeeRate is released to a platform's balance
+     * @notice Emitted after a PlatformFeeReleased is released to a platform's balance
      * @param _platformId The platform ID.
      * @param _serviceId The related service ID.
      * @param _token The address of the token used for the payment.
      * @param _amount The amount released.
      */
-    event PlatformEscrowFeeRateReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
+    event PlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
     /** @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
      *  @param _transactionId The id of the transaction.
@@ -905,13 +905,13 @@ contract TalentLayerEscrow is Ownable, IArbitrable {
 
         _safeTransferBalance(payable(_transaction.receiver), _transaction.token, _releaseAmount);
 
-        emit OriginPlatformEscrowFeeRateReleased(
+        emit OriginPlatformFeeReleased(
             originPlatformId,
             _transaction.serviceId,
             _transaction.token,
             originPlatformEscrowFeeRateAmount
         );
-        emit PlatformEscrowFeeRateReleased(platformId, _transaction.serviceId, _transaction.token, platformEscrowFeeRateAmount);
+        emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformEscrowFeeRateAmount);
         emit Payment(_transaction.id, PaymentType.Release, _releaseAmount, _transaction.token, _transaction.serviceId);
 
         _distributeMessage(_transaction.serviceId, _transaction.amount);
