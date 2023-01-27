@@ -399,11 +399,23 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
 
     // =========================== Overrides ==============================
 
-    function _msgSender() internal view virtual override(ContextUpgradeable, ERC2771RecipientUpgradeable) returns (address) {
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (address)
+    {
         return ERC2771RecipientUpgradeable._msgSender();
     }
 
-    function _msgData() internal view virtual override(ContextUpgradeable, ERC2771RecipientUpgradeable) returns (bytes calldata) {
+    function _msgData()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (bytes calldata)
+    {
         return ERC2771RecipientUpgradeable._msgData();
     }
 
