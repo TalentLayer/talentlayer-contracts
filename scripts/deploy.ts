@@ -76,7 +76,10 @@ task('deploy')
       // Deploy Service Registry Contract
       const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
       const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
-      const serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs)
+      const serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs, {
+        timeout: 0,
+        pollingInterval: 10000,
+      })
 
       if (verify) {
         await serviceRegistry.deployTransaction.wait(5)
