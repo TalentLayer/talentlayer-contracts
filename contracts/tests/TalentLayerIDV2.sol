@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
-import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {IProofOfHumanity} from "../interfaces/IProofOfHumanity.sol";
+import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
 
 import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base64Upgradeable.sol";
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
@@ -136,7 +136,6 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
 
             if (owner == _owner) {
                 return currentTokenId;
-                break;
             }
 
             currentTokenId++;
