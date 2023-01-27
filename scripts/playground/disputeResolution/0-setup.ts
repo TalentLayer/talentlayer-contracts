@@ -115,11 +115,11 @@ async function main() {
   // Create transaction
   const proposalId = 2
   const feeDivider = 10000
-  const protocolFee = await talentLayerEscrow.protocolFee()
-  const originPlatformFee = await talentLayerEscrow.originPlatformFee()
-  const platformFee = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+  const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
+  const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
+  const platformEscrowFeeRate = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
   const totalTransactionAmount = transactionAmount.add(
-    transactionAmount.mul(protocolFee + originPlatformFee + platformFee).div(feeDivider),
+    transactionAmount.mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate).div(feeDivider),
   )
   await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
     value: totalTransactionAmount,

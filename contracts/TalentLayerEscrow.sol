@@ -58,9 +58,9 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @param token The token used for the transaction
      * @param amount The amount of the transaction EXCLUDING FEES
      * @param serviceId The ID of the associated service
-     * @param protocolFee The %fee (per ten thousands) paid to the protocol's owner
-     * @param originPlatformFee The %fee (per ten thousands) paid to the platform who onboarded the user
-     * @param platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
+     * @param protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
+     * @param originPlatformEscrowFeeRate The %fee (per ten thousands) paid to the platform who onboarded the user
+     * @param platformEscrowFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
      * @param disputeId The ID of the dispute, if it exists
      * @param senderFee Total fees paid by the sender.
      * @param receiverFee Total fees paid by the receiver.
@@ -76,9 +76,9 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
         address token;
         uint256 amount;
         uint256 serviceId;
-        uint16 protocolFee;
-        uint16 originPlatformFee;
-        uint16 platformFee;
+        uint16 protocolEscrowFeeRate;
+        uint16 originPlatformEscrowFeeRate;
+        uint16 platformEscrowFeeRate;
         uint256 disputeId;
         uint256 senderFee;
         uint256 receiverFee;
@@ -123,15 +123,15 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
 
     /**
      * @notice Emitted after the protocol fee was updated
-     * @param _protocolFee The new protocol fee
+     * @param _protocolEscrowFeeRate The new protocol fee
      */
-    event ProtocolFeeUpdated(uint16 _protocolFee);
+    event ProtocolEscrowFeeRateUpdated(uint16 _protocolEscrowFeeRate);
 
     /**
      * @notice Emitted after the origin platform fee was updated
-     * @param _originPlatformFee The new origin platform fee
+     * @param _originPlatformEscrowFeeRate The new origin platform fee
      */
-    event OriginPlatformFeeUpdated(uint16 _originPlatformFee);
+    event OriginPlatformEscrowFeeRateUpdated(uint16 _originPlatformEscrowFeeRate);
 
     /**
      * @notice Emitted after a platform withdraws its balance
@@ -142,7 +142,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
     event FeesClaimed(uint256 _platformId, address indexed _token, uint256 _amount);
 
     /**
-     * @notice Emitted after an OriginPlatformFee is released to a platform's balance
+     * @notice Emitted after an OriginPlatformFeeReleased is released to a platform's balance
      * @param _platformId The platform ID.
      * @param _serviceId The related service ID.
      * @param _token The address of the token used for the payment.
@@ -151,7 +151,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
     event OriginPlatformFeeReleased(uint256 _platformId, uint256 _serviceId, address indexed _token, uint256 _amount);
 
     /**
-     * @notice Emitted after a PlatformFee is released to a platform's balance
+     * @notice Emitted after a PlatformFeeReleased is released to a platform's balance
      * @param _platformId The platform ID.
      * @param _serviceId The related service ID.
      * @param _token The address of the token used for the payment.
@@ -191,9 +191,9 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      *  @param _token The token used for the transaction
      *  @param _amount The amount of the transaction EXCLUDING FEES
      *  @param _serviceId The ID of the associated service
-     *  @param _protocolFee The %fee (per ten thousands) paid to the protocol's owner
-     *  @param _originPlatformFee The %fee (per ten thousands) paid to the platform who onboarded the user
-     *  @param _platformFee The %fee (per ten thousands) paid to the platform on which the transaction was created
+     *  @param _protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
+     *  @param _originPlatformEscrowFeeRate The %fee (per ten thousands) paid to the platform who onboarded the user
+     *  @param _platformEscrowFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
      *  @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
      *  @param _arbitratorExtraData Extra data to set up the arbitration.
      */
@@ -204,9 +204,9 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
         address _token,
         uint256 _amount,
         uint256 _serviceId,
-        uint16 _protocolFee,
-        uint16 _originPlatformFee,
-        uint16 _platformFee,
+        uint16 _protocolEscrowFeeRate,
+        uint16 _originPlatformEscrowFeeRate,
+        uint16 _platformEscrowFeeRate,
         Arbitrator _arbitrator,
         bytes _arbitratorExtraData,
         uint256 _arbitrationFeeTimeout
@@ -259,12 +259,12 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
     /**
      * @notice Percentage paid to the protocol (per 10,000, upgradable)
      */
-    uint16 public protocolFee;
+    uint16 public protocolEscrowFeeRate;
 
     /**
      * @notice Percentage paid to the platform who onboarded the user (per 10,000, upgradable)
      */
-    uint16 public originPlatformFee;
+    uint16 public originPlatformEscrowFeeRate;
 
     /**
      * @notice (Upgradable) Wallet which will receive the protocol fees
@@ -309,8 +309,8 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
         protocolWallet = payable(owner());
 
-        updateProtocolFee(100);
-        updateOriginPlatformFee(200);
+        updateProtocolEscrowFeeRate(100);
+        updateOriginPlatformEscrowFeeRate(200);
     }
 
     // =========================== View functions ==============================
@@ -359,21 +359,21 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
     /**
      * @notice Updated the Protocol Fee
      * @dev Only the owner can call this function
-     * @param _protocolFee The new protocol fee
+     * @param _protocolEscrowFeeRate The new protocol fee
      */
-    function updateProtocolFee(uint16 _protocolFee) public onlyOwner {
-        protocolFee = _protocolFee;
-        emit ProtocolFeeUpdated(_protocolFee);
+    function updateProtocolEscrowFeeRate(uint16 _protocolEscrowFeeRate) public onlyOwner {
+        protocolEscrowFeeRate = _protocolEscrowFeeRate;
+        emit ProtocolEscrowFeeRateUpdated(_protocolEscrowFeeRate);
     }
 
     /**
      * @notice Updated the Origin Platform Fee
      * @dev Only the owner can call this function
-     * @param _originPlatformFee The new origin platform fee
+     * @param _originPlatformEscrowFeeRate The new origin platform fee
      */
-    function updateOriginPlatformFee(uint16 _originPlatformFee) public onlyOwner {
-        originPlatformFee = _originPlatformFee;
-        emit OriginPlatformFeeUpdated(_originPlatformFee);
+    function updateOriginPlatformEscrowFeeRate(uint16 _originPlatformEscrowFeeRate) public onlyOwner {
+        originPlatformEscrowFeeRate = _originPlatformEscrowFeeRate;
+        emit OriginPlatformEscrowFeeRateUpdated(_originPlatformEscrowFeeRate);
     }
 
     /**
@@ -407,7 +407,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory platform = talentLayerPlatformIdContract.getPlatform(service.platformId);
 
-        // PlatformFee is per ten thousands
+        // PlatformEscrowFeeRate is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
         require(_msgSender() == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
@@ -450,7 +450,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory platform = talentLayerPlatformIdContract.getPlatform(service.platformId);
 
-        // PlatformFee is per ten thousands
+        // PlatformEscrowFeeRate is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
 
         require(_msgSender() == sender, "Access denied.");
@@ -788,13 +788,13 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
     /**
      * @notice Called to record on chain all the information of a transaction in the 'transactions' array.
      * @param _serviceId The ID of the associated service
-     * @param _platformFee The %fee (per ten thousands) paid to the protocol's owner
+     * @param _platformEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
      * @return The ID of the transaction
      */
     function _saveTransaction(
         uint256 _serviceId,
         uint256 _proposalId,
-        uint16 _platformFee,
+        uint16 _platformEscrowFeeRate,
         Arbitrator _arbitrator,
         bytes memory _arbitratorExtraData,
         uint256 _arbitrationFeeTimeout
@@ -816,9 +816,9 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
                 token: proposal.rateToken,
                 amount: proposal.rateAmount,
                 serviceId: _serviceId,
-                protocolFee: protocolFee,
-                originPlatformFee: originPlatformFee,
-                platformFee: _platformFee,
+                protocolEscrowFeeRate: protocolEscrowFeeRate,
+                originPlatformEscrowFeeRate: originPlatformEscrowFeeRate,
+                platformEscrowFeeRate: _platformEscrowFeeRate,
                 disputeId: 0,
                 senderFee: 0,
                 receiverFee: 0,
@@ -856,9 +856,9 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
             transaction.token,
             transaction.amount,
             transaction.serviceId,
-            protocolFee,
-            originPlatformFee,
-            transaction.platformFee,
+            protocolEscrowFeeRate,
+            originPlatformEscrowFeeRate,
+            transaction.platformEscrowFeeRate,
             transaction.arbitrator,
             transaction.arbitratorExtraData,
             transaction.arbitrationFeeTimeout
@@ -894,14 +894,15 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
         uint256 originPlatformId = talentLayerIdContract.getOriginatorPlatformIdByAddress(_transaction.receiver);
         //Platform which originated the service
         uint256 platformId = service.platformId;
-        uint256 protocolFeeAmount = (_transaction.protocolFee * _releaseAmount) / FEE_DIVIDER;
-        uint256 originPlatformFeeAmount = (_transaction.originPlatformFee * _releaseAmount) / FEE_DIVIDER;
-        uint256 platformFeeAmount = (_transaction.platformFee * _releaseAmount) / FEE_DIVIDER;
+        uint256 protocolEscrowFeeRateAmount = (_transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
+        uint256 originPlatformEscrowFeeRateAmount = (_transaction.originPlatformEscrowFeeRate * _releaseAmount) /
+            FEE_DIVIDER;
+        uint256 platformEscrowFeeRateAmount = (_transaction.platformEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
 
         //Index zero represents protocol's balance
-        platformIdToTokenToBalance[0][_transaction.token] += protocolFeeAmount;
-        platformIdToTokenToBalance[originPlatformId][_transaction.token] += originPlatformFeeAmount;
-        platformIdToTokenToBalance[platformId][_transaction.token] += platformFeeAmount;
+        platformIdToTokenToBalance[0][_transaction.token] += protocolEscrowFeeRateAmount;
+        platformIdToTokenToBalance[originPlatformId][_transaction.token] += originPlatformEscrowFeeRateAmount;
+        platformIdToTokenToBalance[platformId][_transaction.token] += platformEscrowFeeRateAmount;
 
         _safeTransferBalance(payable(_transaction.receiver), _transaction.token, _releaseAmount);
 
@@ -909,9 +910,9 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
             originPlatformId,
             _transaction.serviceId,
             _transaction.token,
-            originPlatformFeeAmount
+            originPlatformEscrowFeeRateAmount
         );
-        emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformFeeAmount);
+        emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformEscrowFeeRateAmount);
         emit Payment(_transaction.id, PaymentType.Release, _releaseAmount, _transaction.token, _transaction.serviceId);
 
         _distributeMessage(_transaction.serviceId, _transaction.amount);
@@ -926,8 +927,9 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      */
     function _reimburse(Transaction memory _transaction, uint256 _releaseAmount) private {
         uint256 totalReleaseAmount = _releaseAmount +
-            (((_transaction.protocolFee + _transaction.originPlatformFee + _transaction.platformFee) * _releaseAmount) /
-                FEE_DIVIDER);
+            (((_transaction.protocolEscrowFeeRate +
+                _transaction.originPlatformEscrowFeeRate +
+                _transaction.platformEscrowFeeRate) * _releaseAmount) / FEE_DIVIDER);
 
         _safeTransferBalance(payable(_transaction.sender), _transaction.token, totalReleaseAmount);
 
@@ -1032,16 +1034,18 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
     /**
      * @notice Utility function to calculate the total amount to be paid by the buyer to validate a proposal.
      * @param _amount The core escrow amount
-     * @param _platformFee The platform fee
+     * @param _platformEscrowFeeRate The platform fee
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformFee)
+    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformEscrowFeeRate)
         private
         view
         returns (uint256 totalEscrowAmount)
     {
         return
             _amount +
-            (((_amount * protocolFee) + (_amount * originPlatformFee) + (_amount * _platformFee)) / FEE_DIVIDER);
+            (((_amount * protocolEscrowFeeRate) +
+                (_amount * originPlatformEscrowFeeRate) +
+                (_amount * _platformEscrowFeeRate)) / FEE_DIVIDER);
     }
 }
