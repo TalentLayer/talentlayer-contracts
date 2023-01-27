@@ -3,7 +3,8 @@ import { Network } from '../../config'
 import { ConfigProperty, get } from '../../../configManager'
 
 /**
- * @notice This task is used to add a trusted forwarder for meta transactions.
+ * @notice This task is used to add a trusted forwarder for meta transactions
+ *         in all the ERC-2771 compatible contracts
  * @param {string} address - the address of the forwarder
  * @dev Example of script use:
  * npx hardhat add-trusted-forwarder --network localhost --address 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
