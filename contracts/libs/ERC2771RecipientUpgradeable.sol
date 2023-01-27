@@ -6,8 +6,9 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
- * @title ERC2771Recipient
- * @dev Based on ERC2771Recipient from OpenGSN, but adding support for multiple forwarders
+ * @title ERC2771RecipientUpgradeable
+ * @dev Based on ERC2771Recipient from OpenGSN, but adding support for multiple forwarders.
+ *      To be used with upgradeable contracts.
  */
 abstract contract ERC2771RecipientUpgradeable is IERC2771Recipient, OwnableUpgradeable {
     /**
