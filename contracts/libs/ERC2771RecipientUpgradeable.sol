@@ -2,14 +2,14 @@
 pragma solidity >=0.6.9;
 
 import {IERC2771Recipient} from "@opengsn/contracts/src/interfaces/IERC2771Recipient.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
  * @title ERC2771Recipient
  * @dev Based on ERC2771Recipient from OpenGSN, but adding support for multiple forwarders
  */
-abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
+abstract contract ERC2771RecipientUpgradeable is IERC2771Recipient, OwnableUpgradeable {
 
     /**
      * Emitted when a new trusted forwarder is added.
@@ -52,7 +52,7 @@ abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
     }
 
     /// @inheritdoc IERC2771Recipient
-    function _msgSender() internal override(Context, IERC2771Recipient) virtual view returns (address ret) {
+    function _msgSender() internal override(ContextUpgradeable, IERC2771Recipient) virtual view returns (address ret) {
         if (msg.data.length >= 20 && isTrustedForwarder(msg.sender)) {
             // At this point we know that the sender is a trusted forwarder,
             // so we trust that the last bytes of msg.data are the verified sender address.
@@ -66,7 +66,7 @@ abstract contract ERC2771Recipient is IERC2771Recipient, Ownable {
     }
 
     /// @inheritdoc IERC2771Recipient
-    function _msgData() internal override(Context, IERC2771Recipient) virtual view returns (bytes calldata ret) {
+    function _msgData() internal override(ContextUpgradeable, IERC2771Recipient) virtual view returns (bytes calldata ret) {
         if (msg.data.length >= 20 && isTrustedForwarder(msg.sender)) {
             return msg.data[0:msg.data.length-20];
         } else {
