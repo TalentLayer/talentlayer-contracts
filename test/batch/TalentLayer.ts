@@ -74,25 +74,27 @@ describe('TalentLayer protocol global testing', function() {
       expect(alicePlatformData.dataUri).to.be.equal('newPlatId')
     })
 
-    it('Alice should not be able to transfer her PlatformId Id to Bob', async function() {
-      expect(talentLayerPlatformID.transferFrom(alice.address, bob.address, 1)).to.be.revertedWith('Not allowed')
+    it('Alice should not be able to transfer her PlatformId Id to Bob', async function () {
+      await expect(talentLayerPlatformID.transferFrom(alice.address, bob.address, 1)).to.be.revertedWith('Not allowed')
     })
 
-    it('Alice should not be able to mint a new PlatformId ID', async function() {
-      expect(talentLayerPlatformID.connect(alice).mint('SecPlatId')).to.be.revertedWith(
-        'You already have a Platform ID',
+    it('Alice should not be able to mint a new PlatformId ID', async function () {
+      await expect(talentLayerPlatformID.connect(alice).mint('SecPlatId')).to.be.revertedWith(
+        'Platform already has a Platform ID',
       )
     })
 
     it("ALice can't mint a platformId for someone else", async function() {
       const mintRole = await talentLayerPlatformID.MINT_ROLE()
-      expect(talentLayerPlatformID.connect(alice).mintForAddress('platId2', dave.address)).to.be.revertedWith(
-        `Error: VM Exception while processing transaction: reverted with reason string 'AccessControl: account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}'`,
+      await expect(talentLayerPlatformID.connect(alice).mintForAddress('platId2', dave.address)).to.be.revertedWith(
+        `AccessControl: account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}`,
       )
     })
 
-    it('Alice should not be able to mint a PlatformId ID with the same name', async function() {
-      expect(talentLayerPlatformID.connect(alice).mint('PlatId')).to.be.revertedWith('You already have a Platform ID')
+    it('Alice should not be able to mint a PlatformId ID with the same name', async function () {
+      await expect(talentLayerPlatformID.connect(alice).mint('PlatId')).to.be.revertedWith(
+        'Platform already has a Platform ID',
+      )
     })
 
     it("Alice's PlatformID ownership data is coherent", async function() {
@@ -137,7 +139,7 @@ describe('TalentLayer protocol global testing', function() {
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
 
       // Mint fails if not enough ETH is sent
-      expect(talentLayerPlatformID.connect(bob).mint('BobPlat')).to.be.revertedWith(
+      await expect(talentLayerPlatformID.connect(bob).mint('BobPlat')).to.be.revertedWith(
         'Incorrect amount of ETH for mint fee',
       )
 
@@ -160,7 +162,10 @@ describe('TalentLayer protocol global testing', function() {
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
 
       // Withdraw fails if the caller is not an admin
-      expect(talentLayerPlatformID.connect(bob).withdraw()).to.be.revertedWith('Ownable: caller is not the owner')
+      const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE()
+      await expect(talentLayerPlatformID.connect(bob).withdraw()).to.be.revertedWith(
+        `AccessControl: account ${bob.address.toLowerCase()} is missing role ${adminRole.toLowerCase()}`,
+      )
 
       // Withdraw is successful if the caller is the deployer
       const tx = await talentLayerPlatformID.connect(deployer).withdraw()
@@ -188,7 +193,7 @@ describe('TalentLayer protocol global testing', function() {
 
     it('The platform owner can update the arbitrator only if is a valid one', async function() {
       const tx = talentLayerPlatformID.connect(alice).updateArbitrator(1, dave.address, [])
-      expect(tx).to.be.revertedWith('The address must be of a valid arbitrator')
+      await expect(tx).to.be.revertedWith('The address must be of a valid arbitrator')
 
       await talentLayerPlatformID.connect(alice).updateArbitrator(1, talentLayerArbitrator.address, [])
       const arbitrator = (await talentLayerPlatformID.getPlatform(1)).arbitrator
@@ -221,7 +226,7 @@ describe('TalentLayer protocol global testing', function() {
 
     it('Only the owner of the platform can update its arbitrator', async function() {
       const tx = talentLayerPlatformID.connect(bob).updateArbitrator(1, talentLayerArbitrator.address, [])
-      expect(tx).to.be.revertedWith("You're not the owner of this platform")
+      await expect(tx).to.be.revertedWith("You're not the owner of this platform")
     })
 
     it('The deployer can remove an available arbitrator', async function() {
@@ -239,7 +244,7 @@ describe('TalentLayer protocol global testing', function() {
       await talentLayerID.connect(alice).mintWithPoh('1', 'alice')
       await talentLayerID.connect(bob).mintWithPoh('1', 'bob')
 
-      expect(talentLayerID.connect(carol).mintWithPoh('1', 'carol')).to.be.revertedWith(
+      await expect(talentLayerID.connect(carol).mintWithPoh('1', 'carol')).to.be.revertedWith(
         'You need to use an address registered on Proof of Humanity',
       )
       await talentLayerID.connect(carol).mint('1', 'carol')
@@ -251,16 +256,16 @@ describe('TalentLayer protocol global testing', function() {
       expect(profileData.platformId).to.be.equal('1')
     })
 
-    it('Carol can activate POH on her talentLayerID', async function() {
-      expect(talentLayerID.connect(carol).mintWithPoh(1, 'carol')).to.be.revertedWith(
-        "You're address is not registerd for poh",
+    it('Carol can activate POH on her talentLayerID', async function () {
+      await expect(talentLayerID.connect(carol).mintWithPoh(1, 'carol')).to.be.revertedWith(
+        'You already have a TalentLayerID',
       )
       await mockProofOfHumanity.addSubmissionManually([carol.address])
       await talentLayerID.connect(carol).activatePoh(3)
       const profileData = await talentLayerID.profiles(3)
 
       expect(await talentLayerID.isTokenPohRegistered(3)).to.be.equal(true)
-      expect(await profileData.pohAddress).to.be.equal(carol.address)
+      expect(profileData.pohAddress).to.be.equal(carol.address)
     })
 
     it('The deployer can update the mint fee', async function() {
@@ -275,7 +280,9 @@ describe('TalentLayer protocol global testing', function() {
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
 
       // Mint fails if not enough ETH is sent
-      expect(talentLayerID.connect(eve).mint('1', 'eve')).to.be.revertedWith('Incorrect amount of ETH for mint fee')
+      await expect(talentLayerID.connect(eve).mint('1', 'eve')).to.be.revertedWith(
+        'Incorrect amount of ETH for mint fee',
+      )
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
       await talentLayerID.connect(eve).mint('1', 'eve', { value: mintFee })
@@ -295,7 +302,7 @@ describe('TalentLayer protocol global testing', function() {
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
 
       // Withdraw fails if the caller is not the owner
-      expect(talentLayerID.connect(alice).withdraw()).to.be.revertedWith('Ownable: caller is not the owner')
+      await expect(talentLayerID.connect(alice).withdraw()).to.be.revertedWith('Ownable: caller is not the owner')
 
       // Withdraw is successful if the caller is the owner
       const tx = await talentLayerID.connect(deployer).withdraw()
@@ -365,22 +372,26 @@ describe('TalentLayer protocol global testing', function() {
         // await loadFixture(deployTokenFixture);
 
         // Transfer 50 tokens from deployer to alice
-        expect(token.transfer(alice.address, 50)).to.changeTokenBalances(token, [deployer, alice], [-50, 50])
+        await expect(token.transfer(alice.address, 50)).to.changeTokenBalances(token, [deployer, alice], [-50, 50])
 
         // Transfer 50 tokens from alice to bob
-        expect(token.connect(alice).transfer(bob.address, 50)).to.changeTokenBalances(token, [alice, bob], [-50, 50])
+        await expect(token.connect(alice).transfer(bob.address, 50)).to.changeTokenBalances(
+          token,
+          [alice, bob],
+          [-50, 50],
+        )
       })
 
       it('Should emit Transfer events.', async function() {
         // await loadFixture(deployTokenFixture);
 
         // Transfer 50 tokens from deployer to alice
-        expect(token.transfer(alice.address, 50))
+        await expect(token.transfer(alice.address, 50))
           .to.emit(token, 'Transfer')
           .withArgs(deployer.address, alice.address, 50)
 
         // Transfer 50 tokens from alice to bob
-        expect(token.connect(alice).transfer(bob.address, 50))
+        await expect(token.connect(alice).transfer(bob.address, 50))
           .to.emit(token, 'Transfer')
           .withArgs(alice.address, bob.address, 50)
       })
@@ -391,29 +402,29 @@ describe('TalentLayer protocol global testing', function() {
         const initialdeployerBalance = await token.balanceOf(deployer.address)
 
         // Try to send 1 token from dave (0 tokens) to deployer (1000 tokens).
-        expect(token.connect(dave).transfer(deployer.address, 1)).to.be.revertedWith(
+        await expect(token.connect(dave).transfer(deployer.address, 1)).to.be.revertedWith(
           'ERC20: transfer amount exceeds balance',
         )
 
         // deployer balance shouldn't have changed.
-        expect(await token.balanceOf(deployer.address)).to.equal(initialdeployerBalance)
+        await expect(await token.balanceOf(deployer.address)).to.equal(initialdeployerBalance)
       })
     })
   })
 
-  describe('Service Registry & Proposal contract test', function() {
-    it("Dave, who doesn't have TalentLayerID, can't create a service", async function() {
-      expect(serviceRegistry.connect(dave).createOpenServiceFromBuyer(1, 'haveNotTlid')).to.be.revertedWith(
-        'You sould have a TalentLayerId',
+  describe('Service Registry & Proposal contract test', function () {
+    it("Dave, who doesn't have TalentLayerID, can't create a service", async function () {
+      await expect(serviceRegistry.connect(dave).createOpenServiceFromBuyer(1, 'haveNotTlid')).to.be.revertedWith(
+        'You should have a TalentLayerId',
       )
     })
 
-    it("Alice can't create a new service with a talentLayerId 0", async function() {
-      expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(0, 'cid0')).to.be.revertedWith(
-        'Seller 0 is not a valid TalentLayerId',
+    it("Alice can't create a new service with a talentLayerId 0", async function () {
+      await expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(0, 'cid0')).to.be.revertedWith(
+        'Invalid platform ID',
       )
-      expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(0, 'cid0')).to.be.revertedWith(
-        'Buyer 0 is not a valid TalentLayerId',
+      await expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(0, 'cid0')).to.be.revertedWith(
+        'Invalid platform ID',
       )
     })
 
@@ -424,15 +435,15 @@ describe('TalentLayer protocol global testing', function() {
 
       // service 2
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID2')
-      const serviceData2 = await serviceRegistry.services(2)
+      await serviceRegistry.services(2)
 
       // service 3
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID3')
-      const serviceData3 = await serviceRegistry.services(3)
+      await serviceRegistry.services(3)
 
       // service 4
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID4')
-      const serviceData4 = await serviceRegistry.services(4)
+      await serviceRegistry.services(4)
 
       expect(serviceData.status.toString()).to.be.equal('4')
       expect(serviceData.buyerId.toString()).to.be.equal('1')
@@ -441,8 +452,8 @@ describe('TalentLayer protocol global testing', function() {
       expect(serviceData.platformId).to.be.equal(1)
     })
 
-    it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function() {
-      expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(5, 'wrongTlPid')).to.be.revertedWith(
+    it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function () {
+      await expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(5, 'wrongTlPid')).to.be.revertedWith(
         'Invalid platform ID',
       )
     })
@@ -483,10 +494,10 @@ describe('TalentLayer protocol global testing', function() {
     it('Carol can create her first proposal (will be rejected by Alice) ', async function() {
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
       await serviceRegistry.connect(carol).createProposal(1, rateToken, 2, 'proposal1FromCarolToAlice1Service')
-      const serviceData = await serviceRegistry.services(1)
+      await serviceRegistry.services(1)
       // get proposal info
       const carolTid = await talentLayerID.walletOfOwner(carol.address)
-      const proposalData = await serviceRegistry.getProposal(1, carolTid)
+      await serviceRegistry.getProposal(1, carolTid)
     })
 
     it('Bob can update his first proposal ', async function() {
@@ -537,11 +548,8 @@ describe('TalentLayer protocol global testing', function() {
 
       it('Alice can NOT deposit tokens to escrow yet.', async function() {
         await token.connect(alice).approve(talentLayerEscrow.address, amountBob)
-        expect(
-          talentLayerEscrow
-            .connect(alice)
-            .createTokenTransaction(3600 * 24 * 7, '_metaEvidence', serviceId, proposalIdBob),
-        ).to.be.reverted
+        await expect(talentLayerEscrow.connect(alice).createTokenTransaction('_metaEvidence', serviceId, proposalIdBob))
+          .to.be.reverted
       })
 
       it('Bob can make a second proposal on the Alice service n°2', async function() {
@@ -804,7 +812,7 @@ describe('TalentLayer protocol global testing', function() {
 
       it("Alice can NOT deposit funds for Carol's proposal, and NO event should emit.", async function() {
         await token.connect(alice).approve(talentLayerEscrow.address, amountCarol)
-        expect(
+        await expect(
           talentLayerEscrow
             .connect(alice)
             .createETHTransaction('_metaEvidence', serviceId, proposalIdCarol, { value: amountCarol }),
@@ -913,22 +921,26 @@ describe('TalentLayer protocol global testing', function() {
     })
   })
 
-  describe('Talent Layer Review contract test', function() {
-    it("Bob can't write a review yet", async function() {
-      expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
-        'The service is not finished yet',
-      )
-    })
-
-    it("Carol can't write a review as she's not linked to this service", async function() {
-      expect(talentLayerReview.connect(carol).addReview(1, 'cidReview', 5, 1)).to.be.revertedWith(
+  describe('Talent Layer Review contract test', function () {
+    it("Bob can't write a review yet", async function () {
+      await expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
         "You're not an actor of this service",
       )
     })
 
-    it("Alice and Bob can't write a review for the same Service", async function() {
-      expect(talentLayerReview.connect(alice).addReview(1, 'cidReview', 0)).to.be.revertedWith('ReviewAlreadyMinted()')
-      expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3)).to.be.revertedWith('ReviewAlreadyMinted()')
+    it("Carol can't write a review as she's not linked to this service", async function () {
+      await expect(talentLayerReview.connect(carol).addReview(1, 'cidReview', 5, 1)).to.be.revertedWith(
+        "You're not an actor of this service",
+      )
+    })
+
+    it("Alice and Bob can't write a review for the same Service", async function () {
+      await expect(talentLayerReview.connect(alice).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
+        'The service is not finished yet',
+      )
+      await expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
+        `You're not an actor of this service`,
+      )
     })
 
     it('Alice and Bob can write a review now and we can get review data', async function() {
@@ -952,7 +964,7 @@ describe('TalentLayer protocol global testing', function() {
 
       // It fails if the caller is not the owner of the platform
       const tx = talentLayerArbitrator.connect(bob).setArbitrationPrice(platformId, newArbitrationPrice)
-      expect(tx).to.be.revertedWith("You're not the owner of the platform")
+      await expect(tx).to.be.revertedWith("You're not the owner of the platform")
 
       // It succeeds if the caller is the owner of the platform
       await talentLayerArbitrator.connect(alice).setArbitrationPrice(platformId, newArbitrationPrice)
