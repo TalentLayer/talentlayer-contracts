@@ -17,22 +17,22 @@ task('remove-trusted-forwarder', 'Removes a trusted forwarder for meta transacti
 
     const talentLayerId = await ethers.getContractAt(
       'TalentLayerID',
-      get((network.name as any) as Network, ConfigProperty.TalentLayerID),
+      get(network.name as any as Network, ConfigProperty.TalentLayerID),
     )
 
     const serviceRegistry = await ethers.getContractAt(
       'ServiceRegistry',
-      get((network.name as any) as Network, ConfigProperty.ServiceRegistry),
+      get(network.name as any as Network, ConfigProperty.ServiceRegistry),
     )
 
     const talentLayerReview = await ethers.getContractAt(
       'TalentLayerReview',
-      get((network.name as any) as Network, ConfigProperty.Reviewscontract),
+      get(network.name as any as Network, ConfigProperty.Reviewscontract),
     )
 
     const talentLayerEscrow = await ethers.getContractAt(
       'TalentLayerEscrow',
-      get((network.name as any) as Network, ConfigProperty.TalentLayerEscrow),
+      get(network.name as any as Network, ConfigProperty.TalentLayerEscrow),
     )
 
     const talentLayerIdTx = await talentLayerId.removeTrustedForwarder(address)
