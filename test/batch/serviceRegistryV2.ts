@@ -3,7 +3,13 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { BigNumber, ContractTransaction } from 'ethers'
 import { ethers } from 'hardhat'
-import { ServiceRegistry, TalentLayerArbitrator, TalentLayerEscrow, TalentLayerPlatformID } from '../../typechain-types'
+import {
+  ServiceRegistry,
+  ServiceRegistryV2,
+  TalentLayerArbitrator,
+  TalentLayerEscrow,
+  TalentLayerPlatformID,
+} from '../../typechain-types'
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1
@@ -53,7 +59,7 @@ describe('Service registry V2 migration testing', function() {
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
     serviceRegistry: ServiceRegistry,
-    serviceRegistryV2: ServiceRegistry
+    serviceRegistryV2: ServiceRegistryV2
 
   before(async function() {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
