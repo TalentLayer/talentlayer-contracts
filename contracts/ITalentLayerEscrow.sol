@@ -8,18 +8,18 @@ interface ITalentLayerEscrow {
         address token; //token of the escrow
         uint256 amount; //amount locked into escrow
         uint256 serviceId; //the serviceId related to the transaction
-        uint16 protocolFee;
-        uint16 originPlatformFee;
-        uint16 platformFee;
+        uint16 protocolEscrowFeeRate;
+        uint16 originPlatformEscrowFeeRate;
+        uint16 platformEscrowFeeRate;
     }
 
     function getClaimableFeeBalance(address _token) external view returns (uint256 balance);
 
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory);
 
-    function updateProtocolFee(uint16 _protocolFee) external;
+    function updateProtocolEscrowFeeRate(uint16 _protocolEscrowFeeRate) external;
 
-    function updateOriginPlatformFee(uint16 _originPlatformFee) external;
+    function updateOriginPlatformEscrowFeeRate(uint16 _originPlatformEscrowFeeRate) external;
 
     function updateProtocolWallet(address payable _protocolWallet) external;
 
