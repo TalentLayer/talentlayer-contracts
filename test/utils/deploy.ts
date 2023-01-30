@@ -1,5 +1,4 @@
-const { upgrades } = require('hardhat')
-import { ethers } from 'hardhat'
+import { ethers, upgrades } from 'hardhat'
 import {
   ERC20,
   MockProofOfHumanity,
