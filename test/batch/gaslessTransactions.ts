@@ -4,7 +4,7 @@ import { ethers } from 'hardhat'
 import { MockForwarder, TalentLayerID, TalentLayerPlatformID } from '../../typechain-types'
 import { deploy } from '../utils/deploy'
 
-describe.only('Gasless Transactions', function () {
+describe('Gasless Transactions', function () {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
