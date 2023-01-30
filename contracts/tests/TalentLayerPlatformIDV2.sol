@@ -104,6 +104,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
 
     function initialize() public initializer {
         __ERC721_init("TalentLayerPlatformID", "TPID");
+        __AccessControl_init();
         __UUPSUpgradeable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINT_ROLE, msg.sender);
