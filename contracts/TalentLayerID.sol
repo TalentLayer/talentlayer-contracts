@@ -184,8 +184,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         string memory _handle
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
-
         require(pohRegistry.isRegistered(sender), "You need to use an address registered on Proof of Humanity");
+
         uint256 userTokenId = nextTokenId.current();
         _safeMint(sender, userTokenId);
         profiles[userTokenId].pohAddress = sender;
@@ -198,7 +198,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function activatePoh(uint256 _tokenId) public {
         address sender = _msgSender();
-
         require(ownerOf(_tokenId) == sender);
         require(pohRegistry.isRegistered(sender), "You're address is not registerd for poh");
         profiles[_tokenId].pohAddress = sender;
@@ -329,7 +328,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     // =========================== Internal functions ==============================
 
     /**
-     * @notice Function that revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
      * {upgradeTo} and {upgradeToAndCall}.
      * @param newImplementation address of the new contract implementation
      */
