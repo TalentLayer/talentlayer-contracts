@@ -129,7 +129,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     function walletOfOwner(address _owner) public view returns (uint256) {
         uint256 currentTokenId = 1;
 
-        while (currentTokenId <= nextTokenId.current()) {
+        while (currentTokenId < nextTokenId.current()) {
             address owner = _ownerOf(currentTokenId);
 
             if (owner == _owner) {
@@ -154,7 +154,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _tokenId Token ID to check
      */
     function isValid(uint256 _tokenId) external view {
-        require(_tokenId > 0 && _tokenId <= nextTokenId.current(), "Your ID is not a valid token ID");
+        require(_tokenId > 0 && _tokenId < nextTokenId.current(), "Your ID is not a valid token ID");
     }
 
     // =========================== User functions ==============================
