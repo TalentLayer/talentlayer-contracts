@@ -8,6 +8,7 @@ describe.only('Gasless Transactions', function () {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
+    carol: SignerWithAddress,
     relayer: SignerWithAddress,
     talentLayerID: TalentLayerID,
     talentLayerPlatformID: TalentLayerPlatformID,
@@ -15,7 +16,7 @@ describe.only('Gasless Transactions', function () {
     req: MockForwarder.ForwardRequestStruct
 
   before(async function () {
-    ;[deployer, alice, bob, relayer] = await ethers.getSigners()
+    ;[deployer, alice, bob, carol, relayer] = await ethers.getSigners()
     ;[talentLayerID, talentLayerPlatformID] = await deploy(false)
 
     // Deploy mock forwarder
@@ -71,5 +72,18 @@ describe.only('Gasless Transactions', function () {
   it('Deployer can remove a trusted forwarder for meta-transactions', async function () {
     await talentLayerID.connect(deployer).removeTrustedForwarder(mockForwarder.address)
     expect(await talentLayerID.isTrustedForwarder(mockForwarder.address)).to.be.false
+
+    // Meta-transactions with the removed forwarder won't work anymore
+    const tx = mockForwarder.connect(relayer).execute({
+      from: carol.address,
+      to: talentLayerID.address,
+      value: 0,
+      gas: 29022296,
+      nonce: 0,
+      data: talentLayerID.interface.encodeFunctionData('mint', [1, 'carol']),
+      validUntilTime: 0,
+    })
+
+    await expect(tx).to.be.revertedWith('ERC721: transfer to non ERC721Receiver implementer')
   })
 })
