@@ -5,6 +5,7 @@ coverage.json
 typechain
 typechain-types
 talent.config_localhost.json
+.openzeppelin/unknown-1337.json
 
 #Hardhat files
 cache
