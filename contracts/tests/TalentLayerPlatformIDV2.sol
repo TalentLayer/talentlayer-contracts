@@ -13,7 +13,7 @@ import "../Arbitrator.sol";
  * @title Platform ID Contract
  * @author TalentLayer Team
  */
-contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // =========================== Variables ==============================
@@ -132,7 +132,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @return The Platform fee
      */
     function getPlatformEscrowFeeRate(uint256 _platformId) external view returns (uint16) {
-        isValid(_platformId);
+        require(_platformId > 0 && _platformId < nextTokenId.current(), "Invalid platform ID");
         return platforms[_platformId].fee;
     }
 
@@ -142,7 +142,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @return Arbitrator The Platform arbitrator
      */
     function getPlatform(uint256 _platformId) external view returns (Platform memory) {
-        isValid(_platformId);
+        require(_platformId > 0 && _platformId < nextTokenId.current(), "Invalid platform ID");
         return platforms[_platformId];
     }
 
