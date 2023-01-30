@@ -93,7 +93,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     /**
      * @notice Test variable
      */
-    string public testString = "The Test String";
+    string public testString;
 
     // =========================== Initializers ==============================
 
@@ -113,6 +113,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
         // Increment counter to start tokenIds at index 1
         nextTokenId.increment();
+        testString = "The Test String";
     }
 
     // =========================== View functions ==============================
