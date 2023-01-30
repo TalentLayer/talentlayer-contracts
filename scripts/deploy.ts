@@ -76,6 +76,7 @@ task('deploy')
       // Deploy Service Registry Contract
       const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
       const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs, {
         timeout: 0,
         pollingInterval: 10000,

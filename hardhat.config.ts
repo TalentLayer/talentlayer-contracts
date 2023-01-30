@@ -1,9 +1,9 @@
-require('@openzeppelin/hardhat-upgrades');
 import type { HardhatUserConfig } from 'hardhat/config'
 import type { NetworkUserConfig } from 'hardhat/types'
 import { config as dotenvConfig } from 'dotenv'
 import { resolve } from 'path'
 import '@nomicfoundation/hardhat-toolbox'
+import "@openzeppelin/hardhat-upgrades";
 import 'hardhat-contract-sizer'
 import './scripts/deploy'
 import './scripts/wallet'
