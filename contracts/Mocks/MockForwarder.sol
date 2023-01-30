@@ -5,8 +5,8 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 /**
- * @title The Forwarder Implementation
- * @notice This implementation of the `IForwarder` interface uses ERC-712 signatures and stored nonces for verification.
+ * @title MockForwarder
+ * @dev A mock implementation of a Forwarder based on Open GSN Forwarder.
  */
 contract MockForwarder {
     /**
