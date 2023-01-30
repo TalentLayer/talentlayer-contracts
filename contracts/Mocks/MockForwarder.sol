@@ -4,8 +4,6 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title The Forwarder Implementation
  * @notice This implementation of the `IForwarder` interface uses ERC-712 signatures and stored nonces for verification.
@@ -28,10 +26,11 @@ contract MockForwarder {
         bytes memory callData = abi.encodePacked(req.data, req.from);
         (success, ret) = req.to.call{gas: req.gas, value: req.value}(callData);
 
-        // #if ENABLE_CONSOLE_LOG
-        console.log("execute result: success: %s ret:", success);
-        console.logBytes(ret);
-        // #endif
+        if (!success) {
+            assembly {
+                revert(add(ret, 32), mload(ret))
+            }
+        }
 
         return (success, ret);
     }
