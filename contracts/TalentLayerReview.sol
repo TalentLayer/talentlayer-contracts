@@ -259,7 +259,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     }
 
     /**
-     * @dev Blocks the burn functionburn
+     * @dev Blocks the burn function
      * @param _tokenId The ID of the review token
      */
     function _burn(uint256 _tokenId) internal virtual {}
