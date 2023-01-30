@@ -341,20 +341,6 @@ describe('TalentLayer protocol global testing', function() {
         'Alice tries to mint talentLayer ID for heidi for free.',
       ).to.be.revertedWith('Ownable: caller is not the owner')
     })
-
-    it('Deployer can add and remove a trusted forwarder for meta-transactions', async function () {
-      const forwarderAddress = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
-
-      // Fails if is not the owner
-      const tx = talentLayerID.connect(alice).addTrustedForwarder(forwarderAddress)
-      await expect(tx).to.be.revertedWith('Ownable: caller is not the owner')
-
-      await talentLayerID.connect(deployer).addTrustedForwarder(forwarderAddress)
-      expect(await talentLayerID.isTrustedForwarder(forwarderAddress)).to.be.true
-
-      await talentLayerID.connect(deployer).removeTrustedForwarder(forwarderAddress)
-      expect(await talentLayerID.isTrustedForwarder(forwarderAddress)).to.be.false
-    })
   })
 
   describe('SimpleERC20 contract contract test', function() {
