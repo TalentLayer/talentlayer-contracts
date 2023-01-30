@@ -299,11 +299,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
      */
-    constructor(
-        address _serviceRegistryAddress,
-        address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress
-    ) {
+    constructor(address _serviceRegistryAddress, address _talentLayerIDAddress, address _talentLayerPlatformIDAddress) {
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
@@ -329,10 +325,12 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @return balance The balance of the platform
      */
     function getClaimableFeeBalance(address _token) external view returns (uint256 balance) {
-        if (owner() == _msgSender()) {
+        address sender = _msgSender();
+
+        if (owner() == sender) {
             return platformIdToTokenToBalance[PROTOCOL_INDEX][_token];
         } else {
-            uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(_msgSender());
+            uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(sender);
             talentLayerPlatformIdContract.isValid(platformId);
             return platformIdToTokenToBalance[platformId][_token];
         }
@@ -347,8 +345,10 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory transaction) {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
+
+        address sender = _msgSender();
         require(
-            _msgSender() == transaction.sender || _msgSender() == transaction.receiver,
+            sender == transaction.sender || sender == transaction.receiver,
             "You are not related to this transaction."
         );
         return transaction;
@@ -623,18 +623,19 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      *  @param _evidence A link to an evidence using its URI.
      */
     function submitEvidence(uint256 _transactionId, string memory _evidence) public {
+        address sender = _msgSender();
         Transaction storage transaction = transactions[_transactionId];
 
         require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
         require(
-            _msgSender() == transaction.sender || _msgSender() == transaction.receiver,
+            sender == transaction.sender || sender == transaction.receiver,
             "The caller must be the sender or the receiver."
         );
         require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
 
-        emit Evidence(transaction.arbitrator, _transactionId, _msgSender(), _evidence);
+        emit Evidence(transaction.arbitrator, _transactionId, sender, _evidence);
 
-        uint256 party = talentLayerIdContract.walletOfOwner(_msgSender());
+        uint256 party = talentLayerIdContract.walletOfOwner(sender);
         emit EvidenceSubmitted(_transactionId, party, _evidence);
     }
 
@@ -692,13 +693,14 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      *  @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
      */
     function rule(uint256 _disputeID, uint256 _ruling) public {
+        address sender = _msgSender();
         uint256 transactionId = disputeIDtoTransactionID[_disputeID];
         Transaction storage transaction = transactions[transactionId];
 
-        require(_msgSender() == address(transaction.arbitrator), "The caller must be the arbitrator.");
+        require(sender == address(transaction.arbitrator), "The caller must be the arbitrator.");
         require(transaction.status == Status.DisputeCreated, "The dispute has already been resolved.");
 
-        emit Ruling(Arbitrator(_msgSender()), _disputeID, _ruling);
+        emit Ruling(Arbitrator(sender), _disputeID, _ruling);
 
         _executeRuling(transactionId, _ruling);
     }
@@ -839,11 +841,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @param _metaEvidence The meta evidence of the transaction
      * @param _sellerId The ID of the seller
      */
-    function _afterCreateTransaction(
-        uint256 _transactionId,
-        string memory _metaEvidence,
-        uint256 _sellerId
-    ) internal {
+    function _afterCreateTransaction(uint256 _transactionId, string memory _metaEvidence, uint256 _sellerId) internal {
         Transaction storage transaction = transactions[_transactionId];
 
         uint256 sender = talentLayerIdContract.walletOfOwner(transaction.sender);
@@ -873,11 +871,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @param _token The token to transfer
      * @param _amount The amount of tokens to transfer
      */
-    function _deposit(
-        address _sender,
-        address _token,
-        uint256 _amount
-    ) private {
+    function _deposit(address _sender, address _token, uint256 _amount) private {
         require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
     }
 
@@ -962,7 +956,10 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @param _proposalId The id of the proposal
      * @return proposal proposal struct, service The service struct, sender The sender address, receiver The receiver address
      */
-    function _getTalentLayerData(uint256 _serviceId, uint256 _proposalId)
+    function _getTalentLayerData(
+        uint256 _serviceId,
+        uint256 _proposalId
+    )
         private
         returns (
             IServiceRegistry.Proposal memory proposal,
@@ -984,11 +981,10 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @param _proposalId The id of the proposal
      * @return The Proposal struct
      */
-    function _getProposal(uint256 _serviceId, uint256 _proposalId)
-        private
-        view
-        returns (IServiceRegistry.Proposal memory)
-    {
+    function _getProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) private view returns (IServiceRegistry.Proposal memory) {
         return serviceRegistryContract.getProposal(_serviceId, _proposalId);
     }
 
@@ -1007,11 +1003,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
      */
-    function _transferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.transfer(_amount);
         } else {
@@ -1019,11 +1011,7 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
         }
     }
 
-    function _safeTransferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _safeTransferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.call{value: _amount}("");
         } else {
@@ -1037,11 +1025,10 @@ contract TalentLayerEscrow is ERC2771Recipient, IArbitrable {
      * @param _platformEscrowFeeRate The platform fee
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformEscrowFeeRate)
-        private
-        view
-        returns (uint256 totalEscrowAmount)
-    {
+    function _calculateTotalEscrowAmount(
+        uint256 _amount,
+        uint256 _platformEscrowFeeRate
+    ) private view returns (uint256 totalEscrowAmount) {
         return
             _amount +
             (((_amount * protocolEscrowFeeRate) +
