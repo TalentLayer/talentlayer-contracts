@@ -88,7 +88,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     /**
      * @notice Token Id counter
      */
-    CountersUpgradeable.Counter nextTokenId;
+    CountersUpgradeable.Counter private _nextTokenId;
 
     /**
      * @notice Test variable
@@ -112,7 +112,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         validArbitrators[address(0)] = true; // The zero address means no arbitrator.
         updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
         // Increment counter to start tokenIds at index 1
-        nextTokenId.increment();
+        _nextTokenId.increment();
         testString = "The Test String";
     }
 
@@ -133,7 +133,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @return The Platform fee
      */
     function getPlatformEscrowFeeRate(uint256 _platformId) external view returns (uint16) {
-        require(_platformId > 0 && _platformId < nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
         return platforms[_platformId].fee;
     }
 
@@ -143,7 +143,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @return Arbitrator The Platform arbitrator
      */
     function getPlatform(uint256 _platformId) external view returns (Platform memory) {
-        require(_platformId > 0 && _platformId < nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
         return platforms[_platformId];
     }
 
@@ -155,7 +155,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     function getPlatformIdFromAddress(address _owner) public view returns (uint256) {
         uint256 currentTokenId = 1;
 
-        while (currentTokenId < nextTokenId.current()) {
+        while (currentTokenId < _nextTokenId.current()) {
             if (_ownerOf(currentTokenId) == _owner) {
                 return currentTokenId;
             }
@@ -169,7 +169,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      */
     function totalSupply() public view returns (uint256) {
         unchecked {
-            return nextTokenId.current() - 1;
+            return _nextTokenId.current() - 1;
         }
     }
 
@@ -181,7 +181,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _platformName Platform name
      */
     function mint(string memory _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
-        _safeMint(msg.sender, nextTokenId.current());
+        _safeMint(msg.sender, _nextTokenId.current());
         _afterMint(_platformName, msg.sender);
     }
 
@@ -197,7 +197,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         canMint(_platformName, _platformAddress)
         onlyRole(MINT_ROLE)
     {
-        _safeMint(_platformAddress, nextTokenId.current());
+        _safeMint(_platformAddress, _nextTokenId.current());
         _afterMint(_platformName, _platformAddress);
     }
 
@@ -208,7 +208,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _newCid New IPFS URI
      */
     function updateProfileData(uint256 _platformId, string memory _newCid) public {
-        require(ownerOf(_platformId) == msg.sender);
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
 
         platforms[_platformId].dataUri = _newCid;
@@ -333,8 +333,8 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @dev Increments the nextTokenId counter.
      */
     function _afterMint(string memory _platformName, address _platformAddress) private {
-        uint256 platformId = nextTokenId.current();
-        nextTokenId.increment();
+        uint256 platformId = _nextTokenId.current();
+        _nextTokenId.increment();
         Platform storage platform = platforms[platformId];
         platform.name = _platformName;
         platform.id = platformId;
@@ -351,7 +351,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _platformId TalentLayer Platform ID
      */
     function isValid(uint256 _platformId) external view {
-        require(_platformId > 0 && _platformId < nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
     }
 
     // =========================== Overrides ==============================
