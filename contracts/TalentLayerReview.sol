@@ -367,8 +367,9 @@ contract TalentLayerReview is ERC2771Recipient, ERC165, IERC721, IERC721Metadata
         address owner = TalentLayerReview.ownerOf(tokenId);
         require(to != owner, "TalentLayerReview: approval to current owner");
 
+        address sender = _msgSender();
         require(
-            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
+            sender == owner || isApprovedForAll(owner, sender),
             "TalentLayerReview: approve caller is not token owner nor approved for all"
         );
 
