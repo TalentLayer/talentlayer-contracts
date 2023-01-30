@@ -124,10 +124,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /**
      * @notice Allows retrieval of a Platform fee
      * @param _platformId Platform Id to check
-     * @return uint16 The Platform fee
+     * @return The Platform fee
      */
     function getPlatformEscrowFeeRate(uint256 _platformId) external view returns (uint16) {
-        require(_platformId > 0 && _platformId < nextTokenId.current(), "This plateForm Id is not valid");
+        isValid(_platformId);
         return platforms[_platformId].fee;
     }
 
@@ -137,19 +137,19 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @return Arbitrator The Platform arbitrator
      */
     function getPlatform(uint256 _platformId) external view returns (Platform memory) {
-        require(_platformId > 0 && _platformId < nextTokenId.current(), "This plateForm Id is not valid");
+        isValid(_platformId);
         return platforms[_platformId];
     }
 
     /**
      * @notice Allows getting the Platform ID from an address
      * @param _owner Platform Address to check
-     * @return uint256 the Platform Id associated to this address
+     * @return The Platform Id associated to this address
      */
     function getPlatformIdFromAddress(address _owner) public view returns (uint256) {
         uint256 currentTokenId = 1;
 
-        while (currentTokenId <= nextTokenId.current()) {
+        while (currentTokenId < nextTokenId.current()) {
             if (_ownerOf(currentTokenId) == _owner) {
                 return currentTokenId;
             }
@@ -289,9 +289,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
-     * Adds a new available arbitrator.
+     * @notice Adds a new available arbitrator.
      * @param _arbitrator address of the arbitrator
      * @param _isInternal whether the arbitrator is internal (is part of TalentLayer) or not
+     * @dev You need to have DEFAULT_ADMIN_ROLE to use this function
      */
     function addArbitrator(address _arbitrator, bool _isInternal) public onlyRole(DEFAULT_ADMIN_ROLE) {
         validArbitrators[address(_arbitrator)] = true;
@@ -299,8 +300,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
-     * Removes an available arbitrator.
+     * @notice Removes an available arbitrator.
      * @param _arbitrator address of the arbitrator
+     * @dev You need to have DEFAULT_ADMIN_ROLE to use this function
      */
     function removeArbitrator(address _arbitrator) public onlyRole(DEFAULT_ADMIN_ROLE) {
         validArbitrators[address(_arbitrator)] = false;
@@ -308,8 +310,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
-     * Updates the minimum timeout for paying the arbitration fee.
+     * @notice Updates the minimum timeout for paying the arbitration fee.
      * @param _minArbitrationFeeTimeout The new minimum timeout
+     * @dev You need to have DEFAULT_ADMIN_ROLE to use this function
      */
     function updateMinArbitrationFeeTimeout(uint256 _minArbitrationFeeTimeout) public onlyRole(DEFAULT_ADMIN_ROLE) {
         minArbitrationFeeTimeout = _minArbitrationFeeTimeout;
@@ -320,7 +323,8 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Update Platform name mapping and emit event after mint.
-     * @param _platformName Name of the platform
+     * @param _platformName Name of the platform.
+     * @dev Increments the nextTokenId counter.
      */
     function _afterMint(string memory _platformName, address _platformAddress) private {
         uint256 platformId = nextTokenId.current();
@@ -341,7 +345,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId TalentLayer Platform ID
      */
     function isValid(uint256 _platformId) external view {
-        require(_platformId > 0 && _platformId <= nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < nextTokenId.current(), "Invalid platform ID");
     }
 
     // =========================== Overrides ==============================
@@ -360,6 +364,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
             ERC721Upgradeable.supportsInterface(interfaceId) || AccessControlUpgradeable.supportsInterface(interfaceId);
     }
 
+    /**
+     * @dev Override to prevent token transfer.
+     */
     function transferFrom(
         address from,
         address to,
@@ -368,6 +375,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         revert("Not allowed");
     }
 
+    /**
+     * @dev Override to prevent token transfer.
+     */
     function safeTransferFrom(
         address from,
         address to,
@@ -376,10 +386,18 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         revert("Not allowed");
     }
 
+    /**
+     * @notice Implementation of the {IERC721Metadata-tokenURI} function.
+     * @param tokenId The ID of the token
+     */
     function tokenURI(uint256 tokenId) public view virtual override(ERC721Upgradeable) returns (string memory) {
         return _buildTokenURI(tokenId);
     }
 
+    /**
+     * @notice Builds the token URI
+     * @param id The ID of the token
+     */
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
         string memory platformName = platforms[id].name;
 
@@ -424,7 +442,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     // =========================== Modifiers ==============================
 
     /**
-     * Check if Platform is able to mint a new Platform ID.
+     * @notice Check if Platform is able to mint a new Platform ID.
      * @param _platformName name for the platform
      * @param _platformAddress address of the platform associated with the ID
      */
@@ -440,7 +458,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     // =========================== Events ==============================
 
     /**
-     * Emit when new Platform ID is minted.
+     * @notice Emit when new Platform ID is minted.
      * @param _platformOwnerAddress Address of the owner of the PlatformID
      * @param _tokenId New Platform ID
      * @param _platformName Name of the platform
@@ -456,26 +474,26 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     );
 
     /**
-     * Emit when Cid is updated for a platform.
+     * @notice Emit when Cid is updated for a platform.
      * @param _tokenId Platform ID concerned
      * @param _newCid New URI
      */
     event CidUpdated(uint256 indexed _tokenId, string _newCid);
 
     /**
-     * Emit when mint fee is updated
+     * @notice Emit when mint fee is updated
      * @param _mintFee The new mint fee
      */
     event MintFeeUpdated(uint256 _mintFee);
 
     /**
-     * Emit when the fee is updated for a platform
+     * @notice Emit when the fee is updated for a platform
      * @param _platformEscrowFeeRate The new fee
      */
     event PlatformEscrowFeeRateUpdated(uint256 _platformId, uint16 _platformEscrowFeeRate);
 
     /**
-     * Emit after the arbitrator is updated for a platform
+     * @notice Emit after the arbitrator is updated for a platform
      * @param _platformId The ID of the platform
      * @param _arbitrator The address of the new arbitrator
      * @param _extraData The new extra data for the arbitrator
@@ -483,14 +501,14 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     event ArbitratorUpdated(uint256 _platformId, Arbitrator _arbitrator, bytes _extraData);
 
     /**
-     * Emit after the arbitration fee timeout is updated for a platform
+     * @notice Emit after the arbitration fee timeout is updated for a platform
      * @param _platformId The ID of the platform
      * @param _arbitrationFeeTimeout The new arbitration fee timeout
      */
     event ArbitrationFeeTimeoutUpdated(uint256 _platformId, uint256 _arbitrationFeeTimeout);
 
     /**
-     * Emit after the minimum arbitration fee timeout is updated
+     * @notice Emit after the minimum arbitration fee timeout is updated
      * @param _minArbitrationFeeTimeout The new arbitration fee timeout
      */
     event MinArbitrationFeeTimeoutUpdated(uint256 _minArbitrationFeeTimeout);
