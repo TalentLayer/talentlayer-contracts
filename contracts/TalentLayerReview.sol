@@ -119,6 +119,8 @@ contract TalentLayerReview is
         address _serviceRegistryAddress,
         address _talentLayerPlatformIdAddress
     ) public initializer {
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
         _totalSupply = 0;
         _name = name_;
         _symbol = symbol_;
