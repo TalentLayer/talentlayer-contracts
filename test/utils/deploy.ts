@@ -97,11 +97,11 @@ export async function deploy(
   const simpleERC20 = await SimpleERC20.deploy()
 
   return [
-    talentLayerID,
-    talentLayerPlatformID,
-    talentLayerEscrow,
+    talentLayerID as TalentLayerID,
+    talentLayerPlatformID as TalentLayerPlatformID,
+    talentLayerEscrow as TalentLayerEscrow,
     talentLayerArbitrator,
-    serviceRegistry,
+    serviceRegistry as ServiceRegistry,
     talentLayerReview,
     mockProofOfHumanity,
     simpleERC20,
