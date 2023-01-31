@@ -152,6 +152,18 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
+    // =========================== Modifiers ==============================
+
+    /**
+     * @notice Check if the given address is either the owner of the delegator of the given tokenId
+     * @param _tokenId the tokenId
+     * @param _address the address to check
+     */
+    modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
+        require(tlId.ownerOf(_tokenId) == _address || tlId.isDelegator(_tokenId, _address));
+        _;
+    }
+
     // =========================== Initializers ==============================
 
     /**
@@ -205,11 +217,12 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function createProposal(
+        uint256 _tokenID,
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
-    ) public {
+    ) public onlyOwnerOrDelegator(_tokenID, msg.sender) {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You should have a TalentLayerId");
 
