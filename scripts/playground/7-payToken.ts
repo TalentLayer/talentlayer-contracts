@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../config'
+import { Network } from '../utils/config'
 const hre = require('hardhat')
 /*
 In this script  Alice will release the full token Amount in token to Dave
@@ -23,7 +23,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch((error) => {
+main().catch(error => {
   console.error(error)
   process.exitCode = 1
 })

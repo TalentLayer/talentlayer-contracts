@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../config'
+import { Network } from '../../utils/config'
 import { ConfigProperty, get } from '../../../configManager'
 
 /**
@@ -17,7 +17,7 @@ task('update-min-arbitration-fee-timeout', 'Mints platform Ids to addresses')
 
     const platformIdContract = await ethers.getContractAt(
       'TalentLayerPlatformID',
-      get(network.name as any as Network, ConfigProperty.TalentLayerPlatformID),
+      get((network.name as any) as Network, ConfigProperty.TalentLayerPlatformID),
       deployer,
     )
 

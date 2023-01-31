@@ -20,7 +20,7 @@
 
 ## Step 1: Contract deployment
 
-- Deploy TL contracts: `npx hardhat deploy --network avalanche --verify`
+- Deploy TL contracts: `npx hardhat deploy-full --network avalanche --verify`
 
 ## Step 2: Setup data
 
