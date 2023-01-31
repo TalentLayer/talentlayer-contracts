@@ -103,7 +103,10 @@ task('deploy')
         serviceRegistry.address,
         talentLayerPlatformID.address,
       ]
-      const talentLayerReview = await upgrades.deployProxy(TalentLayerReview, talentLayerReviewArgs)
+      const talentLayerReview = await upgrades.deployProxy(TalentLayerReview, talentLayerReviewArgs, {
+        timeout: 0,
+        pollingInterval: 10000,
+      })
       if (verify) {
         await talentLayerReview.deployTransaction.wait(5)
         await run('verify:verify', {
