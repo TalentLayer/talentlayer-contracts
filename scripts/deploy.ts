@@ -139,7 +139,10 @@ task('deploy')
         talentLayerID.address,
         talentLayerPlatformID.address,
       ]
-      const talentLayerEscrow = await TalentLayerEscrow.deploy(...talentLayerEscrowArgs)
+      const talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, talentLayerEscrowArgs, {
+        timeout: 0,
+        pollingInterval: 10000,
+      })
       if (verify) {
         await talentLayerEscrow.deployTransaction.wait(5)
         await run('verify:verify', {
