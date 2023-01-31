@@ -1,6 +1,6 @@
 import { formatEther } from 'ethers/lib/utils'
 import { task } from 'hardhat/config'
-import { getConfig, Network, NetworkConfig } from '../../config'
+import { getConfig, Network, NetworkConfig } from '../../utils/config'
 import { set, ConfigProperty, get } from '../../../configManager'
 
 /**

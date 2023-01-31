@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../config'
+import { Network } from '../../utils/config'
 import { arbitrationCost, transactionId } from './constants'
 
 const hre = require('hardhat')
@@ -30,7 +30,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch((error) => {
+main().catch(error => {
   console.error(error)
   process.exitCode = 1
 })

@@ -1,4 +1,4 @@
-import { Network } from './scripts/config'
+import { Network } from './scripts/utils/config'
 const fs = require('fs')
 
 export enum ConfigProperty {

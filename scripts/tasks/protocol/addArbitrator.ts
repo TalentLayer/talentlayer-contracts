@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../config'
+import { Network } from '../../utils/config'
 import { ConfigProperty, get } from '../../../configManager'
 
 /**
@@ -18,7 +18,7 @@ task('add-arbitrator', 'Adds a new available arbitrator')
 
     const platformIdContract = await ethers.getContractAt(
       'TalentLayerPlatformID',
-      get(network.name as any as Network, ConfigProperty.TalentLayerPlatformID),
+      get((network.name as any) as Network, ConfigProperty.TalentLayerPlatformID),
       deployer,
     )
 
