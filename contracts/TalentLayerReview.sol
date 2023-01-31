@@ -3,13 +3,15 @@
 
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import {ERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
@@ -18,9 +20,16 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  * @title TalentLayer Review Contract
  * @author TalentLayer Team
  */
-contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
-    using Address for address;
-    using Strings for uint256;
+contract TalentLayerReview is
+    ContextUpgradeable,
+    ERC165Upgradeable,
+    IERC721Upgradeable,
+    IERC721MetadataUpgradeable,
+    OwnableUpgradeable,
+    UUPSUpgradeable
+{
+    using AddressUpgradeable for address;
+    using StringsUpgradeable for uint256;
 
     // Struct Review
     struct Review {
@@ -43,7 +52,7 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @notice Number of review tokens
      */
-    uint256 public _totalSupply = 0;
+    uint256 public _totalSupply;
 
     /**
      * @notice Review Id to Review struct
@@ -96,13 +105,21 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      */
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
-    constructor(
+    // =========================== Initializers ==============================
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
         string memory name_,
         string memory symbol_,
         address _talentLayerIdAddress,
         address _serviceRegistryAddress,
         address _talentLayerPlatformIdAddress
-    ) {
+    ) public initializer {
+        _totalSupply = 0;
         _name = name_;
         _symbol = symbol_;
         tlId = ITalentLayerID(_talentLayerIdAddress);
@@ -170,8 +187,10 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         bytes memory _data
     ) private returns (bool) {
         if (_to.isContract()) {
-            try IERC721Receiver(_to).onERC721Received(_msgSender(), _from, _tokenId, _data) returns (bytes4 retval) {
-                return retval == IERC721Receiver.onERC721Received.selector;
+            try IERC721ReceiverUpgradeable(_to).onERC721Received(_msgSender(), _from, _tokenId, _data) returns (
+                bytes4 retval
+            ) {
+                return retval == IERC721ReceiverUpgradeable.onERC721Received.selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert("TalentLayerReview: transfer to non ERC721Receiver implementer");
@@ -304,6 +323,8 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
      */
     function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
 
+    function _authorizeUpgrade(address newImplementation) internal override(UUPSUpgradeable) onlyOwner {}
+
     // =========================== External functions ==========================
 
     // =========================== Overrides ===================================
@@ -311,10 +332,12 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
         return
-            interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
+            interfaceId == type(IERC721Upgradeable).interfaceId ||
+            interfaceId == type(IERC721MetadataUpgradeable).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
