@@ -7,13 +7,13 @@ import "@openzeppelin/hardhat-upgrades";
 import 'hardhat-contract-sizer'
 import './scripts/tasks/deploy/01-full'
 import './scripts/tasks/deploy/02-service-registry-v2'
-import './scripts/wallet'
+import './scripts/utils/wallet'
 import './scripts/tasks/protocol/mintPlatformIdForAddress'
 import './scripts/tasks/protocol/mintTalentLayerId'
 import './scripts/tasks/protocol/addArbitrator'
 import './scripts/tasks/protocol/removeArbitrator'
 import './scripts/tasks/protocol/updateMinArbitrationFeeTimeout'
-import { Network } from './scripts/config'
+import { Network } from './scripts/utils/config'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
 
@@ -37,7 +37,7 @@ function getChainConfig(chain: Network): NetworkUserConfig {
       jsonRpcUrl = 'https://rpc.ankr.com/gnosis'
       break
     case Network.GOERLI:
-      jsonRpcUrl = 'https://goerli.infura.io/v3/' + infuraApiKey
+      jsonRpcUrl = 'https://endpoints.omniatech.io/v1/eth/goerli/8381c71e79294a30b2333399e4c524f5'
       break
     case Network.KOVAN:
       jsonRpcUrl = 'https://kovan.infura.io/v3/' + infuraApiKey
@@ -63,7 +63,6 @@ function getChainConfig(chain: Network): NetworkUserConfig {
     },
     chainId: chain,
     url: jsonRpcUrl,
-    gasMultiplier: 5,
   }
 }
 
