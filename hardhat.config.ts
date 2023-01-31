@@ -5,7 +5,8 @@ import { resolve } from 'path'
 import '@nomicfoundation/hardhat-toolbox'
 import "@openzeppelin/hardhat-upgrades";
 import 'hardhat-contract-sizer'
-import './scripts/deploy'
+import './scripts/tasks/deploy/01-full'
+import './scripts/tasks/deploy/02-service-registry-v2'
 import './scripts/wallet'
 import './scripts/tasks/protocol/mintPlatformIdForAddress'
 import './scripts/tasks/protocol/mintTalentLayerId'
@@ -62,6 +63,7 @@ function getChainConfig(chain: Network): NetworkUserConfig {
     },
     chainId: chain,
     url: jsonRpcUrl,
+    gasMultiplier: 5,
   }
 }
 
