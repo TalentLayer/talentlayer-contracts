@@ -47,7 +47,10 @@ task('deploy')
 
       // Deploy TalentLayerPlatformID contract
       const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
-      const talentLayerPlatformID = await TalentLayerPlatformID.deploy()
+      const talentLayerPlatformID = await upgrades.deployProxy(TalentLayerPlatformID, {
+        timeout: 0,
+        pollingInterval: 10000,
+      })
       if (verify) {
         await talentLayerPlatformID.deployTransaction.wait(5)
         await run('verify:verify', {
