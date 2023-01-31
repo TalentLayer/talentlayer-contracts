@@ -68,13 +68,19 @@ export async function deploy(
 
   // Deploy TalentLayerEscrow and escrow role on ServiceRegistry
   const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
-  const talentLayerEscrow = await TalentLayerEscrow.deploy(
+  const TalentLayerEscrowArgs: [string, string, string] = [
     serviceRegistry.address,
     talentLayerID.address,
     talentLayerPlatformID.address,
-  )
+  ]
+  let talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
   const escrowRole = await serviceRegistry.ESCROW_ROLE()
   await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
+
+  if (applyUpgrade) {
+    const TalentLayerEscrowV2 = await ethers.getContractFactory('TalentLayerEscrowV2')
+    talentLayerEscrow = await upgrades.upgradeProxy(talentLayerEscrow.address, TalentLayerEscrowV2)
+  }
 
   // Deploy TalentLayerReview
   const TalentLayerReview = await ethers.getContractFactory('TalentLayerReview')
