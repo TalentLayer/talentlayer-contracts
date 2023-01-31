@@ -7,13 +7,13 @@ import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cou
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "./Arbitrator.sol";
+import "../Arbitrator.sol";
 
 /**
  * @title Platform ID Contract
  * @author TalentLayer Team
  */
-contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // =========================== Variables ==============================
@@ -90,6 +90,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     CountersUpgradeable.Counter private _nextTokenId;
 
+    /**
+     * @notice Test variable
+     */
+    string public testString;
+
     // =========================== Initializers ==============================
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -109,6 +114,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
         // Increment counter to start tokenIds at index 1
         _nextTokenId.increment();
+        testString = "The Test String";
     }
 
     // =========================== View functions ==============================
