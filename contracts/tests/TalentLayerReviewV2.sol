@@ -12,15 +12,15 @@ import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Stri
 import {ERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
-import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
+import {IServiceRegistry} from "../interfaces/IServiceRegistry.sol";
+import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
 
 /**
  * @title TalentLayer Review Contract
  * @author TalentLayer Team
  */
-contract TalentLayerReview is
+contract TalentLayerReviewV2 is
     ContextUpgradeable,
     ERC165Upgradeable,
     IERC721Upgradeable,
@@ -119,8 +119,8 @@ contract TalentLayerReview is
         address _serviceRegistryAddress,
         address _talentLayerPlatformIdAddress
     ) public initializer {
-        __AccessControl_init();
         __UUPSUpgradeable_init();
+        __Ownable_init();
         _totalSupply = 0;
         _name = name_;
         _symbol = symbol_;
@@ -247,7 +247,7 @@ contract TalentLayerReview is
      * @param _tokenId The ID of the review token
      */
     function _isApprovedOrOwner(address _spender, uint256 _tokenId) internal view virtual returns (bool) {
-        address owner = TalentLayerReview.ownerOf(_tokenId);
+        address owner = TalentLayerReviewV2.ownerOf(_tokenId);
         return (_spender == owner || isApprovedForAll(owner, _spender) || getApproved(_tokenId) == _spender);
     }
 
@@ -289,7 +289,7 @@ contract TalentLayerReview is
      * @dev Bocks the transfer function to restrict the use to only safe transfer
      * @param _from The address of the sender
      * @param _to The address of the recipient
-     * @param _tokenId The ID of the review token
+     * @param _tokenId The ID of the review tokenTalentLayerReview
      */
     function _transfer(address _from, address _to, uint256 _tokenId) internal virtual {}
 
@@ -300,7 +300,7 @@ contract TalentLayerReview is
      */
     function _approve(address _to, uint256 _tokenId) internal virtual {
         _tokenApprovals[_tokenId] = _to;
-        emit Approval(TalentLayerReview.ownerOf(_tokenId), _to, _tokenId);
+        emit Approval(TalentLayerReviewV2.ownerOf(_tokenId), _to, _tokenId);
     }
 
     /**
@@ -387,7 +387,7 @@ contract TalentLayerReview is
      * @dev See {IER721A-approve}.
      */
     function approve(address to, uint256 tokenId) public virtual override {
-        address owner = TalentLayerReview.ownerOf(tokenId);
+        address owner = TalentLayerReviewV2.ownerOf(tokenId);
         require(to != owner, "TalentLayerReview: approval to current owner");
 
         require(
