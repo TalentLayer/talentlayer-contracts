@@ -7,7 +7,7 @@ import { set, ConfigProperty, get } from '../../../configManager'
  * @notice Task created only for test purposes of the upgradable process
  * @usage npx hardhat deploy-service-registry-v2 --verify --network goerli
  */
-task('deploy-service-registry-v2')
+task('deploy-service-registry-v2', 'Deploy the V2 upgrade of ServiceRegistry')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, run, network }) => {
     try {

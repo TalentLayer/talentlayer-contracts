@@ -7,7 +7,7 @@ import { set, ConfigProperty } from '../../../configManager'
  * @notice Task created only for test purposes of the upgradable process
  * @usage npx hardhat deploy-full --use-pohmock --use-test-erc20 --verify --network goerli
  */
-task('deploy-full')
+task('deploy-full', 'Deploy all the contracts on their first version')
   .addFlag('usePohmock', 'deploy a mock of POH')
   .addFlag('useTestErc20', 'deploy a mock ERC20 contract')
   .addFlag('verify', 'verify contracts on etherscan')
