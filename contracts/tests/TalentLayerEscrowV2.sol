@@ -6,13 +6,13 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "./interfaces/IServiceRegistry.sol";
-import "./interfaces/ITalentLayerID.sol";
-import "./interfaces/ITalentLayerPlatformID.sol";
-import "./IArbitrable.sol";
-import "./Arbitrator.sol";
+import "../interfaces/IServiceRegistry.sol";
+import "../interfaces/ITalentLayerID.sol";
+import "../interfaces/ITalentLayerPlatformID.sol";
+import "../IArbitrable.sol";
+import "../Arbitrator.sol";
 
-contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable, IArbitrable {
+contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable, IArbitrable {
     // =========================== Enum ==============================
 
     /**
@@ -291,6 +291,11 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @notice One-to-one relationship between the dispute and the transaction.
      */
     mapping(uint256 => uint256) public disputeIDtoTransactionID;
+
+    /**
+     * @notice Test variable to test upgradeability.
+     */
+    uint256 private testVariable;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
