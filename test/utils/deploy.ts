@@ -107,7 +107,7 @@ export async function deploy(
     talentLayerEscrow as TalentLayerEscrow,
     talentLayerArbitrator,
     serviceRegistry as ServiceRegistry,
-    talentLayerReview,
+    talentLayerReview as TalentLayerReview,
     mockProofOfHumanity,
     simpleERC20,
   ]
