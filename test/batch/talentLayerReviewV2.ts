@@ -36,13 +36,13 @@ async function deployAndSetup(): Promise<
     talentLayerReview,
   ] = await deploy(false)
 
-  // Deployer mints Platform Id for Carol
-  const platformName = 'HireVibes'
-  await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
+  // // Deployer mints Platform Id for Carol
+  // const platformName = 'HireVibes'
+  // await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
-  // Mint TL Id for Alice and Bob
-  await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
-  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
+  // // Mint TL Id for Alice and Bob
+  // await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
+  // await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry, talentLayerReview]
 }
