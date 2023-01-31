@@ -81,9 +81,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerID = await upgrades.deployProxy(TalentLayerID, talentLayerIDArgs)
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-      const talentLayerIDImplementationAddress = await upgrades.erc1967.getImplementationAddress(
-        talentLayerPlatformID.address,
-      )
+      const talentLayerIDImplementationAddress = await upgrades.erc1967.getImplementationAddress(talentLayerID.address)
       if (verify) {
         await talentLayerID.deployTransaction.wait(5)
         await run('verify:verify', {
@@ -111,7 +109,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       })
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const serviceRegistryImplementationAddress = await upgrades.erc1967.getImplementationAddress(
-        talentLayerPlatformID.address,
+        serviceRegistry.address,
       )
 
       if (verify) {
@@ -175,18 +173,29 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         talentLayerID.address,
         talentLayerPlatformID.address,
       ]
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, talentLayerEscrowArgs, {
         timeout: 0,
         pollingInterval: 10000,
       })
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const talentLayerEscrowImplementationAddress = await upgrades.erc1967.getImplementationAddress(
+        talentLayerEscrow.address,
+      )
       if (verify) {
         await talentLayerEscrow.deployTransaction.wait(5)
         await run('verify:verify', {
           address: talentLayerEscrow.address,
           constructorArguments: talentLayerEscrowArgs,
         })
+        await run('verify:verify', {
+          address: talentLayerEscrowImplementationAddress,
+        })
       }
-      console.log('TalentLayerEscrow contract address:', talentLayerEscrow.address)
+      console.log('TalentLayerEscrow contract addresses:', {
+        proxy: talentLayerEscrow.address,
+        implementation: talentLayerEscrowImplementationAddress,
+      })
 
       set((network.name as any) as Network, ConfigProperty.TalentLayerEscrow, talentLayerEscrow.address)
 
