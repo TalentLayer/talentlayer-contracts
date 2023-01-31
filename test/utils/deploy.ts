@@ -1,5 +1,4 @@
-const { upgrades } = require('hardhat')
-import { ethers } from 'hardhat'
+import { ethers, upgrades } from 'hardhat'
 import {
   ERC20,
   MockProofOfHumanity,
@@ -68,13 +67,19 @@ export async function deploy(
 
   // Deploy TalentLayerEscrow and escrow role on ServiceRegistry
   const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
-  const talentLayerEscrow = await TalentLayerEscrow.deploy(
+  const TalentLayerEscrowArgs: [string, string, string] = [
     serviceRegistry.address,
     talentLayerID.address,
     talentLayerPlatformID.address,
-  )
+  ]
+  let talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
   const escrowRole = await serviceRegistry.ESCROW_ROLE()
   await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
+
+  if (applyUpgrade) {
+    const TalentLayerEscrowV2 = await ethers.getContractFactory('TalentLayerEscrowV2')
+    talentLayerEscrow = await upgrades.upgradeProxy(talentLayerEscrow.address, TalentLayerEscrowV2)
+  }
 
   // Deploy TalentLayerReview
   const TalentLayerReview = await ethers.getContractFactory('TalentLayerReview')
@@ -97,11 +102,11 @@ export async function deploy(
   const simpleERC20 = await SimpleERC20.deploy()
 
   return [
-    talentLayerID,
-    talentLayerPlatformID,
-    talentLayerEscrow,
+    talentLayerID as TalentLayerID,
+    talentLayerPlatformID as TalentLayerPlatformID,
+    talentLayerEscrow as TalentLayerEscrow,
     talentLayerArbitrator,
-    serviceRegistry,
+    serviceRegistry as ServiceRegistry,
     talentLayerReview,
     mockProofOfHumanity,
     simpleERC20,
