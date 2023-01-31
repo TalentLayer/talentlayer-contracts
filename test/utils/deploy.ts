@@ -85,7 +85,12 @@ export async function deploy(
     serviceRegistry.address,
     talentLayerPlatformID.address,
   ]
-  const talentLayerReview = await TalentLayerReview.deploy(...talentLayerReviewArgs)
+  let talentLayerReview = await upgrades.deployProxy(TalentLayerReview, talentLayerReviewArgs)
+
+  if (applyUpgrade) {
+    const TalentLayerReviewV2 = await ethers.getContractFactory('TalentLayerReviewV2')
+    talentLayerReview = await upgrades.upgradeProxy(talentLayerReview.address, TalentLayerReviewV2)
+  }
 
   // Deploy SimpleERC20 Token
   const SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
