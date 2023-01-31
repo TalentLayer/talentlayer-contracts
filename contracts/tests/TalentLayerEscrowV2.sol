@@ -226,8 +226,8 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
     /**
      * @notice The index of the protocol in the "platformIdToTokenToBalance" mapping
      */
-    uint8 private PROTOCOL_INDEX;
-    uint16 private FEE_DIVIDER;
+    uint8 private constant PROTOCOL_INDEX = 0;
+    uint16 private constant FEE_DIVIDER = 10000;
 
     /**
      * @notice Transactions stored in array with index = id
@@ -275,17 +275,17 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
     /**
      * @notice Amount of choices available for ruling the disputes
      */
-    uint8 private AMOUNT_OF_CHOICES;
+    uint8 constant AMOUNT_OF_CHOICES = 2;
 
     /**
      * @notice Ruling id for sender to win the dispute
      */
-    uint8 private SENDER_WINS;
+    uint8 constant SENDER_WINS = 1;
 
     /**
      * @notice Ruling id for receiver to win the dispute
      */
-    uint8 private RECEIVER_WINS;
+    uint8 constant RECEIVER_WINS = 2;
 
     /**
      * @notice One-to-one relationship between the dispute and the transaction.
@@ -325,11 +325,6 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
 
         updateProtocolEscrowFeeRate(100);
         updateOriginPlatformEscrowFeeRate(200);
-        PROTOCOL_INDEX = 0;
-        FEE_DIVIDER = 10000;
-        AMOUNT_OF_CHOICES = 2;
-        SENDER_WINS = 1;
-        RECEIVER_WINS = 2;
     }
 
     // =========================== View functions ==============================
