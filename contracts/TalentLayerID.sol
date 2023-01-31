@@ -263,6 +263,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     function addDelegator(uint256 _tokenId, address _delegator) external {
         require(ownerOf(_tokenId) == msg.sender);
         delegators[_tokenId][_delegator] = true;
+        emit DelegatorAdded(_tokenId, _delegator);
     }
 
     /**
@@ -272,6 +273,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     function removeDelegator(uint256 _tokenId, address _delegator) external {
         require(ownerOf(_tokenId) == msg.sender);
         delegators[_tokenId][_delegator] = false;
+        emit DelegatorRemoved(_tokenId, _delegator);
     }
 
     // =========================== Owner functions ==============================
@@ -505,4 +507,18 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _mintFee The new mint fee
      */
     event MintFeeUpdated(uint256 _mintFee);
+
+    /**
+     * Emit when a delegator is added for a user.
+     * @param _tokenId TalentLayer ID for the user
+     * @param _delegator Address of the delegator
+     */
+    event DelegatorAdded(uint256 _tokenId, address _delegator);
+
+    /**
+     * Emit when a delegator is removed for a user.
+     * @param _tokenId TalentLayer ID for the user
+     * @param _delegator Address of the delegator
+     */
+    event DelegatorRemoved(uint256 _tokenId, address _delegator);
 }
