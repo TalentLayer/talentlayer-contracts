@@ -61,7 +61,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     CountersUpgradeable.Counter nextTokenId;
 
     /// Token ID to delegators
-    mapping(uint256 => mapping(address => bool)) internal delegators;
+    mapping(uint256 => mapping(address => bool)) private delegators;
 
     // =========================== Initializers ==============================
 
@@ -158,6 +158,15 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      */
     function isValid(uint256 _tokenId) external view {
         require(_tokenId > 0 && _tokenId < nextTokenId.current(), "Your ID is not a valid token ID");
+    }
+
+    /**
+     * @notice Check whether an address is a delegator for a Token Id
+     * @param _tokenId Token ID to check
+     * @param _address Address to check
+     */
+    function isDelegator(uint256 _tokenId, address _address) public view returns (bool) {
+        return delegators[_tokenId][_address];
     }
 
     // =========================== User functions ==============================
@@ -455,7 +464,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _address the address to check
      */
     modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
-        require(ownerOf(_tokenId) == _address || delegators[_tokenId][_address]);
+        require(ownerOf(_tokenId) == _address || isDelegator(_tokenId, _address));
         _;
     }
 
