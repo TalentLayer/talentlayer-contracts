@@ -1,18 +1,19 @@
-require('@openzeppelin/hardhat-upgrades');
 import type { HardhatUserConfig } from 'hardhat/config'
 import type { NetworkUserConfig } from 'hardhat/types'
 import { config as dotenvConfig } from 'dotenv'
 import { resolve } from 'path'
 import '@nomicfoundation/hardhat-toolbox'
+import "@openzeppelin/hardhat-upgrades";
 import 'hardhat-contract-sizer'
-import './scripts/deploy'
-import './scripts/wallet'
+import './scripts/tasks/deploy/01-full'
+import './scripts/tasks/deploy/02-service-registry-v2'
+import './scripts/utils/wallet'
 import './scripts/tasks/protocol/mintPlatformIdForAddress'
 import './scripts/tasks/protocol/mintTalentLayerId'
 import './scripts/tasks/protocol/addArbitrator'
 import './scripts/tasks/protocol/removeArbitrator'
 import './scripts/tasks/protocol/updateMinArbitrationFeeTimeout'
-import { Network } from './scripts/config'
+import { Network } from './scripts/utils/config'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
 

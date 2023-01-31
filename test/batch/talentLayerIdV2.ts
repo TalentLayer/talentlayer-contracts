@@ -1,9 +1,10 @@
 const { upgrades } = require('hardhat')
+
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { TalentLayerID, TalentLayerPlatformID } from '../../typechain-types'
-import { TalentLayerIDV2 } from '../../typechain-types/contracts/TalentLayerIDV2.sol'
+import { TalentLayerIDV2 } from '../../typechain-types/contracts/TalentLayerIDV2'
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1
