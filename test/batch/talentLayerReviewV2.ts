@@ -67,8 +67,8 @@ describe('TalentLayerReview V2 migration testing', function () {
 
   describe('Migrate to V2', async function () {
     it('Should deploy the V2 keeping the same address', async function () {
-      const TalentLayerIDV2 = await ethers.getContractFactory('TalentLayerIDV2')
-      talentLayerReviewV2 = await upgrades.upgradeProxy(talentLayerReview.address, TalentLayerIDV2)
+      const TalentLayerReviewV2 = await ethers.getContractFactory('TalentLayerReviewV2')
+      talentLayerReviewV2 = await upgrades.upgradeProxy(talentLayerReview.address, TalentLayerReviewV2)
 
       expect(talentLayerReviewV2.address).to.equal(talentLayerReview.address)
     })
