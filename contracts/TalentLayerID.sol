@@ -60,6 +60,9 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     /// TokenId counter
     CountersUpgradeable.Counter nextTokenId;
 
+    /// Token ID to delegators
+    mapping(uint256 => mapping(address => bool)) internal delegators;
+
     // =========================== Initializers ==============================
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -164,12 +167,10 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(msg.sender, _handle, _platformId)
-    {
+    function mint(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(msg.sender, _handle, _platformId) {
         _safeMint(msg.sender, nextTokenId.current());
         _afterMint(msg.sender, _handle, false, _platformId, msg.value);
     }
@@ -179,12 +180,10 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(msg.sender, _handle, _platformId)
-    {
+    function mintWithPoh(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(msg.sender, _handle, _platformId) {
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
         uint256 userTokenId = nextTokenId.current();
         _safeMint(msg.sender, userTokenId);
@@ -196,8 +195,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @notice Link Proof of Humanity to previously non-linked TalentLayerID.
      * @param _tokenId Token ID to link
      */
-    function activatePoh(uint256 _tokenId) public {
-        require(ownerOf(_tokenId) == msg.sender);
+    function activatePoh(uint256 _tokenId) public onlyOwnerOrDelegator(_tokenId, msg.sender) {
         require(pohRegistry.isRegistered(msg.sender), "You're address is not registerd for poh");
         profiles[_tokenId].pohAddress = msg.sender;
 
@@ -210,8 +208,10 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _tokenId Token ID to update
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(uint256 _tokenId, string memory _newCid) public {
-        require(ownerOf(_tokenId) == msg.sender);
+    function updateProfileData(
+        uint256 _tokenId,
+        string memory _newCid
+    ) public onlyOwnerOrDelegator(_tokenId, msg.sender) {
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profiles[_tokenId].dataUri = _newCid;
 
@@ -234,7 +234,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
         uint256 _recoveryKey,
         string calldata _handle,
         bytes32[] calldata _merkleProof
-    ) public {
+    ) public onlyOwnerOrDelegator(_tokenId, _oldAddress) {
         require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
         require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
         require(numberMinted(msg.sender) == 0, "You already have a token");
@@ -254,6 +254,24 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
         _transfer(_oldAddress, msg.sender, _tokenId);
 
         emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
+    }
+
+    /**
+     * @notice Allows to give rights to a delegator to perform actions for a user's profile
+     * @param _tokenId tokenId to add delegator for
+     */
+    function addDelegator(uint256 _tokenId, address _delegator) external {
+        require(ownerOf(_tokenId) == msg.sender);
+        delegators[_tokenId][_delegator] = true;
+    }
+
+    /**
+     * @notice Allows to remove rights from a delegator to perform actions for a user's profile
+     * @param _tokenId tokenId to remove delegator for
+     */
+    function removeDelegator(uint256 _tokenId, address _delegator) external {
+        require(ownerOf(_tokenId) == msg.sender);
+        delegators[_tokenId][_delegator] = false;
     }
 
     // =========================== Owner functions ==============================
@@ -339,11 +357,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the safeTransferFrom function
@@ -351,11 +365,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the burn function
@@ -436,6 +446,17 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
         talentLayerPlatformIdContract.isValid(_platformId);
         _;
     }
+
+    /**
+     * @notice Check if the given address is either the owner of the delegator of the given tokenId
+     * @param _tokenId the tokenId
+     * @param _address the address to check
+     */
+    modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
+        require(ownerOf(_tokenId) == _address || delegators[_tokenId][_address]);
+        _;
+    }
+
     // =========================== Events ==============================
 
     /**
