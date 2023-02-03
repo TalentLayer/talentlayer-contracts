@@ -121,16 +121,13 @@ describe('TalentLayer', function () {
       frank.address, // id 6
       //lili.address - lili is not register in Lens
     ])
-
     // Setup Lens strategy
     await talentLayerID.setThirdPartyStrategy(1, lensIDStrategy)
     await talentLayerID.getThirdPartyStrategy(1)
 
     // ==> We check if both strategies are set
     const pohStrategies0 = await talentLayerID.getThirdPartyStrategy(0)
-    console.log('poh strat', pohStrategies0)
     const lensStrategies1 = await talentLayerID.getThirdPartyStrategy(1)
-    console.log('Lens strat', lensStrategies1)
 
     // *********** Grant escrow role to TalentLayerEscrow ***********
     const escrowRole = await serviceRegistry.ESCROW_ROLE()
@@ -372,7 +369,7 @@ describe('TalentLayer', function () {
       const carolUserId = await talentLayerID.walletOfOwner(carol.address)
       await talentLayerID.connect(carol).associateThirdPartiesIDs(carolUserId, [0])
 
-      const carolAddress = ethers.utils.defaultAbiCoder.encode(['address'], [carol.address])
+      const carolAddress = carol.address.toLocaleLowerCase()
       const thirdPartyCarolPohId = await talentLayerID.getThirdPartyId(carolUserId, 0)
 
       expect(await thirdPartyCarolPohId).to.be.equal(carolAddress)
@@ -445,8 +442,8 @@ describe('TalentLayer', function () {
       expect(await talentLayerID.walletOfOwner(frank.address)).to.be.equal(frankUserId)
 
       const thirdPartyId = await talentLayerID.getThirdPartyId(frankUserId, strategiesID)
-      const frankIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [frank.address])
-      expect(thirdPartyId).to.be.equal(frankIdBytes)
+      const frankIdAddress = frank.address.toLocaleLowerCase()
+      expect(thirdPartyId).to.be.equal(frankIdAddress)
 
       // we check if the event is well emitted
       await expect(mint).to.emit(talentLayerID, 'ThirdPartyLinked').withArgs(frankUserId, strategiesID[0], thirdPartyId)
@@ -475,6 +472,9 @@ describe('TalentLayer', function () {
       const linkToThirdPartiesId = await talentLayerID.connect(alice).associateThirdPartiesIDs(aliceUserId, [1])
       const thirdPartyId = await talentLayerID.getThirdPartyId(aliceUserId, 1)
       const aliceIdBytes = ethers.utils.defaultAbiCoder.encode(['uint256'], [1])
+
+      // Alice is registered on Lens
+      const AliceIsRegisteredData = await lensID.isRegistered(alice.address)
 
       expect(thirdPartyId).to.be.equal(aliceIdBytes)
       // we check if the event is well emitted

@@ -29,10 +29,10 @@ contract LensID is IThirdPartyID, Ownable {
      * @param _userAddress address of the user
      */
     function isRegistered(address _userAddress) external view returns (bool, bytes memory) {
-        uint256 userThirdPartyId = lensHub.defaultProfile(_userAddress);
+        uint256 lensProfilesTokenId = lensHub.tokenOfOwnerByIndex(_userAddress, 0);
 
-        if (userThirdPartyId > 0) {
-            return (true, abi.encode(userThirdPartyId));
+        if (lensProfilesTokenId > 0) {
+            return (true, abi.encode(lensProfilesTokenId));
         } else {
             return (false, bytes(""));
         }

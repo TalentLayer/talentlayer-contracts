@@ -15,11 +15,8 @@ interface ILensHub {
     /// ************************
 
     /**
-     * @notice Returns default profile for a given wallet address
-     *
-     * @param wallet The address to find the default mapping
-     *
-     * @return uint256 The default profile id, which will be 0 if not mapped.
+     * @dev Returns a token ID owned by `owner` at a given `index` of its token list.
+     * Use along with {balanceOf} to enumerate all of ``owner``'s tokens.
      */
-    function defaultProfile(address wallet) external view returns (uint256);
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
 }
