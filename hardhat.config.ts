@@ -49,7 +49,7 @@ function getChainConfig(chain: Network): NetworkUserConfig {
       jsonRpcUrl = 'https://avalanche-fuji.infura.io/v3/' + infuraApiKey
       break
     case Network.MUMBAI:
-      jsonRpcUrl = 'https://polygon-mumbai.infura.io/v3/' + infuraApiKey
+      jsonRpcUrl = 'https://matic-mumbai.chainstacklabs.com'
       break
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey
