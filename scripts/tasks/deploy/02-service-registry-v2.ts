@@ -43,7 +43,7 @@ task('deploy-service-registry-v2', 'Deploy the V2 upgrade of ServiceRegistry')
       if (verify) {
         await serviceRegistryV2.deployTransaction.wait(5)
         await run('verify:verify', {
-          address: implementationAddress,
+          address: serviceRegistryV2.address,
           constructorArguments: [],
         })
       }
