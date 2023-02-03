@@ -297,34 +297,10 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
      */
     uint256 private testVariable;
 
+    // =========================== Initializers ==============================
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
-    }
-
-    // =========================== Initializers ==============================
-
-    /**
-     * @dev Called on contract deployment
-     * @param _serviceRegistryAddress Contract address to ServiceRegistry.sol
-     * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
-     * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
-     */
-    function initialize(
-        address _serviceRegistryAddress,
-        address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress
-    ) public initializer {
-        __Ownable_init();
-        __UUPSUpgradeable_init();
-
-        serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
-        talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
-        protocolWallet = payable(owner());
-
-        updateProtocolEscrowFeeRate(100);
-        updateOriginPlatformEscrowFeeRate(200);
     }
 
     // =========================== View functions ==============================

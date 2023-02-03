@@ -102,21 +102,6 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         _disableInitializers();
     }
 
-    function initialize() public initializer {
-        __ERC721_init("TalentLayerPlatformID", "TPID");
-        __AccessControl_init();
-        __UUPSUpgradeable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(MINT_ROLE, msg.sender);
-        _setupRole(OWNER_ROLE, msg.sender);
-        mintFee = 0;
-        validArbitrators[address(0)] = true; // The zero address means no arbitrator.
-        updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
-        // Increment counter to start tokenIds at index 1
-        _nextTokenId.increment();
-        testString = "The Test String";
-    }
-
     // =========================== View functions ==============================
 
     /**
@@ -169,9 +154,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return _nextTokenId.current() - 1;
-        }
+        return _nextTokenId.current() - 1;
     }
 
     // =========================== User functions ==============================

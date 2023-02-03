@@ -69,21 +69,6 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
         _disableInitializers();
     }
 
-    /**
-     * @notice First initializer function
-     * @param _pohAddress Proof Of Humanity contract address
-     * @param _talentLayerPlatformIdAddress TalentLayerPlatformId contract address
-     */
-    function initialize(address _pohAddress, address _talentLayerPlatformIdAddress) public initializer {
-        __Ownable_init();
-        __ERC721_init("TalentLayerID", "TID");
-        __UUPSUpgradeable_init();
-        pohRegistry = IProofOfHumanity(_pohAddress);
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
-        // Increment counter to start tokenIds at index 1
-        nextTokenId.increment();
-    }
-
     // =========================== View functions ==============================
 
     /**
@@ -99,9 +84,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return nextTokenId.current() - 1;
-        }
+        return nextTokenId.current() - 1;
     }
 
     /**
