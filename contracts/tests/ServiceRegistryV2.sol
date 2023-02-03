@@ -154,26 +154,10 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
     // @notice
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
+    // =========================== Initializers ==============================
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
-    }
-
-    // =========================== Initializers ==============================
-
-    /**
-     * @notice First initializer function
-     * @param _talentLayerIdAddress TalentLayerId contract address
-     * @param _talentLayerPlatformIdAddress TalentLayerPlatformId contract address
-     */
-    function initialize(address _talentLayerIdAddress, address _talentLayerPlatformIdAddress) public initializer {
-        __Ownable_init();
-        __AccessControl_init();
-        __UUPSUpgradeable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        tlId = ITalentLayerID(_talentLayerIdAddress);
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
-        nextServiceId = 1;
     }
 
     // =========================== View functions ==============================
