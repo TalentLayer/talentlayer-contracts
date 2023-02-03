@@ -163,9 +163,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return _nextTokenId.current() - 1;
-        }
+        return _nextTokenId.current() - 1;
     }
 
     // =========================== User functions ==============================

@@ -97,9 +97,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return nextTokenId.current() - 1;
-        }
+        return nextTokenId.current() - 1;
     }
 
     /**
