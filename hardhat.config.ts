@@ -4,6 +4,7 @@ import { config as dotenvConfig } from 'dotenv'
 import { resolve } from 'path'
 import '@nomicfoundation/hardhat-toolbox'
 import "@openzeppelin/hardhat-upgrades";
+import '@openzeppelin/hardhat-defender';
 import 'hardhat-contract-sizer'
 import './scripts/tasks/deploy/full'
 import './scripts/tasks/deploy/upgrade-proxy'
@@ -145,6 +146,10 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 1000000,
   },
+  defender: {
+    apiKey: process.env.DEFENDER_API_KEY || '',
+    apiSecret: process.env.DEFENDER_API_SECRET || '',
+  }
 }
 
 export default config

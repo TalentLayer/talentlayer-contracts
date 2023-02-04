@@ -10,7 +10,8 @@ export enum Network {
 }
 
 export type NetworkConfig = {
-  proofOfHumanityAddress: string
+  multisigAddress?: string
+  proofOfHumanityAddress?: string
 }
 
 const kovan: NetworkConfig = {
@@ -23,7 +24,9 @@ const gnosis = {} as NetworkConfig
 const goerli = {} as NetworkConfig
 const avalanche = {} as NetworkConfig
 const fuji = {} as NetworkConfig
-const mumbai = {} as NetworkConfig
+const mumbai = {
+  multisigAddress: '0x99f117069F9ED15476003502AD8D96107A180648',
+} as NetworkConfig
 
 export const configs: { [networkId in Network]: NetworkConfig } = {
   [Network.LOCAL]: local,
