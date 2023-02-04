@@ -8,9 +8,9 @@ import { ConfigProperty, get } from '../../../configManager'
  * @param {address} userAddress - The wallet address of the user
  * @param {string} userHandle - The handle of the user
  * @dev Example of script use:
- * npx hardhat mint-talentlayer-id-free --network localhost --platform 1 --address 0xF5b45162b92407dC1A6baF5e9316E5FF9e29f824 --handle zelda
+ * npx hardhat mint-talentlayer-id --network localhost --platform 1 --address 0xF5b45162b92407dC1A6baF5e9316E5FF9e29f824 --handle zelda
  */
-task('mint-talentlayer-id-free', 'Mints talentLayer Id to an addresses.')
+task('mint-talentlayer-id', 'Mints talentLayer Id to an address.')
   .addParam('platform', "The platform's id")
   .addParam('address', "The user's address")
   .addParam('handle', "The user's handle")

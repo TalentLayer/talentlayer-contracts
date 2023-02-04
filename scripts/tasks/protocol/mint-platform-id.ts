@@ -8,7 +8,7 @@ import { ConfigProperty, get } from '../../../configManager'
  * @param {string} address - The address of the platform
  * @dev Example of script use: "npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network goerli"
  */
-task('mint-platform-id', 'Mints platform Ids to addresses')
+task('mint-platform-id', 'Mints platform Ids for an address')
   .addParam('name', "The platform's name")
   .addParam('address', "The platform's address")
   .setAction(async (taskArgs, { ethers, network }) => {

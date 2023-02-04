@@ -7,7 +7,7 @@ import { ConfigProperty, get } from '../../../configManager'
  * @param {string} timeout - The new minimum arbitration fee timeout
  * @dev Example of script use: "npx hardhat update-min-arbitration-fee-timeout --timeout 14400 --network goerli"
  */
-task('update-min-arbitration-fee-timeout', 'Mints platform Ids to addresses')
+task('update-min-arbitration-fee-timeout', 'update the minimum timeout to pay the arbitration fee')
   .addParam('timeout', 'The new minimum arbitration fee timeout')
   .setAction(async (taskArgs, { ethers, network }) => {
     const { timeout } = taskArgs

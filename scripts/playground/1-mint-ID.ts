@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
+import { Network } from '../config'
 const hre = require('hardhat')
 
 /*
