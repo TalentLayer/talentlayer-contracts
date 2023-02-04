@@ -1714,7 +1714,7 @@
             "label": "tlId",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(ITalentLayerID)12463",
+            "type": "t_contract(ITalentLayerID)3237",
             "contract": "ServiceRegistryV2",
             "src": "contracts/tests/ServiceRegistryV2.sol:143"
           },
@@ -1722,7 +1722,7 @@
             "label": "talentLayerPlatformIdContract",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(ITalentLayerPlatformID)12553",
+            "type": "t_contract(ITalentLayerPlatformID)3327",
             "contract": "ServiceRegistryV2",
             "src": "contracts/tests/ServiceRegistryV2.sol:146"
           },
@@ -1730,7 +1730,7 @@
             "label": "services",
             "offset": 0,
             "slot": "304",
-            "type": "t_mapping(t_uint256,t_struct(Service)12707_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Service)3375_storage)",
             "contract": "ServiceRegistryV2",
             "src": "contracts/tests/ServiceRegistryV2.sol:149"
           },
@@ -1738,7 +1738,7 @@
             "label": "proposals",
             "offset": 0,
             "slot": "305",
-            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)12719_storage))",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)3387_storage))",
             "contract": "ServiceRegistryV2",
             "src": "contracts/tests/ServiceRegistryV2.sol:152"
           }
@@ -1764,15 +1764,15 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(ITalentLayerID)12463": {
+          "t_contract(ITalentLayerID)3237": {
             "label": "contract ITalentLayerID",
             "numberOfBytes": "20"
           },
-          "t_contract(ITalentLayerPlatformID)12553": {
+          "t_contract(ITalentLayerPlatformID)3327": {
             "label": "contract ITalentLayerPlatformID",
             "numberOfBytes": "20"
           },
-          "t_enum(ProposalStatus)12689": {
+          "t_enum(ProposalStatus)3357": {
             "label": "enum ServiceRegistryV2.ProposalStatus",
             "members": [
               "Pending",
@@ -1781,7 +1781,7 @@
             ],
             "numberOfBytes": "1"
           },
-          "t_enum(Status)12685": {
+          "t_enum(Status)3353": {
             "label": "enum ServiceRegistryV2.Status",
             "members": [
               "Filled",
@@ -1801,15 +1801,15 @@
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)12719_storage))": {
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)3387_storage))": {
             "label": "mapping(uint256 => mapping(uint256 => struct ServiceRegistryV2.Proposal))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(Proposal)12719_storage)": {
+          "t_mapping(t_uint256,t_struct(Proposal)3387_storage)": {
             "label": "mapping(uint256 => struct ServiceRegistryV2.Proposal)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(Service)12707_storage)": {
+          "t_mapping(t_uint256,t_struct(Service)3375_storage)": {
             "label": "mapping(uint256 => struct ServiceRegistryV2.Service)",
             "numberOfBytes": "32"
           },
@@ -1817,12 +1817,12 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(Proposal)12719_storage": {
+          "t_struct(Proposal)3387_storage": {
             "label": "struct ServiceRegistryV2.Proposal",
             "members": [
               {
                 "label": "status",
-                "type": "t_enum(ProposalStatus)12689",
+                "type": "t_enum(ProposalStatus)3357",
                 "offset": 0,
                 "slot": "0"
               },
@@ -1871,12 +1871,333 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(Service)12707_storage": {
+          "t_struct(Service)3375_storage": {
             "label": "struct ServiceRegistryV2.Service",
             "members": [
               {
                 "label": "status",
-                "type": "t_enum(Status)12685",
+                "type": "t_enum(Status)3353",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "buyerId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "sellerId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "initiatorId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "serviceDataUri",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "countProposals",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "transactionId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "platformId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "256"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "e0f9cb8bb2455d20f06ce392a52b0fa80632ff527560468d33fbe9d0a237bbf5": {
+      "address": "0xc175d3e617656502A99eE51d2934441B08cEdF88",
+      "txHash": "0xa77219942a6e284a6ee35c169a1467c0d6f8b9efef6eaeba9ceed2b4dff678ef",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "nextServiceId",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_uint256",
+            "contract": "ServiceRegistryV2",
+            "src": "contracts/tests/ServiceRegistryV2.sol:140"
+          },
+          {
+            "label": "tlId",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(ITalentLayerID)3237",
+            "contract": "ServiceRegistryV2",
+            "src": "contracts/tests/ServiceRegistryV2.sol:143"
+          },
+          {
+            "label": "talentLayerPlatformIdContract",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(ITalentLayerPlatformID)3327",
+            "contract": "ServiceRegistryV2",
+            "src": "contracts/tests/ServiceRegistryV2.sol:146"
+          },
+          {
+            "label": "services",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_mapping(t_uint256,t_struct(Service)3375_storage)",
+            "contract": "ServiceRegistryV2",
+            "src": "contracts/tests/ServiceRegistryV2.sol:149"
+          },
+          {
+            "label": "proposals",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)3387_storage))",
+            "contract": "ServiceRegistryV2",
+            "src": "contracts/tests/ServiceRegistryV2.sol:152"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(ITalentLayerID)3237": {
+            "label": "contract ITalentLayerID",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ITalentLayerPlatformID)3327": {
+            "label": "contract ITalentLayerPlatformID",
+            "numberOfBytes": "20"
+          },
+          "t_enum(ProposalStatus)3357": {
+            "label": "enum ServiceRegistryV2.ProposalStatus",
+            "members": [
+              "Pending",
+              "Validated",
+              "Rejected"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(Status)3353": {
+            "label": "enum ServiceRegistryV2.Status",
+            "members": [
+              "Filled",
+              "Confirmed",
+              "Finished",
+              "Rejected",
+              "Opened",
+              "Flagged"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)3387_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct ServiceRegistryV2.Proposal))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Proposal)3387_storage)": {
+            "label": "mapping(uint256 => struct ServiceRegistryV2.Proposal)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Service)3375_storage)": {
+            "label": "mapping(uint256 => struct ServiceRegistryV2.Service)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Proposal)3387_storage": {
+            "label": "struct ServiceRegistryV2.Proposal",
+            "members": [
+              {
+                "label": "status",
+                "type": "t_enum(ProposalStatus)3357",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "sellerId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rateToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "rateAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "proposalDataUri",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Service)3375_storage": {
+            "label": "struct ServiceRegistryV2.Service",
+            "members": [
+              {
+                "label": "status",
+                "type": "t_enum(Status)3353",
                 "offset": 0,
                 "slot": "0"
               },
