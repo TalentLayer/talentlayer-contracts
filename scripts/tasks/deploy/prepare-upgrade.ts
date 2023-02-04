@@ -1,20 +1,25 @@
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
 import { task } from 'hardhat/config'
 import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { getConfig, Network, NetworkConfig } from '../../utils/config'
 import { verifyAddress } from './utils'
 
 /**
  * @notice This task is used to prepare an upgrade for one of the proxy and send a proposal to Defender
- * @usage npx hardhat prepare-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --verify --network goerli
+ * @usage
+ *  - npx hardhat prepare-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --verify --network goerli
+ *  - npx hardhat prepare-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --automatic-proposal --verify --network goerli
  */
 task('prepare-upgrade', 'Prepare an upgrade of a new implementation for one of the proxy')
   .addParam('contractName', 'The name of the new contract implemntation')
   .addParam('proxyName', 'The name of the original proxy')
+  .addFlag('automaticProposal', 'Use defender CLI to automatically send a proposal')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, network }) => {
-    const { proxyName, contractName, verify } = args
+    const { proxyName, contractName, automaticProposal, verify } = args
     const [deployer] = await ethers.getSigners()
+    const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
+    const networkConfig: NetworkConfig = getConfig(chainId)
 
     console.log('network', network.name)
     console.log(
@@ -32,8 +37,19 @@ task('prepare-upgrade', 'Prepare an upgrade of a new implementation for one of t
     }
 
     const NewImplementation = await ethers.getContractFactory(contractName)
-    // @ts-ignore: upgrades is imported in hardhat.config.ts
-    const newImplementationAddress = await (upgrades as HardhatUpgrades).prepareUpgrade(proxyAddress, NewImplementation)
+
+    let newImplementationAddress
+    if (automaticProposal) {
+      // @ts-ignore: defender is imported in hardhat.config.ts
+      const proposal = await defender.proposeUpgrade(proxyAddress, NewImplementation, {
+        multisig: networkConfig.multisigAddress,
+      })
+      newImplementationAddress = proposal.metadata.newImplementationAddress
+      console.log('Upgrade proposal created at:', proposal.url)
+    } else {
+      // @ts-ignore: upgrades is imported in hardhat.config.ts
+      newImplementationAddress = await (upgrades as HardhatUpgrades).prepareUpgrade(proxyAddress, NewImplementation)
+    }
 
     if (verify) {
       await verifyAddress(newImplementationAddress as string)
