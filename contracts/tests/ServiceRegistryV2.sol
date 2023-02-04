@@ -175,6 +175,11 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         return proposals[_serviceId][_proposalId];
     }
 
+    function getValidatedProposal(uint256 _serviceId) external view returns (Proposal memory) {
+        Service memory service = services[_serviceId];
+        return proposals[_serviceId][service.sellerId];
+    }
+
     // =========================== User functions ==============================
 
     /**

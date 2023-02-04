@@ -43,7 +43,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         set((network.name as any) as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
       } else {
         pohAddress = networkConfig.proofOfHumanityAddress
-        set((network.name as any) as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
+        set((network.name as any) as Network, ConfigProperty.MockProofOfHumanity, pohAddress as string)
       }
 
       // Deploy TalentLayerPlatformID contract
