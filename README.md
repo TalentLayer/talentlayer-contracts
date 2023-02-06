@@ -11,8 +11,8 @@ Learn more about the project: https://www.talentlayer.org
 Start integrating TalentLayer: 
 - The complete official user documentation: https://docs.talentlayer.org
 
-Understand the protocol:
-- Upgradability: https://talentlayer.notion.site/Upgradability-c4265e3a8dc64cdb8167083a5a899828
+Understand the protocol and how we tackle our main problems:
+- TLIP Index: https://talentlayer.notion.site/TLIP-83015d793d9d48818914f8cac3c08231
 
 ## Deployment addresses: 
 
