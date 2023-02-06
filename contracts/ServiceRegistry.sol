@@ -131,6 +131,15 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     /// @param sellerId the talentLayerId of the seller
     event ProposalRejected(uint256 serviceId, uint256 sellerId);
 
+    /**
+     * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
+     * @param _tokenAddress The address of the payment token
+     * @param _status Whether the token is allowed or not
+     */
+    event AllowedTokenListUpdated(address _tokenAddress, bool _status);
+
+    // =========================== Mappings & Variables ==============================
+
     /// @notice incremental service Id
     uint256 public nextServiceId;
 
@@ -146,11 +155,16 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     /// @notice proposals mappings index by service ID and seller TID
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
+    /// @notice Allowed payment tokens addresses
+    mapping(address => bool) public allowedTokens;
+
     // @notice
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     // =========================== Initializers ==============================
 
@@ -172,7 +186,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     // =========================== View functions ==============================
 
     /**
-     * @notice Return the whole service data information
+     * @notice Returns the whole service data information
      * @param _serviceId Service identifier
      */
     function getService(uint256 _serviceId) external view returns (Service memory) {
@@ -180,8 +194,21 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         return services[_serviceId];
     }
 
+    /**
+     * @notice Returns the specific proposal for the attached service
+     * @param _serviceId Service identifier
+     * @param _proposalId Proposal identifier
+     */
     function getProposal(uint256 _serviceId, uint256 _proposalId) external view returns (Proposal memory) {
         return proposals[_serviceId][_proposalId];
+    }
+
+    /**
+     * @notice Indicates whether the token in parameter is allowed for payment
+     * @param _tokenAddress Token address
+     */
+    function isTokenAllowed(address _tokenAddress) external view returns (bool) {
+        return allowedTokens[_tokenAddress];
     }
 
     // =========================== User functions ==============================
@@ -201,7 +228,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      * @notice Allows an seller to propose his service for a service
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
-     * @param _rateAmount the amount of token choosed
+     * @param _rateAmount the amount of token chosen
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function createProposal(
@@ -212,6 +239,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     ) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You should have a TalentLayerId");
+        require(allowedTokens[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -250,6 +278,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     ) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
         require(senderId > 0, "You should have a TalentLayerId");
+        require(allowedTokens[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][senderId];
@@ -326,6 +355,19 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         service.sellerId = proposal.sellerId;
         service.transactionId = _transactionId;
         proposal.status = ProposalStatus.Validated;
+    }
+
+    /**
+     * @notice Allows the contract owner to add or remove a token from the allowed payment tokens list
+     * @param _tokenAddress The address of the payment token
+     * @param _status Whether the token is allowed or not
+     * @dev Only the contract owner can call this function
+     */
+    function updateAllowedTokenList(address _tokenAddress, bool _status) public onlyOwner {
+        require(allowedTokens[_tokenAddress] != _status, "Status should be different");
+        allowedTokens[_tokenAddress] = _status;
+
+        emit AllowedTokenListUpdated(_tokenAddress, _status);
     }
 
     /**
