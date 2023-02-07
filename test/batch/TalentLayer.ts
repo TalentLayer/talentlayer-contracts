@@ -585,7 +585,6 @@ describe('TalentLayer protocol global testing', function () {
         chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
         networkConfig = getConfig(chainId)
         let protocolWallet = await talentLayerEscrow.connect(deployer).getProtocolWallet()
-        console.log('TITI', protocolWallet)
 
         expect(protocolWallet).to.equal(networkConfig.multisigAddress)
         await talentLayerEscrow.connect(deployer).updateProtocolWallet(dave.address)
