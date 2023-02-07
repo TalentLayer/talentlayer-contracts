@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {IERC721A} from "../libs/IERC721A.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "../Arbitrator.sol";
 
 /**
  * @title Platform ID Interface
  * @author TalentLayer Team
  */
-interface ITalentLayerPlatformID is IERC721A {
+interface ITalentLayerPlatformID is IERC721Upgradeable {
     struct Platform {
         uint256 id;
         string name;
