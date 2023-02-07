@@ -12,16 +12,16 @@ import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Stri
 import {ERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
-import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
-import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {ERC2771RecipientUpgradeable} from "../libs/ERC2771RecipientUpgradeable.sol";
+import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
+import {IServiceRegistry} from "../interfaces/IServiceRegistry.sol";
+import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
 
 /**
  * @title TalentLayer Review Contract
  * @author TalentLayer Team
  */
-contract TalentLayerReview is
+contract TalentLayerReviewV2 is
     ERC2771RecipientUpgradeable,
     ERC165Upgradeable,
     IERC721Upgradeable,
@@ -104,6 +104,8 @@ contract TalentLayerReview is
      * @notice TalentLayer Platform ID registry
      */
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
+
+    uint256 public testID;
 
     // =========================== Initializers ==============================
 
@@ -247,7 +249,7 @@ contract TalentLayerReview is
      * @param _tokenId The ID of the review token
      */
     function _isApprovedOrOwner(address _spender, uint256 _tokenId) internal view virtual returns (bool) {
-        address owner = TalentLayerReview.ownerOf(_tokenId);
+        address owner = TalentLayerReviewV2.ownerOf(_tokenId);
         return (_spender == owner || isApprovedForAll(owner, _spender) || getApproved(_tokenId) == _spender);
     }
 
@@ -300,7 +302,7 @@ contract TalentLayerReview is
      */
     function _approve(address _to, uint256 _tokenId) internal virtual {
         _tokenApprovals[_tokenId] = _to;
-        emit Approval(TalentLayerReview.ownerOf(_tokenId), _to, _tokenId);
+        emit Approval(TalentLayerReviewV2.ownerOf(_tokenId), _to, _tokenId);
     }
 
     /**
@@ -387,12 +389,11 @@ contract TalentLayerReview is
      * @dev See {IER721A-approve}.
      */
     function approve(address to, uint256 tokenId) public virtual override {
-        address owner = TalentLayerReview.ownerOf(tokenId);
+        address owner = TalentLayerReviewV2.ownerOf(tokenId);
         require(to != owner, "TalentLayerReview: approval to current owner");
 
-        address sender = _msgSender();
         require(
-            sender == owner || isApprovedForAll(owner, sender),
+            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
             "TalentLayerReview: approve caller is not token owner nor approved for all"
         );
 

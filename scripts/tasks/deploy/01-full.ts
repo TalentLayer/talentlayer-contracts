@@ -1,17 +1,20 @@
 import { formatEther } from 'ethers/lib/utils'
 import { task } from 'hardhat/config'
-import { getConfig, Network, NetworkConfig } from './config'
-import { set, ConfigProperty } from '../configManager'
+import { getConfig, Network, NetworkConfig } from '../../utils/config'
+import { set, ConfigProperty } from '../../../configManager'
 
-// npx hardhat deploy --use-pohmock --use-test-erc20  --verify --network goerli
-task('deploy')
+/**
+ * @notice Task created only for test purposes of the upgradable process
+ * @usage npx hardhat deploy-full --use-pohmock --use-test-erc20 --verify --network goerli
+ */
+task('deploy-full', 'Deploy all the contracts on their first version')
   .addFlag('usePohmock', 'deploy a mock of POH')
   .addFlag('useTestErc20', 'deploy a mock ERC20 contract')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, run, network }) => {
     try {
       const { verify, usePohmock, useTestErc20 } = args
-      const [alice, bob, carol, dave] = await ethers.getSigners()
+      const [deployer, bob, carol, dave] = await ethers.getSigners()
       const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
       const networkConfig: NetworkConfig = getConfig(chainId)
 
@@ -21,8 +24,8 @@ task('deploy')
       console.log(args)
 
       console.log('Signer')
-      console.log('  at', alice.address)
-      console.log('  ETH', formatEther(await alice.getBalance()))
+      console.log('  at', deployer.address)
+      console.log('  ETH', formatEther(await deployer.getBalance()))
 
       await run('compile')
 
@@ -47,39 +50,67 @@ task('deploy')
 
       // Deploy TalentLayerPlatformID contract
       const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
-      const talentLayerPlatformID = await TalentLayerPlatformID.deploy()
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const talentLayerPlatformID = await upgrades.deployProxy(TalentLayerPlatformID, {
+        timeout: 0,
+        pollingInterval: 10000,
+      })
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const talentLayerPlatformIDImplementationAddress = await upgrades.erc1967.getImplementationAddress(
+        talentLayerPlatformID.address,
+      )
       if (verify) {
         await talentLayerPlatformID.deployTransaction.wait(5)
         await run('verify:verify', {
           address: talentLayerPlatformID.address,
         })
+        await run('verify:verify', {
+          address: talentLayerPlatformIDImplementationAddress,
+        })
       }
-      console.log('TalentLayerPlatformID address:', talentLayerPlatformID.address)
+      console.log('TalentLayerPlatformID addresses:', {
+        proxy: talentLayerPlatformID.address,
+        implementation: talentLayerPlatformIDImplementationAddress,
+      })
 
       set(network.name as any as Network, ConfigProperty.TalentLayerPlatformID, talentLayerPlatformID.address)
 
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
       const talentLayerIDArgs: [string, string] = [pohAddress, talentLayerPlatformID.address]
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerID = await upgrades.deployProxy(TalentLayerID, talentLayerIDArgs)
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const talentLayerIDImplementationAddress = await upgrades.erc1967.getImplementationAddress(talentLayerID.address)
       if (verify) {
         await talentLayerID.deployTransaction.wait(5)
         await run('verify:verify', {
           address: talentLayerID.address,
           constructorArguments: talentLayerIDArgs,
         })
+        await run('verify:verify', {
+          address: talentLayerIDImplementationAddress,
+        })
       }
-      console.log('talentLayerID address:', talentLayerID.address)
+      console.log('talentLayerID addresses:', {
+        proxy: talentLayerID.address,
+        implementation: talentLayerIDImplementationAddress,
+      })
 
       set(network.name as any as Network, ConfigProperty.TalentLayerID, talentLayerID.address)
 
       // Deploy Service Registry Contract
       const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
       const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs, {
         timeout: 0,
         pollingInterval: 10000,
       })
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const serviceRegistryImplementationAddress = await upgrades.erc1967.getImplementationAddress(
+        serviceRegistry.address,
+      )
 
       if (verify) {
         await serviceRegistry.deployTransaction.wait(5)
@@ -87,8 +118,14 @@ task('deploy')
           address: serviceRegistry.address,
           constructorArguments: serviceRegistryArgs,
         })
+        await run('verify:verify', {
+          address: serviceRegistryImplementationAddress,
+        })
       }
-      console.log('Service Registry address:', serviceRegistry.address)
+      console.log('Service Registry addresses:', {
+        proxy: serviceRegistry.address,
+        implementation: serviceRegistryImplementationAddress,
+      })
       set(network.name as any as Network, ConfigProperty.ServiceRegistry, serviceRegistry.address)
 
       // Deploy Review contract
@@ -100,15 +137,28 @@ task('deploy')
         serviceRegistry.address,
         talentLayerPlatformID.address,
       ]
-      const talentLayerReview = await TalentLayerReview.deploy(...talentLayerReviewArgs)
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const talentLayerReview = await upgrades.deployProxy(TalentLayerReview, talentLayerReviewArgs, {
+        timeout: 0,
+        pollingInterval: 10000,
+      })
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const talentLayerReviewImplementationAddress = await upgrades.erc1967.getImplementationAddress(
+        talentLayerReview.address,
+      )
       if (verify) {
         await talentLayerReview.deployTransaction.wait(5)
         await run('verify:verify', {
           address: talentLayerReview.address,
-          constructorArguments: talentLayerReviewArgs,
+        })
+        await run('verify:verify', {
+          address: talentLayerReviewImplementationAddress,
         })
       }
-      console.log('Reviews contract address:', talentLayerReview.address)
+      console.log('TalentLayerReview addresses:', {
+        proxy: talentLayerReview.address,
+        implementation: talentLayerReviewImplementationAddress,
+      })
 
       set(network.name as any as Network, ConfigProperty.Reviewscontract, talentLayerReview.address)
 
@@ -136,15 +186,29 @@ task('deploy')
         talentLayerID.address,
         talentLayerPlatformID.address,
       ]
-      const talentLayerEscrow = await TalentLayerEscrow.deploy(...talentLayerEscrowArgs)
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, talentLayerEscrowArgs, {
+        timeout: 0,
+        pollingInterval: 10000,
+      })
+      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      const talentLayerEscrowImplementationAddress = await upgrades.erc1967.getImplementationAddress(
+        talentLayerEscrow.address,
+      )
       if (verify) {
         await talentLayerEscrow.deployTransaction.wait(5)
         await run('verify:verify', {
           address: talentLayerEscrow.address,
           constructorArguments: talentLayerEscrowArgs,
         })
+        await run('verify:verify', {
+          address: talentLayerEscrowImplementationAddress,
+        })
       }
-      console.log('TalentLayerEscrow contract address:', talentLayerEscrow.address)
+      console.log('TalentLayerEscrow contract addresses:', {
+        proxy: talentLayerEscrow.address,
+        implementation: talentLayerEscrowImplementationAddress,
+      })
 
       set(network.name as any as Network, ConfigProperty.TalentLayerEscrow, talentLayerEscrow.address)
 
@@ -179,8 +243,8 @@ task('deploy')
       if (usePohmock && mockProofOfHumanity) {
         // Register Alice, Bob, Carol, Dave
         // const mockProofOfHumanity = await ethers.getContractAt('MockProofOfHumanity', "0x78939ABA66D1F73B0D76E9289BA79bc79dC079Dc")
-        await mockProofOfHumanity.addSubmissionManually([alice.address, bob.address, carol.address, dave.address])
-        console.log('Registered Alice:', alice.address)
+        await mockProofOfHumanity.addSubmissionManually([deployer.address, bob.address, carol.address, dave.address])
+        console.log('Registered Alice:', deployer.address)
         console.log('Registered Bob:', bob.address)
         console.log('Registered Carol:', carol.address)
         console.log('Registered Dave:', dave.address)
