@@ -48,12 +48,6 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     /// Token ID to Profile struct
     mapping(uint256 => Profile) public profiles;
 
-    /// Account recovery merkle root
-    bytes32 public recoveryRoot;
-
-    /// Addresses that have successfully recovered their account
-    mapping(address => bool) public hasBeenRecovered;
-
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
 
