@@ -219,7 +219,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
             proposals[_serviceId][senderId].sellerId != senderId,
             "You already created a proposal for this service"
         );
-        require(service.countProposals < 40, "Max proposals count reached");
+
         require(service.buyerId != senderId, "You couldn't create proposal for your own service");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
 
