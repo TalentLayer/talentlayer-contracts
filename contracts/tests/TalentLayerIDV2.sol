@@ -49,6 +49,9 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /// TokenId counter
     CountersUpgradeable.Counter nextTokenId;
 
+    /// User address to delegators
+    mapping(address => mapping(address => bool)) private delegators;
+
     uint256 testVariable;
 
     // =========================== Initializers ==============================
@@ -122,12 +125,31 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         require(_tokenId > 0 && _tokenId < nextTokenId.current(), "Your ID is not a valid token ID");
     }
 
+    /**
+     * @notice Check whether an address is a delegator for the given user.
+     * @param _userAddress Address of the user
+     * @param _address Address to check if it is a delegator
+     */
+    function isDelegator(address _userAddress, address _address) public view returns (bool) {
+        return delegators[_userAddress][_address];
+    }
+
+    /**
+     * @notice Check whether an address is either the owner or a delegator for the token ID.
+     * @param _tokenId Token ID to check
+     * @param _address Address to check
+     */
+    function isOwnerOrDelegator(uint256 _tokenId, address _address) public view returns (bool) {
+        address owner = ownerOf(_tokenId);
+        return owner == _address || isDelegator(owner, _address);
+    }
+
     // =========================== User functions ==============================
 
     /**
      * @notice Allows a user to mint a new TalentLayerID without.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID mint the id from
      */
     function mint(
         uint256 _platformId,
@@ -174,7 +196,6 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /**
      * @notice Allows the owner to mint a new TalentLayerID for a user for free.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
      */
     function freeMint(
         uint256 _platformId,
@@ -191,7 +212,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @notice Update handle address mapping and emit event after mint.
      * @dev Increments the nextTokenId counter.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID from which UserId was minted
      */
     function _afterMint(address _userAddress, string memory _handle, uint256 _platformId, uint256 _fee) private {
         uint256 userTokenId = nextTokenId.current();
@@ -338,7 +359,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _user Address of the owner of the TalentLayerID
      * @param _tokenId TalentLayer ID for the user
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID from which UserId was minted
      * @param _fee Fee paid to mint the TalentLayerID
      */
     event Mint(address indexed _user, uint256 _tokenId, string _handle, uint256 _platformId, uint256 _fee);
@@ -355,4 +376,18 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _mintFee The new mint fee
      */
     event MintFeeUpdated(uint256 _mintFee);
+
+    /**
+     * Emit when a delegator is added for a user.
+     * @param _userAddress Address of the user
+     * @param _delegator Address of the delegator
+     */
+    event DelegatorAdded(address _userAddress, address _delegator);
+
+    /**
+     * Emit when a delegator is removed for a user.
+     * @param _userAddress Address of the user
+     * @param _delegator Address of the delegator
+     */
+    event DelegatorRemoved(address _userAddress, address _delegator);
 }
