@@ -169,6 +169,16 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
         return delegators[_userAddress][_delegator];
     }
 
+    /**
+     * @notice Check whether an address is either the owner or a delegator for the token ID.
+     * @param _tokenId Token ID to check
+     * @param _address Address to check
+     */
+    function isOwnerOrDelegator(uint256 _tokenId, address _address) public view returns (bool) {
+        address owner = ownerOf(_tokenId);
+        return owner == _address || isDelegator(owner, _address);
+    }
+
     // =========================== User functions ==============================
 
     /**
@@ -476,12 +486,11 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
     /**
      * @notice Check if the given address is either the owner of the delegator of the given tokenId
-     * @param _tokenId the tokenId
-     * @param _address the address to check
+     * @param _tokenId Token ID to check
+     * @param _address Address to check
      */
     modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
-        address owner = ownerOf(_tokenId);
-        require(owner == _address || isDelegator(owner, _address));
+        require(isOwnerOrDelegator(_tokenId, _address), "Not owner or delegator");
         _;
     }
 
