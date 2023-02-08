@@ -60,8 +60,8 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     /// TokenId counter
     CountersUpgradeable.Counter nextTokenId;
 
-    /// Token ID to delegators
-    mapping(uint256 => mapping(address => bool)) private delegators;
+    /// User address to delegators
+    mapping(address => mapping(address => bool)) private delegators;
 
     // =========================== Initializers ==============================
 
@@ -161,12 +161,12 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     }
 
     /**
-     * @notice Check whether an address is a delegator for a Token Id
-     * @param _tokenId Token ID to check
-     * @param _address Address to check
+     * @notice Check whether an address is a delegator for the given user.
+     * @param _userAddress Address of the user
+     * @param _delegator Address of the delegator
      */
-    function isDelegator(uint256 _tokenId, address _address) public view returns (bool) {
-        return delegators[_tokenId][_address];
+    function isDelegator(address _userAddress, address _delegator) public view returns (bool) {
+        return delegators[_userAddress][_delegator];
     }
 
     // =========================== User functions ==============================
@@ -267,22 +267,20 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
     /**
      * @notice Allows to give rights to a delegator to perform actions for a user's profile
-     * @param _tokenId tokenId to add delegator for
+     * @param _delegator Address of the delegator to add
      */
-    function addDelegator(uint256 _tokenId, address _delegator) external {
-        require(ownerOf(_tokenId) == msg.sender);
-        delegators[_tokenId][_delegator] = true;
-        emit DelegatorAdded(_tokenId, _delegator);
+    function addDelegator(address _delegator) external {
+        delegators[msg.sender][_delegator] = true;
+        emit DelegatorAdded(msg.sender, _delegator);
     }
 
     /**
      * @notice Allows to remove rights from a delegator to perform actions for a user's profile
-     * @param _tokenId tokenId to remove delegator for
+     * @param _delegator Address of the delegator to remove
      */
-    function removeDelegator(uint256 _tokenId, address _delegator) external {
-        require(ownerOf(_tokenId) == msg.sender);
-        delegators[_tokenId][_delegator] = false;
-        emit DelegatorRemoved(_tokenId, _delegator);
+    function removeDelegator(address _delegator) external {
+        delegators[msg.sender][_delegator] = false;
+        emit DelegatorRemoved(msg.sender, _delegator);
     }
 
     // =========================== Owner functions ==============================
@@ -464,7 +462,8 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _address the address to check
      */
     modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
-        require(ownerOf(_tokenId) == _address || isDelegator(_tokenId, _address));
+        address owner = ownerOf(_tokenId);
+        require(owner == _address || isDelegator(owner, _address));
         _;
     }
 
@@ -519,15 +518,15 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
     /**
      * Emit when a delegator is added for a user.
-     * @param _tokenId TalentLayer ID for the user
+     * @param _userAddress Address of the user
      * @param _delegator Address of the delegator
      */
-    event DelegatorAdded(uint256 _tokenId, address _delegator);
+    event DelegatorAdded(address _userAddress, address _delegator);
 
     /**
      * Emit when a delegator is removed for a user.
-     * @param _tokenId TalentLayer ID for the user
+     * @param _userAddress Address of the user
      * @param _delegator Address of the delegator
      */
-    event DelegatorRemoved(uint256 _tokenId, address _delegator);
+    event DelegatorRemoved(address _userAddress, address _delegator);
 }
