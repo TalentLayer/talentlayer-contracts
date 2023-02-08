@@ -435,6 +435,12 @@ describe('TalentLayer protocol global testing', function () {
       )
     })
 
+    it('Should revert if the Owner tries to blacklist zero address', async function () {
+      await expect(serviceRegistry.connect(deployer).updateAllowedTokenList(ethers.constants.AddressZero, false)).to.be.revertedWith(
+        'Owner can\'t remove Ox address',
+      )
+    })
+
     it('Should update the token list accordingly if the owner updates it', async function () {
       const randomTokenAddress = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599'
 
