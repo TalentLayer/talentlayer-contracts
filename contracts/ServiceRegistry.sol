@@ -179,10 +179,9 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /**
      * @notice Check if the given address is either the owner of the delegator of the given tokenId
      * @param _tokenId the tokenId
-     * @param _address the address to check
      */
-    modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
-        require(tlId.isOwnerOrDelegator(_tokenId, _address), "Not owner or delegator");
+    modifier onlyOwnerOrDelegator(uint256 _tokenId) {
+        require(tlId.isOwnerOrDelegator(_tokenId, msg.sender), "Not owner or delegator");
         _;
     }
 
