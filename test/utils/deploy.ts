@@ -1,8 +1,8 @@
 import { ethers, upgrades } from 'hardhat'
 import {
-  ERC20,
   MockProofOfHumanity,
   ServiceRegistry,
+  SimpleERC20,
   TalentLayerArbitrator,
   TalentLayerEscrow,
   TalentLayerID,
@@ -25,7 +25,7 @@ export async function deploy(
     ServiceRegistry,
     TalentLayerReview,
     MockProofOfHumanity,
-    ERC20,
+    SimpleERC20,
   ]
 > {
   // Deploy MockProofOfHumanity
