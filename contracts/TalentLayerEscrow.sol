@@ -60,7 +60,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param amount The amount of the transaction EXCLUDING FEES
      * @param serviceId The ID of the associated service
      * @param protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
-     * @param originPlatformEscrowFeeRate The %fee (per ten thousands) paid to the platform who onboarded the user
      * @param platformEscrowFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
      * @param disputeId The ID of the dispute, if it exists
      * @param senderFee Total fees paid by the sender.
@@ -78,7 +77,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         uint256 amount;
         uint256 serviceId;
         uint16 protocolEscrowFeeRate;
-        uint16 originPlatformEscrowFeeRate;
         uint16 platformEscrowFeeRate;
         uint256 disputeId;
         uint256 senderFee;
@@ -127,12 +125,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _protocolEscrowFeeRate The new protocol fee
      */
     event ProtocolEscrowFeeRateUpdated(uint16 _protocolEscrowFeeRate);
-
-    /**
-     * @notice Emitted after the origin platform fee was updated
-     * @param _originPlatformEscrowFeeRate The new origin platform fee
-     */
-    event OriginPlatformEscrowFeeRateUpdated(uint16 _originPlatformEscrowFeeRate);
 
     /**
      * @notice Emitted after a platform withdraws its balance
@@ -193,7 +185,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      *  @param _amount The amount of the transaction EXCLUDING FEES
      *  @param _serviceId The ID of the associated service
      *  @param _protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
-     *  @param _originPlatformEscrowFeeRate The %fee (per ten thousands) paid to the platform who onboarded the user
      *  @param _platformEscrowFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
      *  @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
      *  @param _arbitratorExtraData Extra data to set up the arbitration.
@@ -206,7 +197,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         uint256 _amount,
         uint256 _serviceId,
         uint16 _protocolEscrowFeeRate,
-        uint16 _originPlatformEscrowFeeRate,
         uint16 _platformEscrowFeeRate,
         Arbitrator _arbitrator,
         bytes _arbitratorExtraData,
@@ -263,11 +253,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
     uint16 public protocolEscrowFeeRate;
 
     /**
-     * @notice Percentage paid to the platform who onboarded the user (per 10,000, upgradable)
-     */
-    uint16 public originPlatformEscrowFeeRate;
-
-    /**
      * @notice (Upgradable) Wallet which will receive the protocol fees
      */
     address payable private protocolWallet;
@@ -319,7 +304,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         protocolWallet = payable(owner());
 
         updateProtocolEscrowFeeRate(100);
-        updateOriginPlatformEscrowFeeRate(200);
     }
 
     // =========================== View functions ==============================
@@ -373,16 +357,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
     function updateProtocolEscrowFeeRate(uint16 _protocolEscrowFeeRate) public onlyOwner {
         protocolEscrowFeeRate = _protocolEscrowFeeRate;
         emit ProtocolEscrowFeeRateUpdated(_protocolEscrowFeeRate);
-    }
-
-    /**
-     * @notice Updated the Origin Platform Fee
-     * @dev Only the owner can call this function
-     * @param _originPlatformEscrowFeeRate The new origin platform fee
-     */
-    function updateOriginPlatformEscrowFeeRate(uint16 _originPlatformEscrowFeeRate) public onlyOwner {
-        originPlatformEscrowFeeRate = _originPlatformEscrowFeeRate;
-        emit OriginPlatformEscrowFeeRateUpdated(_originPlatformEscrowFeeRate);
     }
 
     /**
@@ -833,7 +807,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
                 amount: proposal.rateAmount,
                 serviceId: _serviceId,
                 protocolEscrowFeeRate: protocolEscrowFeeRate,
-                originPlatformEscrowFeeRate: originPlatformEscrowFeeRate,
                 platformEscrowFeeRate: _platformEscrowFeeRate,
                 disputeId: 0,
                 senderFee: 0,
@@ -873,7 +846,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
             transaction.amount,
             transaction.serviceId,
             protocolEscrowFeeRate,
-            originPlatformEscrowFeeRate,
             transaction.platformEscrowFeeRate,
             transaction.arbitrator,
             transaction.arbitratorExtraData,
@@ -911,13 +883,10 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         //Platform which originated the service
         uint256 platformId = service.platformId;
         uint256 protocolEscrowFeeRateAmount = (_transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
-        uint256 originPlatformEscrowFeeRateAmount = (_transaction.originPlatformEscrowFeeRate * _releaseAmount) /
-            FEE_DIVIDER;
         uint256 platformEscrowFeeRateAmount = (_transaction.platformEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
 
         //Index zero represents protocol's balance
         platformIdToTokenToBalance[0][_transaction.token] += protocolEscrowFeeRateAmount;
-        platformIdToTokenToBalance[originPlatformId][_transaction.token] += originPlatformEscrowFeeRateAmount;
         platformIdToTokenToBalance[platformId][_transaction.token] += platformEscrowFeeRateAmount;
 
         _safeTransferBalance(payable(_transaction.receiver), _transaction.token, _releaseAmount);
@@ -925,8 +894,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         emit OriginPlatformFeeReleased(
             originPlatformId,
             _transaction.serviceId,
-            _transaction.token,
-            originPlatformEscrowFeeRateAmount
+            _transaction.token
         );
         emit PlatformFeeReleased(platformId, _transaction.serviceId, _transaction.token, platformEscrowFeeRateAmount);
         emit Payment(_transaction.id, PaymentType.Release, _releaseAmount, _transaction.token, _transaction.serviceId);
@@ -944,7 +912,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
     function _reimburse(Transaction memory _transaction, uint256 _releaseAmount) private {
         uint256 totalReleaseAmount = _releaseAmount +
             (((_transaction.protocolEscrowFeeRate +
-                _transaction.originPlatformEscrowFeeRate +
                 _transaction.platformEscrowFeeRate) * _releaseAmount) / FEE_DIVIDER);
 
         _safeTransferBalance(payable(_transaction.sender), _transaction.token, totalReleaseAmount);
@@ -1061,7 +1028,6 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         return
             _amount +
             (((_amount * protocolEscrowFeeRate) +
-                (_amount * originPlatformEscrowFeeRate) +
                 (_amount * _platformEscrowFeeRate)) / FEE_DIVIDER);
     }
 }
