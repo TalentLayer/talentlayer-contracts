@@ -182,7 +182,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
      * @param _address the address to check
      */
     modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
-        require(tlId.ownerOf(_tokenId) == _address || tlId.isDelegator(_tokenId, _address));
+        require(tlId.isOwnerOrDelegator(_tokenId, _address), "Not owner or delegator");
         _;
     }
 
@@ -239,24 +239,24 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
      * @param _serviceDataUri token Id to IPFS URI mapping
      */
     function createOpenServiceFromBuyer(
+        uint256 _senderId,
         uint256 _platformId,
         string calldata _serviceDataUri
-    ) public payable returns (uint256) {
-        uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
-        require(msg.value == servicePostingFee, "Non-matching funds");
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
-        return _createService(Status.Opened, senderId, senderId, 0, _serviceDataUri, _platformId);
+    ) public onlyOwnerOrDelegator(_senderId) returns (uint256) {
+        talentLayerPlatformIdContract.isValid(_platformId);
+        return _createService(Status.Opened, _senderId, _senderId, 0, _serviceDataUri, _platformId);
     }
 
     /**
      * @notice Allows an seller to propose his service for a service
+     * @param _senderId The talentLayerId of the sender
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function createProposal(
-        uint256 _tokenID,
+        uint256 _senderId,
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
@@ -270,7 +270,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
         require(
-            proposals[_serviceId][senderId].sellerId != senderId,
+            proposals[_serviceId][_senderId].sellerId != _senderId,
             "You already created a proposal for this service"
         );
 
@@ -278,9 +278,9 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.countProposals++;
-        proposals[_serviceId][senderId] = Proposal({
+        proposals[_serviceId][_senderId] = Proposal({
             status: ProposalStatus.Pending,
-            sellerId: senderId,
+            sellerId: _senderId,
             rateToken: _rateToken,
             rateAmount: _rateAmount,
             platformId: _platformId,
@@ -306,19 +306,18 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function updateProposal(
+        uint256 _senderId,
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
-    ) public {
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
-        require(senderId > 0, "You should have a TalentLayerId");
+    ) public onlyOwnerOrDelegator(_senderId) {
         require(allowedTokenList[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
-        Proposal storage proposal = proposals[_serviceId][senderId];
+        Proposal storage proposal = proposals[_serviceId][_senderId];
         require(service.status == Status.Opened, "Service is not opened");
-        require(proposal.sellerId == senderId, "This proposal doesn't exist yet");
+        require(proposal.sellerId == _senderId, "This proposal doesn't exist yet");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
         require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
 
@@ -326,7 +325,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         proposal.rateAmount = _rateAmount;
         proposal.proposalDataUri = _proposalDataUri;
 
-        emit ProposalUpdated(_serviceId, senderId, _proposalDataUri, _rateToken, _rateAmount);
+        emit ProposalUpdated(_serviceId, _senderId, _proposalDataUri, _rateToken, _rateAmount);
     }
 
     /**
@@ -334,10 +333,11 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
      * @param _serviceId Service identifier
      * @param _proposalId Proposal identifier
      */
-    function rejectProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
-        require(senderId > 0, "You should have a TalentLayerId");
-
+    function rejectProposal(
+        uint256 _senderId,
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) public onlyOwnerOrDelegator(_senderId) {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
@@ -345,7 +345,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
 
         require(proposal.status != ProposalStatus.Rejected, "Proposal has already been rejected");
 
-        require(senderId == service.buyerId, "You're not the buyer");
+        require(_senderId == service.buyerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Rejected;
 
@@ -409,7 +409,10 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
         );
-        require(service.initiatorId == tlId.walletOfOwner(_msgSender()), "Only the initiator can update the service");
+        require(
+            tlId.isOwnerOrDelegator(service.initiatorId, msg.sender),
+            "Only the initiator or a delegator can update the service"
+        );
         require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.serviceDataUri = _newServiceDataUri;
