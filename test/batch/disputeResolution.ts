@@ -76,7 +76,7 @@ async function deployAndSetup(
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
   // Alice, the buyer, initiates a new open service
-  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
   await serviceRegistry
@@ -330,7 +330,9 @@ describe('Dispute Resolution, standard flow', function () {
     it('Fails if evidence is not submitted by either sender or receiver of the transaction', async function () {
       const daveEvidence = "Dave's evidence"
       const tx = talentLayerEscrow.connect(dave).submitEvidence(transactionId, daveEvidence)
-      await expect(tx).to.be.revertedWith('The caller must be the sender or the receiver.')
+      await expect(tx).to.be.revertedWith(
+        'The caller must be the sender or the receiver or their delegators.',
+      )
     })
 
     it('The evidence event is emitted when the sender submits it', async function () {

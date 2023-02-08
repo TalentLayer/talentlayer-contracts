@@ -41,7 +41,7 @@ async function deployAndSetup(): Promise<
   return [talentLayerID, talentLayerPlatformID, serviceRegistry, takentLayerEscrow, talentLayerReview]
 }
 
-describe.only('Delegation System', function () {
+describe('Delegation System', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
     dave: SignerWithAddress,
@@ -104,7 +104,7 @@ describe.only('Delegation System', function () {
     })
 
     it('Dave can update service data on behalf of Alice', async function () {
-      const tx = await serviceRegistry.connect(dave).updateServiceData(serviceId, 'newCid')
+      const tx = await serviceRegistry.connect(dave).updateServiceData(aliceTlId, serviceId, 'newCid')
       await expect(tx).to.not.be.reverted
     })
 
