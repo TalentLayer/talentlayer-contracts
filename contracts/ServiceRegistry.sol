@@ -364,7 +364,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      * @dev Only the contract owner can call this function
      */
     function updateAllowedTokenList(address _tokenAddress, bool _status) public onlyOwner {
-        require(allowedTokens[_tokenAddress] != _status, "Status should be different");
+        require((_tokenAddress == address(0) && _status != false) || (_tokenAddress != address(0)), "Owner can't remove Ox address");
         allowedTokens[_tokenAddress] = _status;
 
         emit AllowedTokenListUpdated(_tokenAddress, _status);
