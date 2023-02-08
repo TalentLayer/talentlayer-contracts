@@ -17,6 +17,10 @@ import { deploy } from '../utils/deploy'
 const alicePlatformId = 1
 const bobPlatformId = 2
 
+const aliceTlId = 1
+const bobTlId = 2
+const carolTlId = 3
+
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
   let deployer: SignerWithAddress,
@@ -302,9 +306,9 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerID.connect(alice).mint('1', 'alice')
       await talentLayerID.connect(bob).mint('1', 'bob')
       await talentLayerID.connect(carol).mint('1', 'carol')
-      expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal('1')
-      expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal('2')
-      expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal('3')
+      expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal(aliceTlId)
+      expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal(bobTlId)
+      expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal(carolTlId)
       const carolUserId = await talentLayerID.walletOfOwner(carol.address)
       const profileData = await talentLayerID.profiles(carolUserId)
       expect(profileData.platformId).to.be.equal('1')
@@ -542,8 +546,8 @@ describe('TalentLayer protocol global testing', function () {
       await serviceRegistry.services(5)
 
       expect(serviceData.status.toString()).to.be.equal('4')
-      expect(serviceData.buyerId.toString()).to.be.equal('1')
-      expect(serviceData.initiatorId.toString()).to.be.equal('1')
+      expect(serviceData.buyerId).to.be.equal(aliceTlId)
+      expect(serviceData.initiatorId).to.be.equal(aliceTlId)
       expect(serviceData.serviceDataUri).to.be.equal('CID1')
       expect(serviceData.platformId).to.be.equal(1)
     })
@@ -555,7 +559,9 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can update her service data', async function () {
-      await serviceRegistry.connect(alice).updateServiceData(1, 'aliceUpdateHerFirstService')
+      await serviceRegistry
+        .connect(alice)
+        .updateServiceData(aliceTlId, 1, 'aliceUpdateHerFirstService')
       const serviceData = await serviceRegistry.services(1)
       expect(serviceData.serviceDataUri).to.be.equal('aliceUpdateHerFirstService')
     })
@@ -612,14 +618,14 @@ describe('TalentLayer protocol global testing', function () {
 
       // Service data check
       expect(serviceData.status.toString()).to.be.equal('4')
-      expect(serviceData.buyerId.toString()).to.be.equal('1')
+      expect(serviceData.buyerId).to.be.equal(aliceTlId)
 
       // Proposal data check after the proposal
 
       expect(proposalDataAfter.rateToken).to.be.equal(rateToken)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('1')
       expect(proposalDataAfter.proposalDataUri).to.be.equal('proposal1FromBobToAlice1Service')
-      expect(proposalDataAfter.sellerId.toString()).to.be.equal('2')
+      expect(proposalDataAfter.sellerId).to.be.equal(bobTlId)
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
     })
 
@@ -684,7 +690,7 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Alice can reject Carol proposal ', async function () {
       const carolTid = await talentLayerID.walletOfOwner(carol.address)
-      await serviceRegistry.connect(alice).rejectProposal(1, carolTid)
+      await serviceRegistry.connect(alice).rejectProposal(aliceTlId, 1, carolTid)
 
       const proposalDataAfter = await serviceRegistry.getProposal(1, carolTid)
       expect(proposalDataAfter.status.toString()).to.be.equal('2')
@@ -1275,8 +1281,8 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice and Bob can write a review now and we can get review data', async function () {
-      await talentLayerReview.connect(alice).addReview(2, 'cidReview1', 2, 1)
-      await talentLayerReview.connect(bob).addReview(2, 'cidReview2', 4, 1)
+      await talentLayerReview.connect(alice).addReview(aliceTlId, 2, 'cidReview1', 2, 1)
+      await talentLayerReview.connect(bob).addReview(bobTlId, 2, 'cidReview2', 4, 1)
 
       const reviewData1 = await talentLayerReview.getReview(0)
       const reviewData2 = await talentLayerReview.getReview(1)
