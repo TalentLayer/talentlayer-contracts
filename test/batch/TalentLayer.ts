@@ -1,8 +1,18 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 import { deploy } from '../utils/deploy'
+import {
+  MockProofOfHumanity,
+  ServiceRegistry,
+  SimpleERC20,
+  TalentLayerArbitrator,
+  TalentLayerEscrow,
+  TalentLayerID,
+  TalentLayerPlatformID,
+  TalentLayerReview,
+} from '../../typechain-types'
 
 describe('TalentLayer protocol global testing', function () {
   // we dedine the types of the variables we will use
@@ -15,14 +25,14 @@ describe('TalentLayer protocol global testing', function () {
     frank: SignerWithAddress,
     grace: SignerWithAddress,
     heidi: SignerWithAddress,
-    serviceRegistry: Contract,
-    talentLayerID: Contract,
-    talentLayerPlatformID: Contract,
-    talentLayerReview: Contract,
-    talentLayerEscrow: Contract,
-    talentLayerArbitrator: Contract,
-    mockProofOfHumanity: Contract,
-    token: Contract,
+    serviceRegistry: ServiceRegistry,
+    talentLayerID: TalentLayerID,
+    talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerReview: TalentLayerReview,
+    talentLayerEscrow: TalentLayerEscrow,
+    talentLayerArbitrator: TalentLayerArbitrator,
+    mockProofOfHumanity: MockProofOfHumanity,
+    token: SimpleERC20,
     platformName: string,
     platformId: string,
     mintFee: number
@@ -57,7 +67,7 @@ describe('TalentLayer protocol global testing', function () {
 
   describe('Platform Id contract test', async function () {
     it('Alice successfully minted a PlatformId Id', async function () {
-      platformId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
+      platformId = (await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)).toString()
       expect(platformId).to.be.equal('1')
     })
 
@@ -215,10 +225,10 @@ describe('TalentLayer protocol global testing', function () {
 
     it('The platform owner can update the arbitration fee timeout', async function () {
       const minArbitrationFeeTimeout = await talentLayerPlatformID.minArbitrationFeeTimeout()
-      const tx = talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, minArbitrationFeeTimeout - 1)
+      const tx = talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, minArbitrationFeeTimeout.sub(1))
       await expect(tx).to.be.revertedWith('The timeout must be greater than the minimum timeout')
 
-      const arbitrationFeeTimeout = minArbitrationFeeTimeout + 3600 * 2
+      const arbitrationFeeTimeout = minArbitrationFeeTimeout.add(3600 * 2)
       await talentLayerPlatformID.connect(alice).updateArbitrationFeeTimeout(1, arbitrationFeeTimeout)
       const updatedArbitrationFeeTimeout = (await talentLayerPlatformID.getPlatform(1)).arbitrationFeeTimeout
       expect(updatedArbitrationFeeTimeout).to.be.equal(arbitrationFeeTimeout)
@@ -553,14 +563,14 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Bob can make a second proposal on the Alice service n°2', async function () {
-        proposalIdBob = await talentLayerID.walletOfOwner(bob.address)
+        proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
         await serviceRegistry
           .connect(bob)
           .createProposal(serviceId, token.address, amountBob, 'proposal2FromBobToAlice2Service')
       })
 
       it('Carol can make her second proposal on the Alice service n°2', async function () {
-        proposalIdCarol = await talentLayerID.walletOfOwner(carol.address)
+        proposalIdCarol = (await talentLayerID.walletOfOwner(carol.address)).toNumber()
         await serviceRegistry
           .connect(carol)
           .createProposal(serviceId, token.address, amountCarol, 'proposal2FromCarolToAlice2Service')
@@ -630,7 +640,7 @@ describe('TalentLayer protocol global testing', function () {
         const service = await serviceRegistry.getService(serviceId)
         await expect(service.status.toString()).to.be.equal('1')
         await expect(service.transactionId.toString()).to.be.equal('0')
-        await expect(service.sellerId.toString()).to.be.equal(proposalIdBob)
+        await expect(service.sellerId).to.be.equal(proposalIdBob)
       })
 
       it("Alice can NOT deposit funds for Carol's proposal.", async function () {
@@ -777,14 +787,14 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Bob can register a proposal.', async function () {
-        proposalIdBob = await talentLayerID.walletOfOwner(bob.address)
+        proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
         await serviceRegistry
           .connect(bob)
           .createProposal(serviceId, ethAddress, amountBob, 'proposal3FromBobToAlice3Service')
       })
 
       it('Carol can register a proposal.', async function () {
-        proposalIdCarol = await talentLayerID.walletOfOwner(carol.address)
+        proposalIdCarol = (await talentLayerID.walletOfOwner(carol.address)).toNumber()
         await serviceRegistry
           .connect(carol)
           .createProposal(serviceId, ethAddress, amountCarol, 'proposal3FromCarolToAlice3Service')
@@ -813,7 +823,7 @@ describe('TalentLayer protocol global testing', function () {
         const service = await serviceRegistry.getService(serviceId)
         await expect(service.status.toString()).to.be.equal('1')
         await expect(service.transactionId).to.be.equal(transactionId)
-        await expect(service.sellerId).to.be.equal(proposalIdBob)
+        await expect(service.sellerId.toNumber()).to.be.equal(proposalIdBob)
       })
 
       it("Alice can NOT deposit funds for Carol's proposal, and NO event should emit.", async function () {
