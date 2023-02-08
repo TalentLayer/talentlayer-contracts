@@ -146,7 +146,13 @@ contract TalentLayerReview is
      * @param _rating The review rate
      * @param _platformId The platform ID
      */
-    function addReview(uint256 _serviceId, string calldata _reviewUri, uint256 _rating, uint256 _platformId) public {
+    function addReview(
+        uint256 _senderId,
+        uint256 _serviceId,
+        string calldata _reviewUri,
+        uint256 _rating,
+        uint256 _platformId
+    ) public onlyOwnerOrDelegator(_senderId, msg.sender) {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
         uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
@@ -454,6 +460,18 @@ contract TalentLayerReview is
     modifier RequireMinted(uint256 _tokenId) {
         _;
         require(_exists(_tokenId), "TalentLayerReview: invalid token ID");
+    }
+
+    // =========================== Modifiers ==============================
+
+    /**
+     * @notice Check if the given address is either the owner of the delegator of the given tokenId
+     * @param _tokenId the tokenId
+     * @param _address the address to check
+     */
+    modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
+        require(tlId.isOwnerOrDelegator(_tokenId, _address), "Not owner or delegator");
+        _;
     }
 
     // =========================== Events ======================================
