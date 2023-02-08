@@ -356,20 +356,22 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
 
     /**
      * Update Service URI data
+     * @param _senderId The talentLayerId of the sender
      * @param _serviceId, Service ID to update
      * @param _newServiceDataUri New IPFS URI
      */
-    function updateServiceData(uint256 _serviceId, string calldata _newServiceDataUri) public {
+    function updateServiceData(
+        uint256 _senderId,
+        uint256 _serviceId,
+        string calldata _newServiceDataUri
+    ) public onlyOwnerOrDelegator(_senderId) {
         Service storage service = services[_serviceId];
         require(_serviceId < nextServiceId, "This service doesn't exist");
         require(
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
         );
-        require(
-            tlId.isOwnerOrDelegator(service.initiatorId, msg.sender),
-            "Only the initiator or a delegator can update the service"
-        );
+        require(_senderId == service.initiatorId, "Only the initiator or a delegator can update the service");
         require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.serviceDataUri = _newServiceDataUri;
