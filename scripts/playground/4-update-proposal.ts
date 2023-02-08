@@ -3,6 +3,8 @@ import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/dep
 import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
+const bobTlId = 2
+
 /*
 In this script Bob will update his proposal
 */
@@ -34,7 +36,7 @@ async function main() {
 
   await serviceRegistry
     .connect(bob)
-    .updateProposal(firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
+    .updateProposal(bobTlId, firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
 
   console.log('Bob update his proposal')
 }

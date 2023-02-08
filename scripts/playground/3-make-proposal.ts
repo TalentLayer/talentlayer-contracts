@@ -2,6 +2,10 @@ import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
 
+const bobTlId = 2
+const carolTlId = 3
+const daveTlId = 4
+
 /*
 In this script Bob, Carol and Dave will create proposals for Alice's services
 Bob and Carol for the first service (with ETH and Token) and Dave for the second service (Token)

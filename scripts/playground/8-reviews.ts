@@ -3,6 +3,9 @@ import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/dep
 import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
+const aliceTlId = 1
+const carolTlId = 3
+
 /*
 In this scriptAlice will review Carol and Carol will review Alice
 */

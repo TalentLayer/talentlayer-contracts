@@ -2,6 +2,8 @@ import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
 
+const aliceTlId = 1
+
 /*
 In this script Alice will reject Bob's proposal
 */
@@ -22,7 +24,7 @@ async function main() {
   console.log('serviceId', firstServiceId.toString())
 
   //Alice rejected Bob proposal
-  await serviceRegistry.connect(alice).rejectProposal(firstServiceId, 2)
+  await serviceRegistry.connect(alice).rejectProposal(aliceTlId, firstServiceId, 2)
   console.log('Alice rejected Bob proposal')
 }
 

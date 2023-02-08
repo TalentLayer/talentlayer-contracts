@@ -3,6 +3,8 @@ import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/dep
 import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
+const aliceTlId = 1
+
 /*
 In this script Alice will update the first service.
 */
@@ -45,7 +47,7 @@ async function main() {
   const firstServiceId = nextServiceId.sub(2)
   console.log('the Alice service id is ', firstServiceId.toString())
 
-  await serviceRegistry.connect(alice).updateServiceData(firstServiceId, aliceUpdateJobData)
+  await serviceRegistry.connect(alice).updateServiceData(aliceTlId, firstServiceId, aliceUpdateJobData)
   const jobDataAfterUpdate = await serviceRegistry.getService(firstServiceId)
   console.log('Job Data after update', jobDataAfterUpdate)
 }

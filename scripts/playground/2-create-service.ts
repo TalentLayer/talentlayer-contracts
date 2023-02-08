@@ -3,6 +3,8 @@ import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/dep
 import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
+const aliceTlId = 1
+
 /*
 In this script Alice will create two services.
 First we need to create Job Data and post it to IPFS to get the Service Data URI
