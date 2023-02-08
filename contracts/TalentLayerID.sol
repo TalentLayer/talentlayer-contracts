@@ -163,10 +163,10 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     /**
      * @notice Check whether an address is a delegator for the given user.
      * @param _userAddress Address of the user
-     * @param _delegator Address of the delegator
+     * @param _address Address to check if it is a delegator
      */
-    function isDelegator(address _userAddress, address _delegator) public view returns (bool) {
-        return delegators[_userAddress][_delegator];
+    function isDelegator(address _userAddress, address _address) public view returns (bool) {
+        return delegators[_userAddress][_address];
     }
 
     /**
