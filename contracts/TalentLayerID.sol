@@ -298,7 +298,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     /**
      * @notice Allows the delegator to mint a new TalentLayerID for a user paying the mint fee.
      * @param _platformId Platform ID to mint the token for
-     * @param _userAddress Address of the user to mint the token for
+     * @param _userAddress Address of the user
      * @param _handle Handle for the user
      */
     function mintByDelegator(
@@ -340,8 +340,9 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
     /**
      * @notice Allows the owner to mint a new TalentLayerID for a user for free without the need of Proof of Humanity.
-     * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
+     * @param _userAddress Address of the user
+     * @param _handle Handle for the user
      */
     function freeMint(
         uint256 _platformId,
