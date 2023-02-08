@@ -60,6 +60,9 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
     /// TokenId counter
     CountersUpgradeable.Counter nextTokenId;
 
+    /// User address to delegators
+    mapping(address => mapping(address => bool)) private delegators;
+
     uint256 testVariable;
 
     // =========================== Initializers ==============================
@@ -159,19 +162,36 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
         require(_tokenId > 0 && _tokenId < nextTokenId.current(), "Your ID is not a valid token ID");
     }
 
+    /**
+     * @notice Check whether an address is a delegator for the given user.
+     * @param _userAddress Address of the user
+     * @param _address Address to check if it is a delegator
+     */
+    function isDelegator(address _userAddress, address _address) public view returns (bool) {
+        return delegators[_userAddress][_address];
+    }
+
+    /**
+     * @notice Check whether an address is either the owner or a delegator for the token ID.
+     * @param _tokenId Token ID to check
+     * @param _address Address to check
+     */
+    function isOwnerOrDelegator(uint256 _tokenId, address _address) public view returns (bool) {
+        address owner = ownerOf(_tokenId);
+        return owner == _address || isDelegator(owner, _address);
+    }
+
     // =========================== User functions ==============================
 
     /**
      * @notice Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID mint the id from
      */
-    function mint(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(msg.sender, _handle, _platformId)
-    {
+    function mint(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(msg.sender, _handle, _platformId) {
         _safeMint(msg.sender, nextTokenId.current());
         _afterMint(msg.sender, _handle, false, _platformId, msg.value);
     }
@@ -179,14 +199,12 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
     /**
      * @notice Allows a user to mint a new TalentLayerID with Proof of Humanity.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId minted
+     * @param _platformId Platform ID mint the id from
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(msg.sender, _handle, _platformId)
-    {
+    function mintWithPoh(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(msg.sender, _handle, _platformId) {
         require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
         uint256 userTokenId = nextTokenId.current();
         _safeMint(msg.sender, userTokenId);
@@ -198,8 +216,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @notice Link Proof of Humanity to previously non-linked TalentLayerID.
      * @param _tokenId Token ID to link
      */
-    function activatePoh(uint256 _tokenId) public {
-        require(ownerOf(_tokenId) == msg.sender);
+    function activatePoh(uint256 _tokenId) public onlyOwnerOrDelegator(_tokenId, msg.sender) {
         require(pohRegistry.isRegistered(msg.sender), "You're address is not registerd for poh");
         profiles[_tokenId].pohAddress = msg.sender;
 
@@ -212,8 +229,10 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param _tokenId Token ID to update
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(uint256 _tokenId, string memory _newCid) public {
-        require(ownerOf(_tokenId) == msg.sender);
+    function updateProfileData(
+        uint256 _tokenId,
+        string memory _newCid
+    ) public onlyOwnerOrDelegator(_tokenId, msg.sender) {
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profiles[_tokenId].dataUri = _newCid;
 
@@ -236,7 +255,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
         uint256 _recoveryKey,
         string calldata _handle,
         bytes32[] calldata _merkleProof
-    ) public {
+    ) public onlyOwnerOrDelegator(_tokenId, _oldAddress) {
         require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
         require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
         require(numberMinted(msg.sender) == 0, "You already have a token");
@@ -256,6 +275,42 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
         _transfer(_oldAddress, msg.sender, _tokenId);
 
         emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
+    }
+
+    /**
+     * @notice Allows to give rights to a delegator to perform actions for a user's profile
+     * @param _delegator Address of the delegator to add
+     */
+    function addDelegator(address _delegator) external {
+        delegators[msg.sender][_delegator] = true;
+        emit DelegatorAdded(msg.sender, _delegator);
+    }
+
+    /**
+     * @notice Allows to remove rights from a delegator to perform actions for a user's profile
+     * @param _delegator Address of the delegator to remove
+     */
+    function removeDelegator(address _delegator) external {
+        delegators[msg.sender][_delegator] = false;
+        emit DelegatorRemoved(msg.sender, _delegator);
+    }
+
+    // =========================== Delegator functions ==============================
+
+    /**
+     * @notice Allows the delegator to mint a new TalentLayerID for a user paying the mint fee.
+     * @param _platformId Platform ID mint the id from
+     * @param _userAddress Address of the user
+     * @param _handle Handle for the user
+     */
+    function mintByDelegator(
+        uint256 _platformId,
+        address _userAddress,
+        string memory _handle
+    ) public payable canPay canMint(_userAddress, _handle, _platformId) {
+        require(isDelegator(_userAddress, msg.sender), "You are not a delegator for this user");
+        _safeMint(_userAddress, nextTokenId.current());
+        _afterMint(_userAddress, _handle, false, _platformId, msg.value);
     }
 
     // =========================== Owner functions ==============================
@@ -287,8 +342,9 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
 
     /**
      * @notice Allows the owner to mint a new TalentLayerID for a user for free without the need of Proof of Humanity.
+     * @param _platformId Platform ID from which UserId was minted
+     * @param _userAddress Address of the user
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
      */
     function freeMint(
         uint256 _platformId,
@@ -305,7 +361,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @notice Update handle address mapping and emit event after mint.
      * @dev Increments the nextTokenId counter.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID from which UserId was minted
      */
     function _afterMint(
         address _userAddress,
@@ -341,11 +397,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the safeTransferFrom function
@@ -353,11 +405,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the burn function
@@ -438,6 +486,17 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
         talentLayerPlatformIdContract.isValid(_platformId);
         _;
     }
+
+    /**
+     * @notice Check if the given address is either the owner of the delegator of the given tokenId
+     * @param _tokenId Token ID to check
+     * @param _address Address to check
+     */
+    modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
+        require(isOwnerOrDelegator(_tokenId, _address), "Not owner or delegator");
+        _;
+    }
+
     // =========================== Events ==============================
 
     /**
@@ -445,7 +504,7 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param _user Address of the owner of the TalentLayerID
      * @param _tokenId TalentLayer ID for the user
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID from which UserId was minted
      * @param _fee Fee paid to mint the TalentLayerID
      */
     event Mint(
@@ -486,4 +545,18 @@ contract TalentLayerIDV2 is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeab
      * @param _mintFee The new mint fee
      */
     event MintFeeUpdated(uint256 _mintFee);
+
+    /**
+     * Emit when a delegator is added for a user.
+     * @param _userAddress Address of the user
+     * @param _delegator Address of the delegator
+     */
+    event DelegatorAdded(address _userAddress, address _delegator);
+
+    /**
+     * Emit when a delegator is removed for a user.
+     * @param _userAddress Address of the user
+     * @param _delegator Address of the delegator
+     */
+    event DelegatorRemoved(address _userAddress, address _delegator);
 }
