@@ -135,25 +135,24 @@ contract TalentLayerReview is Context, ERC165, IERC721, IERC721Metadata {
         uint256 _platformId
     ) public onlyOwnerOrDelegator(_senderId) {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
-        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
+        require(_senderId == service.buyerId || _senderId == service.sellerId, "You're not an actor of this service");
         require(service.status == IServiceRegistry.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
-        if (senderId == service.buyerId) {
+        if (_senderId == service.buyerId) {
             toId = service.sellerId;
-            if (nftMintedByServiceAndBuyerId[_serviceId] == senderId) {
+            if (nftMintedByServiceAndBuyerId[_serviceId] == _senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndBuyerId[_serviceId] = senderId;
+                nftMintedByServiceAndBuyerId[_serviceId] = _senderId;
             }
         } else {
             toId = service.buyerId;
-            if (nftMintedByServiceAndSellerId[_serviceId] == senderId) {
+            if (nftMintedByServiceAndSellerId[_serviceId] == _senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndSellerId[_serviceId] = senderId;
+                nftMintedByServiceAndSellerId[_serviceId] = _senderId;
             }
         }
 
