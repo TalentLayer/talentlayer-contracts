@@ -215,7 +215,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * @notice Allows the delegator to mint a new TalentLayerID for a user paying the mint fee.
-     * @param _platformId Platform ID to mint the token for
+     * @param _platformId Platform ID mint the id from
      * @param _userAddress Address of the user
      * @param _handle Handle for the user
      */
