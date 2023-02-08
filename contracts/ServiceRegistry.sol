@@ -200,6 +200,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
 
     /**
      * @notice Allows an buyer to initiate an open service
+     * @param _senderId The talentLayerId of the sender
      * @param _platformId platform ID on which the Service token was minted
      * @param _serviceDataUri token Id to IPFS URI mapping
      */
@@ -251,6 +252,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
 
     /**
      * @notice Allows an seller to update his own proposal for a given service
+     * @param _senderId The talentLayerId of the sender
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token choosed
@@ -279,6 +281,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
 
     /**
      * @notice Allows the buyer to validate a proposal
+     * @param _senderId The talentLayerId of the sender
      * @param _serviceId Service identifier
      * @param _proposalId Proposal identifier
      */
@@ -300,6 +303,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
 
     /**
      * @notice Allows the buyer to reject a proposal
+     * @param _senderId The talentLayerId of the sender
      * @param _serviceId Service identifier
      * @param _proposalId Proposal identifier
      */
