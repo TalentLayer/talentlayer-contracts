@@ -3,6 +3,8 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../utils/config'
 const hre = require('hardhat')
 
+const aliceTlId = 1
+
 /*
 In this script Alice will reject Bob's proposal
 */
@@ -23,13 +25,13 @@ async function main() {
   console.log('serviceId', firstServiceId.toString())
 
   //Alice rejected Bob proposal
-  await serviceRegistry.connect(alice).rejectProposal(firstServiceId, 2)
+  await serviceRegistry.connect(alice).rejectProposal(aliceTlId, firstServiceId, 2)
   console.log('Alice rejected Bob proposal')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

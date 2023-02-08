@@ -3,6 +3,10 @@ import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../utils/config'
 import postToIPFS from '../utils/ipfs'
 
+const bobTlId = 2
+const carolTlId = 3
+const daveTlId = 4
+
 /*
 In this script Bob, Carol and Dave will create proposals for Alice's services
 Bob and Carol for the first service (with ETH and Token) and Dave for the second service (Token)
@@ -71,7 +75,7 @@ async function main() {
   const rateTokenBob = simpleERC20.address
   const bobProposal = await serviceRegistry
     .connect(bob)
-    .createProposal(firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), bobUri)
+    .createProposal(bobTlId, firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), bobUri)
   console.log('Bob proposal created')
   bobProposal.wait()
   // get the proposal
@@ -82,7 +86,7 @@ async function main() {
   const rateTokenCarol = '0x0000000000000000000000000000000000000000'
   const carolProposal = await serviceRegistry
     .connect(carol)
-    .createProposal(firstServiceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), carolUri)
+    .createProposal(carolTlId, firstServiceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), carolUri)
   console.log('Carol proposal created')
   carolProposal.wait()
   // get the proposal
@@ -93,7 +97,7 @@ async function main() {
   const rateTokenDave = simpleERC20.address
   const daveProposal = await serviceRegistry
     .connect(dave)
-    .createProposal(secondServiceId, rateTokenDave, ethers.utils.parseUnits('0.003', 18), daveUri)
+    .createProposal(daveTlId, secondServiceId, rateTokenDave, ethers.utils.parseUnits('0.003', 18), daveUri)
   console.log('Dave proposal created')
   daveProposal.wait()
   // get the proposal
@@ -103,7 +107,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

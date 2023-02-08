@@ -4,6 +4,8 @@ import { Network } from '../utils/config'
 const hre = require('hardhat')
 import postToIPFS from '../utils/ipfs'
 
+const aliceTlId = 1
+
 /*
 In this script Alice will create a two services.
 First we need to create Job Data and post it to IPFS to get the Service Data URI
@@ -48,7 +50,7 @@ async function main() {
 
   const createFirstOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateFirstJobData)
+    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPLatform, aliceCreateFirstJobData)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
@@ -71,7 +73,7 @@ async function main() {
 
   const createSecondOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateSecondJobData)
+    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPLatform, aliceCreateSecondJobData)
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
 
@@ -85,7 +87,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

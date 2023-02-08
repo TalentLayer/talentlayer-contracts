@@ -4,6 +4,8 @@ import { Network } from '../utils/config'
 const hre = require('hardhat')
 import postToIPFS from '../utils/ipfs'
 
+const aliceTlId = 1
+
 /*
 In this script Alice will update the first service.
 */
@@ -46,14 +48,14 @@ async function main() {
   let firstServiceId = nextServiceId.sub(2)
   console.log('the Alice service id is ', firstServiceId.toString())
 
-  await serviceRegistry.connect(alice).updateServiceData(firstServiceId, aliceUpdateJobData)
+  await serviceRegistry.connect(alice).updateServiceData(aliceTlId, firstServiceId, aliceUpdateJobData)
   const jobDataAfterUpdate = await serviceRegistry.getService(firstServiceId)
   console.log('Job Data after update', jobDataAfterUpdate)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

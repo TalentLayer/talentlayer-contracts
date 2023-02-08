@@ -4,6 +4,8 @@ import { Network } from '../utils/config'
 import postToIPFS from '../utils/ipfs'
 const hre = require('hardhat')
 
+const bobTlId = 2
+
 /*
 In this script Bob will update his proposal
 */
@@ -35,14 +37,14 @@ async function main() {
 
   await serviceRegistry
     .connect(bob)
-    .updateProposal(firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
+    .updateProposal(bobTlId, firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
 
   console.log('Bob update his proposal')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
