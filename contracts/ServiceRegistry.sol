@@ -157,10 +157,9 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     /**
      * @notice Check if the given address is either the owner of the delegator of the given tokenId
      * @param _tokenId the tokenId
-     * @param _address the address to check
      */
-    modifier onlyOwnerOrDelegator(uint256 _tokenId, address _address) {
-        require(tlId.isOwnerOrDelegator(_tokenId, _address), "Not owner or delegator");
+    modifier onlyOwnerOrDelegator(uint256 _tokenId) {
+        require(tlId.isOwnerOrDelegator(_tokenId, msg.sender), "Not owner or delegator");
         _;
     }
 
@@ -208,7 +207,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         uint256 _senderId,
         uint256 _platformId,
         string calldata _serviceDataUri
-    ) public onlyOwnerOrDelegator(_senderId, msg.sender) returns (uint256) {
+    ) public onlyOwnerOrDelegator(_senderId) returns (uint256) {
         talentLayerPlatformIdContract.isValid(_platformId);
         return _createService(Status.Opened, _senderId, _senderId, 0, _serviceDataUri, _platformId);
     }
@@ -227,7 +226,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
-    ) public onlyOwnerOrDelegator(_senderId, msg.sender) {
+    ) public onlyOwnerOrDelegator(_senderId) {
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
         require(
@@ -264,7 +263,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
-    ) public onlyOwnerOrDelegator(_senderId, msg.sender) {
+    ) public onlyOwnerOrDelegator(_senderId) {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_senderId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -289,7 +288,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         uint256 _senderId,
         uint256 _serviceId,
         uint256 _proposalId
-    ) public onlyOwnerOrDelegator(_senderId, msg.sender) {
+    ) public onlyOwnerOrDelegator(_senderId) {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
@@ -311,7 +310,7 @@ contract ServiceRegistry is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         uint256 _senderId,
         uint256 _serviceId,
         uint256 _proposalId
-    ) public onlyOwnerOrDelegator(_senderId, msg.sender) {
+    ) public onlyOwnerOrDelegator(_senderId) {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
