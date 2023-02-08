@@ -151,7 +151,7 @@ contract TalentLayerReview is
         uint256 _serviceId,
         string calldata _reviewUri,
         uint256 _rating,
-        uint256 _platformId
+        uint256 _platformIds
     ) public onlyOwnerOrDelegator(_senderId) {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
         uint256 senderId = tlId.walletOfOwner(_msgSender());
@@ -160,19 +160,19 @@ contract TalentLayerReview is
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
-        if (senderId == service.buyerId) {
+        if (_senderId == service.buyerId) {
             toId = service.sellerId;
-            if (nftMintedByServiceAndBuyerId[_serviceId] == senderId) {
+            if (nftMintedByServiceAndBuyerId[_serviceId] == _senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndBuyerId[_serviceId] = senderId;
+                nftMintedByServiceAndBuyerId[_serviceId] = _senderId;
             }
         } else {
             toId = service.buyerId;
-            if (nftMintedByServiceAndSellerId[_serviceId] == senderId) {
+            if (nftMintedByServiceAndSellerId[_serviceId] == _senderId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndSellerId[_serviceId] = senderId;
+                nftMintedByServiceAndSellerId[_serviceId] = _senderId;
             }
         }
 
