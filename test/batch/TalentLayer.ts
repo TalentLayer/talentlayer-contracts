@@ -14,6 +14,10 @@ import {
   TalentLayerReview,
 } from '../../typechain-types'
 
+const aliceTlId = 1
+const bobTlId = 2
+const carolTlId = 3
+
 describe('TalentLayer protocol global testing', function () {
   // we dedine the types of the variables we will use
   let deployer: SignerWithAddress,
@@ -258,9 +262,9 @@ describe('TalentLayer protocol global testing', function () {
         'You need to use an address registered on Proof of Humanity',
       )
       await talentLayerID.connect(carol).mint('1', 'carol')
-      expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal('1')
-      expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal('2')
-      expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal('3')
+      expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal(aliceTlId)
+      expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal(bobTlId)
+      expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal(carolTlId)
       const carolUserId = await talentLayerID.walletOfOwner(carol.address)
       const profileData = await talentLayerID.profiles(carolUserId)
       expect(profileData.platformId).to.be.equal('1')
@@ -271,10 +275,10 @@ describe('TalentLayer protocol global testing', function () {
         'You already have a TalentLayerID',
       )
       await mockProofOfHumanity.addSubmissionManually([carol.address])
-      await talentLayerID.connect(carol).activatePoh(3)
-      const profileData = await talentLayerID.profiles(3)
+      await talentLayerID.connect(carol).activatePoh(carolTlId)
+      const profileData = await talentLayerID.profiles(carolTlId)
 
-      expect(await talentLayerID.isTokenPohRegistered(3)).to.be.equal(true)
+      expect(await talentLayerID.isTokenPohRegistered(carolTlId)).to.be.equal(true)
       expect(profileData.pohAddress).to.be.equal(carol.address)
     })
 
@@ -424,52 +428,52 @@ describe('TalentLayer protocol global testing', function () {
 
   describe('Service Registry & Proposal contract test', function () {
     it("Dave, who doesn't have TalentLayerID, can't create a service", async function () {
-      await expect(serviceRegistry.connect(dave).createOpenServiceFromBuyer(1, 'haveNotTlid')).to.be.revertedWith(
-        'You should have a TalentLayerId',
+      await expect(serviceRegistry.connect(dave).createOpenServiceFromBuyer(0, 1, 'haveNotTlid')).to.be.revertedWith(
+        'ERC721: invalid token ID',
       )
     })
 
     it("Alice can't create a new service with a talentLayerId 0", async function () {
-      await expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(0, 'cid0')).to.be.revertedWith(
+      await expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, 0, 'cid0')).to.be.revertedWith(
         'Invalid platform ID',
       )
-      await expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(0, 'cid0')).to.be.revertedWith(
+      await expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, 0, 'cid0')).to.be.revertedWith(
         'Invalid platform ID',
       )
     })
 
     it('Alice the buyer can create a few Open service', async function () {
       // Alice will create 4 Open services fo the whole unit test process
-      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID1')
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, 1, 'CID1')
       const serviceData = await serviceRegistry.services(1)
 
       // service 2
-      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID2')
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, 1, 'CID2')
       await serviceRegistry.services(2)
 
       // service 3
-      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID3')
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, 1, 'CID3')
       await serviceRegistry.services(3)
 
       // service 4
-      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID4')
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, 1, 'CID4')
       await serviceRegistry.services(4)
 
       expect(serviceData.status.toString()).to.be.equal('4')
-      expect(serviceData.buyerId.toString()).to.be.equal('1')
-      expect(serviceData.initiatorId.toString()).to.be.equal('1')
+      expect(serviceData.buyerId).to.be.equal(aliceTlId)
+      expect(serviceData.initiatorId).to.be.equal(aliceTlId)
       expect(serviceData.serviceDataUri).to.be.equal('CID1')
       expect(serviceData.platformId).to.be.equal(1)
     })
 
     it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function () {
-      await expect(serviceRegistry.connect(alice).createOpenServiceFromBuyer(5, 'wrongTlPid')).to.be.revertedWith(
-        'Invalid platform ID',
-      )
+      await expect(
+        serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, 5, 'wrongTlPid'),
+      ).to.be.revertedWith('Invalid platform ID')
     })
 
     it('Alice can update her service data', async function () {
-      await serviceRegistry.connect(alice).updateServiceData(1, 'aliceUpdateHerFirstService')
+      await serviceRegistry.connect(alice).updateServiceData(aliceTlId, 1, 'aliceUpdateHerFirstService')
       const serviceData = await serviceRegistry.services(1)
       expect(serviceData.serviceDataUri).to.be.equal('aliceUpdateHerFirstService')
     })
@@ -483,27 +487,29 @@ describe('TalentLayer protocol global testing', function () {
       const proposalDataBefore = await serviceRegistry.getProposal(1, bobTid)
       expect(proposalDataBefore.sellerId.toString()).to.be.equal('0')
 
-      await serviceRegistry.connect(bob).createProposal(1, rateToken, 1, 'proposal1FromBobToAlice1Service')
+      await serviceRegistry.connect(bob).createProposal(bobTlId, 1, rateToken, 1, 'proposal1FromBobToAlice1Service')
 
       const serviceData = await serviceRegistry.services(1)
       const proposalDataAfter = await serviceRegistry.getProposal(1, bobTid)
 
       // Service data check
       expect(serviceData.status.toString()).to.be.equal('4')
-      expect(serviceData.buyerId.toString()).to.be.equal('1')
+      expect(serviceData.buyerId).to.be.equal(aliceTlId)
 
       // Proposal data check after the proposal
 
       expect(proposalDataAfter.rateToken).to.be.equal(rateToken)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('1')
       expect(proposalDataAfter.proposalDataUri).to.be.equal('proposal1FromBobToAlice1Service')
-      expect(proposalDataAfter.sellerId.toString()).to.be.equal('2')
+      expect(proposalDataAfter.sellerId).to.be.equal(bobTlId)
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
     })
 
     it('Carol can create her first proposal (will be rejected by Alice) ', async function () {
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
-      await serviceRegistry.connect(carol).createProposal(1, rateToken, 2, 'proposal1FromCarolToAlice1Service')
+      await serviceRegistry
+        .connect(carol)
+        .createProposal(carolTlId, 1, rateToken, 2, 'proposal1FromCarolToAlice1Service')
       await serviceRegistry.services(1)
       // get proposal info
       const carolTid = await talentLayerID.walletOfOwner(carol.address)
@@ -517,7 +523,9 @@ describe('TalentLayer protocol global testing', function () {
       const proposalDataBefore = await serviceRegistry.getProposal(1, bobTid)
       expect(proposalDataBefore.rateAmount.toString()).to.be.equal('1')
 
-      await serviceRegistry.connect(bob).updateProposal(1, rateToken, 2, 'updateProposal1FromBobToAlice1Service')
+      await serviceRegistry
+        .connect(bob)
+        .updateProposal(bobTlId, 1, rateToken, 2, 'updateProposal1FromBobToAlice1Service')
 
       const proposalDataAfter = await serviceRegistry.getProposal(1, bobTid)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2')
@@ -531,7 +539,7 @@ describe('TalentLayer protocol global testing', function () {
       const proposalDataBefore = await serviceRegistry.getProposal(1, bobTid)
       expect(proposalDataBefore.status.toString()).to.be.equal('0')
 
-      await serviceRegistry.connect(alice).validateProposal(1, bobTid)
+      await serviceRegistry.connect(alice).validateProposal(aliceTlId, 1, bobTid)
 
       const proposalDataAfter = await serviceRegistry.getProposal(1, bobTid)
       expect(proposalDataAfter.status.toString()).to.be.equal('1')
@@ -539,7 +547,7 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Alice can reject Carol proposal ', async function () {
       const carolTid = await talentLayerID.walletOfOwner(carol.address)
-      await serviceRegistry.connect(alice).rejectProposal(1, carolTid)
+      await serviceRegistry.connect(alice).rejectProposal(aliceTlId, 1, carolTid)
 
       const proposalDataAfter = await serviceRegistry.getProposal(1, carolTid)
       expect(proposalDataAfter.status.toString()).to.be.equal('2')
@@ -566,14 +574,14 @@ describe('TalentLayer protocol global testing', function () {
         proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
         await serviceRegistry
           .connect(bob)
-          .createProposal(serviceId, token.address, amountBob, 'proposal2FromBobToAlice2Service')
+          .createProposal(bobTlId, serviceId, token.address, amountBob, 'proposal2FromBobToAlice2Service')
       })
 
       it('Carol can make her second proposal on the Alice service n°2', async function () {
         proposalIdCarol = (await talentLayerID.walletOfOwner(carol.address)).toNumber()
         await serviceRegistry
           .connect(carol)
-          .createProposal(serviceId, token.address, amountCarol, 'proposal2FromCarolToAlice2Service')
+          .createProposal(carolTlId, serviceId, token.address, amountCarol, 'proposal2FromCarolToAlice2Service')
       })
 
       it('Alice cannot update originPlatformEscrowFeeRate, protocolEscrowFeeRate or protocolWallet', async function () {
@@ -790,14 +798,14 @@ describe('TalentLayer protocol global testing', function () {
         proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
         await serviceRegistry
           .connect(bob)
-          .createProposal(serviceId, ethAddress, amountBob, 'proposal3FromBobToAlice3Service')
+          .createProposal(bobTlId, serviceId, ethAddress, amountBob, 'proposal3FromBobToAlice3Service')
       })
 
       it('Carol can register a proposal.', async function () {
         proposalIdCarol = (await talentLayerID.walletOfOwner(carol.address)).toNumber()
         await serviceRegistry
           .connect(carol)
-          .createProposal(serviceId, ethAddress, amountCarol, 'proposal3FromCarolToAlice3Service')
+          .createProposal(carolTlId, serviceId, ethAddress, amountCarol, 'proposal3FromCarolToAlice3Service')
       })
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
@@ -941,29 +949,29 @@ describe('TalentLayer protocol global testing', function () {
 
   describe('Talent Layer Review contract test', function () {
     it("Bob can't write a review yet", async function () {
-      await expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
+      await expect(talentLayerReview.connect(bob).addReview(bobTlId, 1, 'cidReview', 3, 1)).to.be.revertedWith(
         "You're not an actor of this service",
       )
     })
 
     it("Carol can't write a review as she's not linked to this service", async function () {
-      await expect(talentLayerReview.connect(carol).addReview(1, 'cidReview', 5, 1)).to.be.revertedWith(
+      await expect(talentLayerReview.connect(carol).addReview(carolTlId, 1, 'cidReview', 5, 1)).to.be.revertedWith(
         "You're not an actor of this service",
       )
     })
 
     it("Alice and Bob can't write a review for the same Service", async function () {
-      await expect(talentLayerReview.connect(alice).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
+      await expect(talentLayerReview.connect(alice).addReview(aliceTlId, 1, 'cidReview', 3, 1)).to.be.revertedWith(
         'The service is not finished yet',
       )
-      await expect(talentLayerReview.connect(bob).addReview(1, 'cidReview', 3, 1)).to.be.revertedWith(
+      await expect(talentLayerReview.connect(bob).addReview(bobTlId, 1, 'cidReview', 3, 1)).to.be.revertedWith(
         `You're not an actor of this service`,
       )
     })
 
     it('Alice and Bob can write a review now and we can get review data', async function () {
-      await talentLayerReview.connect(alice).addReview(2, 'cidReview1', 2, 1)
-      await talentLayerReview.connect(bob).addReview(2, 'cidReview2', 4, 1)
+      await talentLayerReview.connect(alice).addReview(aliceTlId, 2, 'cidReview1', 2, 1)
+      await talentLayerReview.connect(bob).addReview(bobTlId, 2, 'cidReview2', 4, 1)
 
       const reviewData1 = await talentLayerReview.getReview(0)
       const reviewData2 = await talentLayerReview.getReview(1)
