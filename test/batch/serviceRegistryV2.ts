@@ -16,6 +16,8 @@ const carolPlatformId = 1
 const serviceId = 1
 const transactionAmount = BigNumber.from(1000)
 const ethAddress = '0x0000000000000000000000000000000000000000'
+const aliceTlId = 1
+const bobTlId = 2
 
 /**
  * Deploys contract and sets up the context for dispute resolution.
@@ -25,13 +27,8 @@ async function deployAndSetup(
   tokenAddress: string,
 ): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, ServiceRegistry]> {
   const [deployer, alice, bob, carol] = await ethers.getSigners()
-  const [
-    talentLayerID,
-    talentLayerPlatformID,
-    talentLayerEscrow,
-    talentLayerArbitrator,
-    serviceRegistry,
-  ] = await deploy(false)
+  const [talentLayerID, talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
+    await deploy(false)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'
@@ -42,15 +39,15 @@ async function deployAndSetup(
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
   // Alice, the buyer, initiates a new open service
-  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, tokenAddress, transactionAmount, 'cid')
+  await serviceRegistry.connect(bob).createProposal(bobTlId, serviceId, tokenAddress, transactionAmount, 'cid')
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry]
 }
 
-describe('Service registry V2 migration testing', function() {
+describe('Service registry V2 migration testing', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
@@ -61,15 +58,15 @@ describe('Service registry V2 migration testing', function() {
     serviceRegistry: ServiceRegistry,
     serviceRegistryV2: ServiceRegistryV2
 
-  before(async function() {
+  before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
     ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] = await deployAndSetup(
       ethAddress,
     )
   })
 
-  describe('Migrate to V2', async function() {
-    it('Should deploy the V2 keeping the same address', async function() {
+  describe('Migrate to V2', async function () {
+    it('Should deploy the V2 keeping the same address', async function () {
       const ServiceRegistryV2 = await ethers.getContractFactory('ServiceRegistryV2')
       serviceRegistryV2 = await upgrades.upgradeProxy(serviceRegistry.address, ServiceRegistryV2)
 

@@ -13,6 +13,8 @@ const serviceId = 1
 const proposalId = 2
 const transactionAmount = BigNumber.from(1000)
 const ethAddress = '0x0000000000000000000000000000000000000000'
+const aliceTlId = 1
+const bobTlId = 2
 
 /**
  * Deploys contract and sets up the context for dispute resolution.
@@ -34,10 +36,10 @@ async function deployAndSetup(
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
   // Alice, the buyer, initiates a new open service
-  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, tokenAddress, transactionAmount, 'cid')
+  await serviceRegistry.connect(bob).createProposal(bobTlId, serviceId, tokenAddress, transactionAmount, 'cid')
 
   const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
   const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)

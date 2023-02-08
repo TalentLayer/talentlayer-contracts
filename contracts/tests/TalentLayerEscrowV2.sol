@@ -656,7 +656,7 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
             party = transaction.receiver;
         }
 
-        require(party != address(0), "The caller must be the sender or the receiver or their delegators");
+        require(party != address(0), "The caller must be the sender or the receiver or their delegators.");
         require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
 
         emit Evidence(transaction.arbitrator, _transactionId, party, _evidence);
