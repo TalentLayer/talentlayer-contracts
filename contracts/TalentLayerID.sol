@@ -283,6 +283,24 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
         emit DelegatorRemoved(msg.sender, _delegator);
     }
 
+    // =========================== Delegator functions ==============================
+
+    /**
+     * @notice Allows the delegator to mint a new TalentLayerID for a user paying the mint fee.
+     * @param _platformId Platform ID to mint the token for
+     * @param _userAddress Address of the user to mint the token for
+     * @param _handle Handle for the user
+     */
+    function mintByDelegator(
+        uint256 _platformId,
+        address _userAddress,
+        string memory _handle
+    ) public payable canPay canMint(_userAddress, _handle, _platformId) {
+        require(isDelegator(_userAddress, msg.sender), "You are not a delegator for this user");
+        _safeMint(_userAddress, nextTokenId.current());
+        _afterMint(_userAddress, _handle, false, _platformId, msg.value);
+    }
+
     // =========================== Owner functions ==============================
 
     /**
