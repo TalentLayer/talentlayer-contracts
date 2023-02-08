@@ -184,7 +184,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     /**
      * @notice Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID mint the id from
      */
     function mint(
         uint256 _platformId,
@@ -197,7 +197,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     /**
      * @notice Allows a user to mint a new TalentLayerID with Proof of Humanity.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId minted
+     * @param _platformId Platform ID mint the id from
      */
     function mintWithPoh(
         uint256 _platformId,
@@ -297,7 +297,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
     /**
      * @notice Allows the delegator to mint a new TalentLayerID for a user paying the mint fee.
-     * @param _platformId Platform ID to mint the token for
+     * @param _platformId Platform ID mint the id from
      * @param _userAddress Address of the user
      * @param _handle Handle for the user
      */
@@ -340,7 +340,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
     /**
      * @notice Allows the owner to mint a new TalentLayerID for a user for free without the need of Proof of Humanity.
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID from which UserId was minted
      * @param _userAddress Address of the user
      * @param _handle Handle for the user
      */
@@ -359,7 +359,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @notice Update handle address mapping and emit event after mint.
      * @dev Increments the nextTokenId counter.
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID from which UserId was minted
      */
     function _afterMint(
         address _userAddress,
@@ -502,7 +502,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _user Address of the owner of the TalentLayerID
      * @param _tokenId TalentLayer ID for the user
      * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId wad minted
+     * @param _platformId Platform ID from which UserId was minted
      * @param _fee Fee paid to mint the TalentLayerID
      */
     event Mint(
