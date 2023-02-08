@@ -514,7 +514,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         Transaction storage transaction = transactions[_transactionId];
 
         require(
-            transaction.sender == msg.sender || talentLayerIdContract.isDelegator(transaction.sender, msg.sender),
+            transaction.receiver == msg.sender || talentLayerIdContract.isDelegator(transaction.receiver, msg.sender),
             "Access denied."
         );
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
