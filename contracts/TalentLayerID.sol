@@ -3,19 +3,20 @@ pragma solidity ^0.8.9;
 
 import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
 
 import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base64Upgradeable.sol";
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {MerkleProofUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
 /**
  * @title TalentLayer ID Contract
  * @author TalentLayer Team
  */
-contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
+contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // =========================== Structs ==============================
@@ -158,14 +159,13 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(msg.sender, _handle, _platformId)
-    {
-        _safeMint(msg.sender, nextTokenId.current());
-        _afterMint(msg.sender, _handle, false, _platformId, msg.value);
+    function mint(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
+        address sender = _msgSender();
+        _safeMint(sender, nextTokenId.current());
+        _afterMint(sender, _handle, false, _platformId, msg.value);
     }
 
     /**
@@ -173,17 +173,17 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(msg.sender, _handle, _platformId)
-    {
-        require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
+    function mintWithPoh(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
+        address sender = _msgSender();
+        require(pohRegistry.isRegistered(sender), "You need to use an address registered on Proof of Humanity");
+
         uint256 userTokenId = nextTokenId.current();
-        _safeMint(msg.sender, userTokenId);
-        profiles[userTokenId].pohAddress = msg.sender;
-        _afterMint(msg.sender, _handle, true, _platformId, msg.value);
+        _safeMint(sender, userTokenId);
+        profiles[userTokenId].pohAddress = sender;
+        _afterMint(sender, _handle, true, _platformId, msg.value);
     }
 
     /**
@@ -191,11 +191,12 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _tokenId Token ID to link
      */
     function activatePoh(uint256 _tokenId) public {
-        require(ownerOf(_tokenId) == msg.sender);
-        require(pohRegistry.isRegistered(msg.sender), "You're address is not registerd for poh");
-        profiles[_tokenId].pohAddress = msg.sender;
+        address sender = _msgSender();
+        require(ownerOf(_tokenId) == sender);
+        require(pohRegistry.isRegistered(sender), "You're address is not registerd for poh");
+        profiles[_tokenId].pohAddress = sender;
 
-        emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handle);
+        emit PohActivated(sender, _tokenId, profiles[_tokenId].handle);
     }
 
     /**
@@ -205,7 +206,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _newCid New IPFS URI
      */
     function updateProfileData(uint256 _tokenId, string memory _newCid) public {
-        require(ownerOf(_tokenId) == msg.sender);
+        require(ownerOf(_tokenId) == _msgSender());
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profiles[_tokenId].dataUri = _newCid;
 
@@ -227,7 +228,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @notice Withdraws the contract balance to the owner.
      */
     function withdraw() public onlyOwner {
-        (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
+        (bool sent, ) = payable(_msgSender()).call{value: address(this).balance}("");
         require(sent, "Failed to withdraw Ether");
     }
 
@@ -273,7 +274,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     // =========================== Internal functions ==============================
 
     /**
-     * @notice Function that revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
      * {upgradeTo} and {upgradeToAndCall}.
      * @param newImplementation address of the new contract implementation
      */
@@ -287,11 +288,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the safeTransferFrom function
@@ -299,11 +296,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the burn function
@@ -357,9 +350,29 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
             );
     }
 
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (address)
+    {
+        return ERC2771RecipientUpgradeable._msgSender();
+    }
+
+    function _msgData()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (bytes calldata)
+    {
+        return ERC2771RecipientUpgradeable._msgData();
+    }
+
     // =========================== Modifiers ==============================
     /**
-     * @notice Check if msg.sender can pay the mint fee.
+     * @notice Check if _msgSender() can pay the mint fee.
      */
     modifier canPay() {
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");

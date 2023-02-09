@@ -9,10 +9,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IServiceRegistry.sol";
 import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ITalentLayerPlatformID.sol";
+import "./libs/ERC2771RecipientUpgradeable.sol";
 import "./IArbitrable.sol";
 import "./Arbitrator.sol";
 
-contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable, IArbitrable {
+contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, IArbitrable {
     // =========================== Enum ==============================
 
     /**
@@ -339,10 +340,12 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @return balance The balance of the platform
      */
     function getClaimableFeeBalance(address _token) external view returns (uint256 balance) {
-        if (owner() == msg.sender) {
+        address sender = _msgSender();
+
+        if (owner() == sender) {
             return platformIdToTokenToBalance[PROTOCOL_INDEX][_token];
         } else {
-            uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(msg.sender);
+            uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(sender);
             talentLayerPlatformIdContract.isValid(platformId);
             return platformIdToTokenToBalance[platformId][_token];
         }
@@ -357,8 +360,10 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory transaction) {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
+
+        address sender = _msgSender();
         require(
-            msg.sender == transaction.sender || msg.sender == transaction.receiver,
+            sender == transaction.sender || sender == transaction.receiver,
             "You are not related to this transaction."
         );
         return transaction;
@@ -419,7 +424,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
 
         // PlatformEscrowFeeRate is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
-        require(msg.sender == sender, "Access denied.");
+        require(_msgSender() == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
@@ -463,7 +468,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         // PlatformEscrowFeeRate is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
 
-        require(msg.sender == sender, "Access denied.");
+        require(_msgSender() == sender, "Access denied.");
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
@@ -493,7 +498,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
-        require(transaction.sender == msg.sender, "Access denied.");
+        require(transaction.sender == _msgSender(), "Access denied.");
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
         require(transaction.amount >= _amount, "Insufficient funds.");
 
@@ -511,7 +516,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
-        require(transaction.receiver == msg.sender, "Access denied.");
+        require(transaction.receiver == _msgSender(), "Access denied.");
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
         require(transaction.amount >= _amount, "Insufficient funds.");
 
@@ -532,7 +537,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
             transaction.status < Status.DisputeCreated,
             "Dispute has already been created or because the transaction has been executed."
         );
-        require(msg.sender == transaction.sender, "The caller must be the sender.");
+        require(_msgSender() == transaction.sender, "The caller must be the sender.");
 
         uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
         transaction.senderFee += msg.value;
@@ -565,7 +570,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
             transaction.status < Status.DisputeCreated,
             "Dispute has already been created or because the transaction has been executed."
         );
-        require(msg.sender == transaction.receiver, "The caller must be the receiver.");
+        require(_msgSender() == transaction.receiver, "The caller must be the receiver.");
 
         uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
         transaction.receiverFee += msg.value;
@@ -633,18 +638,19 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      *  @param _evidence A link to an evidence using its URI.
      */
     function submitEvidence(uint256 _transactionId, string memory _evidence) public {
+        address sender = _msgSender();
         Transaction storage transaction = transactions[_transactionId];
 
         require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
         require(
-            msg.sender == transaction.sender || msg.sender == transaction.receiver,
+            sender == transaction.sender || sender == transaction.receiver,
             "The caller must be the sender or the receiver."
         );
         require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
 
-        emit Evidence(transaction.arbitrator, _transactionId, msg.sender, _evidence);
+        emit Evidence(transaction.arbitrator, _transactionId, sender, _evidence);
 
-        uint256 party = talentLayerIdContract.walletOfOwner(msg.sender);
+        uint256 party = talentLayerIdContract.walletOfOwner(sender);
         emit EvidenceSubmitted(_transactionId, party, _evidence);
     }
 
@@ -672,7 +678,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
     function claim(uint256 _platformId, address _tokenAddress) external {
         address payable recipient;
 
-        if (owner() == msg.sender) {
+        if (owner() == _msgSender()) {
             require(_platformId == PROTOCOL_INDEX, "Access denied.");
             recipient = protocolWallet;
         } else {
@@ -702,13 +708,14 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      *  @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
      */
     function rule(uint256 _disputeID, uint256 _ruling) public {
+        address sender = _msgSender();
         uint256 transactionId = disputeIDtoTransactionID[_disputeID];
         Transaction storage transaction = transactions[transactionId];
 
-        require(msg.sender == address(transaction.arbitrator), "The caller must be the arbitrator.");
+        require(sender == address(transaction.arbitrator), "The caller must be the arbitrator.");
         require(transaction.status == Status.DisputeCreated, "The dispute has already been resolved.");
 
-        emit Ruling(Arbitrator(msg.sender), _disputeID, _ruling);
+        emit Ruling(Arbitrator(sender), _disputeID, _ruling);
 
         _executeRuling(transactionId, _ruling);
     }
@@ -794,7 +801,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
     }
 
     /**
-     * @notice Function that revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
      * {upgradeTo} and {upgradeToAndCall}.
      * @param newImplementation address of the new contract implementation
      */
@@ -856,11 +863,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _metaEvidence The meta evidence of the transaction
      * @param _sellerId The ID of the seller
      */
-    function _afterCreateTransaction(
-        uint256 _transactionId,
-        string memory _metaEvidence,
-        uint256 _sellerId
-    ) internal {
+    function _afterCreateTransaction(uint256 _transactionId, string memory _metaEvidence, uint256 _sellerId) internal {
         Transaction storage transaction = transactions[_transactionId];
 
         uint256 sender = talentLayerIdContract.walletOfOwner(transaction.sender);
@@ -890,11 +893,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _token The token to transfer
      * @param _amount The amount of tokens to transfer
      */
-    function _deposit(
-        address _sender,
-        address _token,
-        uint256 _amount
-    ) private {
+    function _deposit(address _sender, address _token, uint256 _amount) private {
         require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
     }
 
@@ -979,7 +978,10 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _proposalId The id of the proposal
      * @return proposal proposal struct, service The service struct, sender The sender address, receiver The receiver address
      */
-    function _getTalentLayerData(uint256 _serviceId, uint256 _proposalId)
+    function _getTalentLayerData(
+        uint256 _serviceId,
+        uint256 _proposalId
+    )
         private
         returns (
             IServiceRegistry.Proposal memory proposal,
@@ -1001,11 +1003,10 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _proposalId The id of the proposal
      * @return The Proposal struct
      */
-    function _getProposal(uint256 _serviceId, uint256 _proposalId)
-        private
-        view
-        returns (IServiceRegistry.Proposal memory)
-    {
+    function _getProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) private view returns (IServiceRegistry.Proposal memory) {
         return serviceRegistryContract.getProposal(_serviceId, _proposalId);
     }
 
@@ -1024,11 +1025,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
      */
-    function _transferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.transfer(_amount);
         } else {
@@ -1036,11 +1033,7 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
         }
     }
 
-    function _safeTransferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _safeTransferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.call{value: _amount}("");
         } else {
@@ -1054,11 +1047,10 @@ contract TalentLayerEscrow is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _platformEscrowFeeRate The platform fee
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformEscrowFeeRate)
-        private
-        view
-        returns (uint256 totalEscrowAmount)
-    {
+    function _calculateTotalEscrowAmount(
+        uint256 _amount,
+        uint256 _platformEscrowFeeRate
+    ) private view returns (uint256 totalEscrowAmount) {
         return
             _amount +
             (((_amount * protocolEscrowFeeRate) +
