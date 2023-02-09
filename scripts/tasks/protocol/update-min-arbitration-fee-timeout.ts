@@ -17,7 +17,7 @@ task('update-min-arbitration-fee-timeout', 'update the minimum timeout to pay th
 
     const platformIdContract = await ethers.getContractAt(
       'TalentLayerPlatformID',
-      get(network.name as any as Network, ConfigProperty.TalentLayerPlatformID),
+      get(network.name, ConfigProperty.TalentLayerPlatformID),
       deployer,
     )
 

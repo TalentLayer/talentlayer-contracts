@@ -27,10 +27,7 @@ task('upgrade-proxy', 'Upgrade a proxy to a new implementation')
       contractName,
     )
 
-    const proxyAddress = get(
-      network.name as any as Network,
-      ConfigProperty[proxyName as keyof typeof ConfigProperty],
-    )
+    const proxyAddress = get(network.name, ConfigProperty[proxyName as keyof typeof ConfigProperty])
     if (!proxyAddress) {
       throw new Error(`Proxy address not found for ${proxyName}`)
     }
