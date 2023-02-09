@@ -23,13 +23,16 @@ const ethAddress = '0x0000000000000000000000000000000000000000'
  * Deploys contracts and sets up the context for TalentLayerId contract.
  * @returns the deployed contracts
  */
-async function deployAndSetup(): Promise<
-  [TalentLayerID, TalentLayerPlatformID, ServiceRegistry, TalentLayerEscrow, TalentLayerReview]
-> {
+async function deployAndSetup(
+  tokenAddress: string,
+): Promise<[TalentLayerID, TalentLayerPlatformID, ServiceRegistry, TalentLayerEscrow, TalentLayerReview]> {
   const [deployer, , , carol] = await ethers.getSigners()
   const [talentLayerID, talentLayerPlatformID, takentLayerEscrow, , serviceRegistry, talentLayerReview] = await deploy(
     false,
   )
+
+  // Deployer whitelists a list of authorized tokens
+  await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'
@@ -55,7 +58,7 @@ describe('Delegation System', function () {
   before(async function () {
     ;[, alice, bob, , dave, eve] = await ethers.getSigners()
     ;[talentLayerID, talentLayerPlatformID, serviceRegistry, talentLayerEscrow, talentLayerReview] =
-      await deployAndSetup()
+      await deployAndSetup(ethAddress)
   })
 
   describe('Adding a delegator', async function () {
