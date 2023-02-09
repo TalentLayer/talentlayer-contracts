@@ -1,7 +1,6 @@
 import * as fs from 'fs'
 
 export enum ConfigProperty {
-  MockProofOfHumanity = 'proofOfHumanityAddress',
   TalentLayerID = 'talentLayerIdAddress',
   ServiceRegistry = 'serviceRegistryAddress',
   Reviewscontract = 'talentLayerReviewAddress',

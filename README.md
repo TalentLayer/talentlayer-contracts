@@ -27,7 +27,7 @@ Understand the protocol and how we tackle our main problems:
 - Complete all the variables in the `.env` file
 - Install dependencies: `npm install`
 - Launch your local node: `npx hardhat node`
-- Deploy contract: `npx hardhat deploy-full --use-pohmock --use-test-erc20 --network localhost`
+- Deploy contract: `npx hardhat deploy-full --use-test-erc20 --network localhost`
 
 ## Scripts
 

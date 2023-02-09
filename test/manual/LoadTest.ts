@@ -4,6 +4,7 @@ import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import {
   ServiceRegistry,
+  TalentLayerArbitrator,
   TalentLayerEscrow,
   TalentLayerID,
   TalentLayerPlatformID,

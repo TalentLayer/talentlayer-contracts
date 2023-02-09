@@ -38,13 +38,13 @@ async function main() {
   await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPLatform, 'alice.lens')
   console.log('alice.lens registered')
 
-  await talentLayerIdContract.connect(bob).mintWithPoh(daveTalentLayerIdPLatform, 'bob.lens')
+  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPLatform, 'bob.lens')
   console.log('Bob.lens registered')
 
-  await talentLayerIdContract.connect(carol).mintWithPoh(daveTalentLayerIdPLatform, 'carol.lens')
+  await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPLatform, 'carol.lens')
   console.log('carol.lens registered')
 
-  await talentLayerIdContract.connect(dave).mintWithPoh(daveTalentLayerIdPLatform, 'dave.lens')
+  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPLatform, 'dave.lens')
   console.log('dave.lens registered')
 }
 
