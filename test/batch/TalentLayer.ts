@@ -1,8 +1,9 @@
 import { expect } from 'chai'
-import { ethers } from 'hardhat'
+import { ethers, network } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { BigNumber, Contract } from 'ethers'
 import { deploy } from '../utils/deploy'
+import { getConfig, Network, NetworkConfig } from '../../scripts/utils/config'
 
 describe('TalentLayer protocol global testing', function () {
   // we dedine the types of the variables we will use
@@ -25,7 +26,9 @@ describe('TalentLayer protocol global testing', function () {
     token: Contract,
     platformName: string,
     platformId: string,
-    mintFee: number
+    mintFee: number,
+    networkConfig: NetworkConfig,
+    chainId: number
 
   const nonListedRateToken = '0x6b175474e89094c44da98b954eedeac495271d0f'
 
@@ -628,8 +631,11 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('The Deployer can update originPlatformEscrowFeeRate, protocolEscrowFeeRate and protocolWallet', async function () {
+        chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
+        networkConfig = getConfig(chainId)
         let protocolWallet = await talentLayerEscrow.connect(deployer).getProtocolWallet()
-        expect(protocolWallet).to.equal(deployer.address)
+
+        expect(protocolWallet).to.equal(networkConfig.multisigAddress)
         await talentLayerEscrow.connect(deployer).updateProtocolWallet(dave.address)
         protocolWallet = await talentLayerEscrow.connect(deployer).getProtocolWallet()
         expect(protocolWallet).to.equal(dave.address)

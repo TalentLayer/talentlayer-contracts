@@ -24,22 +24,11 @@ interface ITalentLayerID {
 
     function updateProfileData(uint256 _tokenId, string memory _newCid) external;
 
-    function recoverAccount(
-        address _oldAddress,
-        uint256 _tokenId,
-        uint256 _index,
-        uint256 _recoveryKey,
-        string calldata _handle,
-        bytes32[] calldata _merkleProof
-    ) external;
-
     function isValid(uint256 _tokenId) external view;
 
     function setBaseURI(string memory _newBaseURI) external;
 
     function getProfile(uint256 _profileId) external view returns (Profile memory);
-
-    function updateRecoveryRoot(bytes32 _newRoot) external;
 
     function _afterMint(string memory _handle) external;
 
