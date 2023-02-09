@@ -179,12 +179,12 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       // Add TalentLayerArbitrator to platform available arbitrators
       await talentLayerPlatformID.addArbitrator(talentLayerArbitrator.address, true)
 
-      // Deploy TalentLayerEscrow
       const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
-      const talentLayerEscrowArgs: [string, string, string] = [
+      const talentLayerEscrowArgs: [string, string, string, string | undefined] = [
         serviceRegistry.address,
         talentLayerID.address,
         talentLayerPlatformID.address,
+        networkConfig.multisigAddress,
       ]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, talentLayerEscrowArgs, {

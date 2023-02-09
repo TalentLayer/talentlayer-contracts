@@ -31,8 +31,6 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
 
     function updateProfileData(uint256 _platformId, string memory _newCid) external;
 
-    function updateRecoveryRoot(bytes32 _newRoot) external;
-
     function isValid(uint256 _platformId) external view;
 
     event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName);
