@@ -309,7 +309,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function initialize(
         address _serviceRegistryAddress,
         address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress
+        address _talentLayerPlatformIDAddress,
+        address _protocolWallet
     ) public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
@@ -317,7 +318,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
-        protocolWallet = payable(owner());
+        protocolWallet = payable(_protocolWallet);
 
         updateProtocolEscrowFeeRate(100);
         updateOriginPlatformEscrowFeeRate(200);

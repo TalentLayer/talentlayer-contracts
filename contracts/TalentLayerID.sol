@@ -49,12 +49,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Token ID to Profile struct
     mapping(uint256 => Profile) public profiles;
 
-    /// Account recovery merkle root
-    bytes32 public recoveryRoot;
-
-    /// Addresses that have successfully recovered their account
-    mapping(address => bool) public hasBeenRecovered;
-
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
 
@@ -219,55 +213,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         emit CidUpdated(_tokenId, _newCid);
     }
 
-    /**
-     * @notice Allows recovery of a user's account with zero knowledge proofs.
-     * @param _oldAddress Old user address
-     * @param _tokenId Token ID to recover
-     * @param _index Index in the merkle tree
-     * @param _recoveryKey Recovery key
-     * @param _handle User handle
-     * @param _merkleProof Merkle proof
-     */
-    function recoverAccount(
-        address _oldAddress,
-        uint256 _tokenId,
-        uint256 _index,
-        uint256 _recoveryKey,
-        string calldata _handle,
-        bytes32[] calldata _merkleProof
-    ) public {
-        address sender = _msgSender();
-
-        require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
-        require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
-        require(numberMinted(sender) == 0, "You already have a token");
-        require(profiles[_tokenId].pohAddress == address(0), "Your old address was not linked to Proof of Humanity");
-        require(
-            keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
-            "Invalid handle"
-        );
-        require(pohRegistry.isRegistered(sender), "You need to use an address registered on Proof of Humanity");
-
-        bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
-        require(MerkleProofUpgradeable.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
-
-        hasBeenRecovered[_oldAddress] = true;
-        profiles[_tokenId].handle = _handle;
-        profiles[_tokenId].pohAddress = sender;
-        _transfer(_oldAddress, sender, _tokenId);
-
-        emit AccountRecovered(sender, _oldAddress, _handle, _tokenId);
-    }
-
     // =========================== Owner functions ==============================
-
-    /**
-     * @notice Set new TalentLayer ID recovery root.
-     * @param _newRoot New merkle root
-     */
-    function updateRecoveryRoot(bytes32 _newRoot) public onlyOwner {
-        recoveryRoot = _newRoot;
-    }
 
     /**
      * @notice Updates the mint fee.
@@ -484,15 +430,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _newCid Content ID
      */
     event CidUpdated(uint256 indexed _tokenId, string _newCid);
-
-    /**
-     * Emit when account is recovered.
-     * @param _newAddress New user address
-     * @param _oldAddress Old user address
-     * @param _handle User handle
-     * @param _tokenId TalentLayer ID for the user
-     */
-    event AccountRecovered(address indexed _newAddress, address indexed _oldAddress, string _handle, uint256 _tokenId);
 
     /**
      * Emit when mint fee is updated
