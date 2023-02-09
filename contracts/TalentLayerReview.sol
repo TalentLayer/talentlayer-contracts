@@ -12,6 +12,7 @@ import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Stri
 import {ERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
@@ -21,11 +22,10 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  * @author TalentLayer Team
  */
 contract TalentLayerReview is
-    ContextUpgradeable,
+    ERC2771RecipientUpgradeable,
     ERC165Upgradeable,
     IERC721Upgradeable,
     IERC721MetadataUpgradeable,
-    OwnableUpgradeable,
     UUPSUpgradeable
 {
     using AddressUpgradeable for address;
@@ -148,7 +148,7 @@ contract TalentLayerReview is
      */
     function addReview(uint256 _serviceId, string calldata _reviewUri, uint256 _rating, uint256 _platformId) public {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
         require(service.status == IServiceRegistry.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
@@ -390,8 +390,9 @@ contract TalentLayerReview is
         address owner = TalentLayerReview.ownerOf(tokenId);
         require(to != owner, "TalentLayerReview: approval to current owner");
 
+        address sender = _msgSender();
         require(
-            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
+            sender == owner || isApprovedForAll(owner, sender),
             "TalentLayerReview: approve caller is not token owner nor approved for all"
         );
 

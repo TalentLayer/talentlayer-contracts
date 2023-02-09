@@ -3,7 +3,7 @@ import type { NetworkUserConfig } from 'hardhat/types'
 import { config as dotenvConfig } from 'dotenv'
 import { resolve } from 'path'
 import '@nomicfoundation/hardhat-toolbox'
-import "@openzeppelin/hardhat-upgrades";
+import '@openzeppelin/hardhat-upgrades'
 import 'hardhat-contract-sizer'
 import './scripts/tasks/deploy/01-full'
 import './scripts/tasks/deploy/02-service-registry-v2'
@@ -13,6 +13,8 @@ import './scripts/tasks/protocol/mintTalentLayerId'
 import './scripts/tasks/protocol/addArbitrator'
 import './scripts/tasks/protocol/removeArbitrator'
 import './scripts/tasks/protocol/updateMinArbitrationFeeTimeout'
+import './scripts/tasks/protocol/addTrustedForwarder'
+import './scripts/tasks/protocol/removeTrustedForwarder'
 import { Network } from './scripts/utils/config'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
