@@ -6,15 +6,14 @@ import { verifyAddress } from './utils'
 
 /**
  * @notice Task created only for test purposes of the upgradable process
- * @usage npx hardhat deploy-full --use-pohmock --use-test-erc20 --verify --network goerli
+ * @usage npx hardhat deploy-full --use-test-erc20 --verify --network goerli
  */
 task('deploy-full', 'Deploy all the contracts on their first version')
-  .addFlag('usePohmock', 'deploy a mock of POH')
   .addFlag('useTestErc20', 'deploy a mock ERC20 contract')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, run, network }) => {
     try {
-      const { verify, usePohmock, useTestErc20 } = args
+      const { verify, useTestErc20 } = args
       const [deployer, bob, carol, dave] = await ethers.getSigners()
       const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
       const networkConfig: NetworkConfig = getConfig(chainId)
@@ -63,7 +62,10 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-      const talentLayerIDArgs: [string, string] = ['', talentLayerPlatformID.address]
+      const talentLayerIDArgs: [string, string] = [
+        '0x73BCCE92806BCe146102C44c4D9c3b9b9D745794',
+        talentLayerPlatformID.address,
+      ]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerID = await (upgrades as HardhatUpgrades).deployProxy(
         TalentLayerID,
