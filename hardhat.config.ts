@@ -13,6 +13,7 @@ import './scripts/tasks/protocol/mintTalentLayerId'
 import './scripts/tasks/protocol/addArbitrator'
 import './scripts/tasks/protocol/removeArbitrator'
 import './scripts/tasks/protocol/updateMinArbitrationFeeTimeout'
+import './scripts/tasks/protocol/addOrRemoveTokenAddressToWhitelist'
 import './scripts/tasks/protocol/addTrustedForwarder'
 import './scripts/tasks/protocol/removeTrustedForwarder'
 import { Network } from './scripts/utils/config'
@@ -84,7 +85,7 @@ const config: HardhatUserConfig = {
   gasReporter: {
     currency: 'USD',
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    enabled: process.env.REPORT_GAS ? true : false,
+    enabled: !!process.env.REPORT_GAS,
     showTimeSpent: true,
     excludeContracts: [],
     src: './contracts',

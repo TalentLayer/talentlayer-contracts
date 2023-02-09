@@ -27,6 +27,11 @@
 - Create our partners platformIds
     - `npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network avalanche`
     - `npx hardhat mint-platform-id --name WorkPod --address 0x4444F618BA8E99435E721abF3c611D5105A407e9 --network avalanche`
+- Add whitelisted payments tokens
+  (Examples with ETH, DAI, UDDC: )
+    - `npx hardhat add-token-address-to-whitelist --address 0x0000000000000000000000000000000000000000 --action add --network avalanche`
+    - `npx hardhat add-token-address-to-whitelist --address 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70.07 --action add --network avalanche`
+    - `npx hardhat add-token-address-to-whitelist --address 0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664 --action add --network avalanche`
 
 ## Step 3: Update Subgraph
 
