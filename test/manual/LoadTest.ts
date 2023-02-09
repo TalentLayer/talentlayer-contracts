@@ -8,11 +8,9 @@ describe('Load test', function () {
   let deployer: SignerWithAddress,
     platform: SignerWithAddress,
     ServiceRegistry: ContractFactory,
-    MockProofOfHumanity: ContractFactory,
     TalentLayerPlatformID: ContractFactory,
     TalentLayerID: ContractFactory,
     serviceRegistry: Contract,
-    mockProofOfHumanity: Contract,
     talentLayerPlatformID: Contract,
     talentLayerID: Contract,
     platformId: string,
@@ -40,17 +38,13 @@ describe('Load test', function () {
     platform = signers[1]
     signers = signers.slice(2)
 
-    // Deploy MockProofOfHumanity
-    MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-    mockProofOfHumanity = await MockProofOfHumanity.deploy()
-
     // Deploy PlatformId
     TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
     talentLayerPlatformID = await TalentLayerPlatformID.deploy()
 
     // Deploy TalenLayerID
     TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-    const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
+    const talentLayerIDArgs: [string] = [talentLayerPlatformID.address]
     talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
 
     // Deploy service registry
@@ -70,8 +64,7 @@ describe('Load test', function () {
   describe('Creating ' + AMOUNT_OF_SIGNERS + ' TalentLayerIDs', async function () {
     it(AMOUNT_OF_SIGNERS + ' TalentLayerIDs minted', async function () {
       for (var i = 0; i < AMOUNT_OF_SIGNERS; i++) {
-        await expect(await mockProofOfHumanity.addSubmissionManually([signers[i].address])).to.not.be.reverted
-        await expect(await talentLayerID.connect(signers[i]).mintWithPoh(platformId, 'handle_' + i)).to.not.be.reverted
+        await expect(await talentLayerID.connect(signers[i]).mint(platformId, 'handle_' + i)).to.not.be.reverted
       }
     })
   })
