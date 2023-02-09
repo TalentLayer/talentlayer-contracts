@@ -6,7 +6,7 @@ import { ConfigProperty, get } from '../../../configManager'
  * @notice This task is used to mint a new platform ID for a given address
  * @param {string} name - The name of the platform
  * @param {string} address - The address of the platform
- * @dev Example of script use: "npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network goerli"
+ * @dev Example of script use: "npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network mumbai"
  */
 task('mint-platform-id', 'Mints platform Ids for an address')
   .addParam('name', "The platform's name")

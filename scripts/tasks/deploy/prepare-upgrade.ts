@@ -8,8 +8,8 @@ import { verifyAddress } from './utils'
 /**
  * @notice This task is used to prepare an upgrade for one of the proxy and send a proposal to Defender
  * @usage
- *  - npx hardhat prepare-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --verify --network goerli
- *  - npx hardhat prepare-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --automatic-proposal --verify --network goerli
+ *  - npx hardhat prepare-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --verify --network mumbai
+ *  - npx hardhat prepare-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --automatic-proposal --verify --network mumbai
  */
 task('prepare-upgrade', 'Prepare an upgrade of a new implementation for one of the proxy')
   .addParam('contractName', 'The name of the new contract implemntation')

@@ -70,11 +70,10 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: process.env.ETHERSCAN_API_KEY || '',
       xdai: process.env.GNOSIS_API_KEY || '',
-      goerli: process.env.ETHERSCAN_API_KEY || '',
-      kovan: process.env.ETHERSCAN_API_KEY || '',
       avalanche: process.env.SNOWTRACE_API_KEY || '',
       avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || '',
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
+      polygon: process.env.POLYGONSCAN_API_KEY || '',
+      mumbai: process.env.POLYGONSCAN_API_KEY || '',
     },
   },
   gasReporter: {

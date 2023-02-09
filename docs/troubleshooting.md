@@ -2,7 +2,7 @@
 
 ## Deploy
 
-- Due to slow network on goerli, there is a wait in the execution off `setup-allFakeData`
+- Due to slow network on sometimes on testnet, there is a wait in the execution off `setup-allFakeData`
 
 ## Subgraph
 

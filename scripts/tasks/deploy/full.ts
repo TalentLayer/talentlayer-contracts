@@ -6,7 +6,7 @@ import { verifyAddress } from './utils'
 
 /**
  * @notice Task created only for test purposes of the upgradable process
- * @usage npx hardhat deploy-full --use-test-erc20 --verify --network goerli
+ * @usage npx hardhat deploy-full --use-test-erc20 --verify --network mumbai
  */
 task('deploy-full', 'Deploy all the contracts on their first version')
   .addFlag('useTestErc20', 'deploy a mock ERC20 contract')

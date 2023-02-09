@@ -14,7 +14,7 @@
     - INFURA_ID & INFURA_SECRET: use by playground script to post json on IPFS
 - Be sure that your address has enough fund, the gas usage to deploy the main contracts is: 17582534
 - Note: if you have any issue in the command bellow, check the troubleshooting.md
-- Select the network by changing the variable DEPLOY_NETWORK="goerli" in your .nev
+- Select the network by changing the variable DEPLOY_NETWORK="mumbai" in your .nev
 
 ## Step 1: Contract deployment
 
@@ -27,22 +27,22 @@
   - `make setup-allFakeData`
 
 - Create our partners platformIds:
-  - `npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network goerli`
-  - `npx hardhat mint-platform-id --name WorkPod --address 0x4444F618BA8E99435E721abF3c611D5105A407e9 --network goerli`
+  - `npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network mumbai`
+  - `npx hardhat mint-platform-id --name WorkPod --address 0x4444F618BA8E99435E721abF3c611D5105A407e9 --network mumbai`
 
 ## Step 3: Update Subgraph
 
 ### Update configuration
 
 - Update the abis from the contract folder to the graph folder
-- Update network.json file with the new deployed addresses: `npx hardhat run scripts/utils/setSubgraphNetwork.ts --network goerli`
+- Update network.json file with the new deployed addresses: `npx hardhat run scripts/utils/setSubgraphNetwork.ts --network mumbai`
 - Update the start block in the network.json. Use the block number of the first contract deployed
 
 ### Deploy your subgraph
 
 - Generate code from your GraphQL schema and operations.: `graph codegen`
-- Copy configuration from network.json and buid graph code: `graph build --network goerli`
-- Authenticad to the hosted service: `graph auth --network goerli --product hosted-service <your access token>`
+- Copy configuration from network.json and buid graph code: `graph build --network mumbai`
+- Authenticad to the hosted service: `graph auth --network mumbai --product hosted-service <your access token>`
 - Deploy to the hosted service: `graph deploy --product hosted-service talentlayer/talent-layer-protocol`
 
 ## Step 4: Update Indie Frontend

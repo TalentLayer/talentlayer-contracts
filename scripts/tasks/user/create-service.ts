@@ -5,7 +5,7 @@ import postToIPFS from '../../utils/ipfs'
 
 /**
  * @notice This task is used to create a new service
- * @usage npx hardhat create-service --network goerli
+ * @usage npx hardhat create-service --network mumbai
  */
 task('create-service', 'Create a new open service').setAction(async (args, { ethers, network }) => {
   const [deployer] = await ethers.getSigners()
