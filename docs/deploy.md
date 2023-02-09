@@ -2,7 +2,7 @@
 
 ## To be prepared before deploy
 
-- Setup your local .env file to be able to execute all commands. 
+- Setup your local .env file to be able to execute all commands.
   - Be sure you have all variables in the .env.example file
   - Mandatory:
     - MNEMONIC
@@ -23,7 +23,6 @@
 ## Step 2: Setup data
 
 - Double check the [config.ts](./config.ts) and setup for the current network
-- 
 - Create our partners platformIds
   - `npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network mumbai`
   - `npx hardhat mint-platform-id --name WorkPod --address 0x4444F618BA8E99435E721abF3c611D5105A407e9 --network mumbai`
