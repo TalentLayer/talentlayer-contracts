@@ -1,21 +1,25 @@
-import { expect } from 'chai'
-import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { Contract, ContractFactory } from 'ethers'
+import { expect } from 'chai'
+import { BigNumber } from 'ethers'
+import { ethers } from 'hardhat'
+import {
+  ServiceRegistry,
+  TalentLayerEscrow,
+  TalentLayerID,
+  TalentLayerPlatformID,
+} from '../../typechain-types'
+import { deploy } from '../utils/deploy'
 
 describe('Load test', function () {
   let deployer: SignerWithAddress,
     platform: SignerWithAddress,
-    ServiceRegistry: ContractFactory,
-    MockProofOfHumanity: ContractFactory,
-    TalentLayerPlatformID: ContractFactory,
-    TalentLayerID: ContractFactory,
-    serviceRegistry: Contract,
-    mockProofOfHumanity: Contract,
-    talentLayerPlatformID: Contract,
-    talentLayerID: Contract,
-    platformId: string,
-    signers: SignerWithAddress[]
+    platformId: BigNumber,
+    signers: SignerWithAddress[],
+    talentLayerID: TalentLayerID,
+    talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerArbitrator: TalentLayerArbitrator,
+    talentLayerEscrow: TalentLayerEscrow,
+    serviceRegistry: ServiceRegistry
 
   //Each buyer creates a given amount of open services. Each seller creates a proposal for all services.
   //Buyers and sellers are two distinct sets of TalentLayerIDs.
@@ -38,30 +42,13 @@ describe('Load test', function () {
     deployer = signers[0]
     platform = signers[1]
     signers = signers.slice(2)
-
-    // Deploy MockProofOfHumanity
-    MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-    mockProofOfHumanity = await MockProofOfHumanity.deploy()
-
-    // Deploy PlatformId
-    TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
-    talentLayerPlatformID = await TalentLayerPlatformID.deploy()
-
-    // Deploy TalenLayerID
-    TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-    const talentLayerIDArgs: [string, string] = [
-      mockProofOfHumanity.address,
-      talentLayerPlatformID.address,
-    ]
-    talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
-
-    // Deploy service registry
-    ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-    const serviceRegistryArgs: [string, string] = [
-      talentLayerID.address,
-      talentLayerPlatformID.address,
-    ]
-    serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs)
+    ;[
+      talentLayerID,
+      talentLayerPlatformID,
+      talentLayerEscrow,
+      talentLayerArbitrator,
+      serviceRegistry,
+    ] = await deploy(false)
 
     // Grant Platform Id Mint role to Alice
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -77,10 +64,8 @@ describe('Load test', function () {
   describe('Creating ' + AMOUNT_OF_SIGNERS + ' TalentLayerIDs', async function () {
     it(AMOUNT_OF_SIGNERS + ' TalentLayerIDs minted', async function () {
       for (let i = 0; i < AMOUNT_OF_SIGNERS; i++) {
-        await expect(await mockProofOfHumanity.addSubmissionManually([signers[i].address])).to.not
+        await expect(await talentLayerID.connect(signers[i]).mint(platformId, 'handle_' + i)).to.not
           .be.reverted
-        await expect(await talentLayerID.connect(signers[i]).mintWithPoh(platformId, 'handle_' + i))
-          .to.not.be.reverted
       }
     })
   })
