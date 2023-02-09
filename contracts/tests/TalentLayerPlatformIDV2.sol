@@ -22,7 +22,8 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     /// @param platformId the TalentLayer Platform Id
     /// @param name the name of the platform
     /// @param dataUri the IPFS URI of the Platform metadata
-    /// @param fee the %fee (per ten thousands) asked by the platform for each job escrow transaction
+    /// @param originServiceFeeRate the %fee (per ten thousands) asked by the platform for each service created on the platform
+    /// @param originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
     /// @param arbitrator address of the arbitrator used by the platform
     /// @param arbitratorExtraData extra information for the arbitrator
     /// @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
@@ -30,7 +31,8 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         uint256 id;
         string name;
         string dataUri;
-        uint16 fee;
+        uint16 originServiceFeeRate;
+        uint16 originValidatedProposalFeeRate;
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
@@ -114,7 +116,6 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
         // Increment counter to start tokenIds at index 1
         _nextTokenId.increment();
-        testString = "The Test String";
     }
 
     // =========================== View functions ==============================
@@ -133,9 +134,19 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _platformId Platform Id to check
      * @return The Platform fee
      */
-    function getPlatformEscrowFeeRate(uint256 _platformId) external view returns (uint16) {
+    function getOriginServiceFeeRate(uint256 _platformId) external view returns (uint16) {
         require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
-        return platforms[_platformId].fee;
+        return platforms[_platformId].originServiceFeeRate;
+    }
+
+    /**
+     * @notice Allows retrieval of a Platform fee
+     * @param _platformId Platform Id to check
+     * @return The Platform fee
+     */
+    function getOriginValidatedProposalFeeRate(uint256 _platformId) external view returns (uint16) {
+        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
+        return platforms[_platformId].originValidatedProposalFeeRate;
     }
 
     /**
@@ -169,9 +180,9 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return _nextTokenId.current() - 1;
-        }
+    unchecked {
+        return _nextTokenId.current() - 1;
+    }
     }
 
     // =========================== User functions ==============================
@@ -193,10 +204,10 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _platformAddress Eth Address to assign the Platform Id to
      */
     function mintForAddress(string memory _platformName, address _platformAddress)
-        public
-        payable
-        canMint(_platformName, _platformAddress)
-        onlyRole(MINT_ROLE)
+    public
+    payable
+    canMint(_platformName, _platformAddress)
+    onlyRole(MINT_ROLE)
     {
         _safeMint(_platformAddress, _nextTokenId.current());
         _afterMint(_platformName, _platformAddress);
@@ -219,13 +230,24 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
 
     /**
      * @notice Allows a platform to update his fee
-     * @param _platformEscrowFeeRate Platform fee to update
+     * @param _originServiceFeeRate Platform fee to update
      */
-    function updatePlatformEscrowFeeRate(uint256 _platformId, uint16 _platformEscrowFeeRate) public {
+    function updateOriginServiceFeeRate(uint256 _platformId, uint16 _originServiceFeeRate) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
-        platforms[_platformId].fee = _platformEscrowFeeRate;
-        emit PlatformEscrowFeeRateUpdated(_platformId, _platformEscrowFeeRate);
+        platforms[_platformId].originServiceFeeRate = _originServiceFeeRate;
+        emit OriginServiceFeeRateUpdated(_platformId, _originServiceFeeRate);
+    }
+
+    /**
+     * @notice Allows a platform to update his fee
+     * @param _originValidatedProposalFeeRate Platform fee to update
+     */
+    function updateOriginValidatedProposalFeeRate(uint256 _platformId, uint16 _originValidatedProposalFeeRate) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].originValidatedProposalFeeRate = _originValidatedProposalFeeRate;
+        emit OriginValidatedProposalFeeRateUpdated(_platformId, _originValidatedProposalFeeRate);
     }
 
     /**
@@ -361,14 +383,14 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721Upgradeable, AccessControlUpgradeable)
-        returns (bool)
+    public
+    view
+    virtual
+    override(ERC721Upgradeable, AccessControlUpgradeable)
+    returns (bool)
     {
         return
-            ERC721Upgradeable.supportsInterface(interfaceId) || AccessControlUpgradeable.supportsInterface(interfaceId);
+        ERC721Upgradeable.supportsInterface(interfaceId) || AccessControlUpgradeable.supportsInterface(interfaceId);
     }
 
     /**
@@ -495,9 +517,15 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
 
     /**
      * @notice Emit when the fee is updated for a platform
-     * @param _platformEscrowFeeRate The new fee
+     * @param _originServiceFeeRate The new fee
      */
-    event PlatformEscrowFeeRateUpdated(uint256 _platformId, uint16 _platformEscrowFeeRate);
+    event OriginServiceFeeRateUpdated(uint256 _platformId, uint16 _originServiceFeeRate);
+
+    /**
+     * @notice Emit when the fee is updated for a platform
+     * @param _originValidatedProposalFeeRate The new fee
+     */
+    event OriginValidatedProposalFeeRateUpdated(uint256 _platformId, uint16 _originValidatedProposalFeeRate);
 
     /**
      * @notice Emit after the arbitrator is updated for a platform

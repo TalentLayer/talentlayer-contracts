@@ -37,16 +37,16 @@ async function deployAndSetup(
   await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, tokenAddress, transactionAmount, 'cid')
+  await serviceRegistry.connect(bob).createProposal(serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
 
   const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
   const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
   const protocolEscrowFeeRate = BigNumber.from(await talentLayerEscrow.protocolEscrowFeeRate())
-  const originPlatformEscrowFeeRate = BigNumber.from(await talentLayerEscrow.originPlatformEscrowFeeRate())
-  const platformEscrowFeeRate = BigNumber.from(alicePlatformData.fee)
+  const originServiceFeeRate = BigNumber.from(alicePlatformData.originServiceFeeRate)
+  const originValidatedProposalFeeRate = BigNumber.from(alicePlatformData.originValidatedProposalFeeRate)
 
   const totalAmount = transactionAmount.add(
-    transactionAmount.mul(protocolEscrowFeeRate.add(originPlatformEscrowFeeRate).add(platformEscrowFeeRate)).div(10000),
+    transactionAmount.mul(protocolEscrowFeeRate.add(originValidatedProposalFeeRate).add(originServiceFeeRate)).div(10000),
   )
 
   // Alice, the buyer, accepts the proposal
