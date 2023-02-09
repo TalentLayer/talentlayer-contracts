@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../utils/config'
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 /*
 In this script dave the platform owner will claim the fees in ETH for the first service and in token for the second service
@@ -23,11 +23,16 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
-  const simpleERC20 = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
+  const simpleERC20 = await ethers.getContractAt(
+    'SimpleERC20',
+    get(network as Network, ConfigProperty.SimpleERC20),
+  )
 
   const rateToken = '0x0000000000000000000000000000000000000000'
   const ERC20TokenAddress = simpleERC20.address
-  const davePlatformId = await platformIdContrat.connect(dave).getPlatformIdFromAddress(dave.address)
+  const davePlatformId = await platformIdContrat
+    .connect(dave)
+    .getPlatformIdFromAddress(dave.address)
 
   // let balance = await talentLayerEscrow.connect(dave).getClaimableFeeBalance(rateToken)
   // console.log('balance before ', balance.toString())

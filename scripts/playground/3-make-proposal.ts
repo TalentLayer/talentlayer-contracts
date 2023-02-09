@@ -8,7 +8,7 @@ In this script Bob, Carol and Dave will create proposals for Alice's services
 Bob and Carol for the first service (with ETH and Token) and Dave for the second service (Token)
 */
 
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 // Then Alice create a service, and others add proposals
 async function main() {
@@ -21,7 +21,10 @@ async function main() {
     get(network as Network, ConfigProperty.ServiceRegistry),
   )
 
-  const simpleERC20 = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
+  const simpleERC20 = await ethers.getContractAt(
+    'SimpleERC20',
+    get(network as Network, ConfigProperty.SimpleERC20),
+  )
   await serviceRegistry.connect(alice).updateAllowedTokenList(ethers.constants.AddressZero, true)
   await serviceRegistry.connect(alice).updateAllowedTokenList(simpleERC20.address, true)
 

@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../utils/config'
-const hre = require('hardhat')
+import hre = require('hardhat')
 import postToIPFS from '../utils/ipfs'
 
 /*
@@ -43,9 +43,13 @@ async function main() {
   const daveTalentLayerIdPlatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
   console.log('Dave talentLayerIdPLatform', daveTalentLayerIdPlatform)
 
-  await talentLayerReview.connect(alice).addReview(1, aliceReviewCarol, 5, daveTalentLayerIdPlatform)
+  await talentLayerReview
+    .connect(alice)
+    .addReview(1, aliceReviewCarol, 5, daveTalentLayerIdPlatform)
   console.log('Alice reviewed Carol')
-  await talentLayerReview.connect(carol).addReview(1, carolReviewAlice, 3, daveTalentLayerIdPlatform)
+  await talentLayerReview
+    .connect(carol)
+    .addReview(1, carolReviewAlice, 3, daveTalentLayerIdPlatform)
   console.log('Carol reviewed Alice')
 }
 

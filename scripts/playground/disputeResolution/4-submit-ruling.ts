@@ -3,7 +3,7 @@ import { ConfigProperty, get } from '../../../configManager'
 import { Network } from '../../utils/config'
 import { disputeId, rulingId } from './constants'
 
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 /**
  * In this script, Carol (the platform owner) submits the ruling of the dispute.

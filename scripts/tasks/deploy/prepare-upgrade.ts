@@ -1,4 +1,5 @@
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
+import { ContractFactory } from 'ethers'
 import { task } from 'hardhat/config'
 import { ConfigProperty, get } from '../../../configManager'
 import { getConfig, Network, NetworkConfig } from '../../utils/config'
@@ -31,7 +32,10 @@ task('prepare-upgrade', 'Prepare an upgrade of a new implementation for one of t
       contractName,
     )
 
-    const proxyAddress = get(network.name as any as Network, ConfigProperty[proxyName as keyof typeof ConfigProperty])
+    const proxyAddress = get(
+      network.name as any as Network,
+      ConfigProperty[proxyName as keyof typeof ConfigProperty],
+    )
     if (!proxyAddress) {
       throw new Error(`Proxy address not found for ${proxyName}`)
     }
@@ -48,7 +52,10 @@ task('prepare-upgrade', 'Prepare an upgrade of a new implementation for one of t
       console.log('Upgrade proposal created at:', proposal.url)
     } else {
       // @ts-ignore: upgrades is imported in hardhat.config.ts
-      newImplementationAddress = await (upgrades as HardhatUpgrades).prepareUpgrade(proxyAddress, NewImplementation)
+      newImplementationAddress = await (upgrades as HardhatUpgrades).prepareUpgrade(
+        proxyAddress,
+        NewImplementation as ContractFactory,
+      )
     }
 
     if (verify) {

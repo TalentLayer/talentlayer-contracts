@@ -1,6 +1,10 @@
-export async function verifyAddress(address: string, constructorArguments?: Array<any>): Promise<string> {
+export async function verifyAddress(
+  address: string,
+  constructorArguments?: Array<any>,
+): Promise<string> {
   let count = 0
   const maxTries = 20
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     await delay(10000)
     try {

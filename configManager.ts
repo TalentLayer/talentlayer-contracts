@@ -1,5 +1,5 @@
 import { Network } from './scripts/utils/config'
-const fs = require('fs')
+import * as fs from 'fs'
 
 export enum ConfigProperty {
   MockProofOfHumanity = 'proofOfHumanityAddress',
@@ -27,7 +27,7 @@ export const get = (network: Network, property: ConfigProperty) => {
   return obj[property] || 'Not found'
 }
 
-export const getConfig = (network: any) => {
+export const getConfig = (network: Network) => {
   const obj = JSON.parse(loadJSON(network))
   return obj || 'Not found'
 }

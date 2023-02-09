@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../config'
 import { ConfigProperty, get } from '../../../configManager'
+import { Network } from '../../utils/config'
 
 /**
  * @notice This task is used to add a trusted forwarder for meta transactions

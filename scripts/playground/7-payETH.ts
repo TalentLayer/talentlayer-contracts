@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../utils/config'
-const hre = require('hardhat')
+import hre = require('hardhat')
 /*
 In this script  Alice releases 3/4 of the escrow & Carol reimburses the remaining 1/4 to Alice
 */

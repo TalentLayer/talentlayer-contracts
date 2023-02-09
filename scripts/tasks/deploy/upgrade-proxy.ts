@@ -1,4 +1,5 @@
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
+import { ContractFactory } from 'ethers'
 import { task } from 'hardhat/config'
 import { ConfigProperty, get } from '../../../configManager'
 import { Network } from '../../utils/config'
@@ -26,24 +27,32 @@ task('upgrade-proxy', 'Upgrade a proxy to a new implementation')
       contractName,
     )
 
-    const proxyAddress = get(network.name as any as Network, ConfigProperty[proxyName as keyof typeof ConfigProperty])
+    const proxyAddress = get(
+      network.name as any as Network,
+      ConfigProperty[proxyName as keyof typeof ConfigProperty],
+    )
     if (!proxyAddress) {
       throw new Error(`Proxy address not found for ${proxyName}`)
     }
 
     const NewImplementation = await ethers.getContractFactory(contractName)
     // @ts-ignore: upgrades is imported in hardhat.config.ts
-    const proxy = await (upgrades as HardhatUpgrades).upgradeProxy(proxyAddress, NewImplementation, {
-      timeout: 0,
-      pollingInterval: 10000,
-    })
+    const proxy = await (upgrades as HardhatUpgrades).upgradeProxy(
+      proxyAddress,
+      NewImplementation as ContractFactory,
+      {
+        timeout: 0,
+        pollingInterval: 10000,
+      },
+    )
 
     if (verify) {
       await verifyAddress(proxy.address)
     }
 
-    // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-    const implementationAddress = await (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(proxy.address)
+    const implementationAddress =
+      await // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
+      (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(proxy.address)
     console.log(`${proxyName} addresses:`, {
       proxy: proxyAddress,
       implementation: implementationAddress,

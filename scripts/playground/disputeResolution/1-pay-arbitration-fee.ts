@@ -3,7 +3,7 @@ import { ConfigProperty, get } from '../../../configManager'
 import { Network } from '../../utils/config'
 import { arbitrationCost, transactionId } from './constants'
 
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 /**
  * In this script, Alice (the buyer) wants to raise a dispute and pays the arbitration fee.

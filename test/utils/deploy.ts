@@ -42,12 +42,18 @@ export async function deploy(
 
   if (applyUpgrade) {
     const TalentLayerPlatformIDV2 = await ethers.getContractFactory('TalentLayerPlatformIDV2')
-    talentLayerPlatformID = await upgrades.upgradeProxy(talentLayerPlatformID.address, TalentLayerPlatformIDV2)
+    talentLayerPlatformID = await upgrades.upgradeProxy(
+      talentLayerPlatformID.address,
+      TalentLayerPlatformIDV2,
+    )
   }
 
   // Deploy TalenLayerID
   const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-  const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
+  const talentLayerIDArgs: [string, string] = [
+    mockProofOfHumanity.address,
+    talentLayerPlatformID.address,
+  ]
   let talentLayerID = await upgrades.deployProxy(TalentLayerID, talentLayerIDArgs)
 
   if (applyUpgrade) {
@@ -57,7 +63,10 @@ export async function deploy(
 
   // Deploy ServiceRegistry
   const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-  const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+  const serviceRegistryArgs: [string, string] = [
+    talentLayerID.address,
+    talentLayerPlatformID.address,
+  ]
   let serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs)
 
   if (applyUpgrade) {
