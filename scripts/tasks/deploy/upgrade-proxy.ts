@@ -7,7 +7,7 @@ import { verifyAddress } from './utils'
 
 /**
  * @notice This task is used to upgrade for one of the proxy contracts. Use it only locally for your own testnet
- * @usage npx hardhat upgrade-proxy --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --verify --network goerli
+ * @usage npx hardhat upgrade-proxy --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --verify --network mumbai
  */
 task('upgrade-proxy', 'Upgrade a proxy to a new implementation')
   .addParam('contractName', 'The name of the new contract implemntation')

@@ -18,7 +18,6 @@ Understand the protocol and how we tackle our main problems:
 
 ## Deployment addresses:
 
-- [Goerli](./deployments/goerli.json)
 - [Fuji](./deployments/fuji.json)
 - [Mumbai](./deployments/mumbai.json)
 
