@@ -1,6 +1,6 @@
 export async function verifyAddress(address: string, constructorArguments?: Array<any>): Promise<string> {
   let count = 0
-  let maxTries = 20
+  const maxTries = 20
   while (true) {
     await delay(10000)
     try {
@@ -28,5 +28,5 @@ export async function verifyAddress(address: string, constructorArguments?: Arra
 }
 
 async function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

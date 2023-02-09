@@ -19,8 +19,8 @@ async function main() {
     get(network as Network, ConfigProperty.ServiceRegistry),
   )
 
-  let nextServiceId = await serviceRegistry.nextServiceId()
-  let firstServiceId = nextServiceId.sub(2)
+  const nextServiceId = await serviceRegistry.nextServiceId()
+  const firstServiceId = nextServiceId.sub(2)
   console.log('serviceId', firstServiceId.toString())
 
   const rateTokenBob = get(network as Network, ConfigProperty.SimpleERC20)
@@ -42,7 +42,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

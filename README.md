@@ -6,21 +6,23 @@ Learn more about the project: https://www.talentlayer.org
 
 ## Documentations
 
-*Our documentations are in Notion and Gitbook. Here are some links to the most important pages:*
+_Our documentations are in Notion and Gitbook. Here are some links to the most important pages:_
 
-Start integrating TalentLayer: 
+Start integrating TalentLayer:
+
 - The complete official user documentation: https://docs.talentlayer.org
 
 Understand the protocol and how we tackle our main problems:
+
 - TLIP Index: https://talentlayer.notion.site/TLIP-83015d793d9d48818914f8cac3c08231
 
-## Deployment addresses: 
+## Deployment addresses:
 
 - [Goerli](./deployments/goerli.json)
 - [Fuji](./deployments/fuji.json)
 - [Mumbai](./deployments/mumbai.json)
 
-## Setup locally 
+## Setup locally
 
 - Create your env file config: `mv .env.example .env`
 - Complete all the variables in the `.env` file

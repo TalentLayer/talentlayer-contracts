@@ -20,7 +20,7 @@ task('update-token-address-to-whitelist', 'Add or remove a token address to the 
 
     const serviceRegistry = await ethers.getContractAt(
       'ServiceRegistry',
-      get((network.name as any) as Network, ConfigProperty.ServiceRegistry),
+      get(network.name as any as Network, ConfigProperty.ServiceRegistry),
       deployer,
     )
 

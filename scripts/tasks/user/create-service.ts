@@ -33,7 +33,7 @@ task('create-service', 'Create a new open service').setAction(async (args, { eth
   /* ----------- Create an open service -------------- */
   const ServiceRegistry = await ethers.getContractFactory('ServiceRegistryV2')
 
-  const serviceRegistryAddress = get((network.name as any) as Network, ConfigProperty['ServiceRegistry'])
+  const serviceRegistryAddress = get(network.name as any as Network, ConfigProperty['ServiceRegistry'])
   const serviceRegistry = await ServiceRegistry.attach(serviceRegistryAddress)
   const tx = await serviceRegistry.createOpenServiceFromBuyer(1, jobDataCid)
 

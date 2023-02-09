@@ -843,11 +843,7 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      * @param _metaEvidence The meta evidence of the transaction
      * @param _sellerId The ID of the seller
      */
-    function _afterCreateTransaction(
-        uint256 _transactionId,
-        string memory _metaEvidence,
-        uint256 _sellerId
-    ) internal {
+    function _afterCreateTransaction(uint256 _transactionId, string memory _metaEvidence, uint256 _sellerId) internal {
         Transaction storage transaction = transactions[_transactionId];
 
         uint256 sender = talentLayerIdContract.walletOfOwner(transaction.sender);
@@ -877,11 +873,7 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      * @param _token The token to transfer
      * @param _amount The amount of tokens to transfer
      */
-    function _deposit(
-        address _sender,
-        address _token,
-        uint256 _amount
-    ) private {
+    function _deposit(address _sender, address _token, uint256 _amount) private {
         require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
     }
 
@@ -966,7 +958,10 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      * @param _proposalId The id of the proposal
      * @return proposal proposal struct, service The service struct, sender The sender address, receiver The receiver address
      */
-    function _getTalentLayerData(uint256 _serviceId, uint256 _proposalId)
+    function _getTalentLayerData(
+        uint256 _serviceId,
+        uint256 _proposalId
+    )
         private
         returns (
             IServiceRegistry.Proposal memory proposal,
@@ -988,11 +983,10 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      * @param _proposalId The id of the proposal
      * @return The Proposal struct
      */
-    function _getProposal(uint256 _serviceId, uint256 _proposalId)
-        private
-        view
-        returns (IServiceRegistry.Proposal memory)
-    {
+    function _getProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) private view returns (IServiceRegistry.Proposal memory) {
         return serviceRegistryContract.getProposal(_serviceId, _proposalId);
     }
 
@@ -1011,11 +1005,7 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
      */
-    function _transferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.transfer(_amount);
         } else {
@@ -1023,11 +1013,7 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
         }
     }
 
-    function _safeTransferBalance(
-        address payable _recipient,
-        address _tokenAddress,
-        uint256 _amount
-    ) private {
+    function _safeTransferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.call{value: _amount}("");
         } else {
@@ -1041,11 +1027,10 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      * @param _platformEscrowFeeRate The platform fee
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(uint256 _amount, uint256 _platformEscrowFeeRate)
-        private
-        view
-        returns (uint256 totalEscrowAmount)
-    {
+    function _calculateTotalEscrowAmount(
+        uint256 _amount,
+        uint256 _platformEscrowFeeRate
+    ) private view returns (uint256 totalEscrowAmount) {
         return
             _amount +
             (((_amount * protocolEscrowFeeRate) +

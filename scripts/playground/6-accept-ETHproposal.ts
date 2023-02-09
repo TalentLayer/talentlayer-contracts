@@ -36,8 +36,8 @@ async function main() {
     get(network as Network, ConfigProperty.TalentLayerArbitrator),
   )
 
-  let nextServiceId = await serviceRegistry.nextServiceId()
-  let firstServiceId = nextServiceId.sub(2) // service id #1
+  const nextServiceId = await serviceRegistry.nextServiceId()
+  const firstServiceId = nextServiceId.sub(2) // service id #1
   console.log('serviceId', firstServiceId.toString())
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
@@ -68,7 +68,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

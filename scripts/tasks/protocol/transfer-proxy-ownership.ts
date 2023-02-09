@@ -26,7 +26,7 @@ task('transfer-proxy-ownership', 'Transfer ownership of proxy admin to a new add
     const ProxyContract = await ethers.getContractFactory(contractName)
 
     const proxyAddress = get(
-      (network.name as any) as Network,
+      network.name as any as Network,
       ConfigProperty[contractName as keyof typeof ConfigProperty],
     )
     if (!proxyAddress) {

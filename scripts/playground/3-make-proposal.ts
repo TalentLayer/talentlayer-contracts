@@ -26,9 +26,9 @@ async function main() {
   await serviceRegistry.connect(alice).updateAllowedTokenList(simpleERC20.address, true)
 
   // Get the first and second service id
-  let nextServiceId = await serviceRegistry.nextServiceId()
-  let firstServiceId = nextServiceId.sub(2)
-  let secondServiceId = nextServiceId.sub(1)
+  const nextServiceId = await serviceRegistry.nextServiceId()
+  const firstServiceId = nextServiceId.sub(2)
+  const secondServiceId = nextServiceId.sub(1)
   console.log('firstServiceId', firstServiceId.toString())
   console.log('secondServiceId', secondServiceId.toString())
 
@@ -77,7 +77,7 @@ async function main() {
   console.log('Bob proposal created')
   bobProposal.wait()
   // get the proposal
-  let bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
+  const bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
   console.log('Bob proposal', bobProposalData)
 
   // Carol make a proposal #3 for Alice's service #1 (id : 1-3 in GraphQL)
@@ -88,7 +88,7 @@ async function main() {
   console.log('Carol proposal created')
   carolProposal.wait()
   // get the proposal
-  let carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
+  const carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
   console.log('Carol proposal', carolProposalData)
 
   // Dave create a proposal #4 for Alice's service #2 (id : 2-4 in GraphQL)
@@ -99,13 +99,13 @@ async function main() {
   console.log('Dave proposal created')
   daveProposal.wait()
   // get the proposal
-  let daveProposalData = await serviceRegistry.proposals(secondServiceId, 4)
+  const daveProposalData = await serviceRegistry.proposals(secondServiceId, 4)
   console.log('Dave proposal', daveProposalData)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
