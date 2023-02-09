@@ -2,17 +2,17 @@
 
 ## To be prepared before deploy
 
-- Setup your local .env file to be able to execute all commands
+- Setup your local .env file to be able to execute all commands. 
+  - Be sure you have all variables in the .env.example file
   - Mandatory:
-    - ETHERSCAN_API_KEY: used to validate the contracts
     - MNEMONIC
+    - SNOWTRACE_API_KEY & POLYGONSCAN_API_KEY: used to validate the contracts
     - INFURA_API_KEY: used by hardhat to deploy
   - Optional
-    - GNOSIS_API_KEY: same than ETHERSCAN_API_KEY but only for Gnosis deployment
     - SUBGRAPH_FOLDER: useful to easly copy config into subgraph repo
     - DEPLOY_NETWORK: use by Makefile to define network for all commands
     - INFURA_ID & INFURA_SECRET: use by playground script to post json on IPFS
-- Be sure that your address has enough fund, the gas usage to deploy the main contracts is: 17582534
+- Be sure that your address has enough fund
 - Note: if you have any issue in the command bellow, check the troubleshooting.md
 - Replace the network used in the command bellow by the one you want to deploy to. For this documentation we use mumbai.
 
