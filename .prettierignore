@@ -1,6 +1,9 @@
 # Ignore artifacts:
 build
 coverage
+artifacts
+cache
+typechain-types
 
 # Ignore all HTML files:
 *.html
