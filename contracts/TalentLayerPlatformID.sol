@@ -159,7 +159,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     // =========================== User functions ==============================
 
     /**
-     * @notice Allows a platform to mint a new Platform Id without the need of Proof of Humanity.
+     * @notice Allows a platform to mint a new Platform Id.
      * @dev You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      */
@@ -169,7 +169,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
-     * @notice Allows a user to mint a new Platform Id and assign it to an eth address without the need of Proof of Humanity.
+     * @notice Allows a user to mint a new Platform Id and assign it to an eth address.
      * @dev You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      * @param _platformAddress Eth Address to assign the Platform Id to

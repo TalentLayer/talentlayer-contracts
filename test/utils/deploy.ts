@@ -1,7 +1,6 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { getConfig, Network, NetworkConfig } from '../../scripts/utils/config'
 import {
-  MockProofOfHumanity,
   ServiceRegistry,
   SimpleERC20,
   TalentLayerArbitrator,
@@ -25,16 +24,11 @@ export async function deploy(
     TalentLayerArbitrator,
     ServiceRegistry,
     TalentLayerReview,
-    MockProofOfHumanity,
     SimpleERC20,
   ]
 > {
   const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
   const networkConfig: NetworkConfig = getConfig(chainId)
-
-  // Deploy MockProofOfHumanity
-  const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-  const mockProofOfHumanity = await MockProofOfHumanity.deploy()
 
   // Deploy PlatformId
   const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
@@ -50,10 +44,7 @@ export async function deploy(
 
   // Deploy TalenLayerID
   const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-  const talentLayerIDArgs: [string, string] = [
-    mockProofOfHumanity.address,
-    talentLayerPlatformID.address,
-  ]
+  const talentLayerIDArgs: [string] = [talentLayerPlatformID.address]
   let talentLayerID = await upgrades.deployProxy(TalentLayerID, talentLayerIDArgs)
 
   if (applyUpgrade) {
@@ -122,7 +113,6 @@ export async function deploy(
     talentLayerArbitrator,
     serviceRegistry as ServiceRegistry,
     talentLayerReview as TalentLayerReview,
-    mockProofOfHumanity,
     simpleERC20,
   ]
 }
