@@ -54,11 +54,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         implementation: talentLayerPlatformIDImplementationAddress,
       })
 
-      set(
-        network.name as any as Network,
-        ConfigProperty.TalentLayerPlatformID,
-        talentLayerPlatformID.address,
-      )
+      set(network.name, ConfigProperty.TalentLayerPlatformID, talentLayerPlatformID.address)
 
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
@@ -82,7 +78,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         implementation: talentLayerIDImplementationAddress,
       })
 
-      set(network.name as any as Network, ConfigProperty.TalentLayerID, talentLayerID.address)
+      set(network.name, ConfigProperty.TalentLayerID, talentLayerID.address)
 
       // Deploy Service Registry Contract
       const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
@@ -110,7 +106,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         proxy: serviceRegistry.address,
         implementation: serviceRegistryImplementationAddress,
       })
-      set(network.name as any as Network, ConfigProperty.ServiceRegistry, serviceRegistry.address)
+      set(network.name, ConfigProperty.ServiceRegistry, serviceRegistry.address)
 
       // Deploy Review contract
       const TalentLayerReview = await ethers.getContractFactory('TalentLayerReview')
@@ -141,7 +137,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         implementation: talentLayerReviewImplementationAddress,
       })
 
-      set(network.name as any as Network, ConfigProperty.Reviewscontract, talentLayerReview.address)
+      set(network.name, ConfigProperty.Reviewscontract, talentLayerReview.address)
 
       // Deploy TalentLayerArbitrator
       const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
@@ -153,11 +149,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       }
       console.log('TalentLayerArbitrator contract address:', talentLayerArbitrator.address)
 
-      set(
-        network.name as any as Network,
-        ConfigProperty.TalentLayerArbitrator,
-        talentLayerArbitrator.address,
-      )
+      set(network.name, ConfigProperty.TalentLayerArbitrator, talentLayerArbitrator.address)
 
       // Add TalentLayerArbitrator to platform available arbitrators
       await talentLayerPlatformID.addArbitrator(talentLayerArbitrator.address, true)
@@ -189,11 +181,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         implementation: talentLayerEscrowImplementationAddress,
       })
 
-      set(
-        network.name as any as Network,
-        ConfigProperty.TalentLayerEscrow,
-        talentLayerEscrow.address,
-      )
+      set(network.name, ConfigProperty.TalentLayerEscrow, talentLayerEscrow.address)
 
       if (useTestErc20) {
         // Deploy ERC20 contract
@@ -216,7 +204,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         const balance3 = await simpleERC20.balanceOf(dave.address)
         console.log('SimpleERC20 balance3:', balance3.toString())
 
-        set(network.name as any as Network, ConfigProperty.SimpleERC20, simpleERC20.address)
+        set(network.name, ConfigProperty.SimpleERC20, simpleERC20.address)
       }
 
       // Grant escrow role
