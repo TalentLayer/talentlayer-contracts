@@ -1,11 +1,11 @@
 import fs from 'fs'
 import hre from 'hardhat'
-import { getConfig } from '../../configManager'
+import { getDeploymennt } from '../../.deployment/deploymentManager'
 
 async function main() {
   const network = await hre.network.name
 
-  const config = getConfig(network)
+  const config = getDeploymennt(network)
   const subgraphNetwork = JSON.parse(loadJSON())
 
   if (network == 'localhost') {

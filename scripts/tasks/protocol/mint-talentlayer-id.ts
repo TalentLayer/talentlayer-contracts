@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../utils/config'
-import { ConfigProperty, get } from '../../../configManager'
+import { Network } from '../../../config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 
 /**
  * @notice This task is used to mint a new TalentLayer ID for a given address
@@ -19,7 +19,7 @@ task('mint-talentlayer-id', 'Mints talentLayer Id to an address.')
 
     const talentLayerIdContract = await ethers.getContractAt(
       'TalentLayerID',
-      get(network.name, ConfigProperty.TalentLayerID),
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
     )
     const tx = await talentLayerIdContract.freeMint(platform, address, handle)
     const talentLayerId = await talentLayerIdContract.walletOfOwner(address)

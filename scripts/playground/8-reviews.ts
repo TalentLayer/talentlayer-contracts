@@ -1,8 +1,7 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
-import hre = require('hardhat')
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
+import hre = require('hardhat')
 
 /*
 In this scriptAlice will review Carol and Carol will review Alice
@@ -16,12 +15,12 @@ async function main() {
 
   const talentLayerReview = await ethers.getContractAt(
     'TalentLayerReview',
-    get(network as Network, ConfigProperty.Reviewscontract),
+    getDeploymentProperty(network, DeploymentProperty.Reviewscontract),
   )
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const aliceReviewCarol = await postToIPFS(

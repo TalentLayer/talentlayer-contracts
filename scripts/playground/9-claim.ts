@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
+import { getDeploymentProperty, DeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
 
 /*
@@ -15,17 +14,17 @@ async function main() {
 
   const talentLayerEscrow = await ethers.getContractAt(
     'TalentLayerEscrow',
-    get(network as Network, ConfigProperty.TalentLayerEscrow),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const simpleERC20 = await ethers.getContractAt(
     'SimpleERC20',
-    get(network as Network, ConfigProperty.SimpleERC20),
+    getDeploymentProperty(network, DeploymentProperty.SimpleERC20),
   )
 
   const rateToken = '0x0000000000000000000000000000000000000000'

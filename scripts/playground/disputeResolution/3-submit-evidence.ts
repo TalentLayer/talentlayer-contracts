@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
-import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
+import { Network } from '../../../config'
 import postToIPFS from '../../utils/ipfs'
 import { transactionId } from './constants'
 
@@ -17,7 +17,7 @@ async function main() {
 
   const talentLayerEscrow = await ethers.getContractAt(
     'TalentLayerEscrow',
-    get(network as Network, ConfigProperty.TalentLayerEscrow),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
   // Alice submits evidence

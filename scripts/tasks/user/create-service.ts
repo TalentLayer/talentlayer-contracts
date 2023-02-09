@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { get, ConfigProperty } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { getDeploymentProperty, DeploymentProperty } from '../../../.deployment/deploymentManager'
+import { Network } from '../../../config'
 import postToIPFS from '../../utils/ipfs'
 
 /**
@@ -33,7 +33,10 @@ task('create-service', 'Create a new open service').setAction(async (args, { eth
   /* ----------- Create an open service -------------- */
   const ServiceRegistry = await ethers.getContractFactory('ServiceRegistryV2')
 
-  const serviceRegistryAddress = get(network.name, ConfigProperty['ServiceRegistry'])
+  const serviceRegistryAddress = getDeploymentProperty(
+    network.name,
+    DeploymentProperty['ServiceRegistry'],
+  )
   const serviceRegistry = await ServiceRegistry.attach(serviceRegistryAddress)
   const tx = await serviceRegistry.createOpenServiceFromBuyer(1, jobDataCid)
 

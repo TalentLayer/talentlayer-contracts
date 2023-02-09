@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
@@ -16,14 +15,14 @@ async function main() {
   const [alice, bob, carol, dave] = await ethers.getSigners()
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
 
   const nextServiceId = await serviceRegistry.nextServiceId()
   const firstServiceId = nextServiceId.sub(2)
   console.log('serviceId', firstServiceId.toString())
 
-  const rateTokenBob = get(network as Network, ConfigProperty.SimpleERC20)
+  const rateTokenBob = getDeploymentProperty(network, DeploymentProperty.SimpleERC20)
   const bobUri = await postToIPFS(
     JSON.stringify({
       proposalTitle: 'Javascript Developer',

@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
-import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
+import { Network } from '../../../config'
 import postToIPFS from '../../utils/ipfs'
 import {
   arbitrationCost,
@@ -35,27 +35,27 @@ async function main() {
 
   const talentLayerID = await ethers.getContractAt(
     'TalentLayerID',
-    get(network as Network, ConfigProperty.TalentLayerID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerID),
   )
 
   const talentLayerPlatformID = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
 
   const talentLayerEscrow = await ethers.getContractAt(
     'TalentLayerEscrow',
-    get(network as Network, ConfigProperty.TalentLayerEscrow),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
   const talentLayerArbitrator = await ethers.getContractAt(
     'TalentLayerArbitrator',
-    get(network as Network, ConfigProperty.TalentLayerArbitrator),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerArbitrator),
   )
 
   // Grant Platform Id Mint role to Deployer and Bob

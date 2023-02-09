@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
 /*
 In this script  Alice releases 3/4 of the escrow & Carol reimburses the remaining 1/4 to Alice
@@ -11,14 +10,14 @@ async function main() {
 
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
   const talentLayerEscrow = await ethers.getContractAt(
     'TalentLayerEscrow',
-    get(network as Network, ConfigProperty.TalentLayerEscrow),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)

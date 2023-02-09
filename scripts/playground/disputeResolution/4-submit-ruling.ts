@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
-import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
+import { Network } from '../../../config'
 import { disputeId, rulingId } from './constants'
 
 import hre = require('hardhat')
@@ -17,7 +17,7 @@ async function main() {
 
   const talentLayerArbitrator = await ethers.getContractAt(
     'TalentLayerArbitrator',
-    get(network as Network, ConfigProperty.TalentLayerArbitrator),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerArbitrator),
   )
 
   // Carol submits the ruling

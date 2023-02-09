@@ -13,7 +13,7 @@ import {
   TalentLayerPlatformID,
   TalentLayerReview,
 } from '../../typechain-types'
-import { getConfig, Network, NetworkConfig } from '../../scripts/utils/config'
+import { getConfig, Network, NetworkConfig } from '../../config'
 
 describe('TalentLayer protocol global testing', function () {
   // we dedine the types of the variables we will use

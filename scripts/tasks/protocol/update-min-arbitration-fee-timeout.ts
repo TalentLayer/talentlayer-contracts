@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../utils/config'
-import { ConfigProperty, get } from '../../../configManager'
+import { Network } from '../../../config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 
 /**
  * @notice This task is used to update the minimum timeout to pay the arbitration fee
@@ -17,7 +17,7 @@ task('update-min-arbitration-fee-timeout', 'update the minimum timeout to pay th
 
     const platformIdContract = await ethers.getContractAt(
       'TalentLayerPlatformID',
-      get(network.name, ConfigProperty.TalentLayerPlatformID),
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerPlatformID),
       deployer,
     )
 

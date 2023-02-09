@@ -5,13 +5,11 @@ import { setDeploymentProperty, DeploymentProperty } from '../../../.deployment/
 import { verifyAddress } from './utils'
 
 /**
- * @notice Task created only for test purposes of the upgradable process
- * @usage npx hardhat deploy-full --use-test-erc20 --verify --network mumbai
+ * @notice Setup the contracts deployed based on the network configuration
+ * @usage npx hardhat initial-setup --network mumbai
  */
-task('deploy-full', 'Deploy all the contracts on their first version')
-  .addFlag('useTestErc20', 'deploy a mock ERC20 contract')
-  .addFlag('verify', 'verify contracts on etherscan')
-  .setAction(async (args, { ethers, run, network }) => {
+task('initial-setup', 'Setup the contracts deployed based on the network configuration').setAction(
+  async (args, { ethers, run, network }) => {
     try {
       const { verify, useTestErc20 } = args
       const [deployer, bob, carol, dave] = await ethers.getSigners()
@@ -237,4 +235,5 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       console.log('------------------------')
       return 'FAILED'
     }
-  })
+  },
+)
