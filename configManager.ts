@@ -43,4 +43,4 @@ export const remove = (network: string, property: ConfigProperty) => {
   saveJSON(network, obj)
 }
 
-const getFilename = (network: string) => `${__dirname}/talent.config_${network}.json`
+const getFilename = (network: string) => `${__dirname}/deployment.config_${network}.json`

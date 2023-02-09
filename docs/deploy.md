@@ -14,21 +14,22 @@
     - INFURA_ID & INFURA_SECRET: use by playground script to post json on IPFS
 - Be sure that your address has enough fund, the gas usage to deploy the main contracts is: 17582534
 - Note: if you have any issue in the command bellow, check the troubleshooting.md
-- Select the network by changing the variable DEPLOY_NETWORK="mumbai" in your .nev
+- Replace the network used in the command bellow by the one you want to deploy to. For this documentation we use mumbai.
 
 ## Step 1: Contract deployment
 
-- Deploy TL contracts: `make deploy`
+- Deploy TL contracts: `npx hardhat deploy-full --network mumbai --verify`
 
 ## Step 2: Setup data
 
-- Fake date for testing:
-
-  - `make setup-allFakeData`
-
-- Create our partners platformIds:
+- Create our partners platformIds
   - `npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network mumbai`
   - `npx hardhat mint-platform-id --name WorkPod --address 0x4444F618BA8E99435E721abF3c611D5105A407e9 --network mumbai`
+- Add whitelisted payments tokens
+  (Examples with ETH, DAI, UDDC: )
+  - `npx hardhat add-token-address-to-whitelist --address 0x0000000000000000000000000000000000000000 --action add --network mumbai`
+  - `npx hardhat add-token-address-to-whitelist --address 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70.07 --action add --network mumbai`
+  - `npx hardhat add-token-address-to-whitelist --address 0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664 --action add --network mumbai`
 
 ## Step 3: Update Subgraph
 
