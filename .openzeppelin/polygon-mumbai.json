@@ -1461,7 +1461,13 @@
           },
           "t_enum(Status)6976": {
             "label": "enum TalentLayerEscrow.Status",
-            "members": ["NoDispute", "WaitingSender", "WaitingReceiver", "DisputeCreated", "Resolved"],
+            "members": [
+              "NoDispute",
+              "WaitingSender",
+              "WaitingReceiver",
+              "DisputeCreated",
+              "Resolved"
+            ],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_uint256)": {

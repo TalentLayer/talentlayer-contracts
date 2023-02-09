@@ -2,7 +2,7 @@ import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../utils/config'
 import postToIPFS from '../utils/ipfs'
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 /*
 In this script Bob will update his proposal

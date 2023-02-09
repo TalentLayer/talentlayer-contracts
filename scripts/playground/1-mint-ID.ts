@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../config'
-const hre = require('hardhat')
+import hre = require('hardhat')
+import { Network } from '../utils/config'
 
 /*
 In this script we will mint a new TalentLayer ID for Alice, Bob, Carol and Dave

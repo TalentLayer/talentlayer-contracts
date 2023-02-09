@@ -1,7 +1,6 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-const { anyValue } = require('@nomicfoundation/hardhat-chai-matchers/withArgs')
 import { Contract, ContractFactory } from 'ethers'
 
 describe('Load test', function () {
@@ -50,12 +49,18 @@ describe('Load test', function () {
 
     // Deploy TalenLayerID
     TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-    const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
+    const talentLayerIDArgs: [string, string] = [
+      mockProofOfHumanity.address,
+      talentLayerPlatformID.address,
+    ]
     talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
 
     // Deploy service registry
     ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-    const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+    const serviceRegistryArgs: [string, string] = [
+      talentLayerID.address,
+      talentLayerPlatformID.address,
+    ]
     serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs)
 
     // Grant Platform Id Mint role to Alice
@@ -64,14 +69,18 @@ describe('Load test', function () {
 
     // platform mints a Platform Id
     await talentLayerPlatformID.connect(platform).mint('someName')
-    platformId = await talentLayerPlatformID.connect(platform).getPlatformIdFromAddress(platform.address)
+    platformId = await talentLayerPlatformID
+      .connect(platform)
+      .getPlatformIdFromAddress(platform.address)
   })
 
   describe('Creating ' + AMOUNT_OF_SIGNERS + ' TalentLayerIDs', async function () {
     it(AMOUNT_OF_SIGNERS + ' TalentLayerIDs minted', async function () {
       for (let i = 0; i < AMOUNT_OF_SIGNERS; i++) {
-        await expect(await mockProofOfHumanity.addSubmissionManually([signers[i].address])).to.not.be.reverted
-        await expect(await talentLayerID.connect(signers[i]).mintWithPoh(platformId, 'handle_' + i)).to.not.be.reverted
+        await expect(await mockProofOfHumanity.addSubmissionManually([signers[i].address])).to.not
+          .be.reverted
+        await expect(await talentLayerID.connect(signers[i]).mintWithPoh(platformId, 'handle_' + i))
+          .to.not.be.reverted
       }
     })
   })
@@ -101,7 +110,9 @@ describe('Load test', function () {
       async function () {
         for (let serviceId = 1; serviceId <= AMOUNT_OF_SERVICES; serviceId++) {
           await expect(
-            await serviceRegistry.connect(signers[signerIndex]).createProposal(serviceId, TOKEN, VALUE, MOCK_DATA),
+            await serviceRegistry
+              .connect(signers[signerIndex])
+              .createProposal(serviceId, TOKEN, VALUE, MOCK_DATA),
           ).to.emit(serviceRegistry, 'ProposalCreated')
         }
       }

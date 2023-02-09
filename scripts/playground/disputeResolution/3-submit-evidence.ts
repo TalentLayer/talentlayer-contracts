@@ -4,7 +4,7 @@ import { Network } from '../../utils/config'
 import postToIPFS from '../../utils/ipfs'
 import { transactionId } from './constants'
 
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 /**
  * In this script, Alice and Bob submit evidence to support their viewpoints on the dispute.
@@ -27,7 +27,8 @@ async function main() {
       fileHash: 'QmWQV5ZFFhEJiW8Lm7ay2zLxC2XS4wx1b2W7FfdrLMyQQc',
       fileTypeExtension: 'pdf',
       name: 'Email clarifying the terms of the contract',
-      description: 'This is an email sent to from Alice to Bob that clarifies the terms of the contract',
+      description:
+        'This is an email sent to from Alice to Bob that clarifies the terms of the contract',
     }),
   )
   await talentLayerEscrow.connect(alice).submitEvidence(transactionId, aliceEvidence)

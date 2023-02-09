@@ -28,7 +28,9 @@ task('update-token-address-to-whitelist', 'Add or remove a token address to the 
     await tx.wait()
     const isTokenRegistered = await serviceRegistry.isTokenAllowed(address)
     console.log(
-      `Updates token whitelist: ${address} was ${isTokenRegistered ? 'added to ' : 'removed from '}the whitelist`,
+      `Updates token whitelist: ${address} was ${
+        isTokenRegistered ? 'added to ' : 'removed from '
+      }the whitelist`,
     )
   })
 

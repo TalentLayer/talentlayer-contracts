@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../utils/config'
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 /*
 In this script Alice will accept Carol's proposal with an ETH transaction
@@ -42,12 +42,18 @@ async function main() {
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
   const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const updatePlatformEscrowFeeRate = await platformIdContrat.connect(dave).updatePlatformEscrowFeeRate(daveTlId, 1100)
+  const updatePlatformEscrowFeeRate = await platformIdContrat
+    .connect(dave)
+    .updatePlatformEscrowFeeRate(daveTlId, 1100)
   updatePlatformEscrowFeeRate.wait()
 
   const davePlatformData = await platformIdContrat.platforms(daveTlId)
-  const protocolEscrowFeeRate = ethers.BigNumber.from(await talentLayerEscrow.protocolEscrowFeeRate())
-  const originPlatformEscrowFeeRate = ethers.BigNumber.from(await talentLayerEscrow.originPlatformEscrowFeeRate())
+  const protocolEscrowFeeRate = ethers.BigNumber.from(
+    await talentLayerEscrow.protocolEscrowFeeRate(),
+  )
+  const originPlatformEscrowFeeRate = ethers.BigNumber.from(
+    await talentLayerEscrow.originPlatformEscrowFeeRate(),
+  )
   const platformEscrowFeeRate = ethers.BigNumber.from(davePlatformData.fee)
 
   const totalAmount = rateAmount.add(

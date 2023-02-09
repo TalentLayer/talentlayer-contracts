@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { get, ConfigProperty } from '../../configManager'
 import { Network } from '../utils/config'
-const hre = require('hardhat')
+import hre = require('hardhat')
 /*
 In this script  Alice will release the full token Amount in token to Dave
 
