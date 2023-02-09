@@ -5,15 +5,14 @@ import { set, ConfigProperty } from '../../../configManager'
 
 /**
  * @notice Task created only for test purposes of the upgradable process
- * @usage npx hardhat deploy-full --use-pohmock --use-test-erc20 --verify --network goerli
+ * @usage npx hardhat deploy-full --use-test-erc20 --verify --network goerli
  */
 task('deploy-full', 'Deploy all the contracts on their first version')
-  .addFlag('usePohmock', 'deploy a mock of POH')
   .addFlag('useTestErc20', 'deploy a mock ERC20 contract')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, run, network }) => {
     try {
-      const { verify, usePohmock, useTestErc20 } = args
+      const { verify, useTestErc20 } = args
       const [deployer, bob, carol, dave] = await ethers.getSigners()
       const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
       const networkConfig: NetworkConfig = getConfig(chainId)
@@ -28,25 +27,6 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       console.log('  ETH', formatEther(await deployer.getBalance()))
 
       await run('compile')
-
-      let pohAddress, mockProofOfHumanity
-      if (usePohmock) {
-        // Deploy Mock proof of humanity contract
-        const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-        mockProofOfHumanity = await MockProofOfHumanity.deploy()
-        if (verify) {
-          await mockProofOfHumanity.deployTransaction.wait(5)
-          await run('verify:verify', {
-            address: mockProofOfHumanity.address,
-          })
-        }
-        console.log('Mock proof of humanity address:', mockProofOfHumanity.address)
-        pohAddress = mockProofOfHumanity.address
-        set(network.name as any as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
-      } else {
-        pohAddress = networkConfig.proofOfHumanityAddress
-        set(network.name as any as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
-      }
 
       // Deploy TalentLayerPlatformID contract
       const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
@@ -77,7 +57,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-      const talentLayerIDArgs: [string, string] = [pohAddress, talentLayerPlatformID.address]
+      const talentLayerIDArgs: [string] = [talentLayerPlatformID.address]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerID = await upgrades.deployProxy(TalentLayerID, talentLayerIDArgs)
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
@@ -239,16 +219,6 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       // Grant escrow role
       const escrowRole = await serviceRegistry.ESCROW_ROLE()
       await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
-
-      if (usePohmock && mockProofOfHumanity) {
-        // Register Alice, Bob, Carol, Dave
-        // const mockProofOfHumanity = await ethers.getContractAt('MockProofOfHumanity', "0x78939ABA66D1F73B0D76E9289BA79bc79dC079Dc")
-        await mockProofOfHumanity.addSubmissionManually([deployer.address, bob.address, carol.address, dave.address])
-        console.log('Registered Alice:', deployer.address)
-        console.log('Registered Bob:', bob.address)
-        console.log('Registered Carol:', carol.address)
-        console.log('Registered Dave:', dave.address)
-      }
     } catch (e) {
       console.log('------------------------')
       console.log('FAILED')
