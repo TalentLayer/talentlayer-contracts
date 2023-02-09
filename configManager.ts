@@ -2,7 +2,6 @@ import { Network } from './scripts/utils/config'
 const fs = require('fs')
 
 export enum ConfigProperty {
-  MockProofOfHumanity = 'proofOfHumanityAddress',
   TalentLayerID = 'talentLayerIdAddress',
   ServiceRegistry = 'serviceRegistryAddress',
   Reviewscontract = 'talentLayerReviewAddress',
