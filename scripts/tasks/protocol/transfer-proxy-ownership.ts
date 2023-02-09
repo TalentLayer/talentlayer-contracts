@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
+import { Network } from '../../../config'
 
 /**
  * @notice This task is used to transfer ownership of one proxy
@@ -25,9 +25,9 @@ task('transfer-proxy-ownership', 'Transfer ownership of proxy admin to a new add
 
     const ProxyContract = await ethers.getContractFactory(contractName)
 
-    const proxyAddress = get(
+    const proxyAddress = getDeploymentProperty(
       network.name,
-      ConfigProperty[contractName as keyof typeof ConfigProperty],
+      DeploymentProperty[contractName as keyof typeof DeploymentProperty],
     )
     if (!proxyAddress) {
       throw new Error(`Proxy address not found for ${contractName}`)

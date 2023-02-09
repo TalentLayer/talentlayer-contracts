@@ -1,5 +1,5 @@
 import { ethers, network, upgrades } from 'hardhat'
-import { getConfig, Network, NetworkConfig } from '../../scripts/utils/config'
+import { getConfig, Network, NetworkConfig } from '../../config'
 import {
   ServiceRegistry,
   SimpleERC20,

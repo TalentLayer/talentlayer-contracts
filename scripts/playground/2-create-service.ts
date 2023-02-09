@@ -1,8 +1,7 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
-import hre = require('hardhat')
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
+import hre = require('hardhat')
 
 /*
 In this script Alice will create a two services.
@@ -20,11 +19,11 @@ async function main() {
 
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)

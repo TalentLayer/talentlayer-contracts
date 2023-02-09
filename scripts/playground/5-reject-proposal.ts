@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
 
 /*
@@ -15,7 +14,7 @@ async function main() {
   const [alice] = await ethers.getSigners()
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
 
   const nextServiceId = await serviceRegistry.nextServiceId()

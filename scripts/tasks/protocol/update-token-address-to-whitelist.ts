@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../utils/config'
-import { ConfigProperty, get } from '../../../configManager'
+import { Network } from '../../../config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 
 /**
  * @notice This task is used to add or remove a token address to the whitelist
@@ -20,7 +20,7 @@ task('update-token-address-to-whitelist', 'Add or remove a token address to the 
 
     const serviceRegistry = await ethers.getContractAt(
       'ServiceRegistry',
-      get(network.name, ConfigProperty.ServiceRegistry),
+      getDeploymentProperty(network.name, DeploymentProperty.ServiceRegistry),
       deployer,
     )
 

@@ -1,7 +1,6 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
-import { Network } from '../utils/config'
 
 /*
 In this script we will mint a new TalentLayer ID for Alice, Bob, Carol and Dave
@@ -23,12 +22,12 @@ async function main() {
 
   const talentLayerIdContract = await ethers.getContractAt(
     'TalentLayerID',
-    get(network as Network, ConfigProperty.TalentLayerID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerID),
   )
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   // Dave is a TalentLayer Platform and a TalentLayer User

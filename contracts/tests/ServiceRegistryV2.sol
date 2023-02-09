@@ -162,7 +162,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     /// @notice Allowed payment tokens addresses
-    mapping(address => bool) public allowedTokens;
+    mapping(address => bool) public allowedTokenList;
 
     // @notice
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
@@ -207,7 +207,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _tokenAddress Token address
      */
     function isTokenAllowed(address _tokenAddress) external view returns (bool) {
-        return allowedTokens[_tokenAddress];
+        return allowedTokenList[_tokenAddress];
     }
 
     // =========================== User functions ==============================
@@ -238,7 +238,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     ) public {
         uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
-        require(allowedTokens[_rateToken], "This token is not allowed");
+        require(allowedTokenList[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -277,7 +277,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     ) public {
         uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
-        require(allowedTokens[_rateToken], "This token is not allowed");
+        require(allowedTokenList[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][senderId];
@@ -367,7 +367,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             (_tokenAddress == address(0) && _status != false) || (_tokenAddress != address(0)),
             "Owner can't remove Ox address"
         );
-        allowedTokens[_tokenAddress] = _status;
+        allowedTokenList[_tokenAddress] = _status;
 
         emit AllowedTokenListUpdated(_tokenAddress, _status);
     }

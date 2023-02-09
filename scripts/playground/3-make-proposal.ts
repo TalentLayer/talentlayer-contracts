@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
 
 /*
@@ -18,12 +17,12 @@ async function main() {
   const [alice, bob, carol, dave] = await ethers.getSigners()
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
 
   const simpleERC20 = await ethers.getContractAt(
     'SimpleERC20',
-    get(network as Network, ConfigProperty.SimpleERC20),
+    getDeploymentProperty(network, DeploymentProperty.SimpleERC20),
   )
   await serviceRegistry.connect(alice).updateAllowedTokenList(ethers.constants.AddressZero, true)
   await serviceRegistry.connect(alice).updateAllowedTokenList(simpleERC20.address, true)

@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
+import { Network } from '../../../config'
 
 /**
  * @notice This task is used to remove a trusted forwarder for meta transactions.
@@ -17,22 +17,22 @@ task('remove-trusted-forwarder', 'Removes a trusted forwarder for meta transacti
 
     const talentLayerId = await ethers.getContractAt(
       'TalentLayerID',
-      get(network.name, ConfigProperty.TalentLayerID),
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
     )
 
     const serviceRegistry = await ethers.getContractAt(
       'ServiceRegistry',
-      get(network.name, ConfigProperty.ServiceRegistry),
+      getDeploymentProperty(network.name, DeploymentProperty.ServiceRegistry),
     )
 
     const talentLayerReview = await ethers.getContractAt(
       'TalentLayerReview',
-      get(network.name, ConfigProperty.Reviewscontract),
+      getDeploymentProperty(network.name, DeploymentProperty.Reviewscontract),
     )
 
     const talentLayerEscrow = await ethers.getContractAt(
       'TalentLayerEscrow',
-      get(network.name, ConfigProperty.TalentLayerEscrow),
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerEscrow),
     )
 
     const talentLayerIdTx = await talentLayerId.removeTrustedForwarder(address)
