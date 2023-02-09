@@ -30,22 +30,6 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       await run('compile')
 
-      let pohAddress, mockProofOfHumanity
-      if (usePohmock) {
-        // Deploy Mock proof of humanity contract
-        const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-        mockProofOfHumanity = await MockProofOfHumanity.deploy()
-        if (verify) {
-          await verifyAddress(mockProofOfHumanity.address)
-        }
-        console.log('Mock proof of humanity address:', mockProofOfHumanity.address)
-        pohAddress = mockProofOfHumanity.address
-        set((network.name as any) as Network, ConfigProperty.MockProofOfHumanity, pohAddress)
-      } else {
-        pohAddress = networkConfig.proofOfHumanityAddress
-        set((network.name as any) as Network, ConfigProperty.MockProofOfHumanity, pohAddress as string)
-      }
-
       // Deploy TalentLayerPlatformID contract
       const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
@@ -71,7 +55,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-      const talentLayerIDArgs: [string, string] = [pohAddress, talentLayerPlatformID.address]
+      const talentLayerIDArgs: [string, string] = ['', talentLayerPlatformID.address]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerID = await (upgrades as HardhatUpgrades).deployProxy(TalentLayerID, talentLayerIDArgs)
       if (verify) {
@@ -160,7 +144,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         serviceRegistry.address,
         talentLayerID.address,
         talentLayerPlatformID.address,
-        networkConfig.multisigAddress,
+        networkConfig.multisigFeeAddress,
       ]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerEscrow = await (upgrades as HardhatUpgrades).deployProxy(
