@@ -19,7 +19,7 @@ task('mint-talentlayer-id-free', 'Mints talentLayer Id to an addresses.')
 
     const talentLayerIdContract = await ethers.getContractAt(
       'TalentLayerID',
-      get((network.name as any) as Network, ConfigProperty.TalentLayerID),
+      get(network.name as any as Network, ConfigProperty.TalentLayerID),
     )
     const tx = await talentLayerIdContract.freeMint(platform, address, handle)
     const talentLayerId = await talentLayerIdContract.walletOfOwner(address)
