@@ -5,22 +5,15 @@ interface ITalentLayerID {
     struct Profile {
         uint256 id;
         string handle;
-        address pohAddress;
         uint256 platformId;
         string dataUri;
     }
 
     function numberMinted(address _user) external view returns (uint256);
 
-    function isTokenPohRegistered(uint256 _tokenId) external view returns (bool);
-
     function walletOfOwner(address _owner) external view returns (uint256);
 
     function mint(string memory _handle) external;
-
-    function mintWithPoh(string memory _handle) external;
-
-    function activatePoh(uint256 _tokenId) external;
 
     function updateProfileData(uint256 _tokenId, string memory _newCid) external;
 
