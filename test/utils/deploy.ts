@@ -1,4 +1,5 @@
-import { ethers, upgrades } from 'hardhat'
+import { ethers, network, upgrades } from 'hardhat'
+import { getConfig, Network, NetworkConfig } from '../../scripts/utils/config'
 import {
   ERC20,
   MockProofOfHumanity,
@@ -28,6 +29,9 @@ export async function deploy(
     ERC20,
   ]
 > {
+  const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
+  const networkConfig: NetworkConfig = getConfig(chainId)
+
   // Deploy MockProofOfHumanity
   const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
   const mockProofOfHumanity = await MockProofOfHumanity.deploy()
@@ -67,10 +71,11 @@ export async function deploy(
 
   // Deploy TalentLayerEscrow and escrow role on ServiceRegistry
   const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
-  const TalentLayerEscrowArgs: [string, string, string] = [
+  const TalentLayerEscrowArgs: [string, string, string, string | undefined] = [
     serviceRegistry.address,
     talentLayerID.address,
     talentLayerPlatformID.address,
+    networkConfig.multisigAddress,
   ]
   let talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
   const escrowRole = await serviceRegistry.ESCROW_ROLE()

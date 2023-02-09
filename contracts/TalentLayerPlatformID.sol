@@ -37,11 +37,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
-     * @notice Account recovery merkle root
-     */
-    bytes32 public recoveryRoot;
-
-    /**
      * @notice Taken Platform name
      */
     mapping(string => bool) public takenNames;
@@ -50,11 +45,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @notice Token ID to Platfom struct
      */
     mapping(uint256 => Platform) public platforms;
-
-    /**
-     * @notice Addresses that have successfully recovered their account
-     */
-    mapping(address => bool) public hasBeenRecovered;
 
     /**
      * @notice Addresses which are available as arbitrators
@@ -261,14 +251,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     // =========================== Owner functions ==============================
-
-    /**
-     * @notice Set new Platform ID recovery root.
-     * @param _newRoot New merkle root
-     */
-    function updateRecoveryRoot(bytes32 _newRoot) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        recoveryRoot = _newRoot;
-    }
 
     /**
      * Updates the mint fee.
