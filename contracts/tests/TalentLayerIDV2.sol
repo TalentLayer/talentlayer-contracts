@@ -214,7 +214,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @notice Link Proof of Humanity to previously non-linked TalentLayerID.
      * @param _tokenId Token ID to link
      */
-    function activatePoh(uint256 _tokenId) public onlyOwnerOrDelegator(_tokenId, msg.sender) {
+    function activatePoh(uint256 _tokenId) public onlyOwnerOrDelegator(_tokenId, _msgSender()) {
         address sender = _msgSender();
         require(pohRegistry.isRegistered(sender), "You're address is not registerd for poh");
         profiles[_tokenId].pohAddress = sender;
@@ -231,7 +231,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     function updateProfileData(
         uint256 _tokenId,
         string memory _newCid
-    ) public onlyOwnerOrDelegator(_tokenId, msg.sender) {
+    ) public onlyOwnerOrDelegator(_tokenId, _msgSender()) {
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profiles[_tokenId].dataUri = _newCid;
 
@@ -243,8 +243,8 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _delegator Address of the delegator to add
      */
     function addDelegator(address _delegator) external {
-        delegators[msg.sender][_delegator] = true;
-        emit DelegatorAdded(msg.sender, _delegator);
+        delegators[_msgSender()][_delegator] = true;
+        emit DelegatorAdded(_msgSender(), _delegator);
     }
 
     /**
@@ -252,8 +252,8 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _delegator Address of the delegator to remove
      */
     function removeDelegator(address _delegator) external {
-        delegators[msg.sender][_delegator] = false;
-        emit DelegatorRemoved(msg.sender, _delegator);
+        delegators[_msgSender()][_delegator] = false;
+        emit DelegatorRemoved(_msgSender(), _delegator);
     }
 
     // =========================== Delegator functions ==============================
@@ -269,7 +269,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         address _userAddress,
         string memory _handle
     ) public payable canPay canMint(_userAddress, _handle, _platformId) {
-        require(isDelegator(_userAddress, msg.sender), "You are not a delegator for this user");
+        require(isDelegator(_userAddress, _msgSender()), "You are not a delegator for this user");
         _safeMint(_userAddress, nextTokenId.current());
         _afterMint(_userAddress, _handle, false, _platformId, msg.value);
     }

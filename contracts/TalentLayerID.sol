@@ -241,8 +241,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _delegator Address of the delegator to add
      */
     function addDelegator(address _delegator) external {
-        delegators[msg.sender][_delegator] = true;
-        emit DelegatorAdded(msg.sender, _delegator);
+        delegators[_msgSender()][_delegator] = true;
+        emit DelegatorAdded(_msgSender(), _delegator);
     }
 
     /**
@@ -250,8 +250,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _delegator Address of the delegator to remove
      */
     function removeDelegator(address _delegator) external {
-        delegators[msg.sender][_delegator] = false;
-        emit DelegatorRemoved(msg.sender, _delegator);
+        delegators[_msgSender()][_delegator] = false;
+        emit DelegatorRemoved(_msgSender(), _delegator);
     }
 
     // =========================== Delegator functions ==============================
@@ -267,7 +267,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         address _userAddress,
         string memory _handle
     ) public payable canPay canMint(_userAddress, _handle, _platformId) {
-        require(isDelegator(_userAddress, msg.sender), "You are not a delegator for this user");
+        require(isDelegator(_userAddress, _msgSender()), "You are not a delegator for this user");
         _safeMint(_userAddress, nextTokenId.current());
         _afterMint(_userAddress, _handle, false, _platformId, msg.value);
     }
