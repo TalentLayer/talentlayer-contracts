@@ -152,7 +152,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     {
         address sender = _msgSender();
         _safeMint(sender, nextTokenId.current());
-        _afterMint(sender, _handle, false, _platformId, msg.value);
+        _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
@@ -199,7 +199,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         string memory _handle
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, nextTokenId.current());
-        _afterMint(_userAddress, _handle, false, _platformId, 0);
+        _afterMint(_userAddress, _handle, _platformId, 0);
     }
 
     // =========================== Private functions ==============================
