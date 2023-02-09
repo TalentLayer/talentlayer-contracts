@@ -25,6 +25,9 @@ async function deployAndSetup(
   const [talentLayerID, talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
     await deploy(false)
 
+  // Deployer whitelists a list of authorized tokens
+  await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
+
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
