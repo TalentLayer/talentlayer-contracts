@@ -224,7 +224,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         address _userAddress,
         string memory _handle
     ) public payable canPay canMint(_userAddress, _handle, _platformId) {
-        require(isDelegator(_userAddress, msg.sender), "You are not a delegator for this user");
+        require(isDelegator(_userAddress, _msgSender()), "You are not a delegator for this user");
         _safeMint(_userAddress, nextTokenId.current());
         _afterMint(_userAddress, _handle, false, _platformId, msg.value);
     }
