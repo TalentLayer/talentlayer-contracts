@@ -15,14 +15,12 @@ async function main() {
     subgraphNetwork.localhost.TalentLayerEscrow.address = config.talentLayerEscrowAddress
     subgraphNetwork.localhost.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
   } else if (network == 'goerli') {
-    subgraphNetwork.goerli.proofOfHumanityAddress.address = config.proofOfHumanityAddress
     subgraphNetwork.goerli.TalentLayerID.address = config.talentLayerIdAddress
     subgraphNetwork.goerli.TalentLayerReview.address = config.talentLayerReviewAddress
     subgraphNetwork.goerli.ServiceRegistry.address = config.serviceRegistryAddress
     subgraphNetwork.goerli.TalentLayerEscrow.address = config.talentLayerEscrowAddress
     subgraphNetwork.goerli.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
   } else if (network == 'fuji') {
-    subgraphNetwork.fuji.proofOfHumanityAddress.address = config.proofOfHumanityAddress
     subgraphNetwork.fuji.TalentLayerID.address = config.talentLayerIdAddress
     subgraphNetwork.fuji.TalentLayerReview.address = config.talentLayerReviewAddress
     subgraphNetwork.fuji.ServiceRegistry.address = config.serviceRegistryAddress
@@ -43,7 +41,7 @@ function saveJSON(subgraphNetwork: any) {
   return fs.writeFileSync(filename, JSON.stringify(subgraphNetwork, null, 2))
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
