@@ -1,6 +1,6 @@
 import { formatEther } from 'ethers/lib/utils'
 import { task } from 'hardhat/config'
-import { getConfig, Network, NetworkConfig } from '../../../config'
+import { getConfig, Network, NetworkConfig } from '../../../networkConfig'
 import { setDeploymentProperty, DeploymentProperty } from '../../../.deployment/deploymentManager'
 import { verifyAddress } from './utils'
 
@@ -175,7 +175,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         serviceRegistry.address,
         talentLayerID.address,
         talentLayerPlatformID.address,
-        networkConfig.multisigFeeAddress,
+        networkConfig.multisigAddressList.fee,
       ]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerEscrow = await (upgrades as HardhatUpgrades).deployProxy(

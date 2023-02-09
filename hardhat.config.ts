@@ -20,7 +20,7 @@ import './scripts/tasks/user/create-service'
 import './scripts/tasks/protocol/update-token-address-to-whitelist'
 import './scripts/tasks/protocol/add-trusted-forwarder'
 import './scripts/tasks/protocol/remove-trusted-forwarder'
-import { Network } from './config'
+import { Network } from './networkConfig'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
 

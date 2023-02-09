@@ -1,5 +1,5 @@
 import { ethers, network, upgrades } from 'hardhat'
-import { getConfig, Network, NetworkConfig } from '../../config'
+import { getConfig, Network, NetworkConfig } from '../../networkConfig'
 import {
   ServiceRegistry,
   SimpleERC20,
@@ -75,7 +75,7 @@ export async function deploy(
     serviceRegistry.address,
     talentLayerID.address,
     talentLayerPlatformID.address,
-    networkConfig.multisigFeeAddress,
+    networkConfig.multisigAddressList.fee,
   ]
   let talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
   const escrowRole = await serviceRegistry.ESCROW_ROLE()

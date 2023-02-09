@@ -2,7 +2,7 @@ import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
 import { ContractFactory } from 'ethers'
 import { task } from 'hardhat/config'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { getConfig, Network, NetworkConfig } from '../../../config'
+import { getConfig, Network, NetworkConfig } from '../../../networkConfig'
 import { verifyAddress } from './utils'
 
 /**
@@ -46,7 +46,7 @@ task('prepare-upgrade', 'Prepare an upgrade of a new implementation for one of t
     if (automaticProposal) {
       // @ts-ignore: defender is imported in hardhat.config.ts
       const proposal = await defender.proposeUpgrade(proxyAddress, NewImplementation, {
-        multisig: networkConfig.multisigDeployerAddress,
+        multisig: networkConfig.multisigAddressList.deployer,
       })
       newImplementationAddress = proposal.metadata.newImplementationAddress
       console.log('Upgrade proposal created at:', proposal.url)

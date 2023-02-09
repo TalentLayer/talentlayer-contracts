@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../config'
+import { Network } from '../../../networkConfig'
 
 /**
  * @notice This task is used to add a trusted forwarder for meta transactions
