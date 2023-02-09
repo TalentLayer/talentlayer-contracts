@@ -1,10 +1,9 @@
-import { expect } from 'chai'
-import { ethers, network } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
+import { expect } from 'chai'
 import { BigNumber } from 'ethers'
-import { deploy } from '../utils/deploy'
+import { ethers, network } from 'hardhat'
+import { getConfig, Network, NetworkConfig } from '../../networkConfig'
 import {
-  MockProofOfHumanity,
   ServiceRegistry,
   SimpleERC20,
   TalentLayerArbitrator,
@@ -13,7 +12,7 @@ import {
   TalentLayerPlatformID,
   TalentLayerReview,
 } from '../../typechain-types'
-import { getConfig, Network, NetworkConfig } from '../../config'
+import { deploy } from '../utils/deploy'
 
 describe('TalentLayer protocol global testing', function () {
   // we dedine the types of the variables we will use
@@ -682,7 +681,7 @@ describe('TalentLayer protocol global testing', function () {
         networkConfig = getConfig(chainId)
         let protocolWallet = await talentLayerEscrow.connect(deployer).getProtocolWallet()
 
-        expect(protocolWallet).to.equal(networkConfig.multisigFeeAddress)
+        expect(protocolWallet).to.equal(networkConfig.multisigAddressList.fee)
         await talentLayerEscrow.connect(deployer).updateProtocolWallet(dave.address)
         protocolWallet = await talentLayerEscrow.connect(deployer).getProtocolWallet()
         expect(protocolWallet).to.equal(dave.address)

@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
 import { getDeploymentProperty, DeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../config'
+import { Network } from '../../../networkConfig'
 import postToIPFS from '../../utils/ipfs'
 
 /**

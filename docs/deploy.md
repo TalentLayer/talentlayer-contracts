@@ -22,7 +22,10 @@
 
 ## Step 2: Setup data
 
-- Double check the [config.ts](./config.ts) and setup for the current network
+- Double check the [networkConfig.ts](./networkConfig.ts), it contains all setups for the current network
+  - multisigAddressList: list of multisig addresses used to receive fee and with ownership of upgradabiltiy
+  - allowedTokenList: list of tokens allowed to be used as payment
+  - platformList: list of platform name and address used to create our partners platformId
 - Create our partners platformIds
   - `npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network mumbai`
   - `npx hardhat mint-platform-id --name WorkPod --address 0x4444F618BA8E99435E721abF3c611D5105A407e9 --network mumbai`
