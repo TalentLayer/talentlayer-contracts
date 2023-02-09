@@ -43,7 +43,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
     /// @param proposals all proposals for this service
     /// @param countProposals the total number of proposal for this service
     /// @param transactionId the escrow transaction ID linked to the service
-    /// @param platformId the platform ID linked to the service
+    /// @param originServiceCreationPlatformId the platform ID on which the service was created
     struct Service {
         Status status;
         uint256 buyerId;
@@ -52,7 +52,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         string serviceDataUri;
         uint256 countProposals;
         uint256 transactionId;
-        uint256 platformId;
+        uint256 originServiceCreationPlatformId;
     }
 
     /// @notice Proposal information struct
@@ -66,6 +66,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         uint256 sellerId;
         address rateToken;
         uint256 rateAmount;
+        uint16 originProposalCreationPlatformId;
         string proposalDataUri;
     }
 
@@ -102,14 +103,16 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
-    /// @param rateAmount the amount of token choosed
+    /// @param rateAmount the amount of token chosen
+    /// @param originProposalCreationPlatformId the platform ID on which the proposal was created
     event ProposalCreated(
         uint256 serviceId,
         uint256 sellerId,
         string proposalDataUri,
         ProposalStatus status,
         address rateToken,
-        uint256 rateAmount
+        uint256 rateAmount,
+        uint16 originProposalCreationPlatformId
     );
 
     /// @notice Emitted after an existing proposal has been updated
@@ -215,6 +218,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
+        uint16 _originProposalCreationPlatformId,
         string calldata _proposalDataUri
     ) public {
         uint256 senderId = tlId.walletOfOwner(msg.sender);
@@ -232,14 +236,15 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
 
         service.countProposals++;
         proposals[_serviceId][senderId] = Proposal({
-            status: ProposalStatus.Pending,
-            sellerId: senderId,
-            rateToken: _rateToken,
-            rateAmount: _rateAmount,
-            proposalDataUri: _proposalDataUri
+        status: ProposalStatus.Pending,
+        sellerId: senderId,
+        rateToken: _rateToken,
+        rateAmount: _rateAmount,
+        originProposalCreationPlatformId: _originProposalCreationPlatformId,
+        proposalDataUri: _proposalDataUri
         });
 
-        emit ProposalCreated(_serviceId, senderId, _proposalDataUri, ProposalStatus.Pending, _rateToken, _rateAmount);
+        emit ProposalCreated(_serviceId, senderId, _proposalDataUri, ProposalStatus.Pending, _rateToken, _rateAmount, _originProposalCreationPlatformId);
     }
 
     /**
@@ -406,7 +411,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         service.sellerId = _sellerId;
         service.initiatorId = _senderId;
         service.serviceDataUri = _serviceDataUri;
-        service.platformId = _platformId;
+        service.originServiceCreationPlatformId = _platformId;
 
         emit ServiceCreated(id, _buyerId, _sellerId, _senderId, _platformId);
 
