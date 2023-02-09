@@ -30,6 +30,8 @@ describe('TalentLayer protocol global testing', function () {
     networkConfig: NetworkConfig,
     chainId: number
 
+  const nonListedRateToken = '0x6b175474e89094c44da98b954eedeac495271d0f'
+
   before(async function () {
     // Get the Signers
     ;[deployer, alice, bob, carol, dave, eve, frank, grace, heidi] = await ethers.getSigners()
@@ -56,6 +58,20 @@ describe('TalentLayer protocol global testing', function () {
     platformName = 'HireVibes'
     await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, alice.address)
     mintFee = 100
+
+    const allowedTokenList = [
+      '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10',
+      '0x0000000000000000000000000000000000000000',
+      '0x07865c6e87b9f70255377e024ace6630c1eaa37f',
+      '0x73967c6a0904aa032c103b4104747e88c566b1a2',
+      '0xd80d331d3b6dca0a20f4af2edc9c9645cd1f10c8',
+      token.address,
+    ]
+
+    // Deployer whitelists a list of authorized tokens
+    for (const tokenAddress of allowedTokenList) {
+      await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
+    }
   })
 
   describe('Platform Id contract test', async function () {
@@ -416,6 +432,28 @@ describe('TalentLayer protocol global testing', function () {
   })
 
   describe('Service Registry & Proposal contract test', function () {
+    it('Should revert if a user tries to whitelist a payment token without being the owner', async function () {
+      await expect(serviceRegistry.connect(alice).updateAllowedTokenList(token.address, true)).to.be.revertedWith(
+        'Ownable: caller is not the owner',
+      )
+    })
+
+    it('Should revert if the Owner tries to blacklist zero address', async function () {
+      await expect(serviceRegistry.connect(deployer).updateAllowedTokenList(ethers.constants.AddressZero, false)).to.be.revertedWith(
+        'Owner can\'t remove Ox address',
+      )
+    })
+
+    it('Should update the token list accordingly if the owner updates it', async function () {
+      const randomTokenAddress = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599'
+
+      await serviceRegistry.connect(deployer).updateAllowedTokenList(randomTokenAddress, true)
+      expect(await serviceRegistry.isTokenAllowed(randomTokenAddress)).to.be.true
+
+      await serviceRegistry.connect(deployer).updateAllowedTokenList(randomTokenAddress, false)
+      expect(await serviceRegistry.isTokenAllowed(randomTokenAddress)).to.be.false
+    })
+
     it("Dave, who doesn't have TalentLayerID, can't create a service", async function () {
       await expect(serviceRegistry.connect(dave).createOpenServiceFromBuyer(1, 'haveNotTlid')).to.be.revertedWith(
         'You should have a TalentLayerId',
@@ -503,6 +541,12 @@ describe('TalentLayer protocol global testing', function () {
       await serviceRegistry.getProposal(1, carolTid)
     })
 
+    it('Should revert if Carol tries to create a proposal with a non-whitelisted payment token', async function () {
+      expect(
+        serviceRegistry.connect(carol).createProposal(1, nonListedRateToken, 2, 'proposal1FromCarolToAlice1Service'),
+      ).to.be.revertedWith('This token is not allowed')
+    })
+
     it('Bob can update his first proposal ', async function () {
       const bobTid = await talentLayerID.walletOfOwner(bob.address)
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
@@ -517,9 +561,14 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.proposalDataUri).to.be.equal('updateProposal1FromBobToAlice1Service')
     })
 
+    it('Should revert if Bob updates his proposal with a non-whitelisted payment token ', async function () {
+      await expect(
+        serviceRegistry.connect(bob).updateProposal(1, nonListedRateToken, 2, 'updateProposal1FromBobToAlice1Service'),
+      ).to.be.revertedWith('This token is not allowed')
+    })
+
     it('Alice can validate Bob proposal', async function () {
       const bobTid = await talentLayerID.walletOfOwner(bob.address)
-      const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
 
       const proposalDataBefore = await serviceRegistry.getProposal(1, bobTid)
       expect(proposalDataBefore.status.toString()).to.be.equal('0')

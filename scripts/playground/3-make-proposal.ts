@@ -22,6 +22,8 @@ async function main() {
   )
 
   const simpleERC20 = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
+  await serviceRegistry.connect(alice).updateAllowedTokenList(ethers.constants.AddressZero, true)
+  await serviceRegistry.connect(alice).updateAllowedTokenList(simpleERC20.address, true)
 
   // Get the first and second service id
   let nextServiceId = await serviceRegistry.nextServiceId()
