@@ -1,9 +1,9 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { getConfig, Network, NetworkConfig } from '../../scripts/utils/config'
 import {
-  ERC20,
   MockProofOfHumanity,
   ServiceRegistry,
+  SimpleERC20,
   TalentLayerArbitrator,
   TalentLayerEscrow,
   TalentLayerID,
@@ -26,7 +26,7 @@ export async function deploy(
     ServiceRegistry,
     TalentLayerReview,
     MockProofOfHumanity,
-    ERC20,
+    SimpleERC20,
   ]
 > {
   const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
