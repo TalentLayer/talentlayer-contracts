@@ -4,6 +4,7 @@ import { ConfigProperty, get } from '../../../configManager'
 
 /**
  * @notice This task is used remove an arbitrator from the list of available arbitrators
+ *         in all the ERC-2771 compatible contracts
  * @param {string} address - The address of the arbitrator to remove
  * @dev Example of script use: "npx hardhat remove-arbitrator --address 0x9e1d8f9Ad75F6fF624D925C313b80C1a98071C89 --network goerli"
  */

@@ -1,7 +1,7 @@
 const { upgrades } = require('hardhat')
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import { BigNumber, ContractTransaction } from 'ethers'
+import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import {
   ServiceRegistry,
@@ -29,6 +29,9 @@ async function deployAndSetup(
   const [deployer, alice, bob, carol] = await ethers.getSigners()
   const [talentLayerID, talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
     await deploy(false)
+
+  // Deployer whitelists a list of authorized tokens
+  await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'

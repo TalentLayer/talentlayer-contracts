@@ -30,6 +30,7 @@ const arbitrationFeeTimeout = 3600 * 24
 /**
  * Deploys contract and sets up the context for dispute resolution.
  * @param arbitrationFeeTimeout the timeout for the arbitration fee
+ * @param tokenAddress the payment token used for this case
  * @returns the deployed contracts
  */
 async function deployAndSetup(
@@ -39,6 +40,9 @@ async function deployAndSetup(
   const [deployer, alice, bob, carol] = await ethers.getSigners()
   const [talentLayerID, talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
     await deploy(true)
+
+  // Deployer whitelists a list of authorized tokens
+  await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
 
   // Grant Platform Id Mint role to Deployer and Bob
   const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -534,27 +538,33 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
 })
 
 describe('Dispute Resolution, with ERC20 token transaction', function () {
-  let alice: SignerWithAddress,
+  let deployer: SignerWithAddress,
+    alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
     simpleERC20: SimpleERC20,
+    serviceRegistry: ServiceRegistry,
     totalTransactionAmount: BigNumber
 
   const rulingId = 1
 
   before(async function () {
-    ;[, alice, bob, carol] = await ethers.getSigners()
+    ;[deployer, alice, bob, carol] = await ethers.getSigners()
 
     // Deploy SimpleERC20 token and setup
     const SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
     simpleERC20 = await SimpleERC20.deploy()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] = await deployAndSetup(
       arbitrationFeeTimeout,
       simpleERC20.address,
     )
+
+    if (!(await serviceRegistry.isTokenAllowed(simpleERC20.address))) {
+      await serviceRegistry.connect(deployer).updateAllowedTokenList(simpleERC20.address, true)
+    }
 
     const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
     const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()

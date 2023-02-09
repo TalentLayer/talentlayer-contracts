@@ -9,10 +9,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../interfaces/IServiceRegistry.sol";
 import "../interfaces/ITalentLayerID.sol";
 import "../interfaces/ITalentLayerPlatformID.sol";
+import "../libs/ERC2771RecipientUpgradeable.sol";
 import "../IArbitrable.sol";
 import "../Arbitrator.sol";
 
-contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable, IArbitrable {
+contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, IArbitrable {
     // =========================== Enum ==============================
 
     /**
@@ -313,7 +314,8 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
     function initialize(
         address _serviceRegistryAddress,
         address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress
+        address _talentLayerPlatformIDAddress,
+        address _protocolWallet
     ) public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
@@ -321,7 +323,7 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
         serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
-        protocolWallet = payable(owner());
+        protocolWallet = payable(_protocolWallet);
 
         updateProtocolEscrowFeeRate(100);
         updateOriginPlatformEscrowFeeRate(200);
@@ -343,10 +345,12 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
      * @return balance The balance of the platform
      */
     function getClaimableFeeBalance(address _token) external view returns (uint256 balance) {
-        if (owner() == msg.sender) {
+        address sender = _msgSender();
+
+        if (owner() == sender) {
             return platformIdToTokenToBalance[PROTOCOL_INDEX][_token];
         } else {
-            uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(msg.sender);
+            uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(sender);
             talentLayerPlatformIdContract.isValid(platformId);
             return platformIdToTokenToBalance[platformId][_token];
         }
@@ -361,8 +365,10 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory transaction) {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
+
+        address sender = _msgSender();
         require(
-            msg.sender == transaction.sender || msg.sender == transaction.receiver,
+            sender == transaction.sender || sender == transaction.receiver,
             "You are not related to this transaction."
         );
         return transaction;
@@ -423,7 +429,7 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
 
         // PlatformEscrowFeeRate is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
-        require(msg.sender == sender, "Access denied.");
+        require(_msgSender() == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
@@ -467,7 +473,7 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
         // PlatformEscrowFeeRate is per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(proposal.rateAmount, platform.fee);
 
-        require(msg.sender == sender, "Access denied.");
+        require(_msgSender() == sender, "Access denied.");
         require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
         require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
@@ -497,8 +503,9 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
+        address sender = _msgSender();
         require(
-            transaction.sender == msg.sender || talentLayerIdContract.isDelegator(transaction.sender, msg.sender),
+            transaction.sender == sender || talentLayerIdContract.isDelegator(transaction.sender, sender),
             "Access denied."
         );
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
@@ -518,8 +525,9 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
+        address sender = _msgSender();
         require(
-            transaction.receiver == msg.sender || talentLayerIdContract.isDelegator(transaction.receiver, msg.sender),
+            transaction.receiver == sender || talentLayerIdContract.isDelegator(transaction.receiver, sender),
             "Access denied."
         );
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
@@ -542,7 +550,7 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
             transaction.status < Status.DisputeCreated,
             "Dispute has already been created or because the transaction has been executed."
         );
-        require(msg.sender == transaction.sender, "The caller must be the sender.");
+        require(_msgSender() == transaction.sender, "The caller must be the sender.");
 
         uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
         transaction.senderFee += msg.value;
@@ -575,7 +583,7 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
             transaction.status < Status.DisputeCreated,
             "Dispute has already been created or because the transaction has been executed."
         );
-        require(msg.sender == transaction.receiver, "The caller must be the receiver.");
+        require(_msgSender() == transaction.receiver, "The caller must be the receiver.");
 
         uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
         transaction.receiverFee += msg.value;
@@ -647,12 +655,11 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
 
         require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
 
+        address sender = _msgSender();
         address party;
-        if (transaction.sender == msg.sender || talentLayerIdContract.isDelegator(transaction.sender, msg.sender)) {
+        if (transaction.sender == sender || talentLayerIdContract.isDelegator(transaction.sender, sender)) {
             party = transaction.sender;
-        } else if (
-            transaction.receiver == msg.sender || talentLayerIdContract.isDelegator(transaction.receiver, msg.sender)
-        ) {
+        } else if (transaction.receiver == sender || talentLayerIdContract.isDelegator(transaction.receiver, sender)) {
             party = transaction.receiver;
         }
 
@@ -689,7 +696,7 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
     function claim(uint256 _platformId, address _tokenAddress) external {
         address payable recipient;
 
-        if (owner() == msg.sender) {
+        if (owner() == _msgSender()) {
             require(_platformId == PROTOCOL_INDEX, "Access denied.");
             recipient = protocolWallet;
         } else {
@@ -719,13 +726,14 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
      *  @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
      */
     function rule(uint256 _disputeID, uint256 _ruling) public {
+        address sender = _msgSender();
         uint256 transactionId = disputeIDtoTransactionID[_disputeID];
         Transaction storage transaction = transactions[transactionId];
 
-        require(msg.sender == address(transaction.arbitrator), "The caller must be the arbitrator.");
+        require(sender == address(transaction.arbitrator), "The caller must be the arbitrator.");
         require(transaction.status == Status.DisputeCreated, "The dispute has already been resolved.");
 
-        emit Ruling(Arbitrator(msg.sender), _disputeID, _ruling);
+        emit Ruling(Arbitrator(sender), _disputeID, _ruling);
 
         _executeRuling(transactionId, _ruling);
     }
@@ -811,7 +819,7 @@ contract TalentLayerEscrowV2 is Initializable, UUPSUpgradeable, OwnableUpgradeab
     }
 
     /**
-     * @notice Function that revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
      * {upgradeTo} and {upgradeToAndCall}.
      * @param newImplementation address of the new contract implementation
      */

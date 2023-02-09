@@ -12,6 +12,7 @@ import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Stri
 import {ERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ERC2771RecipientUpgradeable} from "../libs/ERC2771RecipientUpgradeable.sol";
 import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
 import {IServiceRegistry} from "../interfaces/IServiceRegistry.sol";
 import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
@@ -21,11 +22,10 @@ import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
  * @author TalentLayer Team
  */
 contract TalentLayerReviewV2 is
-    ContextUpgradeable,
+    ERC2771RecipientUpgradeable,
     ERC165Upgradeable,
     IERC721Upgradeable,
     IERC721MetadataUpgradeable,
-    OwnableUpgradeable,
     UUPSUpgradeable
 {
     using AddressUpgradeable for address;
@@ -469,7 +469,7 @@ contract TalentLayerReviewV2 is
      * @param _tokenId the tokenId
      */
     modifier onlyOwnerOrDelegator(uint256 _tokenId) {
-        require(tlId.isOwnerOrDelegator(_tokenId, msg.sender), "Not owner or delegator");
+        require(tlId.isOwnerOrDelegator(_tokenId, _msgSender()), "Not owner or delegator");
         _;
     }
 
