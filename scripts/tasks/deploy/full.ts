@@ -196,16 +196,6 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       // Grant escrow role
       const escrowRole = await serviceRegistry.ESCROW_ROLE()
       await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
-
-      if (usePohmock && mockProofOfHumanity) {
-        // Register Alice, Bob, Carol, Dave
-        // const mockProofOfHumanity = await ethers.getContractAt('MockProofOfHumanity', "0x78939ABA66D1F73B0D76E9289BA79bc79dC079Dc")
-        await mockProofOfHumanity.addSubmissionManually([deployer.address, bob.address, carol.address, dave.address])
-        console.log('Registered Alice:', deployer.address)
-        console.log('Registered Bob:', bob.address)
-        console.log('Registered Carol:', carol.address)
-        console.log('Registered Dave:', dave.address)
-      }
     } catch (e) {
       console.log('------------------------')
       console.log('FAILED')
