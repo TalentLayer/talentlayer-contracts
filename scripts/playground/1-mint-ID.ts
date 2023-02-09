@@ -38,19 +38,19 @@ async function main() {
   await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPLatform, 'alice.lens')
   console.log('alice.lens registered')
 
-  await talentLayerIdContract.connect(bob).mintWithPoh(daveTalentLayerIdPLatform, 'bob.lens')
+  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPLatform, 'bob.lens')
   console.log('Bob.lens registered')
 
-  await talentLayerIdContract.connect(carol).mintWithPoh(daveTalentLayerIdPLatform, 'carol.lens')
+  await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPLatform, 'carol.lens')
   console.log('carol.lens registered')
 
-  await talentLayerIdContract.connect(dave).mintWithPoh(daveTalentLayerIdPLatform, 'dave.lens')
+  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPLatform, 'dave.lens')
   console.log('dave.lens registered')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
