@@ -3,8 +3,9 @@ pragma solidity ^0.8.9;
 
 import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
+import {ERC2771RecipientUpgradeable} from "../libs/ERC2771RecipientUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
@@ -12,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  * @title ServiceRegistry Contract
  * @author TalentLayer Team
  */
-contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable, AccessControlUpgradeable {
+contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, AccessControlUpgradeable {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
@@ -182,7 +183,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         __Ownable_init();
         __AccessControl_init();
         __UUPSUpgradeable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         nextServiceId = 1;
@@ -225,7 +226,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
      */
     function createOpenServiceFromBuyer(uint256 _platformId, string calldata _serviceDataUri) public returns (uint256) {
         talentLayerPlatformIdContract.isValid(_platformId);
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         return _createService(Status.Opened, senderId, senderId, 0, _serviceDataUri, _platformId);
     }
 
@@ -242,7 +243,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         uint256 _rateAmount,
         string calldata _proposalDataUri
     ) public {
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
         require(allowedTokens[_rateToken], "This token is not allowed");
 
@@ -281,7 +282,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         uint256 _rateAmount,
         string calldata _proposalDataUri
     ) public {
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
         require(allowedTokens[_rateToken], "This token is not allowed");
 
@@ -305,7 +306,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _proposalId Proposal identifier
      */
     function validateProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -325,7 +326,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _proposalId Proposal identifier
      */
     function rejectProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(msg.sender);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
 
         Service storage service = services[_serviceId];
@@ -396,7 +397,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
         );
-        require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can update the service");
+        require(service.initiatorId == tlId.walletOfOwner(_msgSender()), "Only the initiator can update the service");
         require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.serviceDataUri = _newServiceDataUri;
@@ -409,7 +410,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
      * @param _serviceId Service identifier
      */
     function flagService(uint256 _serviceId) public {
-        uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(msg.sender);
+        uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(_msgSender());
         Service storage service = services[_serviceId];
         require(platformId == service.platformId, "Only a platform can flag a service");
         service.status = Status.Flagged;
@@ -420,7 +421,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
 
     /**
      * @notice Update handle address mapping and emit event after mint.
-     * @param _senderId the talentLayerId of the msg.sender address
+     * @param _senderId the talentLayerId of the _msgSender() address
      * @param _buyerId the talentLayerId of the buyer
      * @param _sellerId the talentLayerId of the seller
      * @param _serviceDataUri token Id to IPFS URI mapping
@@ -455,10 +456,32 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
         return id;
     }
 
+    // =========================== Overrides ==============================
+
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (address)
+    {
+        return ERC2771RecipientUpgradeable._msgSender();
+    }
+
+    function _msgData()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (bytes calldata)
+    {
+        return ERC2771RecipientUpgradeable._msgData();
+    }
+
     // =========================== Internal functions ==============================
 
     /**
-     * @notice Function that revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
      * {upgradeTo} and {upgradeToAndCall}.
      * @param newImplementation address of the new contract implementation
      */

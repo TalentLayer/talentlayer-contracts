@@ -14,6 +14,8 @@ import './scripts/tasks/protocol/addArbitrator'
 import './scripts/tasks/protocol/removeArbitrator'
 import './scripts/tasks/protocol/updateMinArbitrationFeeTimeout'
 import './scripts/tasks/protocol/addOrRemoveTokenAddressToWhitelist'
+import './scripts/tasks/protocol/addTrustedForwarder'
+import './scripts/tasks/protocol/removeTrustedForwarder'
 import { Network } from './scripts/utils/config'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
