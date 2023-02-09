@@ -42,7 +42,7 @@ task('prepare-upgrade', 'Prepare an upgrade of a new implementation for one of t
     if (automaticProposal) {
       // @ts-ignore: defender is imported in hardhat.config.ts
       const proposal = await defender.proposeUpgrade(proxyAddress, NewImplementation, {
-        multisig: networkConfig.multisigAddress,
+        multisig: networkConfig.multisigDeployerAddress,
       })
       newImplementationAddress = proposal.metadata.newImplementationAddress
       console.log('Upgrade proposal created at:', proposal.url)
