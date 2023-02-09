@@ -42,8 +42,8 @@ async function main() {
   )
   console.log('Alice Job Updated data Uri', aliceUpdateJobData)
 
-  let nextServiceId = await serviceRegistry.nextServiceId()
-  let firstServiceId = nextServiceId.sub(2)
+  const nextServiceId = await serviceRegistry.nextServiceId()
+  const firstServiceId = nextServiceId.sub(2)
   console.log('the Alice service id is ', firstServiceId.toString())
 
   await serviceRegistry.connect(alice).updateServiceData(firstServiceId, aliceUpdateJobData)
@@ -53,7 +53,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

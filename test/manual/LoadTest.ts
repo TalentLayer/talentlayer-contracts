@@ -23,16 +23,16 @@ describe('Load test', function () {
   //50 services per buyer with 20 buyers creates a total of 1000 services, and 40 sellers will then create 10000 proposals each, a total of 40000 proposals.
   //100 accounts currently created, set in hardhat.config. Needs to be at least amount_of_buyers + amount_of_sellers + 2 (for deployer and platform).
   //VALUE will currently make no difference because no transaction takes place.
-  const AMOUNT_OF_SERVICES_PER_BUYER: number = 50,
-    AMOUNT_OF_BUYERS: number = 20,
+  const AMOUNT_OF_SERVICES_PER_BUYER = 50,
+    AMOUNT_OF_BUYERS = 20,
     AMOUNT_OF_SERVICES: number = AMOUNT_OF_BUYERS * AMOUNT_OF_SERVICES_PER_BUYER,
     AMOUNT_OF_PROPOSALS_PER_SELLER: number = AMOUNT_OF_SERVICES,
-    AMOUNT_OF_SELLERS: number = 40,
+    AMOUNT_OF_SELLERS = 40,
     AMOUNT_OF_PROPOSALS: number = AMOUNT_OF_PROPOSALS_PER_SELLER * AMOUNT_OF_SELLERS,
     AMOUNT_OF_SIGNERS: number = AMOUNT_OF_BUYERS + AMOUNT_OF_SELLERS,
-    TOKEN: string = '0x0000000000000000000000000000000000000000',
-    VALUE: number = 10,
-    MOCK_DATA: string = 'mock_data'
+    TOKEN = '0x0000000000000000000000000000000000000000',
+    VALUE = 10,
+    MOCK_DATA = 'mock_data'
 
   before(async function () {
     signers = await ethers.getSigners()
@@ -69,7 +69,7 @@ describe('Load test', function () {
 
   describe('Creating ' + AMOUNT_OF_SIGNERS + ' TalentLayerIDs', async function () {
     it(AMOUNT_OF_SIGNERS + ' TalentLayerIDs minted', async function () {
-      for (var i = 0; i < AMOUNT_OF_SIGNERS; i++) {
+      for (let i = 0; i < AMOUNT_OF_SIGNERS; i++) {
         await expect(await mockProofOfHumanity.addSubmissionManually([signers[i].address])).to.not.be.reverted
         await expect(await talentLayerID.connect(signers[i]).mintWithPoh(platformId, 'handle_' + i)).to.not.be.reverted
       }
@@ -79,7 +79,7 @@ describe('Load test', function () {
   describe('Creating ' + AMOUNT_OF_SERVICES + ' services', async function () {
     const createServices = (signerIndex: number) =>
       async function () {
-        for (var i = 0; i < AMOUNT_OF_SERVICES_PER_BUYER; i++) {
+        for (let i = 0; i < AMOUNT_OF_SERVICES_PER_BUYER; i++) {
           await expect(
             await serviceRegistry
               .connect(signers[signerIndex])
@@ -88,7 +88,7 @@ describe('Load test', function () {
         }
       }
 
-    for (var signerIndex = 0; signerIndex < AMOUNT_OF_BUYERS; signerIndex++) {
+    for (let signerIndex = 0; signerIndex < AMOUNT_OF_BUYERS; signerIndex++) {
       it(
         'Signer ' + signerIndex + ' created ' + AMOUNT_OF_SERVICES_PER_BUYER + ' services',
         createServices(signerIndex),
@@ -99,15 +99,15 @@ describe('Load test', function () {
   describe('Creating ' + AMOUNT_OF_PROPOSALS + ' proposals', async function () {
     const createProposals = (signerIndex: number) =>
       async function () {
-        for (var serviceId = 1; serviceId <= AMOUNT_OF_SERVICES; serviceId++) {
+        for (let serviceId = 1; serviceId <= AMOUNT_OF_SERVICES; serviceId++) {
           await expect(
             await serviceRegistry.connect(signers[signerIndex]).createProposal(serviceId, TOKEN, VALUE, MOCK_DATA),
           ).to.emit(serviceRegistry, 'ProposalCreated')
         }
       }
 
-    for (var i = 0; i < AMOUNT_OF_SELLERS; i++) {
-      var signerIndex = AMOUNT_OF_BUYERS + i
+    for (let i = 0; i < AMOUNT_OF_SELLERS; i++) {
+      const signerIndex = AMOUNT_OF_BUYERS + i
       it(
         'Signer ' + signerIndex + ' created ' + AMOUNT_OF_PROPOSALS_PER_SELLER + ' proposals',
         createProposals(signerIndex),

@@ -1,6 +1,6 @@
 # Troubleshooting
 
-## Deploy 
+## Deploy
 
 - Due to slow network on goerli, there is a wait in the execution off `setup-allFakeData`
 

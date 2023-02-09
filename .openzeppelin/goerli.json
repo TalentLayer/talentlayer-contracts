@@ -167,22 +167,12 @@
           },
           "t_enum(ProposalStatus)6455": {
             "label": "enum ServiceRegistry.ProposalStatus",
-            "members": [
-              "Pending",
-              "Validated",
-              "Rejected"
-            ],
+            "members": ["Pending", "Validated", "Rejected"],
             "numberOfBytes": "1"
           },
           "t_enum(Status)6451": {
             "label": "enum ServiceRegistry.Status",
-            "members": [
-              "Filled",
-              "Confirmed",
-              "Finished",
-              "Rejected",
-              "Opened"
-            ],
+            "members": ["Filled", "Confirmed", "Finished", "Rejected", "Opened"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {

@@ -18,7 +18,7 @@ task('remove-arbitrator', 'Removes an available arbitrator')
 
     const platformIdContract = await ethers.getContractAt(
       'TalentLayerPlatformID',
-      get((network.name as any) as Network, ConfigProperty.TalentLayerPlatformID),
+      get(network.name as any as Network, ConfigProperty.TalentLayerPlatformID),
       deployer,
     )
 

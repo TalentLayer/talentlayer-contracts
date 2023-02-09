@@ -865,22 +865,12 @@
           },
           "t_enum(ProposalStatus)5704": {
             "label": "enum ServiceRegistry.ProposalStatus",
-            "members": [
-              "Pending",
-              "Validated",
-              "Rejected"
-            ],
+            "members": ["Pending", "Validated", "Rejected"],
             "numberOfBytes": "1"
           },
           "t_enum(Status)5700": {
             "label": "enum ServiceRegistry.Status",
-            "members": [
-              "Filled",
-              "Confirmed",
-              "Finished",
-              "Rejected",
-              "Opened"
-            ],
+            "members": ["Filled", "Confirmed", "Finished", "Rejected", "Opened"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {
@@ -1471,13 +1461,7 @@
           },
           "t_enum(Status)6976": {
             "label": "enum TalentLayerEscrow.Status",
-            "members": [
-              "NoDispute",
-              "WaitingSender",
-              "WaitingReceiver",
-              "DisputeCreated",
-              "Resolved"
-            ],
+            "members": ["NoDispute", "WaitingSender", "WaitingReceiver", "DisputeCreated", "Resolved"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_uint256)": {
@@ -1774,23 +1758,12 @@
           },
           "t_enum(ProposalStatus)3357": {
             "label": "enum ServiceRegistryV2.ProposalStatus",
-            "members": [
-              "Pending",
-              "Validated",
-              "Rejected"
-            ],
+            "members": ["Pending", "Validated", "Rejected"],
             "numberOfBytes": "1"
           },
           "t_enum(Status)3353": {
             "label": "enum ServiceRegistryV2.Status",
-            "members": [
-              "Filled",
-              "Confirmed",
-              "Finished",
-              "Rejected",
-              "Opened",
-              "Flagged"
-            ],
+            "members": ["Filled", "Confirmed", "Finished", "Rejected", "Opened", "Flagged"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {
@@ -2095,23 +2068,12 @@
           },
           "t_enum(ProposalStatus)3357": {
             "label": "enum ServiceRegistryV2.ProposalStatus",
-            "members": [
-              "Pending",
-              "Validated",
-              "Rejected"
-            ],
+            "members": ["Pending", "Validated", "Rejected"],
             "numberOfBytes": "1"
           },
           "t_enum(Status)3353": {
             "label": "enum ServiceRegistryV2.Status",
-            "members": [
-              "Filled",
-              "Confirmed",
-              "Finished",
-              "Rejected",
-              "Opened",
-              "Flagged"
-            ],
+            "members": ["Filled", "Confirmed", "Finished", "Rejected", "Opened", "Flagged"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {

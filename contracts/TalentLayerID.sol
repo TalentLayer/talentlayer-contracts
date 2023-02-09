@@ -155,12 +155,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(_msgSender(), _handle, _platformId)
-    {
+    function mint(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
         _safeMint(sender, nextTokenId.current());
         _afterMint(sender, _handle, false, _platformId, msg.value);
@@ -171,12 +169,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId minted
      */
-    function mintWithPoh(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(_msgSender(), _handle, _platformId)
-    {
+    function mintWithPoh(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
         require(pohRegistry.isRegistered(sender), "You need to use an address registered on Proof of Humanity");
 
@@ -288,11 +284,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the safeTransferFrom function
@@ -300,11 +292,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the burn function

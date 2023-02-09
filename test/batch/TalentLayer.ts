@@ -439,9 +439,9 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Should revert if the Owner tries to blacklist zero address', async function () {
-      await expect(serviceRegistry.connect(deployer).updateAllowedTokenList(ethers.constants.AddressZero, false)).to.be.revertedWith(
-        'Owner can\'t remove Ox address',
-      )
+      await expect(
+        serviceRegistry.connect(deployer).updateAllowedTokenList(ethers.constants.AddressZero, false),
+      ).to.be.revertedWith("Owner can't remove Ox address")
     })
 
     it('Should update the token list accordingly if the owner updates it', async function () {
@@ -793,7 +793,7 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('The protocol owner can claim his token balance.', async function () {
-        let protocolOwnerBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(token.address)
+        const protocolOwnerBalance = await talentLayerEscrow.connect(deployer).getClaimableFeeBalance(token.address)
         // await talentLayerEscrow.updateProtocolWallet(alice.address);
         const transaction = await talentLayerEscrow.connect(deployer).claim(0, token.address)
         await expect(transaction).to.changeTokenBalances(
