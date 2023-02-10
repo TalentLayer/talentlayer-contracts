@@ -413,7 +413,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
         require(bytes(_platformName).length >= 2, "Name too short");
-        require(bytes(_platformName).length <= 10, "Name too long");
+        require(bytes(_platformName).length <= 20, "Name too long");
         require(!takenNames[_platformName], "Name already taken");
         _;
     }
