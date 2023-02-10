@@ -4,7 +4,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber } from 'ethers'
 import { deploy } from '../utils/deploy'
 import {
-  MockProofOfHumanity,
   ServiceRegistry,
   SimpleERC20,
   TalentLayerArbitrator,
