@@ -6,27 +6,29 @@ Learn more about the project: https://www.talentlayer.org
 
 ## Documentations
 
-*Our documentations are in Notion and Gitbook. Here are some links to the most important pages:*
+_Our documentations are in Notion and Gitbook. Here are some links to the most important pages:_
 
-Start integrating TalentLayer: 
+Start integrating TalentLayer:
+
 - The complete official user documentation: https://docs.talentlayer.org
 
 Understand the protocol:
+
 - Upgradability: https://talentlayer.notion.site/Upgradability-c4265e3a8dc64cdb8167083a5a899828
 
-## Deployment addresses: 
+## Deployment addresses:
 
 - [Goerli](./deployments/goerli.json)
 - [Fuji](./deployments/fuji.json)
 - [Mumbai](./deployments/mumbai.json)
 
-## Setup locally 
+## Setup locally
 
 - Create your env file config: `mv .env.example .env`
 - Complete all the variables in the `.env` file
 - Install dependencies: `npm install`
 - Launch your local node: `npx hardhat node`
-- Deploy contract: `npx hardhat deploy-full --use-pohmock --use-test-erc20 --network localhost`
+- Deploy contract: `npx hardhat deploy-full --use-test-erc20 --network localhost`
 
 ## Scripts
 

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {IProofOfHumanity} from "../interfaces/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
 import {ERC2771RecipientUpgradeable} from "../libs/ERC2771RecipientUpgradeable.sol";
 
@@ -24,21 +23,16 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /// @notice TalentLayer Profile information struct
     /// @param profileId the talentLayerId of the profile
     /// @param handle the handle of the profile
-    /// @param pohAddress the proof of humanity address of the profile
     /// @param platformId the TalentLayer Platform Id linked to the profile
     /// @param dataUri the IPFS URI of the profile metadata
     struct Profile {
         uint256 id;
         string handle;
-        address pohAddress;
         uint256 platformId;
         string dataUri;
     }
 
     // =========================== Mappings & Variables ==============================
-
-    /// Proof of Humanity registry
-    IProofOfHumanity public pohRegistry;
 
     /// TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
@@ -69,14 +63,12 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     /**
      * @notice First initializer function
-     * @param _pohAddress Proof Of Humanity contract address
      * @param _talentLayerPlatformIdAddress TalentLayerPlatformId contract address
      */
-    function initialize(address _pohAddress, address _talentLayerPlatformIdAddress) public initializer {
+    function initialize(address _talentLayerPlatformIdAddress) public initializer {
         __Ownable_init();
         __ERC721_init("TalentLayerID", "TID");
         __UUPSUpgradeable_init();
-        pohRegistry = IProofOfHumanity(_pohAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         // Increment counter to start tokenIds at index 1
         nextTokenId.increment();
@@ -110,15 +102,6 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     function getProfile(uint256 _profileId) external view returns (Profile memory) {
         require(_exists(_profileId), "TalentLayerID: Profile does not exist");
         return profiles[_profileId];
-    }
-
-    /**
-     * @notice Allows checking if Proof of Humanity address linked to the TalentLayerID is registered.
-     * @param _tokenId Token ID to check
-     * @return true if Proof of Humanity address is registered, false otherwise
-     */
-    function isTokenPohRegistered(uint256 _tokenId) public view returns (bool) {
-        return pohRegistry.isRegistered(profiles[_tokenId].pohAddress);
     }
 
     /**
@@ -179,7 +162,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     // =========================== User functions ==============================
 
     /**
-     * @notice Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
+     * @notice Allows a user to mint a new TalentLayerID without.
      * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
      */
@@ -189,37 +172,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
         _safeMint(sender, nextTokenId.current());
-        _afterMint(sender, _handle, false, _platformId, msg.value);
-    }
-
-    /**
-     * @notice Allows a user to mint a new TalentLayerID with Proof of Humanity.
-     * @param _handle Handle for the user
-     * @param _platformId Platform ID mint the id from
-     */
-    function mintWithPoh(
-        uint256 _platformId,
-        string memory _handle
-    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
-        address sender = _msgSender();
-        require(pohRegistry.isRegistered(sender), "You need to use an address registered on Proof of Humanity");
-
-        uint256 userTokenId = nextTokenId.current();
-        _safeMint(sender, userTokenId);
-        profiles[userTokenId].pohAddress = sender;
-        _afterMint(sender, _handle, true, _platformId, msg.value);
-    }
-
-    /**
-     * @notice Link Proof of Humanity to previously non-linked TalentLayerID.
-     * @param _tokenId Token ID to link
-     */
-    function activatePoh(uint256 _tokenId) public onlyOwnerOrDelegator(_tokenId, _msgSender()) {
-        address sender = _msgSender();
-        require(pohRegistry.isRegistered(sender), "You're address is not registerd for poh");
-        profiles[_tokenId].pohAddress = sender;
-
-        emit PohActivated(sender, _tokenId, profiles[_tokenId].handle);
+        _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
@@ -271,7 +224,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     ) public payable canPay canMint(_userAddress, _handle, _platformId) {
         require(isDelegator(_userAddress, _msgSender()), "You are not a delegator for this user");
         _safeMint(_userAddress, nextTokenId.current());
-        _afterMint(_userAddress, _handle, false, _platformId, msg.value);
+        _afterMint(_userAddress, _handle, _platformId, msg.value);
     }
 
     // =========================== Owner functions ==============================
@@ -294,7 +247,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     }
 
     /**
-     * @notice Allows the owner to mint a new TalentLayerID for a user for free without the need of Proof of Humanity.
+     * @notice Allows the owner to mint a new TalentLayerID for a user for free.
      * @param _platformId Platform ID from which UserId was minted
      * @param _userAddress Address of the user
      * @param _handle Handle for the user
@@ -305,7 +258,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         string memory _handle
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, nextTokenId.current());
-        _afterMint(_userAddress, _handle, false, _platformId, 0);
+        _afterMint(_userAddress, _handle, _platformId, 0);
     }
 
     // =========================== Private functions ==============================
@@ -316,13 +269,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId was minted
      */
-    function _afterMint(
-        address _userAddress,
-        string memory _handle,
-        bool _poh,
-        uint256 _platformId,
-        uint256 _fee
-    ) private {
+    function _afterMint(address _userAddress, string memory _handle, uint256 _platformId, uint256 _fee) private {
         uint256 userTokenId = nextTokenId.current();
         nextTokenId.increment();
         Profile storage profile = profiles[userTokenId];
@@ -330,7 +277,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         profile.handle = _handle;
         takenHandles[_handle] = true;
 
-        emit Mint(_userAddress, userTokenId, _handle, _poh, _platformId, _fee);
+        emit Mint(_userAddress, userTokenId, _handle, _platformId, _fee);
     }
 
     // =========================== Internal functions ==============================
@@ -480,22 +427,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _platformId Platform ID from which UserId was minted
      * @param _fee Fee paid to mint the TalentLayerID
      */
-    event Mint(
-        address indexed _user,
-        uint256 _tokenId,
-        string _handle,
-        bool _withPoh,
-        uint256 _platformId,
-        uint256 _fee
-    );
-
-    /**
-     * Emit when new Proof of Identity is linked to TalentLayerID.
-     * @param _user Address of the owner of the TalentLayerID
-     * @param _tokenId TalentLayer ID for the user
-     * @param _handle Handle for the user
-     */
-    event PohActivated(address indexed _user, uint256 _tokenId, string _handle);
+    event Mint(address indexed _user, uint256 _tokenId, string _handle, uint256 _platformId, uint256 _fee);
 
     /**
      * Emit when Cid is updated for a user.

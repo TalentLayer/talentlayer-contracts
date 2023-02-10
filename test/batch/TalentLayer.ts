@@ -4,7 +4,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber } from 'ethers'
 import { deploy } from '../utils/deploy'
 import {
-  MockProofOfHumanity,
   ServiceRegistry,
   SimpleERC20,
   TalentLayerArbitrator,
@@ -37,7 +36,6 @@ describe('TalentLayer protocol global testing', function () {
     talentLayerReview: TalentLayerReview,
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
-    mockProofOfHumanity: MockProofOfHumanity,
     token: SimpleERC20,
     platformName: string,
     platformId: string,
@@ -57,12 +55,8 @@ describe('TalentLayer protocol global testing', function () {
       talentLayerArbitrator,
       serviceRegistry,
       talentLayerReview,
-      mockProofOfHumanity,
       token,
     ] = await deploy(true)
-
-    // Registered to mock POH
-    mockProofOfHumanity.addSubmissionManually([alice.address, bob.address, frank.address])
 
     // Grant Platform Id Mint role to Deployer and Bob
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -275,12 +269,8 @@ describe('TalentLayer protocol global testing', function () {
 
   describe('Talent Layer ID contract test', function () {
     it('Alice, Bob and Carol can mint a talentLayerId', async function () {
-      await talentLayerID.connect(alice).mintWithPoh('1', 'alice')
-      await talentLayerID.connect(bob).mintWithPoh('1', 'bob')
-
-      await expect(talentLayerID.connect(carol).mintWithPoh('1', 'carol')).to.be.revertedWith(
-        'You need to use an address registered on Proof of Humanity',
-      )
+      await talentLayerID.connect(alice).mint('1', 'alice')
+      await talentLayerID.connect(bob).mint('1', 'bob')
       await talentLayerID.connect(carol).mint('1', 'carol')
       expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal(aliceTlId)
       expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal(bobTlId)
@@ -288,18 +278,6 @@ describe('TalentLayer protocol global testing', function () {
       const carolUserId = await talentLayerID.walletOfOwner(carol.address)
       const profileData = await talentLayerID.profiles(carolUserId)
       expect(profileData.platformId).to.be.equal('1')
-    })
-
-    it('Carol can activate POH on her talentLayerID', async function () {
-      await expect(talentLayerID.connect(carol).mintWithPoh(1, 'carol')).to.be.revertedWith(
-        'You already have a TalentLayerID',
-      )
-      await mockProofOfHumanity.addSubmissionManually([carol.address])
-      await talentLayerID.connect(carol).activatePoh(carolTlId)
-      const profileData = await talentLayerID.profiles(carolTlId)
-
-      expect(await talentLayerID.isTokenPohRegistered(carolTlId)).to.be.equal(true)
-      expect(profileData.pohAddress).to.be.equal(carol.address)
     })
 
     it('The deployer can update the mint fee', async function () {
@@ -353,7 +331,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(contractBalanceAfter).to.be.equal(0)
     })
 
-    it('Deployer can mint TalentLayerID without poh for free', async function () {
+    it('Deployer can mint TalentLayerID', async function () {
       const deployerBalanceBefore = await deployer.getBalance()
       const graceBalanceBefore = await grace.getBalance()
 
