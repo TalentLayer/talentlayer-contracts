@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
 
 import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base64Upgradeable.sol";
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {MerkleProofUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
 /**
  * @title TalentLayer ID Contract
  * @author TalentLayer Team
  */
-contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
+contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // =========================== Structs ==============================
@@ -23,21 +23,16 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     /// @notice TalentLayer Profile information struct
     /// @param profileId the talentLayerId of the profile
     /// @param handle the handle of the profile
-    /// @param pohAddress the proof of humanity address of the profile
     /// @param platformId the TalentLayer Platform Id linked to the profile
     /// @param dataUri the IPFS URI of the profile metadata
     struct Profile {
         uint256 id;
         string handle;
-        address pohAddress;
         uint256 platformId;
         string dataUri;
     }
 
     // =========================== Mappings & Variables ==============================
-
-    /// Proof of Humanity registry
-    IProofOfHumanity public pohRegistry;
 
     /// TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
@@ -47,12 +42,6 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
     /// Token ID to Profile struct
     mapping(uint256 => Profile) public profiles;
-
-    /// Account recovery merkle root
-    bytes32 public recoveryRoot;
-
-    /// Addresses that have successfully recovered their account
-    mapping(address => bool) public hasBeenRecovered;
 
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
@@ -69,14 +58,12 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
 
     /**
      * @notice First initializer function
-     * @param _pohAddress Proof Of Humanity contract address
      * @param _talentLayerPlatformIdAddress TalentLayerPlatformId contract address
      */
-    function initialize(address _pohAddress, address _talentLayerPlatformIdAddress) public initializer {
+    function initialize(address _talentLayerPlatformIdAddress) public initializer {
         __Ownable_init();
         __ERC721_init("TalentLayerID", "TID");
         __UUPSUpgradeable_init();
-        pohRegistry = IProofOfHumanity(_pohAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         // Increment counter to start tokenIds at index 1
         nextTokenId.increment();
@@ -97,9 +84,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return nextTokenId.current() - 1;
-        }
+        return nextTokenId.current() - 1;
     }
 
     /**
@@ -113,15 +98,6 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     }
 
     /**
-     * @notice Allows checking if Proof of Humanity address linked to the TalentLayerID is registered.
-     * @param _tokenId Token ID to check
-     * @return true if Proof of Humanity address is registered, false otherwise
-     */
-    function isTokenPohRegistered(uint256 _tokenId) public view returns (bool) {
-        return pohRegistry.isRegistered(profiles[_tokenId].pohAddress);
-    }
-
-    /**
      * @notice Allows getting the TalentLayerID of one address
      * @param _owner Address to check
      * @return uint256 the id of the NFT
@@ -130,9 +106,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
         uint256 currentTokenId = 1;
 
         while (currentTokenId < nextTokenId.current()) {
-            address owner = _ownerOf(currentTokenId);
-
-            if (owner == _owner) {
+            if (_ownerOf(currentTokenId) == _owner) {
                 return currentTokenId;
             }
 
@@ -160,48 +134,17 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     // =========================== User functions ==============================
 
     /**
-     * @notice Allows a user to mint a new TalentLayerID without the need of Proof of Humanity.
+     * @notice Allows a user to mint a new TalentLayerID
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(msg.sender, _handle, _platformId)
-    {
-        _safeMint(msg.sender, nextTokenId.current());
-        _afterMint(msg.sender, _handle, false, _platformId, msg.value);
-    }
-
-    /**
-     * @notice Allows a user to mint a new TalentLayerID with Proof of Humanity.
-     * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId minted
-     */
-    function mintWithPoh(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(msg.sender, _handle, _platformId)
-    {
-        require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
-        uint256 userTokenId = nextTokenId.current();
-        _safeMint(msg.sender, userTokenId);
-        profiles[userTokenId].pohAddress = msg.sender;
-        _afterMint(msg.sender, _handle, true, _platformId, msg.value);
-    }
-
-    /**
-     * @notice Link Proof of Humanity to previously non-linked TalentLayerID.
-     * @param _tokenId Token ID to link
-     */
-    function activatePoh(uint256 _tokenId) public {
-        require(ownerOf(_tokenId) == msg.sender);
-        require(pohRegistry.isRegistered(msg.sender), "You're address is not registerd for poh");
-        profiles[_tokenId].pohAddress = msg.sender;
-
-        emit PohActivated(msg.sender, _tokenId, profiles[_tokenId].handle);
+    function mint(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
+        address sender = _msgSender();
+        _safeMint(sender, nextTokenId.current());
+        _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
@@ -211,60 +154,14 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _newCid New IPFS URI
      */
     function updateProfileData(uint256 _tokenId, string memory _newCid) public {
-        require(ownerOf(_tokenId) == msg.sender);
+        require(ownerOf(_tokenId) == _msgSender());
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profiles[_tokenId].dataUri = _newCid;
 
         emit CidUpdated(_tokenId, _newCid);
     }
 
-    /**
-     * @notice Allows recovery of a user's account with zero knowledge proofs.
-     * @param _oldAddress Old user address
-     * @param _tokenId Token ID to recover
-     * @param _index Index in the merkle tree
-     * @param _recoveryKey Recovery key
-     * @param _handle User handle
-     * @param _merkleProof Merkle proof
-     */
-    function recoverAccount(
-        address _oldAddress,
-        uint256 _tokenId,
-        uint256 _index,
-        uint256 _recoveryKey,
-        string calldata _handle,
-        bytes32[] calldata _merkleProof
-    ) public {
-        require(!hasBeenRecovered[_oldAddress], "This address has already been recovered");
-        require(ownerOf(_tokenId) == _oldAddress, "You are not the owner of this token");
-        require(numberMinted(msg.sender) == 0, "You already have a token");
-        require(profiles[_tokenId].pohAddress == address(0), "Your old address was not linked to Proof of Humanity");
-        require(
-            keccak256(abi.encodePacked(profiles[_tokenId].handle)) == keccak256(abi.encodePacked(_handle)),
-            "Invalid handle"
-        );
-        require(pohRegistry.isRegistered(msg.sender), "You need to use an address registered on Proof of Humanity");
-
-        bytes32 node = keccak256(abi.encodePacked(_index, _recoveryKey, _handle, _oldAddress));
-        require(MerkleProofUpgradeable.verify(_merkleProof, recoveryRoot, node), "MerkleDistributor: Invalid proof.");
-
-        hasBeenRecovered[_oldAddress] = true;
-        profiles[_tokenId].handle = _handle;
-        profiles[_tokenId].pohAddress = msg.sender;
-        _transfer(_oldAddress, msg.sender, _tokenId);
-
-        emit AccountRecovered(msg.sender, _oldAddress, _handle, _tokenId);
-    }
-
     // =========================== Owner functions ==============================
-
-    /**
-     * @notice Set new TalentLayer ID recovery root.
-     * @param _newRoot New merkle root
-     */
-    function updateRecoveryRoot(bytes32 _newRoot) public onlyOwner {
-        recoveryRoot = _newRoot;
-    }
 
     /**
      * @notice Updates the mint fee.
@@ -279,12 +176,12 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @notice Withdraws the contract balance to the owner.
      */
     function withdraw() public onlyOwner {
-        (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
+        (bool sent, ) = payable(_msgSender()).call{value: address(this).balance}("");
         require(sent, "Failed to withdraw Ether");
     }
 
     /**
-     * @notice Allows the owner to mint a new TalentLayerID for a user for free without the need of Proof of Humanity.
+     * @notice Allows the owner to mint a new TalentLayerID for a user for free.
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
@@ -294,7 +191,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
         string memory _handle
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, nextTokenId.current());
-        _afterMint(_userAddress, _handle, false, _platformId, 0);
+        _afterMint(_userAddress, _handle, _platformId, 0);
     }
 
     // =========================== Private functions ==============================
@@ -305,13 +202,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function _afterMint(
-        address _userAddress,
-        string memory _handle,
-        bool _poh,
-        uint256 _platformId,
-        uint256 _fee
-    ) private {
+    function _afterMint(address _userAddress, string memory _handle, uint256 _platformId, uint256 _fee) private {
         uint256 userTokenId = nextTokenId.current();
         nextTokenId.increment();
         Profile storage profile = profiles[userTokenId];
@@ -319,13 +210,13 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
         profile.handle = _handle;
         takenHandles[_handle] = true;
 
-        emit Mint(_userAddress, userTokenId, _handle, _poh, _platformId, _fee);
+        emit Mint(_userAddress, userTokenId, _handle, _platformId, _fee);
     }
 
     // =========================== Internal functions ==============================
 
     /**
-     * @notice Function that revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
      * {upgradeTo} and {upgradeToAndCall}.
      * @param newImplementation address of the new contract implementation
      */
@@ -339,11 +230,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the safeTransferFrom function
@@ -351,11 +238,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the burn function
@@ -409,9 +292,29 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
             );
     }
 
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (address)
+    {
+        return ERC2771RecipientUpgradeable._msgSender();
+    }
+
+    function _msgData()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (bytes calldata)
+    {
+        return ERC2771RecipientUpgradeable._msgData();
+    }
+
     // =========================== Modifiers ==============================
     /**
-     * @notice Check if msg.sender can pay the mint fee.
+     * @notice Check if _msgSender() can pay the mint fee.
      */
     modifier canPay() {
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
@@ -431,7 +334,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
-        require(bytes(_handle).length <= 10, "Handle too long");
+        require(bytes(_handle).length <= 20, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
         talentLayerPlatformIdContract.isValid(_platformId);
         _;
@@ -446,22 +349,7 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _platformId Platform ID from which UserId wad minted
      * @param _fee Fee paid to mint the TalentLayerID
      */
-    event Mint(
-        address indexed _user,
-        uint256 _tokenId,
-        string _handle,
-        bool _withPoh,
-        uint256 _platformId,
-        uint256 _fee
-    );
-
-    /**
-     * Emit when new Proof of Identity is linked to TalentLayerID.
-     * @param _user Address of the owner of the TalentLayerID
-     * @param _tokenId TalentLayer ID for the user
-     * @param _handle Handle for the user
-     */
-    event PohActivated(address indexed _user, uint256 _tokenId, string _handle);
+    event Mint(address indexed _user, uint256 _tokenId, string _handle, uint256 _platformId, uint256 _fee);
 
     /**
      * Emit when Cid is updated for a user.
@@ -469,15 +357,6 @@ contract TalentLayerID is ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable
      * @param _newCid Content ID
      */
     event CidUpdated(uint256 indexed _tokenId, string _newCid);
-
-    /**
-     * Emit when account is recovered.
-     * @param _newAddress New user address
-     * @param _oldAddress Old user address
-     * @param _handle User handle
-     * @param _tokenId TalentLayer ID for the user
-     */
-    event AccountRecovered(address indexed _newAddress, address indexed _oldAddress, string _handle, uint256 _tokenId);
 
     /**
      * Emit when mint fee is updated

@@ -3,7 +3,7 @@
   "trailingComma": "all",
   "singleQuote": true,
   "bracketSpacing": true,
-  "printWidth": 120,
+  "printWidth": 100,
   "overrides": [
     {
       "files": "*.sol",
@@ -12,8 +12,7 @@
         "tabWidth": 4,
         "useTabs": false,
         "singleQuote": false,
-        "bracketSpacing": false,
-        "explicitTypes": "always"
+        "bracketSpacing": false
       }
     }
   ]

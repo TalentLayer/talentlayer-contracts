@@ -3,8 +3,8 @@ import { formatEther, formatUnits, getAddress, parseEther, parseUnits } from 'et
 import { task } from 'hardhat/config'
 
 task('private', 'Prints the private key', async (args, { ethers }) => {
-  let mnemonic = process.env.MNEMONIC || ''
-  let mnemonicWallet = ethers.Wallet.fromMnemonic(mnemonic)
+  const mnemonic = process.env.MNEMONIC || ''
+  const mnemonicWallet = ethers.Wallet.fromMnemonic(mnemonic)
   console.log(mnemonicWallet.privateKey)
 })
 

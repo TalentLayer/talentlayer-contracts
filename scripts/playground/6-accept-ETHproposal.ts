@@ -1,7 +1,6 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
-const hre = require('hardhat')
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
+import hre = require('hardhat')
 
 /*
 In this script Alice will accept Carol's proposal with an ETH transaction
@@ -18,26 +17,26 @@ async function main() {
   const [alice, bob, carol, dave] = await ethers.getSigners()
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
 
   const talentLayerEscrow = await ethers.getContractAt(
     'TalentLayerEscrow',
-    get(network as Network, ConfigProperty.TalentLayerEscrow),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const talentLayerArbitrator = await ethers.getContractAt(
     'TalentLayerArbitrator',
-    get(network as Network, ConfigProperty.TalentLayerArbitrator),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerArbitrator),
   )
 
-  let nextServiceId = await serviceRegistry.nextServiceId()
-  let firstServiceId = nextServiceId.sub(2) // service id #1
+  const nextServiceId = await serviceRegistry.nextServiceId()
+  const firstServiceId = nextServiceId.sub(2) // service id #1
   console.log('serviceId', firstServiceId.toString())
 
   // Accepting Proposal #3 from Carol: for Alice's service #1
@@ -49,9 +48,13 @@ async function main() {
 
   const davePlatformData = await platformIdContrat.platforms(daveTlPId)
   const bobPlatformData = await platformIdContrat.platforms(bobTlPId)
-  const protocolEscrowFeeRate = ethers.BigNumber.from(await talentLayerEscrow.protocolEscrowFeeRate())
+  const protocolEscrowFeeRate = ethers.BigNumber.from(
+    await talentLayerEscrow.protocolEscrowFeeRate(),
+  )
   const originServiceFeeRate = ethers.BigNumber.from(davePlatformData.originServiceFeeRate)
-  const originValidatedProposalFeeRate = ethers.BigNumber.from(bobPlatformData.originValidatedProposalFeeRate)
+  const originValidatedProposalFeeRate = ethers.BigNumber.from(
+    bobPlatformData.originValidatedProposalFeeRate,
+  )
 
   console.log('protocolEscrowFeeRate', protocolEscrowFeeRate.toString())
   console.log('originServiceFeeRate', originServiceFeeRate.toString())
@@ -75,7 +78,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { upgrades } = require('hardhat')
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
@@ -33,6 +34,9 @@ async function deployAndSetup(
     serviceRegistry,
   ] = await deploy(false)
 
+  // Deployer whitelists a list of authorized tokens
+  await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
+
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
@@ -45,12 +49,14 @@ async function deployAndSetup(
   await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
+  await serviceRegistry
+    .connect(bob)
+    .createProposal(serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry]
 }
 
-describe('Service registry V2 migration testing', function() {
+describe('Service registry V2 migration testing', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
@@ -61,15 +67,14 @@ describe('Service registry V2 migration testing', function() {
     serviceRegistry: ServiceRegistry,
     serviceRegistryV2: ServiceRegistryV2
 
-  before(async function() {
+  before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] = await deployAndSetup(
-      ethAddress,
-    )
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
+      await deployAndSetup(ethAddress)
   })
 
-  describe('Migrate to V2', async function() {
-    it('Should deploy the V2 keeping the same address', async function() {
+  describe('Migrate to V2', async function () {
+    it('Should deploy the V2 keeping the same address', async function () {
       const ServiceRegistryV2 = await ethers.getContractFactory('ServiceRegistryV2')
       serviceRegistryV2 = await upgrades.upgradeProxy(serviceRegistry.address, ServiceRegistryV2)
 

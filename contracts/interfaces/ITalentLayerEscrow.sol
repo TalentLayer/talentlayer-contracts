@@ -17,7 +17,7 @@ interface ITalentLayerEscrow {
         uint256 receiverFee;
         uint256 lastInteraction;
         Status status;
-//        Arbitrator arbitrator;
+        //        Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
     }
@@ -73,6 +73,4 @@ interface ITalentLayerEscrow {
     function appeal(uint256 _transactionId) external payable;
 
     function rule(uint256 _disputeID, uint256 _ruling) external;
-
-
 }
