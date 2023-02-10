@@ -376,7 +376,7 @@ contract ServiceRegistryV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable
     function flagService(uint256 _serviceId) public {
         uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(msg.sender);
         Service storage service = services[_serviceId];
-        require(platformId == service.platformId, "Only a platform can flag a service");
+        require(platformId == service.originServiceCreationPlatformId, "Only a platform can flag a service");
         service.status = Status.Flagged;
         emit ServiceFlagged(_serviceId);
     }
