@@ -505,7 +505,7 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
 
         address sender = _msgSender();
         require(
-            transaction.sender == sender || talentLayerIdContract.isDelegator(transaction.sender, sender),
+            transaction.sender == sender || talentLayerIdContract.isDelegate(transaction.sender, sender),
             "Access denied."
         );
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
@@ -527,7 +527,7 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
 
         address sender = _msgSender();
         require(
-            transaction.receiver == sender || talentLayerIdContract.isDelegator(transaction.receiver, sender),
+            transaction.receiver == sender || talentLayerIdContract.isDelegate(transaction.receiver, sender),
             "Access denied."
         );
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
@@ -657,13 +657,13 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
 
         address sender = _msgSender();
         address party;
-        if (transaction.sender == sender || talentLayerIdContract.isDelegator(transaction.sender, sender)) {
+        if (transaction.sender == sender || talentLayerIdContract.isDelegate(transaction.sender, sender)) {
             party = transaction.sender;
-        } else if (transaction.receiver == sender || talentLayerIdContract.isDelegator(transaction.receiver, sender)) {
+        } else if (transaction.receiver == sender || talentLayerIdContract.isDelegate(transaction.receiver, sender)) {
             party = transaction.receiver;
         }
 
-        require(party != address(0), "The caller must be the sender or the receiver or their delegators.");
+        require(party != address(0), "The caller must be the sender or the receiver or their delegates.");
         require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
 
         emit Evidence(transaction.arbitrator, _transactionId, party, _evidence);

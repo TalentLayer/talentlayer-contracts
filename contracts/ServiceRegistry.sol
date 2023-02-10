@@ -170,11 +170,11 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner of the delegator of the given tokenId
+     * @notice Check if the given address is either the owner of the delegate of the given tokenId
      * @param _tokenId the tokenId
      */
-    modifier onlyOwnerOrDelegator(uint256 _tokenId) {
-        require(tlId.isOwnerOrDelegator(_tokenId, _msgSender()), "Not owner or delegator");
+    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
+        require(tlId.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
         _;
     }
 
@@ -235,7 +235,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _senderId,
         uint256 _platformId,
         string calldata _serviceDataUri
-    ) public onlyOwnerOrDelegator(_senderId) returns (uint256) {
+    ) public onlyOwnerOrDelegate(_senderId) returns (uint256) {
         talentLayerPlatformIdContract.isValid(_platformId);
         return _createService(Status.Opened, _senderId, _senderId, 0, _serviceDataUri, _platformId);
     }
@@ -254,7 +254,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
-    ) public onlyOwnerOrDelegator(_senderId) {
+    ) public onlyOwnerOrDelegate(_senderId) {
         require(allowedTokens[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
@@ -293,7 +293,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
-    ) public onlyOwnerOrDelegator(_senderId) {
+    ) public onlyOwnerOrDelegate(_senderId) {
         require(allowedTokens[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
@@ -320,7 +320,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _senderId,
         uint256 _serviceId,
         uint256 _proposalId
-    ) public onlyOwnerOrDelegator(_senderId) {
+    ) public onlyOwnerOrDelegate(_senderId) {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
@@ -342,7 +342,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _senderId,
         uint256 _serviceId,
         uint256 _proposalId
-    ) public onlyOwnerOrDelegator(_senderId) {
+    ) public onlyOwnerOrDelegate(_senderId) {
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
@@ -412,14 +412,14 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _senderId,
         uint256 _serviceId,
         string calldata _newServiceDataUri
-    ) public onlyOwnerOrDelegator(_senderId) {
+    ) public onlyOwnerOrDelegate(_senderId) {
         Service storage service = services[_serviceId];
         require(_serviceId < nextServiceId, "This service doesn't exist");
         require(
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
         );
-        require(_senderId == service.initiatorId, "Only the initiator or a delegator can update the service");
+        require(_senderId == service.initiatorId, "Only the initiator or a delegate can update the service");
         require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.serviceDataUri = _newServiceDataUri;

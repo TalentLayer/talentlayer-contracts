@@ -152,7 +152,7 @@ contract TalentLayerReview is
         string calldata _reviewUri,
         uint256 _rating,
         uint256 _platformId
-    ) public onlyOwnerOrDelegator(_senderId) {
+    ) public onlyOwnerOrDelegate(_senderId) {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
         require(_senderId == service.buyerId || _senderId == service.sellerId, "You're not an actor of this service");
         require(service.status == IServiceRegistry.Status.Finished, "The service is not finished yet");
@@ -464,11 +464,11 @@ contract TalentLayerReview is
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner of the delegator of the given tokenId
+     * @notice Check if the given address is either the owner of the delegate of the given tokenId
      * @param _tokenId the tokenId
      */
-    modifier onlyOwnerOrDelegator(uint256 _tokenId) {
-        require(tlId.isOwnerOrDelegator(_tokenId, _msgSender()), "Not owner or delegator");
+    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
+        require(tlId.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
         _;
     }
 
