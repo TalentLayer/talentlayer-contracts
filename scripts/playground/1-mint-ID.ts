@@ -1,7 +1,6 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
-const hre = require('hardhat')
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
+import hre = require('hardhat')
 
 /*
 In this script we will mint a new TalentLayer ID for Alice, Bob, Carol and Dave
@@ -23,12 +22,12 @@ async function main() {
 
   const talentLayerIdContract = await ethers.getContractAt(
     'TalentLayerID',
-    get(network as Network, ConfigProperty.TalentLayerID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerID),
   )
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   // Dave is a TalentLayer Platform and a TalentLayer User
@@ -38,19 +37,19 @@ async function main() {
   await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPLatform, 'alice.lens')
   console.log('alice.lens registered')
 
-  await talentLayerIdContract.connect(bob).mintWithPoh(daveTalentLayerIdPLatform, 'bob.lens')
+  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPLatform, 'bob.lens')
   console.log('Bob.lens registered')
 
-  await talentLayerIdContract.connect(carol).mintWithPoh(daveTalentLayerIdPLatform, 'carol.lens')
+  await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPLatform, 'carol.lens')
   console.log('carol.lens registered')
 
-  await talentLayerIdContract.connect(dave).mintWithPoh(daveTalentLayerIdPLatform, 'dave.lens')
+  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPLatform, 'dave.lens')
   console.log('dave.lens registered')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

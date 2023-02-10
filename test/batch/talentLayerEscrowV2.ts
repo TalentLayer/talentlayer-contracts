@@ -1,10 +1,16 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { upgrades } = require('hardhat')
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
-import { ServiceRegistry, TalentLayerArbitrator, TalentLayerEscrow, TalentLayerPlatformID } from '../../typechain-types'
+import {
+  ServiceRegistry,
+  TalentLayerArbitrator,
+  TalentLayerEscrow,
+  TalentLayerPlatformID,
+} from '../../typechain-types'
 import { TalentLayerEscrowV2 } from '../../typechain-types/contracts/tests'
 import { deploy } from '../utils/deploy'
 
@@ -22,8 +28,16 @@ async function deployAndSetup(
   tokenAddress: string,
 ): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, ServiceRegistry]> {
   const [deployer, alice, bob, carol] = await ethers.getSigners()
-  const [talentLayerID, talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
-    await deploy(false)
+  const [
+    talentLayerID,
+    talentLayerPlatformID,
+    talentLayerEscrow,
+    talentLayerArbitrator,
+    serviceRegistry,
+  ] = await deploy(false)
+
+  // Deployer whitelists a list of authorized tokens
+  await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'
@@ -37,20 +51,28 @@ async function deployAndSetup(
   await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
+  await serviceRegistry
+    .connect(bob)
+    .createProposal(serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
 
   const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
   const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
   const protocolEscrowFeeRate = BigNumber.from(await talentLayerEscrow.protocolEscrowFeeRate())
   const originServiceFeeRate = BigNumber.from(alicePlatformData.originServiceFeeRate)
-  const originValidatedProposalFeeRate = BigNumber.from(alicePlatformData.originValidatedProposalFeeRate)
+  const originValidatedProposalFeeRate = BigNumber.from(
+    alicePlatformData.originValidatedProposalFeeRate,
+  )
 
   const totalAmount = transactionAmount.add(
-    transactionAmount.mul(protocolEscrowFeeRate.add(originValidatedProposalFeeRate).add(originServiceFeeRate)).div(10000),
+    transactionAmount
+      .mul(protocolEscrowFeeRate.add(originValidatedProposalFeeRate).add(originServiceFeeRate))
+      .div(10000),
   )
 
   // Alice, the buyer, accepts the proposal
-  await talentLayerEscrow.connect(alice).createETHTransaction('cid', serviceId, proposalId, { value: totalAmount })
+  await talentLayerEscrow
+    .connect(alice)
+    .createETHTransaction('cid', serviceId, proposalId, { value: totalAmount })
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry]
 }
@@ -68,15 +90,17 @@ describe('TalentLayer Escrow V2 migration testing', function () {
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] = await deployAndSetup(
-      ethAddress,
-    )
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
+      await deployAndSetup(ethAddress)
   })
 
   describe('Migrate to V2', async function () {
     it('Should deploy the V2 keeping the same address', async function () {
       const TalentLayerEscrowV2 = await ethers.getContractFactory('TalentLayerEscrowV2')
-      talentLayerEscrowV2 = await upgrades.upgradeProxy(talentLayerEscrow.address, TalentLayerEscrowV2)
+      talentLayerEscrowV2 = await upgrades.upgradeProxy(
+        talentLayerEscrow.address,
+        TalentLayerEscrowV2,
+      )
 
       expect(talentLayerEscrowV2.address).to.equal(talentLayerEscrow.address)
     })

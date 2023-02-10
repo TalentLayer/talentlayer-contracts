@@ -4,7 +4,7 @@ coverage
 coverage.json
 typechain
 typechain-types
-talent.config_localhost.json
+.deployment/localhost.json
 .openzeppelin/unknown-1337.json
 
 #Hardhat files
@@ -12,3 +12,6 @@ cache
 artifacts
 
 .DS_store
+
+# GSN local build files
+build

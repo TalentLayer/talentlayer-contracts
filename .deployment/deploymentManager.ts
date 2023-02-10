@@ -1,8 +1,6 @@
-import { Network } from './scripts/utils/config'
-const fs = require('fs')
+import * as fs from 'fs'
 
-export enum ConfigProperty {
-  MockProofOfHumanity = 'proofOfHumanityAddress',
+export enum DeploymentProperty {
   TalentLayerID = 'talentLayerIdAddress',
   ServiceRegistry = 'serviceRegistryAddress',
   Reviewscontract = 'talentLayerReviewAddress',
@@ -12,36 +10,40 @@ export enum ConfigProperty {
   TalentLayerPlatformID = 'talentLayerPlatformIdAddress',
 }
 
-const loadJSON = (network: Network) => {
+const loadJSON = (network: string) => {
   const filename = getFilename(network)
   return fs.existsSync(filename) ? fs.readFileSync(filename).toString() : '{}'
 }
 
-const saveJSON = (network: Network, json = '') => {
+const saveJSON = (network: string, json = '') => {
   const filename = getFilename(network)
   return fs.writeFileSync(filename, JSON.stringify(json, null, 2))
 }
 
-export const get = (network: Network, property: ConfigProperty) => {
+export const getDeploymentProperty = (network: string, property: DeploymentProperty) => {
   const obj = JSON.parse(loadJSON(network))
   return obj[property] || 'Not found'
 }
 
-export const getConfig = (network: any) => {
+export const getDeploymennt = (network: string) => {
   const obj = JSON.parse(loadJSON(network))
   return obj || 'Not found'
 }
 
-export const set = (network: Network, property: ConfigProperty, value: string) => {
+export const setDeploymentProperty = (
+  network: string,
+  property: DeploymentProperty,
+  value: string,
+) => {
   const obj = JSON.parse(loadJSON(network) || '{}')
   obj[property] = value
   saveJSON(network, obj)
 }
 
-export const remove = (network: Network, property: ConfigProperty) => {
+export const removeDeploymentProperty = (network: string, property: DeploymentProperty) => {
   const obj = JSON.parse(loadJSON(network) || '{}')
   delete obj[property]
   saveJSON(network, obj)
 }
 
-const getFilename = (network: Network) => `${__dirname}/talent.config_${network}.json`
+const getFilename = (network: string) => `${__dirname}/${network}.json`

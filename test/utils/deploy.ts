@@ -1,8 +1,8 @@
-import { ethers, upgrades } from 'hardhat'
+import { ethers, network, upgrades } from 'hardhat'
+import { getConfig, Network, NetworkConfig } from '../../networkConfig'
 import {
-  ERC20,
-  MockProofOfHumanity,
   ServiceRegistry,
+  SimpleERC20,
   TalentLayerArbitrator,
   TalentLayerEscrow,
   TalentLayerID,
@@ -24,13 +24,11 @@ export async function deploy(
     TalentLayerArbitrator,
     ServiceRegistry,
     TalentLayerReview,
-    MockProofOfHumanity,
-    ERC20,
+    SimpleERC20,
   ]
 > {
-  // Deploy MockProofOfHumanity
-  const MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-  const mockProofOfHumanity = await MockProofOfHumanity.deploy()
+  const chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
+  const networkConfig: NetworkConfig = getConfig(chainId)
 
   // Deploy PlatformId
   const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
@@ -38,12 +36,15 @@ export async function deploy(
 
   if (applyUpgrade) {
     const TalentLayerPlatformIDV2 = await ethers.getContractFactory('TalentLayerPlatformIDV2')
-    talentLayerPlatformID = await upgrades.upgradeProxy(talentLayerPlatformID.address, TalentLayerPlatformIDV2)
+    talentLayerPlatformID = await upgrades.upgradeProxy(
+      talentLayerPlatformID.address,
+      TalentLayerPlatformIDV2,
+    )
   }
 
   // Deploy TalenLayerID
   const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-  const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
+  const talentLayerIDArgs: [string] = [talentLayerPlatformID.address]
   let talentLayerID = await upgrades.deployProxy(TalentLayerID, talentLayerIDArgs)
 
   if (applyUpgrade) {
@@ -53,7 +54,10 @@ export async function deploy(
 
   // Deploy ServiceRegistry
   const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-  const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+  const serviceRegistryArgs: [string, string] = [
+    talentLayerID.address,
+    talentLayerPlatformID.address,
+  ]
   let serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs)
 
   if (applyUpgrade) {
@@ -67,10 +71,11 @@ export async function deploy(
 
   // Deploy TalentLayerEscrow and escrow role on ServiceRegistry
   const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
-  const TalentLayerEscrowArgs: [string, string, string] = [
+  const TalentLayerEscrowArgs: [string, string, string, string | undefined] = [
     serviceRegistry.address,
     talentLayerID.address,
     talentLayerPlatformID.address,
+    networkConfig.multisigAddressList.fee,
   ]
   let talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
   const escrowRole = await serviceRegistry.ESCROW_ROLE()
@@ -108,7 +113,6 @@ export async function deploy(
     talentLayerArbitrator,
     serviceRegistry as ServiceRegistry,
     talentLayerReview as TalentLayerReview,
-    mockProofOfHumanity,
     simpleERC20,
   ]
 }

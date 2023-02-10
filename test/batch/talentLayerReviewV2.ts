@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { upgrades } = require('hardhat')
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
@@ -24,7 +25,13 @@ const ethAddress = '0x0000000000000000000000000000000000000000'
  * @returns the deployed contracts
  */
 async function deployAndSetup(): Promise<
-  [TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, ServiceRegistry, TalentLayerReview]
+  [
+    TalentLayerPlatformID,
+    TalentLayerEscrow,
+    TalentLayerArbitrator,
+    ServiceRegistry,
+    TalentLayerReview,
+  ]
 > {
   const [deployer, alice, bob, carol] = await ethers.getSigners()
   const [
@@ -44,7 +51,13 @@ async function deployAndSetup(): Promise<
   // await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
   // await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
-  return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry, talentLayerReview]
+  return [
+    talentLayerPlatformID,
+    talentLayerEscrow,
+    talentLayerArbitrator,
+    serviceRegistry,
+    talentLayerReview,
+  ]
 }
 
 describe('TalentLayerReview V2 migration testing', function () {
@@ -61,14 +74,22 @@ describe('TalentLayerReview V2 migration testing', function () {
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry, talentLayerReview] =
-      await deployAndSetup()
+    ;[
+      talentLayerPlatformID,
+      talentLayerEscrow,
+      talentLayerArbitrator,
+      serviceRegistry,
+      talentLayerReview,
+    ] = await deployAndSetup()
   })
 
   describe('Migrate to V2', async function () {
     it('Should deploy the V2 keeping the same address', async function () {
       const TalentLayerReviewV2 = await ethers.getContractFactory('TalentLayerReviewV2')
-      talentLayerReviewV2 = await upgrades.upgradeProxy(talentLayerReview.address, TalentLayerReviewV2)
+      talentLayerReviewV2 = await upgrades.upgradeProxy(
+        talentLayerReview.address,
+        TalentLayerReviewV2,
+      )
 
       expect(talentLayerReviewV2.address).to.equal(talentLayerReview.address)
     })

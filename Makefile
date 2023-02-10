@@ -1,20 +1,29 @@
 #!make
 include .env
 
+#--------------FULL INSTALLATION FOR LOCALHOST ENV----------------#
 
-#--------------FULL INSTALLATION----------------#
-
-install: deploy copy-configuration setup-fakedata
-
-allScripts: deploy copy-configuration setup-allFakeData
+install: deploy-localhost setup-fakedata
 
 #--------------DEPLOY----------------#
 
+deploy-mumbai: 
+	npx hardhat deploy-full --network mumbai --verify
+	npx hardhat initial-setup --network mumbai
+
+deploy-fuji: 
+	npx hardhat deploy-full --network fuji --verify
+	npx hardhat initial-setup --network fuji
+
+deploy-localhost: 
+	npx hardhat deploy-full --use-test-erc20 --network localhost
+	npx hardhat initial-setup --network localhost
+
 deploy: 
-	npx hardhat deploy-full --use-pohmock --use-test-erc20 --network $(DEPLOY_NETWORK)
+	npx hardhat deploy-full --use-test-erc20 --network $(DEPLOY_NETWORK)
 
 deploy-verify: 
-	npx hardhat deploy-full --use-pohmock --use-test-erc20 --verify --network $(DEPLOY_NETWORK)
+	npx hardhat deploy-full --use-test-erc20 --verify --network $(DEPLOY_NETWORK)
 
 #--------------COPY FILES----------------#
 
@@ -29,7 +38,7 @@ endif
 
 #--------------PLAYGROUND LOCAL----------------#
 
-wait_localhost = 5
+wait_localhost = 0
 wait_other_network = 60
 
 ifeq ($(DEPLOY_NETWORK),localhost)

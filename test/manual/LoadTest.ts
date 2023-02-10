@@ -1,62 +1,55 @@
-import { expect } from 'chai'
-import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-const { anyValue } = require('@nomicfoundation/hardhat-chai-matchers/withArgs')
-import { Contract, ContractFactory } from 'ethers'
+import { expect } from 'chai'
+import { BigNumber } from 'ethers'
+import { ethers } from 'hardhat'
+import {
+  ServiceRegistry,
+  TalentLayerArbitrator,
+  TalentLayerEscrow,
+  TalentLayerID,
+  TalentLayerPlatformID,
+} from '../../typechain-types'
+import { deploy } from '../utils/deploy'
 
 describe('Load test', function () {
   let deployer: SignerWithAddress,
     platform: SignerWithAddress,
-    ServiceRegistry: ContractFactory,
-    MockProofOfHumanity: ContractFactory,
-    TalentLayerPlatformID: ContractFactory,
-    TalentLayerID: ContractFactory,
-    serviceRegistry: Contract,
-    mockProofOfHumanity: Contract,
-    talentLayerPlatformID: Contract,
-    talentLayerID: Contract,
-    platformId: string,
-    signers: SignerWithAddress[]
+    platformId: BigNumber,
+    signers: SignerWithAddress[],
+    talentLayerID: TalentLayerID,
+    talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerArbitrator: TalentLayerArbitrator,
+    talentLayerEscrow: TalentLayerEscrow,
+    serviceRegistry: ServiceRegistry
 
   //Each buyer creates a given amount of open services. Each seller creates a proposal for all services.
   //Buyers and sellers are two distinct sets of TalentLayerIDs.
   //50 services per buyer with 20 buyers creates a total of 1000 services, and 40 sellers will then create 10000 proposals each, a total of 40000 proposals.
   //100 accounts currently created, set in hardhat.config. Needs to be at least amount_of_buyers + amount_of_sellers + 2 (for deployer and platform).
   //VALUE will currently make no difference because no transaction takes place.
-  const AMOUNT_OF_SERVICES_PER_BUYER: number = 50,
-    AMOUNT_OF_BUYERS: number = 20,
+  const AMOUNT_OF_SERVICES_PER_BUYER = 50,
+    AMOUNT_OF_BUYERS = 20,
     AMOUNT_OF_SERVICES: number = AMOUNT_OF_BUYERS * AMOUNT_OF_SERVICES_PER_BUYER,
     AMOUNT_OF_PROPOSALS_PER_SELLER: number = AMOUNT_OF_SERVICES,
-    AMOUNT_OF_SELLERS: number = 40,
+    AMOUNT_OF_SELLERS = 40,
     AMOUNT_OF_PROPOSALS: number = AMOUNT_OF_PROPOSALS_PER_SELLER * AMOUNT_OF_SELLERS,
     AMOUNT_OF_SIGNERS: number = AMOUNT_OF_BUYERS + AMOUNT_OF_SELLERS,
-    TOKEN: string = '0x0000000000000000000000000000000000000000',
-    VALUE: number = 10,
-    MOCK_DATA: string = 'mock_data'
+    TOKEN = '0x0000000000000000000000000000000000000000',
+    VALUE = 10,
+    MOCK_DATA = 'mock_data'
 
   before(async function () {
     signers = await ethers.getSigners()
     deployer = signers[0]
     platform = signers[1]
     signers = signers.slice(2)
-
-    // Deploy MockProofOfHumanity
-    MockProofOfHumanity = await ethers.getContractFactory('MockProofOfHumanity')
-    mockProofOfHumanity = await MockProofOfHumanity.deploy()
-
-    // Deploy PlatformId
-    TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
-    talentLayerPlatformID = await TalentLayerPlatformID.deploy()
-
-    // Deploy TalenLayerID
-    TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-    const talentLayerIDArgs: [string, string] = [mockProofOfHumanity.address, talentLayerPlatformID.address]
-    talentLayerID = await TalentLayerID.deploy(...talentLayerIDArgs)
-
-    // Deploy service registry
-    ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-    const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
-    serviceRegistry = await ServiceRegistry.deploy(...serviceRegistryArgs)
+    ;[
+      talentLayerID,
+      talentLayerPlatformID,
+      talentLayerEscrow,
+      talentLayerArbitrator,
+      serviceRegistry,
+    ] = await deploy(false)
 
     // Grant Platform Id Mint role to Alice
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -64,14 +57,16 @@ describe('Load test', function () {
 
     // platform mints a Platform Id
     await talentLayerPlatformID.connect(platform).mint('someName')
-    platformId = await talentLayerPlatformID.connect(platform).getPlatformIdFromAddress(platform.address)
+    platformId = await talentLayerPlatformID
+      .connect(platform)
+      .getPlatformIdFromAddress(platform.address)
   })
 
   describe('Creating ' + AMOUNT_OF_SIGNERS + ' TalentLayerIDs', async function () {
     it(AMOUNT_OF_SIGNERS + ' TalentLayerIDs minted', async function () {
-      for (var i = 0; i < AMOUNT_OF_SIGNERS; i++) {
-        await expect(await mockProofOfHumanity.addSubmissionManually([signers[i].address])).to.not.be.reverted
-        await expect(await talentLayerID.connect(signers[i]).mintWithPoh(platformId, 'handle_' + i)).to.not.be.reverted
+      for (let i = 0; i < AMOUNT_OF_SIGNERS; i++) {
+        await expect(await talentLayerID.connect(signers[i]).mint(platformId, 'handle_' + i)).to.not
+          .be.reverted
       }
     })
   })
@@ -79,7 +74,7 @@ describe('Load test', function () {
   describe('Creating ' + AMOUNT_OF_SERVICES + ' services', async function () {
     const createServices = (signerIndex: number) =>
       async function () {
-        for (var i = 0; i < AMOUNT_OF_SERVICES_PER_BUYER; i++) {
+        for (let i = 0; i < AMOUNT_OF_SERVICES_PER_BUYER; i++) {
           await expect(
             await serviceRegistry
               .connect(signers[signerIndex])
@@ -88,7 +83,7 @@ describe('Load test', function () {
         }
       }
 
-    for (var signerIndex = 0; signerIndex < AMOUNT_OF_BUYERS; signerIndex++) {
+    for (let signerIndex = 0; signerIndex < AMOUNT_OF_BUYERS; signerIndex++) {
       it(
         'Signer ' + signerIndex + ' created ' + AMOUNT_OF_SERVICES_PER_BUYER + ' services',
         createServices(signerIndex),
@@ -99,15 +94,17 @@ describe('Load test', function () {
   describe('Creating ' + AMOUNT_OF_PROPOSALS + ' proposals', async function () {
     const createProposals = (signerIndex: number) =>
       async function () {
-        for (var serviceId = 1; serviceId <= AMOUNT_OF_SERVICES; serviceId++) {
+        for (let serviceId = 1; serviceId <= AMOUNT_OF_SERVICES; serviceId++) {
           await expect(
-            await serviceRegistry.connect(signers[signerIndex]).createProposal(serviceId, TOKEN, VALUE, MOCK_DATA),
+            await serviceRegistry
+              .connect(signers[signerIndex])
+              .createProposal(serviceId, TOKEN, VALUE, MOCK_DATA),
           ).to.emit(serviceRegistry, 'ProposalCreated')
         }
       }
 
-    for (var i = 0; i < AMOUNT_OF_SELLERS; i++) {
-      var signerIndex = AMOUNT_OF_BUYERS + i
+    for (let i = 0; i < AMOUNT_OF_SELLERS; i++) {
+      const signerIndex = AMOUNT_OF_BUYERS + i
       it(
         'Signer ' + signerIndex + ' created ' + AMOUNT_OF_PROPOSALS_PER_SELLER + ' proposals',
         createProposals(signerIndex),
