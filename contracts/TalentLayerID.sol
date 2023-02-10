@@ -334,7 +334,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
-        require(bytes(_handle).length <= 10, "Handle too long");
+        require(bytes(_handle).length <= 20, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
         talentLayerPlatformIdContract.isValid(_platformId);
         _;
