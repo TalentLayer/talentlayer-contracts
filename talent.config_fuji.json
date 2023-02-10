@@ -1,9 +1,0 @@
-{
-  "talentLayerPlatformIdAddress": "0x8799479a39b6e563969126328e2323cbA01e8742",
-  "talentLayerIdAddress": "0x9a76eA2C056B6Bee5A1179BBece77D28FceE48C4",
-  "serviceRegistryAddress": "0x9EA2678d5A69CEDEc52ecafA367659b1d2Ff7824",
-  "talentLayerReviewAddress": "0xD8c4fD1D8Dd2f3a6E4d26BeB167e73D9E28db7F0",
-  "talentLayerArbitratorAddress": "0xc779bA385Fe051De397d5e25eaedabef2d495f51",
-  "talentLayerEscrowAddress": "0x8754a129D3F53222dd94Ce45749134c15C9Ed119",
-  "simpleERC20Address": "0xaC174398bB8a3aD8b04D8CeE4B93E752AcddCD4b"
-}

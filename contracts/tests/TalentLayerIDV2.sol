@@ -60,19 +60,6 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         _disableInitializers();
     }
 
-    /**
-     * @notice First initializer function
-     * @param _talentLayerPlatformIdAddress TalentLayerPlatformId contract address
-     */
-    function initialize(address _talentLayerPlatformIdAddress) public initializer {
-        __Ownable_init();
-        __ERC721_init("TalentLayerID", "TID");
-        __UUPSUpgradeable_init();
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
-        // Increment counter to start tokenIds at index 1
-        nextTokenId.increment();
-    }
-
     // =========================== View functions ==============================
 
     /**
@@ -88,9 +75,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return nextTokenId.current() - 1;
-        }
+        return nextTokenId.current() - 1;
     }
 
     /**

@@ -1,13 +1,13 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../utils/config'
-import { ConfigProperty, get } from '../../../configManager'
+import { Network } from '../../../networkConfig'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 
 /**
  * @notice This task is used to update the minimum timeout to pay the arbitration fee
  * @param {string} timeout - The new minimum arbitration fee timeout
- * @dev Example of script use: "npx hardhat update-min-arbitration-fee-timeout --timeout 14400 --network goerli"
+ * @dev Example of script use: "npx hardhat update-min-arbitration-fee-timeout --timeout 14400 --network mumbai"
  */
-task('update-min-arbitration-fee-timeout', 'Mints platform Ids to addresses')
+task('update-min-arbitration-fee-timeout', 'update the minimum timeout to pay the arbitration fee')
   .addParam('timeout', 'The new minimum arbitration fee timeout')
   .setAction(async (taskArgs, { ethers, network }) => {
     const { timeout } = taskArgs
@@ -17,7 +17,7 @@ task('update-min-arbitration-fee-timeout', 'Mints platform Ids to addresses')
 
     const platformIdContract = await ethers.getContractAt(
       'TalentLayerPlatformID',
-      get((network.name as any) as Network, ConfigProperty.TalentLayerPlatformID),
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerPlatformID),
       deployer,
     )
 

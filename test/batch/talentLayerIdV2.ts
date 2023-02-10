@@ -1,10 +1,9 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { upgrades } = require('hardhat')
-
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { TalentLayerID, TalentLayerPlatformID } from '../../typechain-types'
-import { TalentLayerIDV2 } from '../../typechain-types/contracts/tests/TalentLayerIDV2'
+import { TalentLayerID, TalentLayerPlatformID, TalentLayerIDV2 } from '../../typechain-types'
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1
@@ -46,7 +45,6 @@ describe('TalentLayerId V2 migration testing', function () {
     it('Should deploy the V2 keeping the same address', async function () {
       const TalentLayerIDV2 = await ethers.getContractFactory('TalentLayerIDV2')
       talentLayerIDV2 = await upgrades.upgradeProxy(talentLayerID.address, TalentLayerIDV2)
-
       expect(talentLayerIDV2.address).to.equal(talentLayerID.address)
     })
   })

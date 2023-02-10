@@ -298,6 +298,7 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      */
     uint256 private testVariable;
 
+    // =========================== Initializers ==============================
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -312,32 +313,6 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
     modifier onlyOwnerOrDelegate(uint256 _tokenId) {
         require(talentLayerIdContract.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
         _;
-    }
-
-    // =========================== Initializers ==============================
-
-    /**
-     * @dev Called on contract deployment
-     * @param _serviceRegistryAddress Contract address to ServiceRegistry.sol
-     * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
-     * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
-     */
-    function initialize(
-        address _serviceRegistryAddress,
-        address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress,
-        address _protocolWallet
-    ) public initializer {
-        __Ownable_init();
-        __UUPSUpgradeable_init();
-
-        serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
-        talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
-        protocolWallet = payable(_protocolWallet);
-
-        updateProtocolEscrowFeeRate(100);
-        updateOriginPlatformEscrowFeeRate(200);
     }
 
     // =========================== View functions ==============================

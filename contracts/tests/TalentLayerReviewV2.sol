@@ -114,23 +114,6 @@ contract TalentLayerReviewV2 is
         _disableInitializers();
     }
 
-    function initialize(
-        string memory name_,
-        string memory symbol_,
-        address _talentLayerIdAddress,
-        address _serviceRegistryAddress,
-        address _talentLayerPlatformIdAddress
-    ) public initializer {
-        __UUPSUpgradeable_init();
-        __Ownable_init();
-        _totalSupply = 0;
-        _name = name_;
-        _symbol = symbol_;
-        tlId = ITalentLayerID(_talentLayerIdAddress);
-        serviceRegistry = IServiceRegistry(_serviceRegistryAddress);
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
-    }
-
     // =========================== View functions ==============================
 
     // get the data of the struct Review

@@ -1,10 +1,15 @@
 import { ethers } from 'hardhat'
-import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
+import { Network } from '../../../networkConfig'
 import postToIPFS from '../../utils/ipfs'
-import { arbitrationCost, arbitrationFeeTimeout, arbitratorExtraData, transactionAmount } from './constants'
+import {
+  arbitrationCost,
+  arbitrationFeeTimeout,
+  arbitratorExtraData,
+  transactionAmount,
+} from './constants'
 
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 const aliceTlId = 1
 const bobTlId = 2
@@ -32,27 +37,27 @@ async function main() {
 
   const talentLayerID = await ethers.getContractAt(
     'TalentLayerID',
-    get(network as Network, ConfigProperty.TalentLayerID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerID),
   )
 
   const talentLayerPlatformID = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
 
   const talentLayerEscrow = await ethers.getContractAt(
     'TalentLayerEscrow',
-    get(network as Network, ConfigProperty.TalentLayerEscrow),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
   const talentLayerArbitrator = await ethers.getContractAt(
     'TalentLayerArbitrator',
-    get(network as Network, ConfigProperty.TalentLayerArbitrator),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerArbitrator),
   )
 
   // Grant Platform Id Mint role to Deployer and Bob
@@ -68,8 +73,12 @@ async function main() {
   await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address, true)
 
   // Update platform arbitrator and fee timeout
-  await talentLayerPlatformID.connect(carol).updateArbitrator(carolPlatformId, talentLayerArbitrator.address, [])
-  await talentLayerPlatformID.connect(carol).updateArbitrationFeeTimeout(carolPlatformId, arbitrationFeeTimeout)
+  await talentLayerPlatformID
+    .connect(carol)
+    .updateArbitrator(carolPlatformId, talentLayerArbitrator.address, [])
+  await talentLayerPlatformID
+    .connect(carol)
+    .updateArbitrationFeeTimeout(carolPlatformId, arbitrationFeeTimeout)
 
   // Update arbitration cost
   await talentLayerArbitrator.connect(carol).setArbitrationPrice(carolPlatformId, arbitrationCost)
@@ -121,7 +130,9 @@ async function main() {
   const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
   const platformEscrowFeeRate = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
   const totalTransactionAmount = transactionAmount.add(
-    transactionAmount.mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate).div(feeDivider),
+    transactionAmount
+      .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
+      .div(feeDivider),
   )
   await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
     value: totalTransactionAmount,

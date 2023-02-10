@@ -51,13 +51,10 @@ abstract contract Arbitrator {
      *  @param _extraData Can be used to give additional info on the dispute to be created.
      *  @return disputeID ID of the dispute created.
      */
-    function createDispute(uint256 _choices, bytes memory _extraData)
-        public
-        payable
-        virtual
-        requireArbitrationFee(_extraData)
-        returns (uint256 disputeID)
-    {}
+    function createDispute(
+        uint256 _choices,
+        bytes memory _extraData
+    ) public payable virtual requireArbitrationFee(_extraData) returns (uint256 disputeID) {}
 
     /** @dev Compute the cost of arbitration. It is recommended not to increase it often, as it can be highly time and gas consuming for the arbitrated contracts to cope with fee augmentation.
      *  @param _extraData Can be used to give additional info on the dispute to be created.
@@ -69,11 +66,10 @@ abstract contract Arbitrator {
      *  @param _disputeID ID of the dispute to be appealed.
      *  @param _extraData Can be used to give extra info on the appeal.
      */
-    function appeal(uint256 _disputeID, bytes memory _extraData)
-        public
-        payable
-        requireAppealFee(_disputeID, _extraData)
-    {
+    function appeal(
+        uint256 _disputeID,
+        bytes memory _extraData
+    ) public payable requireAppealFee(_disputeID, _extraData) {
         emit AppealDecision(_disputeID, Arbitrable(msg.sender));
     }
 

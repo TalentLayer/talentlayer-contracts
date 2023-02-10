@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { upgrades } = require('hardhat')
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
@@ -27,8 +28,13 @@ async function deployAndSetup(
   tokenAddress: string,
 ): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, ServiceRegistry]> {
   const [deployer, alice, bob, carol] = await ethers.getSigners()
-  const [talentLayerID, talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
-    await deploy(false)
+  const [
+    talentLayerID,
+    talentLayerPlatformID,
+    talentLayerEscrow,
+    talentLayerArbitrator,
+    serviceRegistry,
+  ] = await deploy(false)
 
   // Deployer whitelists a list of authorized tokens
   await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
@@ -45,7 +51,9 @@ async function deployAndSetup(
   await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(bobTlId, serviceId, tokenAddress, transactionAmount, 'cid')
+  await serviceRegistry
+    .connect(bob)
+    .createProposal(bobTlId, serviceId, tokenAddress, transactionAmount, 'cid')
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry]
 }
@@ -63,9 +71,8 @@ describe('Service registry V2 migration testing', function () {
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] = await deployAndSetup(
-      ethAddress,
-    )
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
+      await deployAndSetup(ethAddress)
   })
 
   describe('Migrate to V2', async function () {

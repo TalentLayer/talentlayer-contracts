@@ -162,11 +162,12 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     /// @notice Allowed payment tokens addresses
-    mapping(address => bool) public allowedTokens;
+    mapping(address => bool) public allowedTokenList;
 
     // @notice
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
+    // =========================== Initializers ==============================
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -181,23 +182,6 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     modifier onlyOwnerOrDelegate(uint256 _tokenId) {
         require(tlId.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
         _;
-    }
-
-    // =========================== Initializers ==============================
-
-    /**
-     * @notice First initializer function
-     * @param _talentLayerIdAddress TalentLayerId contract address
-     * @param _talentLayerPlatformIdAddress TalentLayerPlatformId contract address
-     */
-    function initialize(address _talentLayerIdAddress, address _talentLayerPlatformIdAddress) public initializer {
-        __Ownable_init();
-        __AccessControl_init();
-        __UUPSUpgradeable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        tlId = ITalentLayerID(_talentLayerIdAddress);
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
-        nextServiceId = 1;
     }
 
     // =========================== View functions ==============================
@@ -221,11 +205,20 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
+     * @notice Returns the validated proposal for a service
+     * @param _serviceId Service identifier
+     */
+    function getValidatedProposal(uint256 _serviceId) external view returns (Proposal memory) {
+        Service memory service = services[_serviceId];
+        return proposals[_serviceId][service.sellerId];
+    }
+
+    /**
      * @notice Indicates whether the token in parameter is allowed for payment
      * @param _tokenAddress Token address
      */
     function isTokenAllowed(address _tokenAddress) external view returns (bool) {
-        return allowedTokens[_tokenAddress];
+        return allowedTokenList[_tokenAddress];
     }
 
     // =========================== User functions ==============================
@@ -260,7 +253,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _rateAmount,
         string calldata _proposalDataUri
     ) public onlyOwnerOrDelegate(_senderId) {
-        require(allowedTokens[_rateToken], "This token is not allowed");
+        require(allowedTokenList[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -299,7 +292,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _rateAmount,
         string calldata _proposalDataUri
     ) public onlyOwnerOrDelegate(_senderId) {
-        require(allowedTokens[_rateToken], "This token is not allowed");
+        require(allowedTokenList[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_senderId];
@@ -393,7 +386,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             (_tokenAddress == address(0) && _status != false) || (_tokenAddress != address(0)),
             "Owner can't remove Ox address"
         );
-        allowedTokens[_tokenAddress] = _status;
+        allowedTokenList[_tokenAddress] = _status;
 
         emit AllowedTokenListUpdated(_tokenAddress, _status);
     }
