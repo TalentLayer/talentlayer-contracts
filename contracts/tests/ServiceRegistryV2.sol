@@ -21,7 +21,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         Filled,
         Confirmed,
         Finished,
-        Rejected,
+        Cancelled,
         Opened,
         Flagged
     }
