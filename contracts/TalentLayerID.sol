@@ -190,7 +190,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _delegate Address of the delegate to add
      */
     function addDelegate(uint256 _tokenId, address _delegate) external {
-        require(ownerOf(_tokenId) == _msgSender(), "TalentLayerID: Only owner can add delegates");
+        require(ownerOf(_tokenId) == _msgSender(), "Only owner can add delegates");
         delegates[_tokenId][_delegate] = true;
         emit DelegateAdded(_tokenId, _delegate);
     }
@@ -200,7 +200,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _delegate Address of the delegate to remove
      */
     function removeDelegate(uint256 _tokenId, address _delegate) external {
-        require(ownerOf(_tokenId) == _msgSender(), "TalentLayerID: Only owner can add delegates");
+        require(ownerOf(_tokenId) == _msgSender(), "Only owner can remove delegates");
         delegates[_tokenId][_delegate] = false;
         emit DelegateRemoved(_tokenId, _delegate);
     }
