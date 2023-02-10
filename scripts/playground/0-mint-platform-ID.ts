@@ -11,7 +11,7 @@ After that we mint the new Platform ID Dave will update the profile data.
 async function main() {
   const network = await hre.network.name
   console.log(network)
-  console.log('Mint HireVibes platform ID start')
+  console.log('Mint Dave platform ID start')
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
@@ -24,7 +24,7 @@ async function main() {
   //Deployer needs MINT_ROLE to mint for other addresses
   const grantRole = await platformIdContrat.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
-  const mint = await platformIdContrat.connect(alice).mintForAddress('HireVibes', dave.address)
+  const mint = await platformIdContrat.connect(alice).mintForAddress('Playground', dave.address)
   await mint.wait()
 
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
