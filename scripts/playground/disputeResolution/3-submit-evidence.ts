@@ -1,10 +1,10 @@
 import { ethers } from 'hardhat'
-import { ConfigProperty, get } from '../../../configManager'
-import { Network } from '../../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
+import { Network } from '../../../networkConfig'
 import postToIPFS from '../../utils/ipfs'
 import { transactionId } from './constants'
 
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 /**
  * In this script, Alice and Bob submit evidence to support their viewpoints on the dispute.
@@ -17,7 +17,7 @@ async function main() {
 
   const talentLayerEscrow = await ethers.getContractAt(
     'TalentLayerEscrow',
-    get(network as Network, ConfigProperty.TalentLayerEscrow),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
   // Alice submits evidence
@@ -27,7 +27,8 @@ async function main() {
       fileHash: 'QmWQV5ZFFhEJiW8Lm7ay2zLxC2XS4wx1b2W7FfdrLMyQQc',
       fileTypeExtension: 'pdf',
       name: 'Email clarifying the terms of the contract',
-      description: 'This is an email sent to from Alice to Bob that clarifies the terms of the contract',
+      description:
+        'This is an email sent to from Alice to Bob that clarifies the terms of the contract',
     }),
   )
   await talentLayerEscrow.connect(alice).submitEvidence(transactionId, aliceEvidence)
@@ -50,7 +51,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
