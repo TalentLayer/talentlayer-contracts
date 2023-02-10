@@ -7,7 +7,7 @@ typechain-types
 talent.config_localhost.json
 .openzeppelin/unknown-1337.json
 
-#Hardhat files
+# Hardhat files
 cache
 artifacts
 
@@ -15,3 +15,6 @@ artifacts
 
 # GSN local build files
 build
+
+# Editor's folders
+.idea/
