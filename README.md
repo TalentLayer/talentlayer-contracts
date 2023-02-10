@@ -18,8 +18,8 @@ Understand the protocol and how we tackle our main problems:
 
 ## Deployment addresses:
 
-- [Fuji](./.deployment.fuji.json)
-- [Mumbai](./.deployment.mumbai.json)
+- [Fuji](./.deployment/fuji.json)
+- [Mumbai](./.deployment/mumbai.json)
 
 ## Setup locally
 
