@@ -21,7 +21,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         Filled,
         Confirmed,
         Finished,
-        Rejected,
+        Cancelled,
         Opened
     }
 
