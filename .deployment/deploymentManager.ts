@@ -46,4 +46,4 @@ export const removeDeploymentProperty = (network: string, property: DeploymentPr
   saveJSON(network, obj)
 }
 
-const getFilename = (network: string) => `${__dirname}/.deployment/${network}.json`
+const getFilename = (network: string) => `${__dirname}/${network}.json`

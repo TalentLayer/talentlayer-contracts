@@ -10,6 +10,14 @@ allScripts: deploy copy-configuration setup-allFakeData
 
 #--------------DEPLOY----------------#
 
+deploy-mumbai: 
+	npx hardhat deploy-full --network mumbai --verify
+	npx hardhat initial-setup --network mumbai
+
+deploy-fuji: 
+	npx hardhat deploy-full --network fuji --verify
+	npx hardhat initial-setup --network fuji
+
 deploy: 
 	npx hardhat deploy-full --use-test-erc20 --network $(DEPLOY_NETWORK)
 

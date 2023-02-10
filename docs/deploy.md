@@ -1,4 +1,4 @@
-# Workflow
+# Deploy Workflow
 
 ## To be prepared before deploy
 
@@ -20,20 +20,14 @@
 
 - Deploy TL contracts: `npx hardhat deploy-full --network mumbai --verify`
 
-## Step 2: Setup data
+## Step 2: Setup initial data
 
 - Double check the [networkConfig.ts](./networkConfig.ts), it contains all setups for the current network
   - multisigAddressList: list of multisig addresses used to receive fee and with ownership of upgradabiltiy
   - allowedTokenList: list of tokens allowed to be used as payment
   - platformList: list of platform name and address used to create our partners platformId
-- Create our partners platformIds
-  - `npx hardhat mint-platform-id --name HireVibes --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --network mumbai`
-  - `npx hardhat mint-platform-id --name WorkPod --address 0x4444F618BA8E99435E721abF3c611D5105A407e9 --network mumbai`
-- Add whitelisted payments tokens
-  (Examples with ETH, DAI, UDDC: )
-  - `npx hardhat add-token-address-to-whitelist --address 0x0000000000000000000000000000000000000000 --action add --network mumbai`
-  - `npx hardhat add-token-address-to-whitelist --address 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70 --action add --network mumbai`
-  - `npx hardhat add-token-address-to-whitelist --address 0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664 --action add --network mumbai`
+- Launch the setup command, it will automatically add the multisig addresses, the allowed tokens and the platformIds
+  - `npx hardhat initial-setup --network mumbai`
 
 ## Step 3: Update Subgraph
 
@@ -45,10 +39,13 @@
 
 ### Deploy your subgraph
 
+- Update the abis in the subgraph repo
 - Generate code from your GraphQL schema and operations.: `graph codegen`
 - Copy configuration from network.json and buid graph code: `graph build --network mumbai`
 - Authenticad to the hosted service: `graph auth --network mumbai --product hosted-service <your access token>`
-- Deploy to the hosted service: `graph deploy --product hosted-service talentlayer/talent-layer-protocol`
+- Deploy to the hosted service:
+  - mumbai: `graph deploy --product hosted-service talentlayer/talent-layer-mumbai`
+  - fuji: `graph deploy --product hosted-service talentlayer/talent-layer-fuji`
 
 ## Step 4: Update Indie Frontend
 
