@@ -503,6 +503,22 @@ describe('TalentLayer protocol global testing', function () {
       expect(serviceData.status).to.be.equal(3)
     })
 
+    it('Alice can cancel only a service that is open', async function() {
+      expect(serviceRegistry.connect(alice).cancelService(5)).to.be.revertedWith("Only services with the open status can be cancelled")
+    })
+
+    it('After a service has been cancelled, nobody can post a proposal', async function() {
+      const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+      const bobTid = await talentLayerID.walletOfOwner(bob.address)
+      await serviceRegistry.getProposal(5, bobTid)
+      expect(serviceRegistry.connect(bob).createProposal(
+        5,
+        rateToken,
+        1,
+        'proposalOnCancelledService'
+      )).to.be.revertedWith("Service is not opened")
+    })
+
     it('Bob cannot cancel Alice\'s service', async function() {
       expect(serviceRegistry.connect(bob).cancelService(1)).to.be.revertedWith('Only the initiator can cancel the service')
     })
