@@ -20,6 +20,13 @@ async function main() {
     'ServiceRegistry',
     get(network as Network, ConfigProperty.ServiceRegistry),
   )
+  const platformIdContract = await ethers.getContractAt(
+    'TalentLayerPlatformID',
+    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+  )
+
+  const davePlatformId = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const bobPlatformId = await platformIdContract.getPlatformIdFromAddress(bob.address)
 
   const simpleERC20 = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
 
@@ -67,33 +74,33 @@ async function main() {
 
   /* ---------  Proposal creation --------- */
 
-  // Bob create a proposal #2 for Alice's service #1 (id : 1-2 in GraphQL)
+  // Bob create a proposal #2 for Alice's service #1 on Dave's platform #1 (id : 1-2 in GraphQL)
   const rateTokenBob = simpleERC20.address
   const bobProposal = await serviceRegistry
     .connect(bob)
-    .createProposal(firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), bobUri)
+    .createProposal(firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), davePlatformId, bobUri)
   console.log('Bob proposal created')
   bobProposal.wait()
   // get the proposal
   let bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
   console.log('Bob proposal', bobProposalData)
 
-  // Carol make a proposal #3 for Alice's service #1 (id : 1-3 in GraphQL)
+  // Carol make a proposal #3 for Alice's service #1 on Bob's platform #2 (id : 1-3 in GraphQL)
   const rateTokenCarol = '0x0000000000000000000000000000000000000000'
   const carolProposal = await serviceRegistry
     .connect(carol)
-    .createProposal(firstServiceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), carolUri)
+    .createProposal(firstServiceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), bobPlatformId, carolUri)
   console.log('Carol proposal created')
   carolProposal.wait()
   // get the proposal
   let carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
   console.log('Carol proposal', carolProposalData)
 
-  // Dave create a proposal #4 for Alice's service #2 (id : 2-4 in GraphQL)
+  // Dave create a proposal #4 for Alice's service #2 on Bob's platform #2 (id : 2-4 in GraphQL)
   const rateTokenDave = simpleERC20.address
   const daveProposal = await serviceRegistry
     .connect(dave)
-    .createProposal(secondServiceId, rateTokenDave, ethers.utils.parseUnits('0.003', 18), daveUri)
+    .createProposal(secondServiceId, rateTokenDave, ethers.utils.parseUnits('0.003', 18), bobPlatformId, daveUri)
   console.log('Dave proposal created')
   daveProposal.wait()
   // get the proposal

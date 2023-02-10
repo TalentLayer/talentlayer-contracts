@@ -16,29 +16,45 @@ async function main() {
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     get(network as Network, ConfigProperty.TalentLayerPlatformID),
   )
 
-  const mintRole = await platformIdContrat.MINT_ROLE()
+  const mintRole = await platformIdContract.MINT_ROLE()
   //Deployer needs MINT_ROLE to mint for other addresses
-  const grantRole = await platformIdContrat.connect(alice).grantRole(mintRole, alice.address)
+  const grantRole = await platformIdContract.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
-  const mint = await platformIdContrat.connect(alice).mintForAddress('HireVibes', dave.address)
-  await mint.wait()
+  const mint1 = await platformIdContract.connect(alice).mintForAddress('HireVibes', dave.address)
+  await mint1.wait()
+  const mint2 = await platformIdContract.connect(alice).mintForAddress('Delance', bob.address)
+  await mint2.wait()
 
-  const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  await platformIdContrat.connect(dave).updateProfileData(daveTalentLayerIdPLatform, 'newCid')
+  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  await platformIdContract.connect(dave).updateProfileData(daveTalentLayerIdPlatform, 'newCid')
+  await platformIdContract.connect(dave).updateOriginServiceFeeRate(daveTalentLayerIdPlatform, 1000)
+  await platformIdContract.connect(dave).updateOriginValidatedProposalFeeRate(daveTalentLayerIdPlatform, 2500)
 
-  const davePlatformData = await platformIdContrat.platforms(daveTalentLayerIdPLatform)
+  const bobTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(bob.address)
+  await platformIdContract.connect(bob).updateProfileData(bobTalentLayerIdPlatform, 'newCid')
+  await platformIdContract.connect(bob).updateOriginServiceFeeRate(bobTalentLayerIdPlatform, 1500)
+  await platformIdContract.connect(bob).updateOriginValidatedProposalFeeRate(bobTalentLayerIdPlatform, 3500)
 
-  const platformName = davePlatformData.name
-  const platformCid = davePlatformData.dataUri
+  const davePlatformData = await platformIdContract.platforms(daveTalentLayerIdPlatform)
+  const bobPlatformData = await platformIdContract.platforms(bobTalentLayerIdPlatform)
 
-  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPLatform)
-  console.log('platformName', platformName)
-  console.log('platformCid', platformCid)
+
+  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
+  console.log('Dave platformName', davePlatformData.name)
+  console.log('Dave platformCid', davePlatformData.dataUri)
+  console.log('Dave origin service fee rate', davePlatformData.originServiceFeeRate)
+  console.log('Dave origin validated proposal fee rate', davePlatformData.originValidatedProposalFeeRate)
+
+  console.log('Bob talentLayerIdPlatform', bobTalentLayerIdPlatform)
+  console.log('Bob platformName', bobPlatformData.name)
+  console.log('Bob platformCid', bobPlatformData.dataUri)
+  console.log('Bob origin service fee rate', bobPlatformData.originServiceFeeRate)
+  console.log('Bob origin validated proposal fee rate', bobPlatformData.originValidatedProposalFeeRate)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

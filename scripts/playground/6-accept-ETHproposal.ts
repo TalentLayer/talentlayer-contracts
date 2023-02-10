@@ -40,19 +40,26 @@ async function main() {
   let firstServiceId = nextServiceId.sub(2) // service id #1
   console.log('serviceId', firstServiceId.toString())
 
+  // Accepting Proposal #3 from Carol: for Alice's service #1
+  // OriginService platform: Dave's platform #1
+  // OriginService platform: Bob's platform #2
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
-  const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const updatePlatformEscrowFeeRate = await platformIdContrat.connect(dave).updatePlatformEscrowFeeRate(daveTlId, 1100)
-  updatePlatformEscrowFeeRate.wait()
+  const daveTlPId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
+  const bobTlPId = await platformIdContrat.getPlatformIdFromAddress(bob.address)
 
-  const davePlatformData = await platformIdContrat.platforms(daveTlId)
+  const davePlatformData = await platformIdContrat.platforms(daveTlPId)
+  const bobPlatformData = await platformIdContrat.platforms(bobTlPId)
   const protocolEscrowFeeRate = ethers.BigNumber.from(await talentLayerEscrow.protocolEscrowFeeRate())
-  const originPlatformEscrowFeeRate = ethers.BigNumber.from(await talentLayerEscrow.originPlatformEscrowFeeRate())
-  const platformEscrowFeeRate = ethers.BigNumber.from(davePlatformData.fee)
+  const originServiceFeeRate = ethers.BigNumber.from(davePlatformData.originServiceFeeRate)
+  const originValidatedProposalFeeRate = ethers.BigNumber.from(bobPlatformData.originValidatedProposalFeeRate)
+
+  console.log('protocolEscrowFeeRate', protocolEscrowFeeRate.toString())
+  console.log('originServiceFeeRate', originServiceFeeRate.toString())
+  console.log('originValidatedProposalFeeRate', originValidatedProposalFeeRate.toString())
 
   const totalAmount = rateAmount.add(
     rateAmount
-      .mul(protocolEscrowFeeRate.add(originPlatformEscrowFeeRate).add(platformEscrowFeeRate))
+      .mul(protocolEscrowFeeRate.add(originServiceFeeRate).add(originValidatedProposalFeeRate))
       .div(ethers.BigNumber.from(10000)),
   )
   console.log('totalAmount', totalAmount.toString())
