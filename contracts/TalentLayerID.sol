@@ -84,9 +84,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return nextTokenId.current() - 1;
-        }
+        return nextTokenId.current() - 1;
     }
 
     /**
@@ -108,9 +106,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 currentTokenId = 1;
 
         while (currentTokenId < nextTokenId.current()) {
-            address owner = _ownerOf(currentTokenId);
-
-            if (owner == _owner) {
+            if (_ownerOf(currentTokenId) == _owner) {
                 return currentTokenId;
             }
 
@@ -142,12 +138,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function mint(uint256 _platformId, string memory _handle)
-        public
-        payable
-        canPay
-        canMint(_msgSender(), _handle, _platformId)
-    {
+    function mint(
+        uint256 _platformId,
+        string memory _handle
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
         _safeMint(sender, nextTokenId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
@@ -208,12 +202,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId wad minted
      */
-    function _afterMint(
-        address _userAddress,
-        string memory _handle,
-        uint256 _platformId,
-        uint256 _fee
-    ) private {
+    function _afterMint(address _userAddress, string memory _handle, uint256 _platformId, uint256 _fee) private {
         uint256 userTokenId = nextTokenId.current();
         nextTokenId.increment();
         Profile storage profile = profiles[userTokenId];
@@ -241,11 +230,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the safeTransferFrom function
@@ -253,11 +238,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param to The address to transfer to
      * @param tokenId The token ID to transfer
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
 
     /**
      * @dev Blocks the burn function
@@ -353,7 +334,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(bytes(_handle).length >= 2, "Handle too short");
-        require(bytes(_handle).length <= 10, "Handle too long");
+        require(bytes(_handle).length <= 20, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
         talentLayerPlatformIdContract.isValid(_platformId);
         _;

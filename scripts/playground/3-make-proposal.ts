@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
 
 /*
@@ -8,7 +7,7 @@ In this script Bob, Carol and Dave will create proposals for Alice's services
 Bob and Carol for the first service (with ETH and Token) and Dave for the second service (Token)
 */
 
-const hre = require('hardhat')
+import hre = require('hardhat')
 
 // Then Alice create a service, and others add proposals
 async function main() {
@@ -18,17 +17,20 @@ async function main() {
   const [alice, bob, carol, dave] = await ethers.getSigners()
   const serviceRegistry = await ethers.getContractAt(
     'ServiceRegistry',
-    get(network as Network, ConfigProperty.ServiceRegistry),
+    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
 
-  const simpleERC20 = await ethers.getContractAt('SimpleERC20', get(network as Network, ConfigProperty.SimpleERC20))
+  const simpleERC20 = await ethers.getContractAt(
+    'SimpleERC20',
+    getDeploymentProperty(network, DeploymentProperty.SimpleERC20),
+  )
   await serviceRegistry.connect(alice).updateAllowedTokenList(ethers.constants.AddressZero, true)
   await serviceRegistry.connect(alice).updateAllowedTokenList(simpleERC20.address, true)
 
   // Get the first and second service id
-  let nextServiceId = await serviceRegistry.nextServiceId()
-  let firstServiceId = nextServiceId.sub(2)
-  let secondServiceId = nextServiceId.sub(1)
+  const nextServiceId = await serviceRegistry.nextServiceId()
+  const firstServiceId = nextServiceId.sub(2)
+  const secondServiceId = nextServiceId.sub(1)
   console.log('firstServiceId', firstServiceId.toString())
   console.log('secondServiceId', secondServiceId.toString())
 
@@ -77,7 +79,7 @@ async function main() {
   console.log('Bob proposal created')
   bobProposal.wait()
   // get the proposal
-  let bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
+  const bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
   console.log('Bob proposal', bobProposalData)
 
   // Carol make a proposal #3 for Alice's service #1 (id : 1-3 in GraphQL)
@@ -88,7 +90,7 @@ async function main() {
   console.log('Carol proposal created')
   carolProposal.wait()
   // get the proposal
-  let carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
+  const carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
   console.log('Carol proposal', carolProposalData)
 
   // Dave create a proposal #4 for Alice's service #2 (id : 2-4 in GraphQL)
@@ -99,13 +101,13 @@ async function main() {
   console.log('Dave proposal created')
   daveProposal.wait()
   // get the proposal
-  let daveProposalData = await serviceRegistry.proposals(secondServiceId, 4)
+  const daveProposalData = await serviceRegistry.proposals(secondServiceId, 4)
   console.log('Dave proposal', daveProposalData)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })

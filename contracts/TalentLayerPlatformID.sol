@@ -153,9 +153,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        unchecked {
-            return _nextTokenId.current() - 1;
-        }
+        return _nextTokenId.current() - 1;
     }
 
     // =========================== User functions ==============================
@@ -176,12 +174,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformName Platform name
      * @param _platformAddress Eth Address to assign the Platform Id to
      */
-    function mintForAddress(string memory _platformName, address _platformAddress)
-        public
-        payable
-        canMint(_platformName, _platformAddress)
-        onlyRole(MINT_ROLE)
-    {
+    function mintForAddress(
+        string memory _platformName,
+        address _platformAddress
+    ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
         _safeMint(_platformAddress, _nextTokenId.current());
         _afterMint(_platformName, _platformAddress);
     }
@@ -218,11 +214,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _extraData the extra data for arbitrator (this is only used for external arbitrators, for
      *                   internal arbitrators it should be empty)
      */
-    function updateArbitrator(
-        uint256 _platformId,
-        Arbitrator _arbitrator,
-        bytes memory _extraData
-    ) public {
+    function updateArbitrator(uint256 _platformId, Arbitrator _arbitrator, bytes memory _extraData) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
         require(validArbitrators[address(_arbitrator)], "The address must be of a valid arbitrator");
 
@@ -336,13 +328,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721Upgradeable, AccessControlUpgradeable)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721Upgradeable, AccessControlUpgradeable) returns (bool) {
         return
             ERC721Upgradeable.supportsInterface(interfaceId) || AccessControlUpgradeable.supportsInterface(interfaceId);
     }
@@ -350,22 +338,14 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /**
      * @dev Override to prevent token transfer.
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {
         revert("Not allowed");
     }
 
     /**
      * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override(ERC721Upgradeable) {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {
         revert("Not allowed");
     }
 
@@ -433,7 +413,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
         require(bytes(_platformName).length >= 2, "Name too short");
-        require(bytes(_platformName).length <= 10, "Name too long");
+        require(bytes(_platformName).length <= 20, "Name too long");
         require(!takenNames[_platformName], "Name already taken");
         _;
     }

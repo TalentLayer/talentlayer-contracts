@@ -9,7 +9,7 @@ import "./interfaces/ITalentLayerPlatformID.sol";
  */
 contract TalentLayerArbitrator is Arbitrator {
     address public owner = msg.sender;
-    uint256 constant NOT_PAYABLE_VALUE = (2**256 - 2) / 2; // High value to be sure that the appeal is too expensive.
+    uint256 constant NOT_PAYABLE_VALUE = (2 ** 256 - 2) / 2; // High value to be sure that the appeal is too expensive.
 
     /**
      * @notice Instance of TalentLayerPlatformID.sol
@@ -90,12 +90,10 @@ contract TalentLayerArbitrator is Arbitrator {
      *  @param _extraData Should be the id of the platform where the dispute is arising.
      *  @return disputeID ID of the dispute created.
      */
-    function createDispute(uint256 _choices, bytes memory _extraData)
-        public
-        payable
-        override
-        returns (uint256 disputeID)
-    {
+    function createDispute(
+        uint256 _choices,
+        bytes memory _extraData
+    ) public payable override returns (uint256 disputeID) {
         super.createDispute(_choices, _extraData);
         uint256 platformId = bytesToUint(_extraData);
 
