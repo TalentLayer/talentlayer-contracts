@@ -1,8 +1,9 @@
 # Troubleshooting
 
-## Deploy 
+## Deploy
 
-- Due to slow network on goerli, there is a wait in the execution off `setup-allFakeData`
+- Due to slow network on sometimes on testnet, there is a wait in the execution off `setup-allFakeData`
+- Error `no such file or directory, open ... artifacts`: launch `npx hardhat clean`
 
 ## Subgraph
 

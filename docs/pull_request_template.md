@@ -10,7 +10,6 @@
 - [ ] Check if there is no merge conflict
 - [ ] If you have new .env variable, check if you add it in the .env.example file
 
-
 ## Typing
 
 - [ ] Check solhint feedbacks: `npm run solhint`
