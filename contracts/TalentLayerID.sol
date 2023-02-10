@@ -181,10 +181,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function mint(
         uint256 _platformId,
         string memory _handle,
-        MintStatus _mintStatus
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         require(_mintStatus == ONLY_WHITELIST || PUBLIC, "Mint status is not valid");
-        require(whitelist[_msgSender()], "You are not whitelisted");
+        if (_mintStatus == ONLY_WHITELIST){
+            require(whitelist[_msgSender()], "You are not whitelisted");
+        }
         address sender = _msgSender();
         _safeMint(sender, nextTokenId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
