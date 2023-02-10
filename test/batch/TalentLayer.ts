@@ -474,6 +474,10 @@ describe('TalentLayer protocol global testing', function () {
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID4')
       await serviceRegistry.services(4)
 
+      // service 5 (will be cancelled)
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID5')
+      await serviceRegistry.services(5)
+
       expect(serviceData.status.toString()).to.be.equal('4')
       expect(serviceData.buyerId.toString()).to.be.equal('1')
       expect(serviceData.initiatorId.toString()).to.be.equal('1')
@@ -491,6 +495,16 @@ describe('TalentLayer protocol global testing', function () {
       await serviceRegistry.connect(alice).updateServiceData(1, 'aliceUpdateHerFirstService')
       const serviceData = await serviceRegistry.services(1)
       expect(serviceData.serviceDataUri).to.be.equal('aliceUpdateHerFirstService')
+    })
+
+    it('Alice can cancel her own service', async function() {
+      await serviceRegistry.connect(alice).cancelService(5)
+      const serviceData = await serviceRegistry.services(5)
+      expect(serviceData.status).to.be.equal(3)
+    })
+
+    it('Bob cannot cancel Alice\'s service', async function() {
+      expect(serviceRegistry.connect(bob).cancelService(1)).to.be.revertedWith('Only the initiator can cancel the service')
     })
 
     it('Bob can create his first proposal for an Open service n°1 from Alice', async function () {

@@ -86,6 +86,10 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /// @param serviceDataUri token Id to IPFS URI mapping
     event ServiceDataCreated(uint256 id, string serviceDataUri);
 
+    /// @notice Emitted after a service is cancelled by the owner
+    /// @param id The service ID
+    event ServiceCancelled(uint256 id);
+
     /// @notice Emitted after a service is flaged by the platform
     /// @param id The service ID (incremental)
     event ServiceFlagged(uint256 id);
@@ -403,6 +407,20 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         service.serviceDataUri = _newServiceDataUri;
 
         emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
+    }
+
+    /**
+    * Cancel a Service
+    * @param _serviceId, Service ID to cancel
+    */
+    function cancelService(uint256 _serviceId) public {
+        Service storage service = services[_serviceId];
+
+        require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can cancel the service");
+
+        service.status = Status.Cancelled;
+
+        emit ServiceCancelled(_serviceId);
     }
 
     /**
