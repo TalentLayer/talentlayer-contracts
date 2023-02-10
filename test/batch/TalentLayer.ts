@@ -697,7 +697,9 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Carol should not be allowed to release escrow the service.', async function () {
-        await expect(talentLayerEscrow.connect(carol).release(transactionId, 10)).to.be.revertedWith('Access denied.')
+        await expect(talentLayerEscrow.connect(carol).release(carolTlId, transactionId, 10)).to.be.revertedWith(
+          'Access denied.',
+        )
       })
 
       it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
@@ -708,7 +710,7 @@ describe('TalentLayer protocol global testing', function () {
         const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
         const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
 
-        const transaction = await talentLayerEscrow.connect(alice).release(transactionId, amountBob / 2)
+        const transaction = await talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, amountBob / 2)
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, alice, bob],
@@ -733,7 +735,7 @@ describe('TalentLayer protocol global testing', function () {
         const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
         const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
 
-        const transaction = await talentLayerEscrow.connect(alice).release(transactionId, amountBob / 4)
+        const transaction = await talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, amountBob / 4)
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, alice, bob],
@@ -752,19 +754,19 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Carol can NOT reimburse alice.', async function () {
-        await expect(talentLayerEscrow.connect(carol).reimburse(transactionId, totalAmount / 4)).to.revertedWith(
-          'Access denied.',
-        )
+        await expect(
+          talentLayerEscrow.connect(carol).reimburse(carolTlId, transactionId, totalAmount / 4),
+        ).to.revertedWith('Access denied.')
       })
 
       it('Bob can NOT reimburse alice for more than what is left in escrow.', async function () {
-        await expect(talentLayerEscrow.connect(bob).reimburse(transactionId, totalAmount)).to.revertedWith(
+        await expect(talentLayerEscrow.connect(bob).reimburse(bobTlId, transactionId, totalAmount)).to.revertedWith(
           'Insufficient funds.',
         )
       })
 
       it('Bob can reimburse alice for what is left in the escrow, an emit will be sent.', async function () {
-        const transaction = await talentLayerEscrow.connect(bob).reimburse(transactionId, amountBob / 4)
+        const transaction = await talentLayerEscrow.connect(bob).reimburse(bobTlId, transactionId, amountBob / 4)
         /* When asking for the reimbursement of a fee-less amount,
          * we expect the amount reimbursed to include all fees (calculated by the function,
          * hence the 'totalAmount / 4' expected.
@@ -778,7 +780,7 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Alice can not release escrow because there is none left. ', async function () {
-        await expect(talentLayerEscrow.connect(alice).release(transactionId, 1)).to.be.revertedWith(
+        await expect(talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 1)).to.be.revertedWith(
           'Insufficient funds.',
         )
       })
@@ -882,7 +884,9 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Carol should not be allowed to release escrow the service.', async function () {
-        await expect(talentLayerEscrow.connect(carol).release(transactionId, 10)).to.be.revertedWith('Access denied.')
+        await expect(talentLayerEscrow.connect(carol).release(carolTlId, transactionId, 10)).to.be.revertedWith(
+          'Access denied.',
+        )
       })
 
       it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
@@ -893,7 +897,7 @@ describe('TalentLayer protocol global testing', function () {
         const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
         const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
 
-        const transaction = await talentLayerEscrow.connect(alice).release(transactionId, amountBob / 2)
+        const transaction = await talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, amountBob / 2)
         await expect(transaction).to.changeEtherBalances(
           [talentLayerEscrow.address, alice, bob],
           [-amountBob / 2, 0, amountBob / 2],
@@ -918,7 +922,7 @@ describe('TalentLayer protocol global testing', function () {
         const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
         const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
 
-        const transaction = await talentLayerEscrow.connect(alice).release(transactionId, amountBob / 4)
+        const transaction = await talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, amountBob / 4)
         await expect(transaction).to.changeEtherBalances(
           [talentLayerEscrow.address, alice, bob],
           [-amountBob / 4, 0, amountBob / 4],
@@ -935,19 +939,19 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Carol can NOT reimburse alice.', async function () {
-        await expect(talentLayerEscrow.connect(carol).reimburse(transactionId, totalAmount / 4)).to.revertedWith(
-          'Access denied.',
-        )
+        await expect(
+          talentLayerEscrow.connect(carol).reimburse(carolTlId, transactionId, totalAmount / 4),
+        ).to.revertedWith('Access denied.')
       })
 
       it('Bob can NOT reimburse alice for more than what is left in escrow.', async function () {
-        await expect(talentLayerEscrow.connect(bob).reimburse(transactionId, totalAmount)).to.revertedWith(
+        await expect(talentLayerEscrow.connect(bob).reimburse(bobTlId, transactionId, totalAmount)).to.revertedWith(
           'Insufficient funds.',
         )
       })
 
       it('Bob can reimburse alice for what is left in the escrow, an emit will be sent.', async function () {
-        const transaction = await talentLayerEscrow.connect(bob).reimburse(transactionId, amountBob / 4)
+        const transaction = await talentLayerEscrow.connect(bob).reimburse(bobTlId, transactionId, amountBob / 4)
         /* When asking for the reimbursement of a fee-less amount,
          * we expect the amount reimbursed to include all fees (calculated by the function,
          * hence the 'totalAmount / 4' expected.
@@ -960,7 +964,7 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Alice can not release escrow because there is none left.', async function () {
-        await expect(talentLayerEscrow.connect(alice).release(transactionId, 10)).to.be.revertedWith(
+        await expect(talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 10)).to.be.revertedWith(
           'Insufficient funds.',
         )
       })

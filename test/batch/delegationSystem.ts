@@ -11,7 +11,6 @@ import {
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1
-const mintFee = 100
 const aliceTlId = 1
 const bobTlId = 2
 const serviceId = 1
@@ -26,7 +25,7 @@ const ethAddress = '0x0000000000000000000000000000000000000000'
 async function deployAndSetup(
   tokenAddress: string,
 ): Promise<[TalentLayerID, TalentLayerPlatformID, ServiceRegistry, TalentLayerEscrow, TalentLayerReview]> {
-  const [deployer, , , carol] = await ethers.getSigners()
+  const [deployer, alice, bob, carol] = await ethers.getSigners()
   const [talentLayerID, talentLayerPlatformID, takentLayerEscrow, , serviceRegistry, talentLayerReview] = await deploy(
     false,
   )
@@ -38,8 +37,9 @@ async function deployAndSetup(
   const platformName = 'HireVibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
-  // Update mint fee
-  await talentLayerID.connect(deployer).updateMintFee(100)
+  // Mint TL Id for Alice and Bob
+  await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
+  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
 
   return [talentLayerID, talentLayerPlatformID, serviceRegistry, takentLayerEscrow, talentLayerReview]
 }
@@ -63,39 +63,16 @@ describe('Delegation System', function () {
 
   describe('Adding a delegate', async function () {
     it('Alice can add Dave to her delegates', async function () {
-      await talentLayerID.connect(alice).addDelegate(dave.address)
-      const isDelegate = await talentLayerID.isDelegate(alice.address, dave.address)
+      await talentLayerID.connect(alice).addDelegate(aliceTlId, dave.address)
+      const isDelegate = await talentLayerID.isDelegate(aliceTlId, dave.address)
       expect(isDelegate).to.be.true
-    })
-  })
-
-  describe('Mint TalentLayer ID with delegate', async function () {
-    it('Dave can mint a TalentLayerID for Alice paying the mint fee', async function () {
-      const tx = await talentLayerID.connect(dave).mintByDelegate(carolPlatformId, alice.address, 'alice', {
-        value: mintFee,
-      })
-      const tlId = await talentLayerID.walletOfOwner(alice.address)
-      expect(tlId).to.be.equal(aliceTlId)
-
-      await expect(tx).to.changeEtherBalances([alice, dave], [0, -mintFee])
-    })
-
-    it("Dave cannot mint a TalentLayerID for Bob, since he's not his delegate", async function () {
-      const tx = talentLayerID.connect(dave).mintByDelegate(carolPlatformId, bob.address, 'bob', {
-        value: mintFee,
-      })
-      expect(tx).to.be.revertedWith('You are not a delegate for this user')
     })
   })
 
   describe('Service flow with delegate', async function () {
     before(async function () {
       // Set Eve as Bob's delegate
-      await talentLayerID.connect(bob).addDelegate(eve.address)
-      // Mint TalentLayerID for Bob
-      await talentLayerID.connect(eve).mintByDelegate(carolPlatformId, bob.address, 'bob', {
-        value: mintFee,
-      })
+      await talentLayerID.connect(bob).addDelegate(bobTlId, eve.address)
     })
 
     it('Dave can open a service on behalf of Alice', async function () {
@@ -140,7 +117,7 @@ describe('Delegation System', function () {
       })
 
       // Release payment
-      const tx = await talentLayerEscrow.connect(dave).release(trasactionId, 100)
+      const tx = await talentLayerEscrow.connect(dave).release(aliceTlId, trasactionId, 100)
       await expect(tx).to.not.be.reverted
     })
 
@@ -152,7 +129,7 @@ describe('Delegation System', function () {
 
   describe('Removing a delegate', async function () {
     it('Alice can remove Dave from her delegates', async function () {
-      await talentLayerID.connect(alice).removeDelegate(dave.address)
+      await talentLayerID.connect(alice).removeDelegate(aliceTlId, dave.address)
       const isDelegate = await talentLayerID.isDelegate(alice.address, dave.address)
       expect(isDelegate).to.be.false
     })
@@ -163,4 +140,3 @@ describe('Delegation System', function () {
     })
   })
 })
-3

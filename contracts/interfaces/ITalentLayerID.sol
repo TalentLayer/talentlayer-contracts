@@ -29,7 +29,7 @@ interface ITalentLayerID {
 
     function getOriginatorPlatformIdByAddress(address _address) external view returns (uint256);
 
-    function isDelegate(address _userAddress, address _address) external view returns (bool);
+    function isDelegate(uint256 _tokenId, address _address) external view returns (bool);
 
     function isOwnerOrDelegate(uint256 _tokenId, address _address) external view returns (bool);
 

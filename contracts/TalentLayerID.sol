@@ -49,8 +49,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// TokenId counter
     CountersUpgradeable.Counter nextTokenId;
 
-    /// User address to delegates
-    mapping(address => mapping(address => bool)) private delegates;
+    /// TokenId to delegates
+    mapping(uint256 => mapping(address => bool)) private delegates;
 
     // =========================== Initializers ==============================
 
@@ -140,11 +140,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * @notice Check whether an address is a delegate for the given user.
-     * @param _userAddress Address of the user
+     * @param _tokenId Token ID to check
      * @param _address Address to check if it is a delegate
      */
-    function isDelegate(address _userAddress, address _address) public view returns (bool) {
-        return delegates[_userAddress][_address];
+    function isDelegate(uint256 _tokenId, address _address) public view returns (bool) {
+        return delegates[_tokenId][_address];
     }
 
     /**
@@ -153,8 +153,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _address Address to check
      */
     function isOwnerOrDelegate(uint256 _tokenId, address _address) public view returns (bool) {
-        address owner = ownerOf(_tokenId);
-        return owner == _address || isDelegate(owner, _address);
+        return ownerOf(_tokenId) == _address || isDelegate(_tokenId, _address);
     }
 
     // =========================== User functions ==============================
@@ -193,36 +192,20 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @notice Allows to give rights to a delegate to perform actions for a user's profile
      * @param _delegate Address of the delegate to add
      */
-    function addDelegate(address _delegate) external {
-        delegates[_msgSender()][_delegate] = true;
-        emit DelegateAdded(_msgSender(), _delegate);
+    function addDelegate(uint256 _tokenId, address _delegate) external {
+        require(ownerOf(_tokenId) == _msgSender(), "TalentLayerID: Only owner can add delegates");
+        delegates[_tokenId][_delegate] = true;
+        emit DelegateAdded(_tokenId, _delegate);
     }
 
     /**
      * @notice Allows to remove rights from a delegate to perform actions for a user's profile
      * @param _delegate Address of the delegate to remove
      */
-    function removeDelegate(address _delegate) external {
-        delegates[_msgSender()][_delegate] = false;
-        emit DelegateRemoved(_msgSender(), _delegate);
-    }
-
-    // =========================== Delegate functions ==============================
-
-    /**
-     * @notice Allows the delegate to mint a new TalentLayerID for a user paying the mint fee.
-     * @param _platformId Platform ID mint the id from
-     * @param _userAddress Address of the user
-     * @param _handle Handle for the user
-     */
-    function mintByDelegate(
-        uint256 _platformId,
-        address _userAddress,
-        string memory _handle
-    ) public payable canPay canMint(_userAddress, _handle, _platformId) {
-        require(isDelegate(_userAddress, _msgSender()), "You are not a delegate for this user");
-        _safeMint(_userAddress, nextTokenId.current());
-        _afterMint(_userAddress, _handle, _platformId, msg.value);
+    function removeDelegate(uint256 _tokenId, address _delegate) external {
+        require(ownerOf(_tokenId) == _msgSender(), "TalentLayerID: Only owner can add delegates");
+        delegates[_tokenId][_delegate] = false;
+        emit DelegateRemoved(_tokenId, _delegate);
     }
 
     // =========================== Owner functions ==============================
@@ -442,15 +425,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * Emit when a delegate is added for a user.
-     * @param _userAddress Address of the user
+     * @param _tokenId TalentLayer ID for the user
      * @param _delegate Address of the delegate
      */
-    event DelegateAdded(address _userAddress, address _delegate);
+    event DelegateAdded(uint256 _tokenId, address _delegate);
 
     /**
      * Emit when a delegate is removed for a user.
-     * @param _userAddress Address of the user
+     * @param _tokenId TalentLayer ID for the user
      * @param _delegate Address of the delegate
      */
-    event DelegateRemoved(address _userAddress, address _delegate);
+    event DelegateRemoved(uint256 _tokenId, address _delegate);
 }
