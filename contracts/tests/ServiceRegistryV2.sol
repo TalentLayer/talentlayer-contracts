@@ -317,6 +317,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
         require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
+        require(service.status != Status.Cancelled, "Cannot validate a proposal on a cancelled service");
         require(senderId == service.buyerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Validated;
@@ -417,6 +418,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         Service storage service = services[_serviceId];
 
         require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can cancel the service");
+        require(service.status == Status.Opened, "Only services with the open status can be cancelled");
 
         service.status = Status.Cancelled;
 

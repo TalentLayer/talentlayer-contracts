@@ -604,6 +604,31 @@ describe('TalentLayer protocol global testing', function () {
       const proposalDataAfter = await serviceRegistry.getProposal(1, carolTid)
       expect(proposalDataAfter.status.toString()).to.be.equal('2')
     })
+
+    it('After a service has been cancelled, the owner cannot validate a proposal', async function() {
+      // Create the service
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID6')
+      await serviceRegistry.services(6)
+      // Create the proposal
+      const bobTid = await talentLayerID.walletOfOwner(bob.address)
+      const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+      await serviceRegistry.connect(bob).createProposal(6, rateToken, 1, 'proposalOnService');
+      // Cancel the service
+      await serviceRegistry.connect(alice).cancelService(6)
+
+      // TEST 1 : FAIL
+      // Err: Error: VM Exception while processing transaction: reverted with reason string 'Cannot validate a proposal on a cancelled service'
+      expect(await serviceRegistry.connect(alice).validateProposal(
+        6,
+        bobTid
+      )).to.be.revertedWith('Cannot validate a proposal on a cancelled service') // FAIL
+
+      // TEST 2 : (to be sure the proposal is not accepted) : FAIL TOO
+      // Same error: Error: VM Exception while processing transaction: reverted with reason string 'Cannot validate a proposal on a cancelled service'
+      await serviceRegistry.connect(alice).validateProposal(6, bobTid)
+      const proposalDataAfter = await serviceRegistry.getProposal(6, bobTid)
+      expect(proposalDataAfter.status.toString()).to.be.equal('1')
+    })
   })
 
   describe('Escrow Contract test.', function () {
