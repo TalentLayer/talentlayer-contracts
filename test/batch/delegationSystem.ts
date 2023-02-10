@@ -63,9 +63,22 @@ describe('Delegation System', function () {
 
   describe('Adding a delegate', async function () {
     it('Alice can add Dave to her delegates', async function () {
+      // Fails if the caller is not the owner of the TL Id
+      const tx = talentLayerID.connect(bob).addDelegate(aliceTlId, dave.address)
+      await expect(tx).to.be.revertedWith('Only owner can add delegates')
+
       await talentLayerID.connect(alice).addDelegate(aliceTlId, dave.address)
       const isDelegate = await talentLayerID.isDelegate(aliceTlId, dave.address)
       expect(isDelegate).to.be.true
+    })
+
+    it('Dave can update Alice profile data', async function () {
+      // Fails if caller is not the owner or delegate
+      const failTx = talentLayerID.connect(eve).updateProfileData(aliceTlId, 'newUri')
+      await expect(failTx).to.be.revertedWith('Not owner or delegate')
+
+      const tx = await talentLayerID.connect(dave).updateProfileData(aliceTlId, 'newUri')
+      await expect(tx).to.not.be.reverted
     })
   })
 
@@ -76,6 +89,10 @@ describe('Delegation System', function () {
     })
 
     it('Dave can open a service on behalf of Alice', async function () {
+      // Fails if caller is not the owner or delegate
+      const tx = serviceRegistry.connect(eve).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
+      await expect(tx).to.be.revertedWith('Not owner or delegate')
+
       await serviceRegistry.connect(dave).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
       const serviceData = await serviceRegistry.services(1)
 
@@ -116,12 +133,20 @@ describe('Delegation System', function () {
         value: totalAmount,
       })
 
+      // Fails is caller is not the owner or delegate
+      const failTx = talentLayerEscrow.connect(eve).release(aliceTlId, trasactionId, 100)
+      await expect(failTx).to.be.revertedWith('Not owner or delegate')
+
       // Release payment
       const tx = await talentLayerEscrow.connect(dave).release(aliceTlId, trasactionId, 100)
       await expect(tx).to.not.be.reverted
     })
 
     it('Dave can create a review on behalf of Alice', async function () {
+      // Fails is caller is not the owner or delegate
+      const failTx = talentLayerReview.connect(eve).addReview(aliceTlId, serviceId, 'uri', 5, carolPlatformId)
+      await expect(failTx).to.be.revertedWith('Not owner or delegate')
+
       const tx = await talentLayerReview.connect(dave).addReview(aliceTlId, serviceId, 'uri', 5, carolPlatformId)
       await expect(tx).to.not.be.reverted
     })

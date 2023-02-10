@@ -97,7 +97,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can update the platform Data', async function () {
-      await talentLayerPlatformID.connect(alice).updateProfileData('1', 'newPlatId')
+      await talentLayerPlatformID.connect(alice).updateProfileData(aliceTlId, 'newPlatId')
 
       const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
       const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
