@@ -164,10 +164,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _tokenId Token ID to update
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(
-        uint256 _tokenId,
-        string memory _newCid
-    ) public onlyOwnerOrDelegate(_tokenId, _msgSender()) {
+    function updateProfileData(uint256 _tokenId, string memory _newCid) public onlyOwnerOrDelegate(_tokenId) {
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profiles[_tokenId].dataUri = _newCid;
 
@@ -375,10 +372,9 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /**
      * @notice Check if the given address is either the owner of the delegate of the given tokenId
      * @param _tokenId Token ID to check
-     * @param _address Address to check
      */
-    modifier onlyOwnerOrDelegate(uint256 _tokenId, address _address) {
-        require(isOwnerOrDelegate(_tokenId, _address), "Not owner or delegate");
+    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
+        require(isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
         _;
     }
 
