@@ -465,11 +465,11 @@ contract TalentLayerReview is
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner of the delegator of the given tokenId
+     * @notice Check if the given address is either the owner of the delegate of the given tokenId
      * @param _tokenId the tokenId
      */
-    modifier onlyOwnerOrDelegator(uint256 _tokenId) {
-        require(tlId.isOwnerOrDelegator(_tokenId, msg.sender), "Not owner or delegator");
+    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
+        require(tlId.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
         _;
     }
 

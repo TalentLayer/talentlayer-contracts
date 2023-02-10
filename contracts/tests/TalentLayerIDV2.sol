@@ -49,8 +49,8 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /// TokenId counter
     CountersUpgradeable.Counter nextTokenId;
 
-    /// User address to delegators
-    mapping(address => mapping(address => bool)) private delegators;
+    /// User address to delegates
+    mapping(address => mapping(address => bool)) private delegates;
 
     uint256 testVariable;
 
@@ -126,22 +126,22 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     }
 
     /**
-     * @notice Check whether an address is a delegator for the given user.
+     * @notice Check whether an address is a delegate for the given user.
      * @param _userAddress Address of the user
-     * @param _address Address to check if it is a delegator
+     * @param _address Address to check if it is a delegate
      */
-    function isDelegator(address _userAddress, address _address) public view returns (bool) {
-        return delegators[_userAddress][_address];
+    function isDelegate(address _userAddress, address _address) public view returns (bool) {
+        return delegates[_userAddress][_address];
     }
 
     /**
-     * @notice Check whether an address is either the owner or a delegator for the token ID.
+     * @notice Check whether an address is either the owner or a delegate for the token ID.
      * @param _tokenId Token ID to check
      * @param _address Address to check
      */
-    function isOwnerOrDelegator(uint256 _tokenId, address _address) public view returns (bool) {
+    function isOwnerOrDelegate(uint256 _tokenId, address _address) public view returns (bool) {
         address owner = ownerOf(_tokenId);
-        return owner == _address || isDelegator(owner, _address);
+        return owner == _address || isDelegate(owner, _address);
     }
 
     // =========================== User functions ==============================
@@ -166,8 +166,10 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _tokenId Token ID to update
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(uint256 _tokenId, string memory _newCid) public {
-        require(ownerOf(_tokenId) == _msgSender());
+    function updateProfileData(
+        uint256 _tokenId,
+        string memory _newCid
+    ) public onlyOwnerOrDelegate(_tokenId, _msgSender()) {
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
         profiles[_tokenId].dataUri = _newCid;
 
@@ -352,6 +354,16 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         _;
     }
 
+    /**
+     * @notice Check if the given address is either the owner of the delegate of the given tokenId
+     * @param _tokenId Token ID to check
+     * @param _address Address to check
+     */
+    modifier onlyOwnerOrDelegate(uint256 _tokenId, address _address) {
+        require(isOwnerOrDelegate(_tokenId, _address), "Not owner or delegate");
+        _;
+    }
+
     // =========================== Events ==============================
 
     /**
@@ -378,16 +390,16 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     event MintFeeUpdated(uint256 _mintFee);
 
     /**
-     * Emit when a delegator is added for a user.
+     * Emit when a delegate is added for a user.
      * @param _userAddress Address of the user
-     * @param _delegator Address of the delegator
+     * @param _delegate Address of the delegate
      */
-    event DelegatorAdded(address _userAddress, address _delegator);
+    event DelegateAdded(address _userAddress, address _delegate);
 
     /**
-     * Emit when a delegator is removed for a user.
+     * Emit when a delegate is removed for a user.
      * @param _userAddress Address of the user
-     * @param _delegator Address of the delegator
+     * @param _delegate Address of the delegate
      */
-    event DelegatorRemoved(address _userAddress, address _delegator);
+    event DelegateRemoved(address _userAddress, address _delegate);
 }

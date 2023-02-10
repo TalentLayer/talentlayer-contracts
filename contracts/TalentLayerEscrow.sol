@@ -521,7 +521,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
-        require(transaction.sender == _msgSender(), "Access denied.");
+        address sender = _msgSender();
+        require(
+            transaction.sender == sender || talentLayerIdContract.isDelegate(transaction.sender, sender),
+            "Access denied."
+        );
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
         require(transaction.amount >= _amount, "Insufficient funds.");
 
@@ -539,7 +543,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
-        require(transaction.receiver == _msgSender(), "Access denied.");
+        address sender = _msgSender();
+        require(
+            transaction.receiver == sender || talentLayerIdContract.isDelegate(transaction.receiver, sender),
+            "Access denied."
+        );
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
         require(transaction.amount >= _amount, "Insufficient funds.");
 
@@ -665,10 +673,16 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         Transaction storage transaction = transactions[_transactionId];
 
         require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
-        require(
-            sender == transaction.sender || sender == transaction.receiver,
-            "The caller must be the sender or the receiver."
-        );
+
+        address sender = _msgSender();
+        address party;
+        if (transaction.sender == sender || talentLayerIdContract.isDelegate(transaction.sender, sender)) {
+            party = transaction.sender;
+        } else if (transaction.receiver == sender || talentLayerIdContract.isDelegate(transaction.receiver, sender)) {
+            party = transaction.receiver;
+        }
+
+        require(party != address(0), "The caller must be the sender or the receiver or their delegates.");
         require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
 
         emit Evidence(transaction.arbitrator, _transactionId, sender, _evidence);

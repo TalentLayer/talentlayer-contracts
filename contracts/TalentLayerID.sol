@@ -153,13 +153,13 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Check whether an address is either the owner or a delegator for the token ID.
+     * @notice Check whether an address is either the owner or a delegate for the token ID.
      * @param _tokenId Token ID to check
      * @param _address Address to check
      */
-    function isOwnerOrDelegator(uint256 _tokenId, address _address) public view returns (bool) {
+    function isOwnerOrDelegate(uint256 _tokenId, address _address) public view returns (bool) {
         address owner = ownerOf(_tokenId);
-        return owner == _address || isDelegator(owner, _address);
+        return owner == _address || isDelegate(owner, _address);
     }
 
     // =========================== User functions ==============================
@@ -211,20 +211,20 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         emit DelegateRemoved(_tokenId, _delegate);
     }
 
-    // =========================== Delegator functions ==============================
+    // =========================== Delegate functions ==============================
 
     /**
-     * @notice Allows the delegator to mint a new TalentLayerID for a user paying the mint fee.
+     * @notice Allows the delegate to mint a new TalentLayerID for a user paying the mint fee.
      * @param _platformId Platform ID mint the id from
      * @param _userAddress Address of the user
      * @param _handle Handle for the user
      */
-    function mintByDelegator(
+    function mintByDelegate(
         uint256 _platformId,
         address _userAddress,
         string memory _handle
     ) public payable canPay canMint(_userAddress, _handle, _platformId) {
-        require(isDelegator(_userAddress, _msgSender()), "You are not a delegator for this user");
+        require(isDelegate(_userAddress, _msgSender()), "You are not a delegate for this user");
         _safeMint(_userAddress, nextTokenId.current());
         _afterMint(_userAddress, _handle, false, _platformId, msg.value);
     }
