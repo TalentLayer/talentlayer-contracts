@@ -981,9 +981,9 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Alice can not release escrow because there is none left. ', async function () {
-        await expect(talentLayerEscrow.connect(alice).release(transactionId, 1)).to.be.revertedWith(
-          'Insufficient funds.',
-        )
+        await expect(
+          talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 1),
+        ).to.be.revertedWith('Insufficient funds.')
       })
 
       it('Alice can claim her token balance.', async function () {

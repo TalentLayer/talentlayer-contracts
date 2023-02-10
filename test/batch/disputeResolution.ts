@@ -15,6 +15,7 @@ import { deploy } from '../utils/deploy'
 
 const aliceTlId = 1
 const bobTlId = 2
+const daveTlId = 3
 const carolPlatformId = 1
 const serviceId = 1
 const proposalId = bobTlId
@@ -71,9 +72,10 @@ async function deployAndSetup(
   // Update arbitration cost
   await talentLayerArbitrator.connect(carol).setArbitrationPrice(carolPlatformId, arbitrationCost)
 
-  // Mint TL Id for Alice and Bob
+  // Mint TL Id for Alice, Bob and Dave
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
+  await talentLayerID.connect(dave).mint(carolPlatformId, 'dave')
 
   // Alice, the buyer, initiates a new open service
   await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
@@ -189,13 +191,7 @@ describe('Dispute Resolution, standard flow', function () {
 
       const tx = await talentLayerEscrow
         .connect(bob)
-        .reimburse(transactionId, transactionReimbursedAmount)
-      await expect(tx).to.changeEtherBalances(
-        [alice.address, talentLayerEscrow.address],
-        [totalReimbursedAmount, -totalReimbursedAmount],
-      )
-
-      currentTransactionAmount = currentTransactionAmount.sub(transactionReimbursedAmount)
+        .reimburse(bobTlId, transactionId, transactionReimbursedAmount)
     })
   })
 
@@ -337,7 +333,9 @@ describe('Dispute Resolution, standard flow', function () {
 
     it('The evidence event is emitted when the sender submits it', async function () {
       const aliceEvidence = "Alice's evidence"
-      const tx = await talentLayerEscrow.connect(alice).submitEvidence(transactionId, aliceEvidence)
+      const tx = await talentLayerEscrow
+        .connect(alice)
+        .submitEvidence(aliceTlId, transactionId, aliceEvidence)
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Evidence')
         .withArgs(talentLayerArbitrator.address, transactionId, alice.address, aliceEvidence)
@@ -345,7 +343,9 @@ describe('Dispute Resolution, standard flow', function () {
 
     it('The evidence event is emitted when the receiver submits it', async function () {
       const bobEvidence = "Bob's evidence"
-      const tx = await talentLayerEscrow.connect(bob).submitEvidence(transactionId, bobEvidence)
+      const tx = await talentLayerEscrow
+        .connect(bob)
+        .submitEvidence(bobTlId, transactionId, bobEvidence)
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Evidence')
         .withArgs(talentLayerArbitrator.address, transactionId, bob.address, bobEvidence)

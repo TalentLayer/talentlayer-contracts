@@ -158,8 +158,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _address Address to check
      */
     function isOwnerOrDelegate(uint256 _tokenId, address _address) public view returns (bool) {
-        address owner = ownerOf(_tokenId);
-        return owner == _address || isDelegate(owner, _address);
+        return ownerOf(_tokenId) == _address || isDelegate(_tokenId, _address);
     }
 
     // =========================== User functions ==============================
