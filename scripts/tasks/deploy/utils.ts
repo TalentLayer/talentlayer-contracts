@@ -3,7 +3,7 @@ export async function verifyAddress(
   constructorArguments?: Array<any>,
 ): Promise<string> {
   let count = 0
-  const maxTries = 20
+  const maxTries = 15
   // eslint-disable-next-line no-constant-condition
   while (true) {
     await delay(10000)

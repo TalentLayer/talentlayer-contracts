@@ -62,10 +62,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
-      const talentLayerIDArgs: [string, string] = [
-        '0x73BCCE92806BCe146102C44c4D9c3b9b9D745794',
-        talentLayerPlatformID.address,
-      ]
+      const talentLayerIDArgs: [string] = [talentLayerPlatformID.address]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
       const talentLayerID = await (upgrades as HardhatUpgrades).deployProxy(
         TalentLayerID,

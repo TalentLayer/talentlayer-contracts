@@ -2,7 +2,6 @@ import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
 import { ContractFactory } from 'ethers'
 import { task } from 'hardhat/config'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../networkConfig'
 import { verifyAddress } from './utils'
 
 /**
