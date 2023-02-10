@@ -4,6 +4,8 @@ coverage
 artifacts
 cache
 typechain-types
+.deployment
+.openzeppelin
 
 # Ignore all HTML files:
 *.html
