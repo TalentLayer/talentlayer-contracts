@@ -5,7 +5,6 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import {
   ServiceRegistry,
-  ServiceRegistryV2,
   TalentLayerArbitrator,
   TalentLayerEscrow,
   TalentLayerPlatformID,

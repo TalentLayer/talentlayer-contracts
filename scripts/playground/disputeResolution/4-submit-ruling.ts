@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../networkConfig'
 import { disputeId, rulingId } from './constants'
 
 import hre = require('hardhat')
