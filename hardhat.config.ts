@@ -1,22 +1,27 @@
-import type { HardhatUserConfig } from 'hardhat/config'
-import type { NetworkUserConfig } from 'hardhat/types'
+import { HardhatUserConfig } from 'hardhat/config'
+import { NetworkUserConfig } from 'hardhat/types'
 import { config as dotenvConfig } from 'dotenv'
 import { resolve } from 'path'
 import '@nomicfoundation/hardhat-toolbox'
 import '@openzeppelin/hardhat-upgrades'
+import '@openzeppelin/hardhat-defender'
 import 'hardhat-contract-sizer'
-import './scripts/tasks/deploy/01-full'
-import './scripts/tasks/deploy/02-service-registry-v2'
+import './scripts/tasks/deploy/deploy-full'
+import './scripts/tasks/deploy/upgrade-proxy'
+import './scripts/tasks/deploy/prepare-upgrade'
+import './scripts/tasks/deploy/initial-setups'
 import './scripts/utils/wallet'
-import './scripts/tasks/protocol/mintPlatformIdForAddress'
-import './scripts/tasks/protocol/mintTalentLayerId'
-import './scripts/tasks/protocol/addArbitrator'
-import './scripts/tasks/protocol/removeArbitrator'
-import './scripts/tasks/protocol/updateMinArbitrationFeeTimeout'
-import './scripts/tasks/protocol/addOrRemoveTokenAddressToWhitelist'
-import './scripts/tasks/protocol/addTrustedForwarder'
-import './scripts/tasks/protocol/removeTrustedForwarder'
-import { Network } from './scripts/utils/config'
+import './scripts/tasks/protocol/mint-platform-id'
+import './scripts/tasks/protocol/mint-talentlayer-id'
+import './scripts/tasks/protocol/add-arbitrator'
+import './scripts/tasks/protocol/remove-arbitrator'
+import './scripts/tasks/protocol/update-min-arbitration-fee-timeout'
+import './scripts/tasks/protocol/transfer-proxy-ownership'
+import './scripts/tasks/user/create-service'
+import './scripts/tasks/protocol/update-token-address-to-whitelist'
+import './scripts/tasks/protocol/add-trusted-forwarder'
+import './scripts/tasks/protocol/remove-trusted-forwarder'
+import { Network } from './networkConfig'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
 
@@ -33,26 +38,17 @@ if (!infuraApiKey) {
 function getChainConfig(chain: Network): NetworkUserConfig {
   let jsonRpcUrl: string
   switch (chain) {
-    case Network.MAINNET:
-      jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey
-      break
-    case Network.GNOSIS:
-      jsonRpcUrl = 'https://rpc.ankr.com/gnosis'
-      break
-    case Network.GOERLI:
-      jsonRpcUrl = 'https://goerli.infura.io/v3/' + infuraApiKey
-      break
-    case Network.KOVAN:
-      jsonRpcUrl = 'https://kovan.infura.io/v3/' + infuraApiKey
-      break
     case Network.AVALANCHE:
       jsonRpcUrl = 'https://avalanche-mainnet.infura.io/v3/' + infuraApiKey
       break
     case Network.FUJI:
       jsonRpcUrl = 'https://avalanche-fuji.infura.io/v3/' + infuraApiKey
       break
+    case Network.POLYGON:
+      jsonRpcUrl = 'https://polygon-rpc.com/'
+      break
     case Network.MUMBAI:
-      jsonRpcUrl = 'https://polygon-mumbai.infura.io/v3/' + infuraApiKey
+      jsonRpcUrl = 'https://matic-mumbai.chainstacklabs.com'
       break
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey
@@ -75,11 +71,10 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: process.env.ETHERSCAN_API_KEY || '',
       xdai: process.env.GNOSIS_API_KEY || '',
-      goerli: process.env.ETHERSCAN_API_KEY || '',
-      kovan: process.env.ETHERSCAN_API_KEY || '',
       avalanche: process.env.SNOWTRACE_API_KEY || '',
       avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || '',
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
+      polygon: process.env.POLYGONSCAN_API_KEY || '',
+      mumbai: process.env.POLYGONSCAN_API_KEY || '',
     },
   },
   gasReporter: {
@@ -106,12 +101,9 @@ const config: HardhatUserConfig = {
       },
       chainId: Network.LOCAL,
     },
-    mainnet: getChainConfig(Network.MAINNET),
-    goerli: getChainConfig(Network.GOERLI),
-    gnosis: getChainConfig(Network.GNOSIS),
-    kovan: getChainConfig(Network.KOVAN),
     avalanche: getChainConfig(Network.AVALANCHE),
     fuji: getChainConfig(Network.FUJI),
+    polygon: getChainConfig(Network.POLYGON),
     mumbai: getChainConfig(Network.MUMBAI),
   },
   paths: {
@@ -144,6 +136,10 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     timeout: 1000000,
+  },
+  defender: {
+    apiKey: process.env.DEFENDER_API_KEY || '',
+    apiSecret: process.env.DEFENDER_API_SECRET || '',
   },
 }
 

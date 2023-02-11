@@ -1,7 +1,6 @@
 import { ethers } from 'hardhat'
-import { get, ConfigProperty } from '../../configManager'
-import { Network } from '../utils/config'
-const hre = require('hardhat')
+import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
+import hre = require('hardhat')
 
 /*
 in this script we will mint a new platform ID for HireVibes
@@ -12,20 +11,20 @@ After that we mint the new Platform ID Dave will update the profile data.
 async function main() {
   const network = await hre.network.name
   console.log(network)
-  console.log('Mint HireVibes platform ID start')
+  console.log('Mint Dave platform ID start')
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
   const platformIdContrat = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const mintRole = await platformIdContrat.MINT_ROLE()
   //Deployer needs MINT_ROLE to mint for other addresses
   const grantRole = await platformIdContrat.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
-  const mint = await platformIdContrat.connect(alice).mintForAddress('HireVibes', dave.address)
+  const mint = await platformIdContrat.connect(alice).mintForAddress('Playground', dave.address)
   await mint.wait()
 
   const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
@@ -43,7 +42,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch(error => {
+main().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
