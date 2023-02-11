@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../utils/config'
-import { ConfigProperty, get } from '../../../configManager'
+import { Network } from '../../../networkConfig'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 
 /**
  * @notice This task is used to mint a new TalentLayer ID for a given address
@@ -8,9 +8,9 @@ import { ConfigProperty, get } from '../../../configManager'
  * @param {address} userAddress - The wallet address of the user
  * @param {string} userHandle - The handle of the user
  * @dev Example of script use:
- * npx hardhat mint-talentlayer-id-free --network localhost --platform 1 --address 0xF5b45162b92407dC1A6baF5e9316E5FF9e29f824 --handle zelda
+ * npx hardhat mint-talentlayer-id --network localhost --platform 1 --address 0xF5b45162b92407dC1A6baF5e9316E5FF9e29f824 --handle zelda
  */
-task('mint-talentlayer-id-free', 'Mints talentLayer Id to an addresses.')
+task('mint-talentlayer-id', 'Mints talentLayer Id to an address.')
   .addParam('platform', "The platform's id")
   .addParam('address', "The user's address")
   .addParam('handle', "The user's handle")
@@ -19,9 +19,11 @@ task('mint-talentlayer-id-free', 'Mints talentLayer Id to an addresses.')
 
     const talentLayerIdContract = await ethers.getContractAt(
       'TalentLayerID',
-      get(network.name as any as Network, ConfigProperty.TalentLayerID),
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
     )
     const tx = await talentLayerIdContract.freeMint(platform, address, handle)
     const talentLayerId = await talentLayerIdContract.walletOfOwner(address)
-    console.log(`Minted talentLayer id: ${talentLayerId} for address ${address} on network ${network.name}`)
+    console.log(
+      `Minted talentLayer id: ${talentLayerId} for address ${address} on network ${network.name}`,
+    )
   })

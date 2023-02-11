@@ -2,7 +2,10 @@ import { ethers } from 'hardhat'
 
 async function main() {
   const [alice, bob, carol, dave] = await ethers.getSigners()
-  const tlID = await ethers.getContractAt('TalentLayerID', '0x25DFc905884be839eCF2dE0e760C28BA6B8070e6')
+  const tlID = await ethers.getContractAt(
+    'TalentLayerID',
+    '0x25DFc905884be839eCF2dE0e760C28BA6B8070e6',
+  )
   const uri = await tlID.tokenURI(1)
   console.log(uri)
 }

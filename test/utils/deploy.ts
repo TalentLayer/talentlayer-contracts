@@ -1,5 +1,5 @@
 import { ethers, network, upgrades } from 'hardhat'
-import { getConfig, Network, NetworkConfig } from '../../scripts/utils/config'
+import { getConfig, Network, NetworkConfig } from '../../networkConfig'
 import {
   ServiceRegistry,
   SimpleERC20,
@@ -36,7 +36,10 @@ export async function deploy(
 
   if (applyUpgrade) {
     const TalentLayerPlatformIDV2 = await ethers.getContractFactory('TalentLayerPlatformIDV2')
-    talentLayerPlatformID = await upgrades.upgradeProxy(talentLayerPlatformID.address, TalentLayerPlatformIDV2)
+    talentLayerPlatformID = await upgrades.upgradeProxy(
+      talentLayerPlatformID.address,
+      TalentLayerPlatformIDV2,
+    )
   }
 
   // Deploy TalenLayerID
@@ -51,7 +54,10 @@ export async function deploy(
 
   // Deploy ServiceRegistry
   const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-  const serviceRegistryArgs: [string, string] = [talentLayerID.address, talentLayerPlatformID.address]
+  const serviceRegistryArgs: [string, string] = [
+    talentLayerID.address,
+    talentLayerPlatformID.address,
+  ]
   let serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs)
 
   if (applyUpgrade) {
@@ -69,7 +75,7 @@ export async function deploy(
     serviceRegistry.address,
     talentLayerID.address,
     talentLayerPlatformID.address,
-    networkConfig.multisigAddress,
+    networkConfig.multisigAddressList.fee,
   ]
   let talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
   const escrowRole = await serviceRegistry.ESCROW_ROLE()
