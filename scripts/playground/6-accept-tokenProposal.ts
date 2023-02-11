@@ -64,7 +64,7 @@ async function main() {
 
   // we allow the contract to spend Alice tokens with the bob rateAmount + fees
   const approve = await token.approve(talentLayerEscrow.address, totalAmount)
-  waitConfirmations(network, approve, 10)
+  await waitConfirmations(network, approve, 10)
 
   let secondServiceId = await serviceRegistry.nextServiceId()
   secondServiceId = secondServiceId.sub(1)
