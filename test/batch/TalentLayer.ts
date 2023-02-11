@@ -604,10 +604,10 @@ describe('TalentLayer protocol global testing', function () {
       let proposalIdCarol = 0 //Will be set later
       let totalAmount = 0 //Will be set later
 
-      it('Alice can NOT deposit tokens to escrow yet.', async function () {
+      it('Alice can NOT deposit tokens to escrow yet because there is no valid proposal', async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountBob)
         await expect(talentLayerEscrow.connect(alice).createTokenTransaction('_metaEvidence', serviceId, proposalIdBob))
-          .to.be.reverted
+          .to.be.revertedWith('ERC721: invalid token ID')
       })
 
       it('Bob can make a second proposal on the Alice service n°2', async function () {
