@@ -305,27 +305,6 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Allows the buyer to validate a proposal
-     * @param _serviceId Service identifier
-     * @param _proposalId Proposal identifier
-     */
-    function validateProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
-        require(senderId > 0, "You should have a TalentLayerId");
-
-        Service storage service = services[_serviceId];
-        Proposal storage proposal = proposals[_serviceId][_proposalId];
-
-        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
-        require(service.status != Status.Cancelled, "Cannot validate a proposal on a cancelled service");
-        require(senderId == service.buyerId, "You're not the buyer");
-
-        proposal.status = ProposalStatus.Validated;
-
-        emit ProposalValidated(_serviceId, _proposalId);
-    }
-
-    /**
      * @notice Allows the buyer to reject a proposal
      * @param _serviceId Service identifier
      * @param _proposalId Proposal identifier
