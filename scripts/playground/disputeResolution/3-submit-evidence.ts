@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../networkConfig'
 import postToIPFS from '../../utils/ipfs'
 import { transactionId } from './constants'
 

@@ -1,6 +1,5 @@
 import { task } from 'hardhat/config'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../networkConfig'
 
 /**
  * @notice This task is used to transfer ownership of one proxy
