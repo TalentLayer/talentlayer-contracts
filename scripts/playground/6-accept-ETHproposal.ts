@@ -44,7 +44,7 @@ async function main() {
   const updatePlatformEscrowFeeRate = await platformIdContrat
     .connect(dave)
     .updatePlatformEscrowFeeRate(daveTlId, 1100)
-  updatePlatformEscrowFeeRate.wait()
+  await updatePlatformEscrowFeeRate.wait()
 
   const davePlatformData = await platformIdContrat.platforms(daveTlId)
   const protocolEscrowFeeRate = ethers.BigNumber.from(

@@ -17,7 +17,7 @@ async function main() {
   const rateAmount = ethers.utils.parseUnits('0.003', 18)
 
   const release = await talentLayerEscrow.connect(alice).release(1, rateAmount)
-  release.wait()
+  await release.wait()
 }
 
 // We recommend this pattern to be able to use async/await everywhere
