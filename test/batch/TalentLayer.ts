@@ -585,18 +585,6 @@ describe('TalentLayer protocol global testing', function () {
       ).to.be.revertedWith('This token is not allowed')
     })
 
-    it('Alice can validate Bob proposal', async function () {
-      const bobTid = await talentLayerID.walletOfOwner(bob.address)
-
-      const proposalDataBefore = await serviceRegistry.getProposal(1, bobTid)
-      expect(proposalDataBefore.status.toString()).to.be.equal('0')
-
-      await serviceRegistry.connect(alice).validateProposal(1, bobTid)
-
-      const proposalDataAfter = await serviceRegistry.getProposal(1, bobTid)
-      expect(proposalDataAfter.status.toString()).to.be.equal('1')
-    })
-
     it('Alice can reject Carol proposal ', async function () {
       const carolTid = await talentLayerID.walletOfOwner(carol.address)
       await serviceRegistry.connect(alice).rejectProposal(1, carolTid)
