@@ -1,9 +1,12 @@
 # Troubleshooting
 
+- use node version: v16.19 (lts/gallium) (some dependencies are not compatible with higher node version)
+
 ## Deploy
 
 - Due to slow network on sometimes on testnet, there is a wait in the execution off `setup-allFakeData`
-- Error `no such file or directory, open ... artifacts`: launch `npx hardhat clean`
+- Error `no such file or directory, open ... artifacts`: run `npx hardhat clean`
+- Error: `IPFS error FetchError [...] connect ETIMEDOUT`: try to switch your wifi network 
 
 ## Subgraph
 
