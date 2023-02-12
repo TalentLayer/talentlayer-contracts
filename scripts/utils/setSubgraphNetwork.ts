@@ -3,7 +3,7 @@ import hre from 'hardhat'
 import { getDeploymennt } from '../../.deployment/deploymentManager'
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
 
   const config = getDeploymennt(network)
   const subgraphNetwork = JSON.parse(loadJSON())

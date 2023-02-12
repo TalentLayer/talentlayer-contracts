@@ -9,7 +9,7 @@ import hre = require('hardhat')
  * In this case, she chooses to rule in favor of Alice (the buyer), so the funds are released to her.
  */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Network: ', network)
 
   const [, , , carol] = await ethers.getSigners()

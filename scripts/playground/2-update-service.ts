@@ -8,7 +8,7 @@ In this script Alice will update the first service.
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Create service Test start---------------------')
   console.log(network)
 

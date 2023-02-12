@@ -9,7 +9,7 @@ import hre = require('hardhat')
  * and a dispute is created.
  */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Network: ', network)
 
   const [, , bob] = await ethers.getSigners()

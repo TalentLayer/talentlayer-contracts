@@ -8,7 +8,7 @@ We need for that to get the TalentLayer Platform ID of Dave then we will mint a 
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
   console.log('Mint test ID start')
 
