@@ -12,7 +12,7 @@ import { verifyAddress } from './utils'
  *  - npx hardhat prepare-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --automatic-proposal --verify --network mumbai
  */
 task('prepare-upgrade', 'Prepare an upgrade of a new implementation for one of the proxy')
-  .addParam('contractName', 'The name of the new contract implemntation')
+  .addParam('contractName', 'The name of the new contract implementation')
   .addParam('proxyName', 'The name of the original proxy')
   .addFlag('automaticProposal', 'Use defender CLI to automatically send a proposal')
   .addFlag('verify', 'verify contracts on etherscan')

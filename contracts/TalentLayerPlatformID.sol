@@ -42,7 +42,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     mapping(string => bool) public takenNames;
 
     /**
-     * @notice Token ID to Platfom struct
+     * @notice Token ID to Platform struct
      */
     mapping(uint256 => Platform) public platforms;
 

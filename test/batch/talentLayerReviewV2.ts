@@ -11,7 +11,7 @@ import {
   TalentLayerReview,
 } from '../../typechain-types'
 import { BigNumber } from 'ethers'
-import { TalentLayerReviewV2 } from '../../typechain-types/contracts/tests'
+import { TalentLayerReviewV2 } from '../../typechain-types'
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1

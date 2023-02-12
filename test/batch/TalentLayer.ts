@@ -15,7 +15,7 @@ import {
 import { deploy } from '../utils/deploy'
 
 describe('TalentLayer protocol global testing', function () {
-  // we dedine the types of the variables we will use
+  // we define the types of the variables we will use
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -444,7 +444,7 @@ describe('TalentLayer protocol global testing', function () {
       it("Should revert when sender doesn't have enough tokens.", async function () {
         // await loadFixture(deployTokenFixture);
 
-        const initialdeployerBalance = await token.balanceOf(deployer.address)
+        const initialDeployerBalance = await token.balanceOf(deployer.address)
 
         // Try to send 1 token from dave (0 tokens) to deployer (1000 tokens).
         await expect(token.connect(dave).transfer(deployer.address, 1)).to.be.revertedWith(
@@ -452,7 +452,7 @@ describe('TalentLayer protocol global testing', function () {
         )
 
         // deployer balance shouldn't have changed.
-        await expect(await token.balanceOf(deployer.address)).to.equal(initialdeployerBalance)
+        await expect(await token.balanceOf(deployer.address)).to.equal(initialDeployerBalance)
       })
     })
   })
@@ -846,7 +846,7 @@ describe('TalentLayer protocol global testing', function () {
         await serviceRegistry.connect(bob).createProposal(serviceId, rateToken, 1, 'proposalOnService');
         // Cancel the service
         await serviceRegistry.connect(alice).cancelService(serviceId)
-        // Try to deposit fund to to validate the proposal
+        // Try to deposit fund to validate the proposal
         const transactionDetails = await talentLayerEscrow
           .connect(alice)
           .getTransactionDetails(transactionId.toString())
@@ -882,7 +882,7 @@ describe('TalentLayer protocol global testing', function () {
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
         /* When asking for the reimbursement of a fee-less amount,
-         * we expect the amount reimbursed to include all fees (calculated by the function,
+         * we expect the amount reimbursed to include all fees (calculated by the function)
          * hence the 'totalAmount / 4' expected.
          */
         await expect(transaction).to.changeTokenBalances(
@@ -1098,7 +1098,7 @@ describe('TalentLayer protocol global testing', function () {
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
         /* When asking for the reimbursement of a fee-less amount,
-         * we expect the amount reimbursed to include all fees (calculated by the function,
+         * we expect the amount reimbursed to include all fees (calculated by the function)
          * hence the 'totalAmount / 4' expected.
          */
         await expect(transaction).to.changeEtherBalances(

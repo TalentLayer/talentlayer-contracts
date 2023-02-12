@@ -18,7 +18,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.Reviewscontract),
   )
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
@@ -39,8 +39,8 @@ async function main() {
   )
   console.log('carolReviewAliceIpfsUri', carolReviewAlice)
 
-  const daveTalentLayerIdPlatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  console.log('Dave talentLayerIdPLatform', daveTalentLayerIdPlatform)
+  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
 
   await talentLayerReview
     .connect(alice)

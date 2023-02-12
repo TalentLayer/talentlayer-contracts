@@ -90,7 +90,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /// @param id The service ID
     event ServiceCancelled(uint256 id);
 
-    /// @notice Emitted after a service is flaged by the platform
+    /// @notice Emitted after a service is flagged by the platform
     /// @param id The service ID (incremental)
     event ServiceFlagged(uint256 id);
 

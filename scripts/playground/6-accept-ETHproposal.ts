@@ -25,7 +25,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
@@ -40,13 +40,13 @@ async function main() {
   console.log('serviceId', firstServiceId.toString())
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
-  const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const updatePlatformEscrowFeeRate = await platformIdContrat
+  const daveTlId = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const updatePlatformEscrowFeeRate = await platformIdContract
     .connect(dave)
     .updatePlatformEscrowFeeRate(daveTlId, 1100)
   await updatePlatformEscrowFeeRate.wait()
 
-  const davePlatformData = await platformIdContrat.platforms(daveTlId)
+  const davePlatformData = await platformIdContract.platforms(daveTlId)
   const protocolEscrowFeeRate = ethers.BigNumber.from(
     await talentLayerEscrow.protocolEscrowFeeRate(),
   )

@@ -59,7 +59,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param status the current status of a service
     /// @param sellerId the talentLayerId of the seller
     /// @param rateToken the token choose for the payment
-    /// @param rateAmount the amount of token choosed
+    /// @param rateAmount the amount of token chosen
     /// @param proposalDataUri token Id to IPFS URI mapping
     struct Proposal {
         ProposalStatus status;
@@ -102,7 +102,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
-    /// @param rateAmount the amount of token choosed
+    /// @param rateAmount the amount of token chosen
     event ProposalCreated(
         uint256 serviceId,
         uint256 sellerId,
@@ -117,7 +117,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param sellerId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param rateToken the token choose for the payment
-    /// @param rateAmount the amount of token choosed
+    /// @param rateAmount the amount of token chosen
     event ProposalUpdated(
         uint256 serviceId,
         uint256 sellerId,
@@ -272,7 +272,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
      * @notice Allows an seller to update his own proposal for a given service
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
-     * @param _rateAmount the amount of token choosed
+     * @param _rateAmount the amount of token chosen
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function updateProposal(
@@ -325,7 +325,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /**
      * @notice Allow the escrow contract to upgrade the Service state after a deposit has been done
      * @param _serviceId Service identifier
-     * @param _proposalId The choosed proposal id for this service
+     * @param _proposalId The chosen proposal id for this service
      * @param _transactionId The escrow transaction Id
      */
     function afterDeposit(
