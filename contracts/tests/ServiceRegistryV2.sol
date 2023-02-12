@@ -44,7 +44,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /// @param proposals all proposals for this service
     /// @param countProposals the total number of proposal for this service
     /// @param transactionId the escrow transaction ID linked to the service
-    /// @param originServiceCreationPlatformId the platform ID on which the service was created
+    /// @param platformId the platform ID on which the service was created
     struct Service {
         Status status;
         uint256 buyerId;
@@ -53,7 +53,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         string serviceDataUri;
         uint256 countProposals;
         uint256 transactionId;
-        uint256 originServiceCreationPlatformId;
+        uint256 platformId;
     }
 
     /// @notice Proposal information struct
@@ -67,7 +67,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 sellerId;
         address rateToken;
         uint256 rateAmount;
-        uint16 originProposalCreationPlatformId;
+        uint16 platformId;
         string proposalDataUri;
     }
 
@@ -105,7 +105,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
-    /// @param originProposalCreationPlatformId the platform ID on which the proposal was created
+    /// @param platformId the platform ID on which the proposal was created
     event ProposalCreated(
         uint256 serviceId,
         uint256 sellerId,
@@ -113,7 +113,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         ProposalStatus status,
         address rateToken,
         uint256 rateAmount,
-        uint16 originProposalCreationPlatformId
+        uint16 platformId
     );
 
     /// @notice Emitted after an existing proposal has been updated
@@ -197,15 +197,6 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Returns the validated proposal for a service
-     * @param _serviceId Service identifier
-     */
-    function getValidatedProposal(uint256 _serviceId) external view returns (Proposal memory) {
-        Service memory service = services[_serviceId];
-        return proposals[_serviceId][service.sellerId];
-    }
-
-    /**
      * @notice Indicates whether the token in parameter is allowed for payment
      * @param _tokenAddress Token address
      */
@@ -230,14 +221,14 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @notice Allows an seller to propose his service for a service
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
-     * @param _rateAmount the amount of token choosed
+     * @param _rateAmount the amount of token chosen
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function createProposal(
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
-        uint16 _originProposalCreationPlatformId,
+        uint16 _platformId,
         string calldata _proposalDataUri
     ) public {
         uint256 senderId = tlId.walletOfOwner(_msgSender());
@@ -250,18 +241,18 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             proposals[_serviceId][senderId].sellerId != senderId,
             "You already created a proposal for this service"
         );
-        require(service.countProposals < 40, "Max proposals count reached");
+
         require(service.buyerId != senderId, "You couldn't create proposal for your own service");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.countProposals++;
         proposals[_serviceId][senderId] = Proposal({
-            status: ProposalStatus.Pending,
-            sellerId: senderId,
-            rateToken: _rateToken,
-            rateAmount: _rateAmount,
-            originProposalCreationPlatformId: _originProposalCreationPlatformId,
-            proposalDataUri: _proposalDataUri
+        status: ProposalStatus.Pending,
+        sellerId: senderId,
+        rateToken: _rateToken,
+        rateAmount: _rateAmount,
+        platformId: _platformId,
+        proposalDataUri: _proposalDataUri
         });
 
         emit ProposalCreated(
@@ -271,7 +262,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             ProposalStatus.Pending,
             _rateToken,
             _rateAmount,
-            _originProposalCreationPlatformId
+            _platformId
         );
     }
 
@@ -421,7 +412,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function flagService(uint256 _serviceId) public {
         uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(_msgSender());
         Service storage service = services[_serviceId];
-        require(platformId == service.originServiceCreationPlatformId, "Only a platform can flag a service");
+        require(platformId == service.platformId, "Only a platform can flag a service");
         service.status = Status.Flagged;
         emit ServiceFlagged(_serviceId);
     }
@@ -456,7 +447,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         service.sellerId = _sellerId;
         service.initiatorId = _senderId;
         service.serviceDataUri = _serviceDataUri;
-        service.originServiceCreationPlatformId = _platformId;
+        service.platformId = _platformId;
 
         emit ServiceCreated(id, _buyerId, _sellerId, _senderId, _platformId);
 

@@ -43,7 +43,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param proposals all proposals for this service
     /// @param countProposals the total number of proposal for this service
     /// @param transactionId the escrow transaction ID linked to the service
-    /// @param originServiceCreationPlatformId the platform ID on which the service was created
+    /// @param platformId the platform ID on which the service was created
     struct Service {
         Status status;
         uint256 buyerId;
@@ -52,7 +52,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         string serviceDataUri;
         uint256 countProposals;
         uint256 transactionId;
-        uint256 originServiceCreationPlatformId;
+        uint256 platformId;
     }
 
     /// @notice Proposal information struct
@@ -66,7 +66,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 sellerId;
         address rateToken;
         uint256 rateAmount;
-        uint16 originProposalCreationPlatformId;
+        uint16 platformId;
         string proposalDataUri;
     }
 
@@ -100,7 +100,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
-    /// @param originProposalCreationPlatformId the platform ID on which the proposal was created
+    /// @param platformId the platform ID on which the proposal was created
     event ProposalCreated(
         uint256 serviceId,
         uint256 sellerId,
@@ -108,7 +108,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         ProposalStatus status,
         address rateToken,
         uint256 rateAmount,
-        uint16 originProposalCreationPlatformId
+        uint16 platformId
     );
 
     /// @notice Emitted after an existing proposal has been updated
@@ -239,7 +239,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
-        uint16 _originProposalCreationPlatformId,
+        uint16 _platformId,
         string calldata _proposalDataUri
     ) public {
         uint256 senderId = tlId.walletOfOwner(_msgSender());
@@ -262,7 +262,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
             sellerId: senderId,
             rateToken: _rateToken,
             rateAmount: _rateAmount,
-            originProposalCreationPlatformId: _originProposalCreationPlatformId,
+            platformId: _platformId,
             proposalDataUri: _proposalDataUri
         });
 
@@ -273,7 +273,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
             ProposalStatus.Pending,
             _rateToken,
             _rateAmount,
-            _originProposalCreationPlatformId
+            _platformId
         );
     }
 
@@ -446,7 +446,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         service.sellerId = _sellerId;
         service.initiatorId = _senderId;
         service.serviceDataUri = _serviceDataUri;
-        service.originServiceCreationPlatformId = _platformId;
+        service.platformId = _platformId;
 
         emit ServiceCreated(id, _buyerId, _sellerId, _senderId, _platformId);
 

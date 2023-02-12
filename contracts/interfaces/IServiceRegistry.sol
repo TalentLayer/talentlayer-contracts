@@ -24,7 +24,7 @@ interface IServiceRegistry {
         string serviceDataUri;
         uint256 countProposals;
         uint256 transactionId;
-        uint256 originServiceCreationPlatformId;
+        uint256 platformId;
     }
 
     struct Proposal {
@@ -32,7 +32,7 @@ interface IServiceRegistry {
         uint256 sellerId;
         address rateToken;
         uint256 rateAmount;
-        uint16 originProposalCreationPlatformId;
+        uint16 platformId;
         string proposalDataUri;
     }
 
