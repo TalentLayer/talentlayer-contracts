@@ -528,7 +528,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(serviceData.buyerId.toString()).to.be.equal('1')
       expect(serviceData.initiatorId.toString()).to.be.equal('1')
       expect(serviceData.serviceDataUri).to.be.equal('CID1')
-      expect(serviceData.originServiceCreationPlatformId).to.be.equal(1)
+      expect(serviceData.platformId).to.be.equal(1)
     })
 
     it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function () {
@@ -922,6 +922,8 @@ describe('TalentLayer protocol global testing', function () {
       let totalAmount = 0 //Will be set later
       const ethAddress = '0x0000000000000000000000000000000000000000'
 
+      //Service 3 created on Alice's platform
+      //
       it('Alice can NOT deposit eth to escrow yet.', async function () {
         await talentLayerPlatformID.connect(alice).updateOriginServiceFeeRate(alicePlatformId, 1100)
         await talentLayerPlatformID

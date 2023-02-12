@@ -55,15 +55,15 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     /**
      * @notice Transaction struct
-     * @param proposalId The id of the validated proposal
      * @param sender The party paying the escrow amount
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
      * @param amount The amount of the transaction EXCLUDING FEES
+     * @param proposalId The id of the validated proposal
      * @param serviceId The ID of the associated service
      * @param protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
-     * @param originServiceFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
-     * @param originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
+     * @param originServiceFeeRate The %fee (per ten thousands) paid to the platform on which the service was created
+     * @param originValidatedProposalFeeRate the %fee (per ten thousands) paid to the platform on which the proposal was validated
      * @param disputeId The ID of the dispute, if it exists
      * @param senderFee Total fees paid by the sender.
      * @param receiverFee Total fees paid by the receiver.
@@ -74,12 +74,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      */
     struct Transaction {
         uint256 id;
-        uint256 proposalId;
         address sender;
         address receiver;
         address token;
         uint256 amount;
         uint256 serviceId;
+        uint256 proposalId;
         uint16 protocolEscrowFeeRate;
         uint16 originServiceFeeRate;
         uint16 originValidatedProposalFeeRate;
@@ -159,7 +159,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _token The address of the token used for the payment.
      * @param _amount The amount released.
      */
-    event OriginProposalValidationFeeRateReleased(
+    event OriginValidatedProposalFeeRateReleased(
         uint256 _platformId,
         uint256 _serviceId,
         address indexed _token,
@@ -407,18 +407,27 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         IServiceRegistry.Service memory service;
         address sender;
         address receiver;
+        uint16 originServiceFeeRate;
+        uint16 originValidatedProposalFeeRate;
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory originServiceCreationPlatform = talentLayerPlatformIdContract
-            .getPlatform(service.originServiceCreationPlatformId);
-        ITalentLayerPlatformID.Platform memory originProposalValidationPlatform = talentLayerPlatformIdContract
-            .getPlatform(proposal.originProposalCreationPlatformId);
+            .getPlatform(service.platformId);
+        originServiceFeeRate = originServiceCreationPlatform.originServiceFeeRate;
 
-        // originServiceFeeRate & originProposalValidationPlatform are per ten thousands
+        if(service.platformId != proposal.platformId) {
+            ITalentLayerPlatformID.Platform memory originValidatedProposalPlatform = talentLayerPlatformIdContract
+                .getPlatform(proposal.platformId);
+            originValidatedProposalFeeRate = originValidatedProposalPlatform.originValidatedProposalFeeRate;
+        } else {
+            originValidatedProposalFeeRate = originServiceCreationPlatform.originValidatedProposalFeeRate;
+        }
+
+        // originServiceFeeRate & originValidatedProposalFeeRate are per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(
             proposal.rateAmount,
-            originServiceCreationPlatform.originServiceFeeRate,
-            originProposalValidationPlatform.originValidatedProposalFeeRate
+            originServiceFeeRate,
+            originValidatedProposalFeeRate
         );
         require(_msgSender() == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
@@ -431,8 +440,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 transactionId = _saveTransaction(
             _serviceId,
             _proposalId,
-            originServiceCreationPlatform.originServiceFeeRate,
-            originProposalValidationPlatform.originValidatedProposalFeeRate,
+            originServiceFeeRate,
+            originValidatedProposalFeeRate,
             originServiceCreationPlatform.arbitrator,
             originServiceCreationPlatform.arbitratorExtraData,
             originServiceCreationPlatform.arbitrationFeeTimeout
@@ -458,18 +467,27 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         IServiceRegistry.Service memory service;
         address sender;
         address receiver;
+        uint16 originServiceFeeRate;
+        uint16 originValidatedProposalFeeRate;
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory originServiceCreationPlatform = talentLayerPlatformIdContract
-            .getPlatform(service.originServiceCreationPlatformId);
-        ITalentLayerPlatformID.Platform memory originProposalValidationPlatform = talentLayerPlatformIdContract
-            .getPlatform(proposal.originProposalCreationPlatformId);
+        .getPlatform(service.platformId);
+        originServiceFeeRate = originServiceCreationPlatform.originServiceFeeRate;
 
-        // originServiceFeeRate & originProposalValidationPlatform are per ten thousands
+        if(service.platformId != proposal.platformId) {
+            ITalentLayerPlatformID.Platform memory originValidatedProposalPlatform = talentLayerPlatformIdContract
+            .getPlatform(proposal.platformId);
+            originValidatedProposalFeeRate = originValidatedProposalPlatform.originValidatedProposalFeeRate;
+        } else {
+            originValidatedProposalFeeRate = originServiceCreationPlatform.originValidatedProposalFeeRate;
+        }
+
+        // originServiceFeeRate & originValidatedProposalFeeRate are per ten thousands
         uint256 transactionAmount = _calculateTotalEscrowAmount(
             proposal.rateAmount,
-            originServiceCreationPlatform.originServiceFeeRate,
-            originProposalValidationPlatform.originValidatedProposalFeeRate
+            originServiceFeeRate,
+            originValidatedProposalFeeRate
         );
 
         require(_msgSender() == sender, "Access denied.");
@@ -480,8 +498,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 transactionId = _saveTransaction(
             _serviceId,
             _proposalId,
-            originServiceCreationPlatform.originServiceFeeRate,
-            originProposalValidationPlatform.originValidatedProposalFeeRate,
+            originServiceFeeRate,
+            originValidatedProposalFeeRate,
             originServiceCreationPlatform.arbitrator,
             originServiceCreationPlatform.arbitratorExtraData,
             originServiceCreationPlatform.arbitrationFeeTimeout
@@ -913,15 +931,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _releaseAmount The amount to release
      */
     function _release(Transaction memory _transaction, uint256 _releaseAmount) private {
-        IServiceRegistry.Service memory service = serviceRegistryContract.getService(_transaction.serviceId);
-        IServiceRegistry.Proposal memory proposal = serviceRegistryContract.getProposal(
+        uint256 originServiceCreationPlatformId = serviceRegistryContract.getService(_transaction.serviceId).platformId;
+        uint256 originValidatedProposalPlatformId = serviceRegistryContract.getProposal(
             _transaction.serviceId,
             _transaction.proposalId
-        );
-
-        //Platform which originated the service
-        uint256 originServiceCreationPlatformId = service.originServiceCreationPlatformId;
-        uint256 originServiceCreationPlatformFeeRate = proposal.originProposalCreationPlatformId;
+        ).platformId;
         uint256 protocolEscrowFeeRateAmount = (_transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
         uint256 originServiceFeeRate = (_transaction.originServiceFeeRate * _releaseAmount) / FEE_DIVIDER;
         uint256 originValidatedProposalFeeRate = (_transaction.originValidatedProposalFeeRate * _releaseAmount) /
@@ -930,7 +944,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         //Index zero represents protocol's balance
         platformIdToTokenToBalance[0][_transaction.token] += protocolEscrowFeeRateAmount;
         platformIdToTokenToBalance[originServiceCreationPlatformId][_transaction.token] += originServiceFeeRate;
-        platformIdToTokenToBalance[originServiceCreationPlatformFeeRate][
+        platformIdToTokenToBalance[originValidatedProposalPlatformId][
             _transaction.token
         ] += originValidatedProposalFeeRate;
 
@@ -942,8 +956,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             _transaction.token,
             originServiceFeeRate
         );
-        emit OriginProposalValidationFeeRateReleased(
-            originServiceCreationPlatformId,
+        emit OriginValidatedProposalFeeRateReleased(
+            originValidatedProposalPlatformId,
             _transaction.serviceId,
             _transaction.token,
             originServiceFeeRate
