@@ -22,7 +22,7 @@
 
 ## Step 2: Setup initial data
 
-- Double-check the [networkConfig.ts](./networkConfig.ts), it contains all setups for the current network
+- Double-check the [networkConfig.ts](../networkConfig.ts), it contains all setups for the current network
   - multisigAddressList: list of multisig addresses used to receive fee and with ownership of upgradabiltiy
   - allowedTokenList: list of tokens allowed to be used as payment
   - platformList: list of platform name and address used to create our partners platformId
