@@ -9,7 +9,7 @@ import { verifyAddress } from './utils'
  * @usage npx hardhat upgrade-proxy --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --verify --network mumbai
  */
 task('upgrade-proxy', 'Upgrade a proxy to a new implementation')
-  .addParam('contractName', 'The name of the new contract implemntation')
+  .addParam('contractName', 'The name of the new contract implementation')
   .addParam('proxyName', 'The name of the original proxy')
   .addFlag('verify', 'verify contracts on etherscan')
   .setAction(async (args, { ethers, network }) => {

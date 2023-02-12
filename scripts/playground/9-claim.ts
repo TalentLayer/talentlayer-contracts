@@ -17,7 +17,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
@@ -29,7 +29,7 @@ async function main() {
 
   const rateToken = '0x0000000000000000000000000000000000000000'
   const ERC20TokenAddress = simpleERC20.address
-  const davePlatformId = await platformIdContrat
+  const davePlatformId = await platformIdContract
     .connect(dave)
     .getPlatformIdFromAddress(dave.address)
 

@@ -42,7 +42,7 @@ export async function deploy(
     )
   }
 
-  // Deploy TalenLayerID
+  // Deploy TalentLayerID
   const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
   const talentLayerIDArgs: [string] = [talentLayerPlatformID.address]
   let talentLayerID = await upgrades.deployProxy(TalentLayerID, talentLayerIDArgs)

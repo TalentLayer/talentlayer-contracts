@@ -42,7 +42,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     mapping(string => bool) public takenNames;
 
     /**
-     * @notice Token ID to Platfom struct
+     * @notice Token ID to Platform struct
      */
     mapping(uint256 => Platform) public platforms;
 
