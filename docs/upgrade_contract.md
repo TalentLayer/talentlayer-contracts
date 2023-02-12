@@ -9,11 +9,11 @@
 _Useful for official testnet and mainnet_
 
 - First, make sure that:
-  - the deployer multi-sig address is added to the `multisigAddressList` in the [networkConfig.ts](./../networkConfig.ts) file
+  - the deployer multi-sig address is added to the `multisigAddressList` in the [networkConfig.ts](../networkConfig.ts) file
   - and the multi-sig got the ownership of the proxy contract: `npx hardhat transfer-proxy-ownership --contract-name "ServiceRegistry" --address 0x99f117069F9ED15476003502AD8D96107A180648 --network mumbai`
 - Then launch the proposal command: `npx hardhat propose-upgrade --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --network mumbai`
 - How it works:
-  - It uses hardhat task `propose-upgrade` in [propose-upgrade.ts](./../scripts/tasks/deploy/prepare-upgrade.ts) :
+  - It uses hardhat task `prepare-upgrade` in [prepare-upgrade.ts](../scripts/tasks/deploy/prepare-upgrade.ts) :
   - `--contract-name "ServiceRegistryV2"`: Define the new contract name
   - `--proxy-name "ServiceRegistry"`: Define the proxy name, it's the original name of the contract
   - It will automatically:
@@ -30,7 +30,7 @@ _Useful for your own local or testnet environment_
 
 - Launch: `npx hardhat upgrade-proxy --contract-name "ServiceRegistryV2" --proxy-name "ServiceRegistry" --verify --network mumbai`
 - How it works:
-  - It uses hardhat task `upgrade-proxy` in [upgrade-proxy.ts](./../scripts/tasks/deploy/upgrade-proxy.ts) :
+  - It uses hardhat task `upgrade-proxy` in [upgrade-proxy.ts](../scripts/tasks/deploy/upgrade-proxy.ts) :
   - `--contract-name "ServiceRegistryV2"`: Define the new contract name
   - `--proxy-name "ServiceRegistry"`: Define the proxy name, it's the original name of the contract
   - It will automatically:
