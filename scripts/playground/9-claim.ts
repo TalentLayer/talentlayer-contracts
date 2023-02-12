@@ -7,7 +7,7 @@ In this script dave the platform owner will claim the fees in ETH for the first 
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()

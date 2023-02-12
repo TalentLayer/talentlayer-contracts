@@ -9,7 +9,7 @@ After that we mint the new Platform ID Dave will update the profile data.
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
   console.log('Mint Dave platform ID start')
 

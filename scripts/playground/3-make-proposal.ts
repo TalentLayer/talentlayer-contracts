@@ -11,7 +11,7 @@ import hre = require('hardhat')
 
 // Then Alice create a service, and others add proposals
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()

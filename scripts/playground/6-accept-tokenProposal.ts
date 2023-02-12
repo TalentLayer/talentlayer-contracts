@@ -9,7 +9,7 @@ In this script Alice will accept Dave proposal with Token transaction
 
 // Alice accept the Carol proposal
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()

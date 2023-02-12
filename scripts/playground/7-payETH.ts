@@ -5,7 +5,7 @@ import hre = require('hardhat')
 In this script  Alice releases 3/4 of the escrow & Carol reimburses the remaining 1/4 to Alice
 */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const serviceRegistry = await ethers.getContractAt(

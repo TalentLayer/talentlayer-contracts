@@ -8,7 +8,7 @@ In this scriptAlice will review Carol and Carol will review Alice
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()

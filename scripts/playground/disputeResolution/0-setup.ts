@@ -24,7 +24,7 @@ This script sets up the context for dispute resolution, specifically it does the
 - Alice accepts the proposal by creating a transaction
 */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Network: ', network)
 
   const [deployer, alice, bob, carol] = await ethers.getSigners()
