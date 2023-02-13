@@ -393,12 +393,12 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory originServiceCreationPlatform = talentLayerPlatformIdContract
-        .getPlatform(service.platformId);
+            .getPlatform(service.platformId);
         originServiceFeeRate = originServiceCreationPlatform.originServiceFeeRate;
 
-        if(service.platformId != proposal.platformId) {
+        if (service.platformId != proposal.platformId) {
             ITalentLayerPlatformID.Platform memory originValidatedProposalPlatform = talentLayerPlatformIdContract
-            .getPlatform(proposal.platformId);
+                .getPlatform(proposal.platformId);
             originValidatedProposalFeeRate = originValidatedProposalPlatform.originValidatedProposalFeeRate;
         } else {
             originValidatedProposalFeeRate = originServiceCreationPlatform.originValidatedProposalFeeRate;
