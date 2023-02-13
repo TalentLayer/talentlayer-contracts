@@ -49,7 +49,7 @@ interface IServiceRegistry {
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
-        uint16 _originProposalCreationPlatformId,
+        uint16 _platformId,
         string calldata _proposalDataUri
     ) external;
 
