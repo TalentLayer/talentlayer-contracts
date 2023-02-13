@@ -861,12 +861,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         transactions.push(
             Transaction({
                 id: id,
-                proposalId: _proposalId,
                 sender: sender,
                 receiver: receiver,
                 token: proposal.rateToken,
                 amount: proposal.rateAmount,
                 serviceId: _serviceId,
+                proposalId: _proposalId,
                 protocolEscrowFeeRate: protocolEscrowFeeRate,
                 originServiceFeeRate: _originServiceFeeRate,
                 originValidatedProposalFeeRate: _originValidatedProposalFeeRate,
