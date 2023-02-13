@@ -68,16 +68,16 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     mapping(address => bool) public validArbitrators;
 
+    /** Whitelist mapping
+     * @notice Addresses which are allowed to mint a Platform ID
+     */
+    mapping(address => bool) public whitelist;
+
     /**
      * @notice Whether arbitrators are internal (are part of TalentLayer) or not
      *         Internal arbitrators will have the extra data set to the platform ID
      */
     mapping(address => bool) public internalArbitrators;
-
-    /** Whitelist mapping
-     * @notice Addresses which are allowed to mint a Platform ID
-     */
-    mapping(address => bool) public whitelist;
 
     /// Price to mint a platform id (in wei, upgradable)
     uint256 public mintFee;
@@ -126,6 +126,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
         // Increment counter to start tokenIds at index 1
         _nextTokenId.increment();
+        // set up the MintStatus on Whitelist
         minStatus = MintStatus.ONLY_WHITELIST;
     }
 
@@ -265,24 +266,13 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows a platform to update his fee
-     * @param _originServiceFeeRate Platform fee to update
+     * @param _platformEscrowFeeRate Platform fee to update
      */
-    function updateOriginServiceFeeRate(uint256 _platformId, uint16 _originServiceFeeRate) public {
+    function updatePlatformEscrowFeeRate(uint256 _platformId, uint16 _platformEscrowFeeRate) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
-        platforms[_platformId].originServiceFeeRate = _originServiceFeeRate;
-        emit OriginServiceFeeRateUpdated(_platformId, _originServiceFeeRate);
-    }
-
-    /**
-     * @notice Allows a platform to update his fee
-     * @param _originValidatedProposalFeeRate Platform fee to update
-     */
-    function updateOriginValidatedProposalFeeRate(uint256 _platformId, uint16 _originValidatedProposalFeeRate) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
-
-        platforms[_platformId].originValidatedProposalFeeRate = _originValidatedProposalFeeRate;
-        emit OriginValidatedProposalFeeRateUpdated(_platformId, _originValidatedProposalFeeRate);
+        platforms[_platformId].fee = _platformEscrowFeeRate;
+        emit PlatformEscrowFeeRateUpdated(_platformId, _platformEscrowFeeRate);
     }
 
     /**
@@ -571,15 +561,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Emit when the fee is updated for a platform
-     * @param _originServiceFeeRate The new fee
+     * @param _platformEscrowFeeRate The new fee
      */
-    event OriginServiceFeeRateUpdated(uint256 _platformId, uint16 _originServiceFeeRate);
-
-    /**
-     * @notice Emit when the fee is updated for a platform
-     * @param _originValidatedProposalFeeRate The new fee
-     */
-    event OriginValidatedProposalFeeRateUpdated(uint256 _platformId, uint16 _originValidatedProposalFeeRate);
+    event PlatformEscrowFeeRateUpdated(uint256 _platformId, uint16 _platformEscrowFeeRate);
 
     /**
      * @notice Emit after the arbitrator is updated for a platform
