@@ -6,7 +6,7 @@ In this script  Alice will release the full token Amount in token to Dave
 
 */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
@@ -17,7 +17,7 @@ async function main() {
   const rateAmount = ethers.utils.parseUnits('0.003', 18)
 
   const release = await talentLayerEscrow.connect(alice).release(1, rateAmount)
-  release.wait()
+  await release.wait()
 }
 
 // We recommend this pattern to be able to use async/await everywhere

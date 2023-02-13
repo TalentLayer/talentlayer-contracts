@@ -9,7 +9,7 @@ In this script Alice will accept Dave's proposal with Token transaction
 
 // Alice accept the Carol proposal
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
@@ -23,7 +23,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
@@ -45,8 +45,8 @@ async function main() {
   // OriginService platform: Dave's platform #1
   // OriginService platform: Bob's platform #2
 
-  const daveTlPId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const bobTlPId = await platformIdContrat.getPlatformIdFromAddress(bob.address)
+  const daveTlPId = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const bobTlPId = await platformIdContract.getPlatformIdFromAddress(bob.address)
 
   //Protocol fee
   const protocolEscrowFeeRate = ethers.BigNumber.from(
@@ -55,8 +55,8 @@ async function main() {
   console.log('protocolEscrowFeeRate', protocolEscrowFeeRate.toString())
 
   //Origin platform fee && platform fee
-  const davePlatformData = await platformIdContrat.platforms(daveTlPId)
-  const bobPlatformData = await platformIdContrat.platforms(bobTlPId)
+  const davePlatformData = await platformIdContract.platforms(daveTlPId)
+  const bobPlatformData = await platformIdContract.platforms(bobTlPId)
   const originServiceFeeRate = ethers.BigNumber.from(davePlatformData.originServiceFeeRate)
   const originValidatedProposalFeeRate = ethers.BigNumber.from(
     bobPlatformData.originValidatedProposalFeeRate,
@@ -74,7 +74,7 @@ async function main() {
 
   // we allow the contract to spend Alice tokens with the bob rateAmount + fees
   const approve = await token.approve(talentLayerEscrow.address, totalAmount)
-  waitConfirmations(network, approve, 10)
+  await waitConfirmations(network, approve, 10)
 
   let secondServiceId = await serviceRegistry.nextServiceId()
   secondServiceId = secondServiceId.sub(1)

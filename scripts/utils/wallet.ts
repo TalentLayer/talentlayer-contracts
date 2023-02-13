@@ -1,5 +1,4 @@
 import { Wallet } from 'ethers'
-import { formatEther, formatUnits, getAddress, parseEther, parseUnits } from 'ethers/lib/utils'
 import { task } from 'hardhat/config'
 
 task('private', 'Prints the private key', async (args, { ethers }) => {

@@ -2,7 +2,7 @@
 
 ## To be prepared before deploy
 
-- Setup your local .env file to be able to execute all commands.
+- Setup local .env file to be able to execute all commands.
   - Be sure you have all variables in the .env.example file
   - Mandatory:
     - MNEMONIC
@@ -22,7 +22,7 @@
 
 ## Step 2: Setup initial data
 
-- Double check the [networkConfig.ts](./networkConfig.ts), it contains all setups for the current network
+- Double-check the [networkConfig.ts](../networkConfig.ts), it contains all setups for the current network
   - multisigAddressList: list of multisig addresses used to receive fee and with ownership of upgradabiltiy
   - allowedTokenList: list of tokens allowed to be used as payment
   - platformList: list of platform name and address used to create our partners platformId
@@ -42,7 +42,7 @@
 - Update the abis in the subgraph repo
 - Generate code from your GraphQL schema and operations.: `graph codegen`
 - Copy configuration from network.json and buid graph code: `graph build --network mumbai`
-- Authenticad to the hosted service: `graph auth --network mumbai --product hosted-service <your access token>`
+- Authenticate to the hosted service: `graph auth --network mumbai --product hosted-service <your access token>`
 - Deploy to the hosted service:
   - mumbai: `graph deploy --product hosted-service talentlayer/talent-layer-mumbai`
   - fuji: `graph deploy --product hosted-service talentlayer/talent-layer-fuji`

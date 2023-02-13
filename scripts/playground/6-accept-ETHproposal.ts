@@ -11,7 +11,7 @@ and the protocolEscrowFeeRate and originPlatformEscrowFeeRate from TalentLayerEs
 
 // Alice accept the Carol proposal
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
@@ -25,7 +25,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
@@ -43,11 +43,11 @@ async function main() {
   // OriginService platform: Dave's platform #1
   // OriginService platform: Bob's platform #2
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
-  const daveTlPId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const bobTlPId = await platformIdContrat.getPlatformIdFromAddress(bob.address)
+  const daveTlPId = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const bobTlPId = await platformIdContract.getPlatformIdFromAddress(bob.address)
 
-  const davePlatformData = await platformIdContrat.platforms(daveTlPId)
-  const bobPlatformData = await platformIdContrat.platforms(bobTlPId)
+  const davePlatformData = await platformIdContract.platforms(daveTlPId)
+  const bobPlatformData = await platformIdContract.platforms(bobTlPId)
   const protocolEscrowFeeRate = ethers.BigNumber.from(
     await talentLayerEscrow.protocolEscrowFeeRate(),
   )

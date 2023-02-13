@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../networkConfig'
 import { disputeId, rulingId } from './constants'
 
 import hre = require('hardhat')
@@ -10,7 +9,7 @@ import hre = require('hardhat')
  * In this case, she chooses to rule in favor of Alice (the buyer), so the funds are released to her.
  */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Network: ', network)
 
   const [, , , carol] = await ethers.getSigners()
