@@ -32,15 +32,7 @@ export async function deploy(
 
   // Deploy PlatformId
   const TalentLayerPlatformID = await ethers.getContractFactory('TalentLayerPlatformID')
-  let talentLayerPlatformID = await upgrades.deployProxy(TalentLayerPlatformID)
-
-  if (applyUpgrade) {
-    const TalentLayerPlatformIDV2 = await ethers.getContractFactory('TalentLayerPlatformIDV2')
-    talentLayerPlatformID = await upgrades.upgradeProxy(
-      talentLayerPlatformID.address,
-      TalentLayerPlatformIDV2,
-    )
-  }
+  const talentLayerPlatformID = await upgrades.deployProxy(TalentLayerPlatformID)
 
   // Deploy TalentLayerID
   const TalentLayerID = await ethers.getContractFactory('TalentLayerID')
@@ -58,12 +50,7 @@ export async function deploy(
     talentLayerID.address,
     talentLayerPlatformID.address,
   ]
-  let serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs)
-
-  if (applyUpgrade) {
-    const ServiceRegistryV2 = await ethers.getContractFactory('ServiceRegistryV2')
-    serviceRegistry = await upgrades.upgradeProxy(serviceRegistry.address, ServiceRegistryV2)
-  }
+  const serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs)
 
   // Deploy TalentLayerArbitrator
   const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
@@ -77,14 +64,9 @@ export async function deploy(
     talentLayerPlatformID.address,
     networkConfig.multisigAddressList.fee,
   ]
-  let talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
+  const talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
   const escrowRole = await serviceRegistry.ESCROW_ROLE()
   await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
-
-  if (applyUpgrade) {
-    const TalentLayerEscrowV2 = await ethers.getContractFactory('TalentLayerEscrowV2')
-    talentLayerEscrow = await upgrades.upgradeProxy(talentLayerEscrow.address, TalentLayerEscrowV2)
-  }
 
   // Deploy TalentLayerReview
   const TalentLayerReview = await ethers.getContractFactory('TalentLayerReview')
@@ -95,12 +77,7 @@ export async function deploy(
     serviceRegistry.address,
     talentLayerPlatformID.address,
   ]
-  let talentLayerReview = await upgrades.deployProxy(TalentLayerReview, talentLayerReviewArgs)
-
-  if (applyUpgrade) {
-    const TalentLayerReviewV2 = await ethers.getContractFactory('TalentLayerReviewV2')
-    talentLayerReview = await upgrades.upgradeProxy(talentLayerReview.address, TalentLayerReviewV2)
-  }
+  const talentLayerReview = await upgrades.deployProxy(TalentLayerReview, talentLayerReviewArgs)
 
   // Deploy SimpleERC20 Token
   const SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
