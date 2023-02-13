@@ -17,6 +17,7 @@ async function deployAndSetup(): Promise<[TalentLayerPlatformID]> {
 
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'
+  await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, alice.address)
 
   return [talentLayerPlatformID]
