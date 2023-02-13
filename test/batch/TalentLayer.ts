@@ -180,10 +180,11 @@ describe('TalentLayer protocol global testing', function () {
       expect(updatedMintFee).to.be.equal(mintFee)
     })
 
-    it('The deployer can update the minting status to PAUSE', async function () {
-      await talentLayerPlatformID.connect(deployer).updateMintStatus(0)
+    it('The deployer can update the minting status to PAUSE and trigger the event', async function () {
+      const transcation = await talentLayerPlatformID.connect(deployer).updateMintStatus(0)
       const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
       expect(mintingStatus).to.be.equal(0)
+      await expect(transcation).to.emit(talentLayerPlatformID, 'MintStatusUpdated').withArgs(0)
     })
 
     it('Bob cannot mint a platform id because the minting status is PAUSE', async function () {
