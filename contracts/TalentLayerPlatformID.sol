@@ -107,6 +107,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     MintStatus public minStatus;
 
+    /**
+     * @notice  The minting status
+     */
+    MintStatus public minStatus;
+
     // =========================== Initializers ==============================
 
     /// @custom:oz-upgrades-unsafe-allow constructor
