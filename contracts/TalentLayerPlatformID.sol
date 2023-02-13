@@ -68,7 +68,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     mapping(address => bool) public validArbitrators;
 
-    // Whitelist mapping
+    /** Whitelist mapping
+     * @notice Addresses which are allowed to mint a Platform ID
+     */
     mapping(address => bool) public whitelist;
 
     /**
