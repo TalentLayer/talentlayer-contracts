@@ -4,7 +4,7 @@ import { waitConfirmations } from '../utils/waitConfirmations'
 import hre = require('hardhat')
 
 /*
-In this script Alice will accept Dave proposal with Token transaction
+In this script Alice will accept Dave's proposal with Token transaction
 */
 
 // Alice accept the Carol proposal
@@ -41,6 +41,13 @@ async function main() {
   const amountDave = ethers.utils.parseUnits('0.03', 18)
   console.log('amountBob', amountDave.toString())
 
+  // Accepting Proposal #4 from Dave: for Alice's service #2
+  // OriginService platform: Dave's platform #1
+  // OriginService platform: Bob's platform #2
+
+  const daveTlPId = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const bobTlPId = await platformIdContract.getPlatformIdFromAddress(bob.address)
+
   //Protocol fee
   const protocolEscrowFeeRate = ethers.BigNumber.from(
     await talentLayerEscrow.protocolEscrowFeeRate(),
@@ -48,16 +55,19 @@ async function main() {
   console.log('protocolEscrowFeeRate', protocolEscrowFeeRate.toString())
 
   //Origin platform fee && platform fee
-  const daveTlId = await platformIdContract.getPlatformIdFromAddress(dave.address)
-  const davePlatformData = await platformIdContract.platforms(daveTlId)
-  const originPlatformEscrowFeeRate = ethers.BigNumber.from(
-    await talentLayerEscrow.originPlatformEscrowFeeRate(),
+  const davePlatformData = await platformIdContract.platforms(daveTlPId)
+  const bobPlatformData = await platformIdContract.platforms(bobTlPId)
+  const originServiceFeeRate = ethers.BigNumber.from(davePlatformData.originServiceFeeRate)
+  const originValidatedProposalFeeRate = ethers.BigNumber.from(
+    bobPlatformData.originValidatedProposalFeeRate,
   )
-  const platformEscrowFeeRate = ethers.BigNumber.from(davePlatformData.fee)
+
+  console.log('originServiceFeeRate', originServiceFeeRate.toString())
+  console.log('originValidatedProposalFeeRate', originValidatedProposalFeeRate.toString())
 
   const totalAmount = amountDave.add(
     amountDave
-      .mul(protocolEscrowFeeRate.add(originPlatformEscrowFeeRate).add(platformEscrowFeeRate))
+      .mul(protocolEscrowFeeRate.add(originServiceFeeRate).add(originValidatedProposalFeeRate))
       .div(ethers.BigNumber.from(10000)),
   )
   console.log('totalAmount', totalAmount.toString())

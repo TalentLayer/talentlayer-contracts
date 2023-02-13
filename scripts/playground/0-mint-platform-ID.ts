@@ -24,20 +24,46 @@ async function main() {
   //Deployer needs MINT_ROLE to mint for other addresses
   const grantRole = await platformIdContract.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
-  const mint = await platformIdContract.connect(alice).mintForAddress('Playground', dave.address)
-  await mint.wait()
+
+  const mint1 = await platformIdContract.connect(alice).mintForAddress('Playground', dave.address)
+  await mint1.wait()
+  const mint2 = await platformIdContract.connect(alice).mintForAddress('Playground2', bob.address)
+  await mint2.wait()
 
   const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
   await platformIdContract.connect(dave).updateProfileData(daveTalentLayerIdPlatform, 'newCid')
+  await platformIdContract.connect(dave).updateOriginServiceFeeRate(daveTalentLayerIdPlatform, 1000)
+  await platformIdContract
+    .connect(dave)
+    .updateOriginValidatedProposalFeeRate(daveTalentLayerIdPlatform, 2500)
+
+  const bobTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(bob.address)
+  await platformIdContract.connect(bob).updateProfileData(bobTalentLayerIdPlatform, 'newCid')
+  await platformIdContract.connect(bob).updateOriginServiceFeeRate(bobTalentLayerIdPlatform, 1500)
+  await platformIdContract
+    .connect(bob)
+    .updateOriginValidatedProposalFeeRate(bobTalentLayerIdPlatform, 3500)
 
   const davePlatformData = await platformIdContract.platforms(daveTalentLayerIdPlatform)
-
-  const platformName = davePlatformData.name
-  const platformCid = davePlatformData.dataUri
+  const bobPlatformData = await platformIdContract.platforms(bobTalentLayerIdPlatform)
 
   console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
-  console.log('platformName', platformName)
-  console.log('platformCid', platformCid)
+  console.log('Dave platformName', davePlatformData.name)
+  console.log('Dave platformCid', davePlatformData.dataUri)
+  console.log('Dave origin service fee rate', davePlatformData.originServiceFeeRate)
+  console.log(
+    'Dave origin validated proposal fee rate',
+    davePlatformData.originValidatedProposalFeeRate,
+  )
+
+  console.log('Bob talentLayerIdPlatform', bobTalentLayerIdPlatform)
+  console.log('Bob platformName', bobPlatformData.name)
+  console.log('Bob platformCid', bobPlatformData.dataUri)
+  console.log('Bob origin service fee rate', bobPlatformData.originServiceFeeRate)
+  console.log(
+    'Bob origin validated proposal fee rate',
+    bobPlatformData.originValidatedProposalFeeRate,
+  )
 }
 
 // We recommend this pattern to be able to use async/await everywhere
