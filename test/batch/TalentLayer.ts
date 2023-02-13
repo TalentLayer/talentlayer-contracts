@@ -565,6 +565,7 @@ describe('TalentLayer protocol global testing', function () {
         5,
         rateToken,
         1,
+        bobPlatformId,
         'proposalOnCancelledService'
       )).to.be.revertedWith("Service is not opened")
     })
@@ -585,7 +586,7 @@ describe('TalentLayer protocol global testing', function () {
       // Bob creates a proposal on Platform 1
       await serviceRegistry
         .connect(bob)
-        .createProposal(1, rateToken, 1, alicePlatformId, 'proposal1FromBobToAlice1Service')
+        .createProposal(1, rateToken, 1, alicePlatformId, bobPlatformId, 'proposal1FromBobToAlice1Service')
 
       const serviceData = await serviceRegistry.services(1)
       const proposalDataAfter = await serviceRegistry.getProposal(1, bobTid)
