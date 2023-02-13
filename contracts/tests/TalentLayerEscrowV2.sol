@@ -337,9 +337,9 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      * @param _transactionId Id of the transaction
      * @return transaction The transaction details
      */
-    function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory transaction) {
+    function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory) {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
-        Transaction storage transaction = transactions[_transactionId];
+        Transaction memory transaction = transactions[_transactionId];
 
         address sender = _msgSender();
         require(
@@ -996,17 +996,12 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
         uint256 _proposalId
     )
         private
-        returns (
-            IServiceRegistry.Proposal memory proposal,
-            IServiceRegistry.Service memory service,
-            address sender,
-            address receiver
-        )
+        returns (IServiceRegistry.Proposal memory, IServiceRegistry.Service memory, address sender, address receiver)
     {
         IServiceRegistry.Proposal memory proposal = _getProposal(_serviceId, _proposalId);
         IServiceRegistry.Service memory service = _getService(_serviceId);
-        address sender = talentLayerIdContract.ownerOf(service.buyerId);
-        address receiver = talentLayerIdContract.ownerOf(proposal.sellerId);
+        sender = talentLayerIdContract.ownerOf(service.buyerId);
+        receiver = talentLayerIdContract.ownerOf(proposal.sellerId);
         return (proposal, service, sender, receiver);
     }
 

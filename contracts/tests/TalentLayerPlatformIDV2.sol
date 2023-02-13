@@ -400,14 +400,22 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     /**
      * @dev Override to prevent token transfer.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {
+    function transferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*tokenId*/
+    ) public virtual override(ERC721Upgradeable) {
         revert("Not allowed");
     }
 
     /**
      * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {
+    function safeTransferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*tokenId*/
+    ) public virtual override(ERC721Upgradeable) {
         revert("Not allowed");
     }
 
