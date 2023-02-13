@@ -180,21 +180,18 @@ describe('TalentLayer protocol global testing', function () {
       expect(updatedMintFee).to.be.equal(mintFee)
     })
 
-    // we change the minting status to pause
     it('The deployer can update the minting status to PAUSE', async function () {
       await talentLayerPlatformID.connect(deployer).updateMintStatus(0)
       const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
       expect(mintingStatus).to.be.equal(0)
     })
 
-    // Bob cannot mint a platform id because the minting status is PAUSE
     it('Bob cannot mint a platform id because the minting status is PAUSE', async function () {
       await expect(
         talentLayerPlatformID.connect(bob).mint('BobPlat', { value: mintFee }),
       ).to.be.revertedWith('Mint status is not valid')
     })
 
-    // we change the minting status to PUBLIC
     it('The deployer can update the minting status to PUBLIC', async function () {
       await talentLayerPlatformID.connect(deployer).updateMintStatus(2)
       const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
