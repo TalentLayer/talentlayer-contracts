@@ -393,9 +393,9 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory originServiceCreationPlatform = talentLayerPlatformIdContract
-        .getPlatform(service.platformId);
+            .getPlatform(service.platformId);
         ITalentLayerPlatformID.Platform memory originProposalValidationPlatform = talentLayerPlatformIdContract
-        .getPlatform(proposal.platformId);
+            .getPlatform(proposal.platformId);
         originServiceFeeRate = originServiceCreationPlatform.originServiceFeeRate;
         originValidatedProposalFeeRate = originProposalValidationPlatform.originValidatedProposalFeeRate;
 
@@ -448,12 +448,12 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory originServiceCreationPlatform = talentLayerPlatformIdContract
-        .getPlatform(service.platformId);
+            .getPlatform(service.platformId);
         originServiceFeeRate = originServiceCreationPlatform.originServiceFeeRate;
 
-        if(service.platformId != proposal.platformId) {
+        if (service.platformId != proposal.platformId) {
             ITalentLayerPlatformID.Platform memory originValidatedProposalPlatform = talentLayerPlatformIdContract
-            .getPlatform(proposal.platformId);
+                .getPlatform(proposal.platformId);
             originValidatedProposalFeeRate = originValidatedProposalPlatform.originValidatedProposalFeeRate;
         } else {
             originValidatedProposalFeeRate = originServiceCreationPlatform.originValidatedProposalFeeRate;
@@ -908,20 +908,19 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
      */
     function _release(Transaction memory _transaction, uint256 _releaseAmount) private {
         uint256 originServiceCreationPlatformId = serviceRegistryContract.getService(_transaction.serviceId).platformId;
-        uint256 originValidatedProposalPlatformId = serviceRegistryContract.getProposal(
-            _transaction.serviceId,
-            _transaction.proposalId
-        ).platformId;
+        uint256 originValidatedProposalPlatformId = serviceRegistryContract
+            .getProposal(_transaction.serviceId, _transaction.proposalId)
+            .platformId;
         uint256 protocolEscrowFeeRateAmount = (_transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
         uint256 originServiceFeeRate = (_transaction.originServiceFeeRate * _releaseAmount) / FEE_DIVIDER;
         uint256 originValidatedProposalFeeRate = (_transaction.originValidatedProposalFeeRate * _releaseAmount) /
-        FEE_DIVIDER;
+            FEE_DIVIDER;
 
         //Index zero represents protocol's balance
         platformIdToTokenToBalance[0][_transaction.token] += protocolEscrowFeeRateAmount;
         platformIdToTokenToBalance[originServiceCreationPlatformId][_transaction.token] += originServiceFeeRate;
         platformIdToTokenToBalance[originValidatedProposalPlatformId][
-        _transaction.token
+            _transaction.token
         ] += originValidatedProposalFeeRate;
 
         _safeTransferBalance(payable(_transaction.receiver), _transaction.token, _releaseAmount);
