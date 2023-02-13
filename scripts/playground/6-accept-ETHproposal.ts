@@ -39,25 +39,30 @@ async function main() {
   const firstServiceId = nextServiceId.sub(2) // service id #1
   console.log('serviceId', firstServiceId.toString())
 
+  // Accepting Proposal #3 from Carol: for Alice's service #1
+  // OriginService platform: Dave's platform #1
+  // OriginService platform: Bob's platform #2
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
-  const daveTlId = await platformIdContract.getPlatformIdFromAddress(dave.address)
-  const updatePlatformEscrowFeeRate = await platformIdContract
-    .connect(dave)
-    .updatePlatformEscrowFeeRate(daveTlId, 1100)
-  await updatePlatformEscrowFeeRate.wait()
+  const daveTlPId = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const bobTlPId = await platformIdContract.getPlatformIdFromAddress(bob.address)
 
-  const davePlatformData = await platformIdContract.platforms(daveTlId)
+  const davePlatformData = await platformIdContract.platforms(daveTlPId)
+  const bobPlatformData = await platformIdContract.platforms(bobTlPId)
   const protocolEscrowFeeRate = ethers.BigNumber.from(
     await talentLayerEscrow.protocolEscrowFeeRate(),
   )
-  const originPlatformEscrowFeeRate = ethers.BigNumber.from(
-    await talentLayerEscrow.originPlatformEscrowFeeRate(),
+  const originServiceFeeRate = ethers.BigNumber.from(davePlatformData.originServiceFeeRate)
+  const originValidatedProposalFeeRate = ethers.BigNumber.from(
+    bobPlatformData.originValidatedProposalFeeRate,
   )
-  const platformEscrowFeeRate = ethers.BigNumber.from(davePlatformData.fee)
+
+  console.log('protocolEscrowFeeRate', protocolEscrowFeeRate.toString())
+  console.log('originServiceFeeRate', originServiceFeeRate.toString())
+  console.log('originValidatedProposalFeeRate', originValidatedProposalFeeRate.toString())
 
   const totalAmount = rateAmount.add(
     rateAmount
-      .mul(protocolEscrowFeeRate.add(originPlatformEscrowFeeRate).add(platformEscrowFeeRate))
+      .mul(protocolEscrowFeeRate.add(originServiceFeeRate).add(originValidatedProposalFeeRate))
       .div(ethers.BigNumber.from(10000)),
   )
   console.log('totalAmount', totalAmount.toString())
