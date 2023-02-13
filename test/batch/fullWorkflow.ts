@@ -66,7 +66,7 @@ describe('TalentLayer protocol global testing', function () {
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, bob.address)
 
     // we first check the actual minting status (should be ONLY_WHITELIST )
-    const mintingStatus = await talentLayerPlatformID.connect(deployer).minStatus()
+    const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
     expect(mintingStatus).to.be.equal(1)
     // then we whitelist the deployer to mint a PlatformId for someone
     await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
@@ -187,7 +187,7 @@ describe('TalentLayer protocol global testing', function () {
     // we change the minting status to pause
     it('The deployer can update the minting status to PAUSE', async function () {
       await talentLayerPlatformID.connect(deployer).updateMintStatus(0)
-      const mintingStatus = await talentLayerPlatformID.connect(deployer).minStatus()
+      const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
       expect(mintingStatus).to.be.equal(0)
     })
 
@@ -201,7 +201,7 @@ describe('TalentLayer protocol global testing', function () {
     // we change the minting status to PUBLIC
     it('The deployer can update the minting status to PUBLIC', async function () {
       await talentLayerPlatformID.connect(deployer).updateMintStatus(2)
-      const mintingStatus = await talentLayerPlatformID.connect(deployer).minStatus()
+      const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
       expect(mintingStatus).to.be.equal(2)
     })
 
