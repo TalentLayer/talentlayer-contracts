@@ -4,14 +4,14 @@ import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
 /*
-In this script Alice will create a two services.
+In this script Alice will create two services.
 First we need to create Job Data and post it to IPFS to get the Service Data URI
 Then we will create Open service
 
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Create service Test start---------------------')
   console.log(network)
 
@@ -21,13 +21,13 @@ async function main() {
     'ServiceRegistry',
     getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  console.log('Dave Talent Layer Id', daveTalentLayerIdPLatform)
+  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  console.log('Dave Talent Layer Id', daveTalentLayerIdPlatform)
 
   /* ----------- Create Open Service -------------- */
 
@@ -47,7 +47,7 @@ async function main() {
 
   const createFirstOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateFirstJobData)
+    .createOpenServiceFromBuyer(daveTalentLayerIdPlatform, aliceCreateFirstJobData)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
@@ -70,12 +70,12 @@ async function main() {
 
   const createSecondOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPLatform, aliceCreateSecondJobData)
+    .createOpenServiceFromBuyer(daveTalentLayerIdPlatform, aliceCreateSecondJobData)
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
 
-  const getSecondeService = await serviceRegistry.getService(2)
-  console.log('Second Service', getSecondeService)
+  const getSecondService = await serviceRegistry.getService(2)
+  console.log('Second Service', getSecondService)
 
   // the next service id will be 3
   const getNextServiceId = await serviceRegistry.nextServiceId()

@@ -8,7 +8,7 @@ We need for that to get the TalentLayer Platform ID of Dave then we will mint a 
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
   console.log('Mint test ID start')
 
@@ -25,25 +25,25 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerID),
   )
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   // Dave is a TalentLayer Platform and a TalentLayer User
-  const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  console.log('Dave talentLayerIdPLatform', daveTalentLayerIdPLatform)
+  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
 
-  await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPLatform, 'alice.lens')
+  await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPlatform, 'alice.lens')
   console.log('alice.lens registered')
 
-  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPLatform, 'bob.lens')
+  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPlatform, 'bob.lens')
   console.log('Bob.lens registered')
 
-  await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPLatform, 'carol.lens')
+  await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPlatform, 'carol.lens')
   console.log('carol.lens registered')
 
-  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPLatform, 'dave.lens')
+  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPlatform, 'dave.lens')
   console.log('dave.lens registered')
 }
 

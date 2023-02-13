@@ -9,33 +9,33 @@ After that we mint the new Platform ID Dave will update the profile data.
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
   console.log('Mint Dave platform ID start')
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const mintRole = await platformIdContrat.MINT_ROLE()
+  const mintRole = await platformIdContract.MINT_ROLE()
   //Deployer needs MINT_ROLE to mint for other addresses
-  const grantRole = await platformIdContrat.connect(alice).grantRole(mintRole, alice.address)
+  const grantRole = await platformIdContract.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
-  const mint = await platformIdContrat.connect(alice).mintForAddress('Playground', dave.address)
+  const mint = await platformIdContract.connect(alice).mintForAddress('Playground', dave.address)
   await mint.wait()
 
-  const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  await platformIdContrat.connect(dave).updateProfileData(daveTalentLayerIdPLatform, 'newCid')
+  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  await platformIdContract.connect(dave).updateProfileData(daveTalentLayerIdPlatform, 'newCid')
 
-  const davePlatformData = await platformIdContrat.platforms(daveTalentLayerIdPLatform)
+  const davePlatformData = await platformIdContract.platforms(daveTalentLayerIdPlatform)
 
   const platformName = davePlatformData.name
   const platformCid = davePlatformData.dataUri
 
-  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPLatform)
+  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
   console.log('platformName', platformName)
   console.log('platformCid', platformCid)
 }
