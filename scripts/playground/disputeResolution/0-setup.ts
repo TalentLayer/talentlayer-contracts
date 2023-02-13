@@ -1,11 +1,7 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 import postToIPFS from '../../utils/ipfs'
-import {
-  arbitrationCost,
-  arbitrationFeeTimeout,
-  transactionAmount,
-} from './constants'
+import { arbitrationCost, arbitrationFeeTimeout, transactionAmount } from './constants'
 
 import hre = require('hardhat')
 

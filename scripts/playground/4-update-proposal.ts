@@ -36,7 +36,13 @@ async function main() {
 
   await serviceRegistry
     .connect(bob)
-    .updateProposal(bobTlId, firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.0015', 18), bobUri)
+    .updateProposal(
+      bobTlId,
+      firstServiceId,
+      rateTokenBob,
+      ethers.utils.parseUnits('0.0015', 18),
+      bobUri,
+    )
 
   console.log('Bob update his proposal')
 }

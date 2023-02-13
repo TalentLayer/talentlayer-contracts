@@ -43,7 +43,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param proposals all proposals for this service
     /// @param countProposals the total number of proposal for this service
     /// @param transactionId the escrow transaction ID linked to the service
-    /// @param platformId the platform ID linked to the service
+    /// @param platformId the platform ID on which the service was created
     struct Service {
         Status status;
         uint256 buyerId;
@@ -66,6 +66,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 sellerId;
         address rateToken;
         uint256 rateAmount;
+        uint16 platformId;
         string proposalDataUri;
     }
 
@@ -103,13 +104,15 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
+    /// @param platformId the platform ID on which the proposal was created
     event ProposalCreated(
         uint256 serviceId,
         uint256 sellerId,
         string proposalDataUri,
         ProposalStatus status,
         address rateToken,
-        uint256 rateAmount
+        uint256 rateAmount,
+        uint16 platformId
     );
 
     /// @notice Emitted after an existing proposal has been updated
@@ -239,8 +242,9 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _tokenId,
         uint256 _platformId,
         string calldata _serviceDataUri
-    ) public onlyOwnerOrDelegate(_tokenId) returns (uint256) {
-        talentLayerPlatformIdContract.isValid(_platformId);
+    ) public payable onlyOwnerOrDelegate(_tokenId) returns (uint256) {
+        uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
+        require(msg.value == servicePostingFee, "Non-matching funds");
         return _createService(Status.Opened, _tokenId, _tokenId, 0, _serviceDataUri, _platformId);
     }
 
@@ -257,9 +261,12 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
+        uint16 _platformId,
         string calldata _proposalDataUri
-    ) public onlyOwnerOrDelegate(_tokenId) {
+    ) public payable onlyOwnerOrDelegate(_tokenId) {
         require(allowedTokenList[_rateToken], "This token is not allowed");
+        uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
+        require(msg.value == proposalPostingFee, "Non-matching funds");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -277,10 +284,19 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
             sellerId: _tokenId,
             rateToken: _rateToken,
             rateAmount: _rateAmount,
+            platformId: _platformId,
             proposalDataUri: _proposalDataUri
         });
 
-        emit ProposalCreated(_serviceId, _tokenId, _proposalDataUri, ProposalStatus.Pending, _rateToken, _rateAmount);
+        emit ProposalCreated(
+            _serviceId,
+            _tokenId,
+            _proposalDataUri,
+            ProposalStatus.Pending,
+            _rateToken,
+            _rateAmount,
+            _platformId
+        );
     }
 
     /**
