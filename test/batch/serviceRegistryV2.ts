@@ -51,7 +51,7 @@ async function deployAndSetup(
   // Bob, the seller, creates a proposal for the service
   await serviceRegistry
     .connect(bob)
-    .createProposal(serviceId, tokenAddress, transactionAmount, 'cid')
+    .createProposal(serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry]
 }
