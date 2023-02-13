@@ -18,17 +18,6 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
 contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
-    // =========================== Enum ==============================
-
-    /**
-     * @notice Enum for the mint status
-     */
-    enum MintStatus {
-        ON_PAUSE,
-        ONLY_WHITELIST,
-        PUBLIC
-    }
-
     // =========================== Structs ==============================
 
     /// @notice TalentLayer Profile information struct
@@ -54,14 +43,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Token ID to Profile struct
     mapping(uint256 => Profile) public profiles;
 
-    // Whitelist mapping
-    mapping(address => bool) public whitelist;
-
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
-
-    /// Mint status
-    MintStatus public minStatus;
 
     /// TokenId counter
     CountersUpgradeable.Counter nextTokenId;
@@ -84,8 +67,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         // Increment counter to start tokenIds at index 1
         nextTokenId.increment();
-        // set up the MintStatus on Whitelist
-        minStatus = MintStatus.ONLY_WHITELIST;
     }
 
     // =========================== View functions ==============================
@@ -159,12 +140,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function mint(
         uint256 _platformId,
-        string memory _handle,
+        string memory _handle
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
-        require(_mintStatus == ONLY_WHITELIST || PUBLIC, "Mint status is not valid");
-        if (_mintStatus == ONLY_WHITELIST){
-            require(whitelist[_msgSender()], "You are not whitelisted");
-        }
         address sender = _msgSender();
         _safeMint(sender, nextTokenId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
@@ -185,24 +162,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     // =========================== Owner functions ==============================
-
-    /**
-     * @notice whitelist a user.
-     * @param _user Address of the user to whitelist
-     */
-    function whitelistUser(address _user) public onlyOwner {
-        require(_user != address(0), "User address cannot be 0");
-        whitelist[_user] = true;
-    }
-
-    /**
-     * @notice Updates the mint status.
-     * @param _mintStatus
-     */
-    function updateMintStatus(MintStatus _mintStatus) public onlyOwner {
-        minStatus = _mintStatus;
-        emit MintStatusUpdated(_mintStatus);
-    }
 
     /**
      * @notice Updates the mint fee.
@@ -231,8 +190,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         address _userAddress,
         string memory _handle
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
-        require(_mintStatus == ONLY_WHITELIST || PUBLIC, "Mint status is not valid");
-        require(whitelist[_userAddress], "You are not whitelisted");
         _safeMint(_userAddress, nextTokenId.current());
         _afterMint(_userAddress, _handle, _platformId, 0);
     }
@@ -406,10 +363,4 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _mintFee The new mint fee
      */
     event MintFeeUpdated(uint256 _mintFee);
-
-    /**
-     * Emit when mint the mint status is updated
-     * @param _mintStatus The new mint status
-     */
-    event MintStatusUpdated(string _mintStatus);
 }
