@@ -216,7 +216,7 @@ describe('Dispute Resolution, standard flow', function () {
       await expect(tx).to.be.revertedWith('The sender fee must be equal to the arbitration cost.')
     })
 
-    describe('Successfull payment of arbitration fee', async function () {
+    describe('Successful payment of arbitration fee', async function () {
       let tx: ContractTransaction
 
       before(async function () {
@@ -270,7 +270,7 @@ describe('Dispute Resolution, standard flow', function () {
       await expect(tx).to.be.revertedWith('The receiver fee must be equal to the arbitration cost.')
     })
 
-    describe('Successfull payment of arbitration fee', async function () {
+    describe('Successful payment of arbitration fee', async function () {
       let tx: ContractTransaction
 
       before(async function () {
@@ -322,7 +322,7 @@ describe('Dispute Resolution, standard flow', function () {
       await expect(tx).to.be.revertedWith("The transaction shouldn't be disputed.")
     })
 
-    it('Reimbursement fails since ther must be no dispute to reimburse', async function () {
+    it('Reimbursement fails since there must be no dispute to reimburse', async function () {
       const tx = talentLayerEscrow
         .connect(bob)
         .reimburse(bobTlId, transactionId, transactionReimbursedAmount)
@@ -373,7 +373,7 @@ describe('Dispute Resolution, standard flow', function () {
       await expect(tx).to.be.revertedWith("You're not the owner of the platform")
     })
 
-    describe('Successfull submission of a ruling', async function () {
+    describe('Successful submission of a ruling', async function () {
       let tx: ContractTransaction
 
       before(async function () {

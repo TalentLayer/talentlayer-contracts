@@ -5,7 +5,7 @@ import hre = require('hardhat')
 In this script  Alice releases 3/4 of the escrow & Carol reimburses the remaining 1/4 to Alice
 */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const serviceRegistry = await ethers.getContractAt(
@@ -23,9 +23,9 @@ async function main() {
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
 
   const firstRelease = await talentLayerEscrow.connect(alice).release(0, rateAmount.div(2))
-  firstRelease.wait()
+  await firstRelease.wait()
   const secondRelease = await talentLayerEscrow.connect(alice).release(0, rateAmount.div(2))
-  secondRelease.wait()
+  await secondRelease.wait()
   // const reimburse = await talentLayerEscrow.connect(carol).reimburse(0, rateAmount.div(4))
   // reimburse.wait()
 }

@@ -21,7 +21,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         Filled,
         Confirmed,
         Finished,
-        Rejected,
+        Cancelled,
         Opened
     }
 
@@ -59,7 +59,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param status the current status of a service
     /// @param sellerId the talentLayerId of the seller
     /// @param rateToken the token choose for the payment
-    /// @param rateAmount the amount of token choosed
+    /// @param rateAmount the amount of token chosen
     /// @param proposalDataUri token Id to IPFS URI mapping
     struct Proposal {
         ProposalStatus status;
@@ -85,6 +85,10 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param serviceDataUri token Id to IPFS URI mapping
     event ServiceDataCreated(uint256 id, string serviceDataUri);
 
+    /// @notice Emitted after a service is cancelled by the owner
+    /// @param id The service ID
+    event ServiceCancelled(uint256 id);
+
     /**
      * Emit when Cid is updated for a Service
      * @param id The service ID
@@ -98,7 +102,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
-    /// @param rateAmount the amount of token choosed
+    /// @param rateAmount the amount of token chosen
     event ProposalCreated(
         uint256 serviceId,
         uint256 sellerId,
@@ -113,7 +117,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /// @param sellerId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param rateToken the token choose for the payment
-    /// @param rateAmount the amount of token choosed
+    /// @param rateAmount the amount of token chosen
     event ProposalUpdated(
         uint256 serviceId,
         uint256 sellerId,
@@ -284,7 +288,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
      * @param _senderId The talentLayerId of the sender
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
-     * @param _rateAmount the amount of token choosed
+     * @param _rateAmount the amount of token chosen
      * @param _proposalDataUri token Id to IPFS URI mapping
      */
     function updateProposal(
@@ -308,28 +312,6 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         proposal.proposalDataUri = _proposalDataUri;
 
         emit ProposalUpdated(_serviceId, _senderId, _proposalDataUri, _rateToken, _rateAmount);
-    }
-
-    /**
-     * @notice Allows the buyer to validate a proposal
-     * @param _senderId The talentLayerId of the sender
-     * @param _serviceId Service identifier
-     * @param _proposalId Proposal identifier
-     */
-    function validateProposal(
-        uint256 _senderId,
-        uint256 _serviceId,
-        uint256 _proposalId
-    ) public onlyOwnerOrDelegate(_senderId) {
-        Service storage service = services[_serviceId];
-        Proposal storage proposal = proposals[_serviceId][_proposalId];
-
-        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
-        require(_senderId == service.buyerId, "You're not the buyer");
-
-        proposal.status = ProposalStatus.Validated;
-
-        emit ProposalValidated(_serviceId, _proposalId);
     }
 
     /**
@@ -360,7 +342,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
     /**
      * @notice Allow the escrow contract to upgrade the Service state after a deposit has been done
      * @param _serviceId Service identifier
-     * @param _proposalId The choosed proposal id for this service
+     * @param _proposalId The chosen proposal id for this service
      * @param _transactionId The escrow transaction Id
      */
     function afterDeposit(
@@ -425,6 +407,21 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         service.serviceDataUri = _newServiceDataUri;
 
         emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
+    }
+
+    /**
+     * Cancel a Service
+     * @param _serviceId, Service ID to cancel
+     */
+    function cancelService(uint256 _serviceId) public {
+        Service storage service = services[_serviceId];
+
+        require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can cancel the service");
+        require(service.status == Status.Opened, "Only services with the open status can be cancelled");
+
+        service.status = Status.Cancelled;
+
+        emit ServiceCancelled(_serviceId);
     }
 
     // =========================== Private functions ==============================

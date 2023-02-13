@@ -15,7 +15,7 @@ import hre = require('hardhat')
 
 // Then Alice create a service, and others add proposals
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
@@ -81,7 +81,7 @@ async function main() {
     .connect(bob)
     .createProposal(bobTlId, firstServiceId, rateTokenBob, ethers.utils.parseUnits('0.001', 18), bobUri)
   console.log('Bob proposal created')
-  bobProposal.wait()
+  await bobProposal.wait()
   // get the proposal
   const bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
   console.log('Bob proposal', bobProposalData)
@@ -92,7 +92,7 @@ async function main() {
     .connect(carol)
     .createProposal(carolTlId, firstServiceId, rateTokenCarol, ethers.utils.parseUnits('0.002', 18), carolUri)
   console.log('Carol proposal created')
-  carolProposal.wait()
+  await carolProposal.wait()
   // get the proposal
   const carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
   console.log('Carol proposal', carolProposalData)
@@ -103,7 +103,7 @@ async function main() {
     .connect(dave)
     .createProposal(daveTlId, secondServiceId, rateTokenDave, ethers.utils.parseUnits('0.003', 18), daveUri)
   console.log('Dave proposal created')
-  daveProposal.wait()
+  await daveProposal.wait()
   // get the proposal
   const daveProposalData = await serviceRegistry.proposals(secondServiceId, 4)
   console.log('Dave proposal', daveProposalData)

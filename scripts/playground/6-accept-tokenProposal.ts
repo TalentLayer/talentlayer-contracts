@@ -9,7 +9,7 @@ In this script Alice will accept Dave proposal with Token transaction
 
 // Alice accept the Carol proposal
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
@@ -23,7 +23,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerEscrow),
   )
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
@@ -48,8 +48,8 @@ async function main() {
   console.log('protocolEscrowFeeRate', protocolEscrowFeeRate.toString())
 
   //Origin platform fee && platform fee
-  const daveTlId = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  const davePlatformData = await platformIdContrat.platforms(daveTlId)
+  const daveTlId = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const davePlatformData = await platformIdContract.platforms(daveTlId)
   const originPlatformEscrowFeeRate = ethers.BigNumber.from(
     await talentLayerEscrow.originPlatformEscrowFeeRate(),
   )
@@ -64,7 +64,7 @@ async function main() {
 
   // we allow the contract to spend Alice tokens with the bob rateAmount + fees
   const approve = await token.approve(talentLayerEscrow.address, totalAmount)
-  waitConfirmations(network, approve, 10)
+  await waitConfirmations(network, approve, 10)
 
   let secondServiceId = await serviceRegistry.nextServiceId()
   secondServiceId = secondServiceId.sub(1)

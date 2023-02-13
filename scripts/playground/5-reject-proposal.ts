@@ -10,7 +10,7 @@ In this script Alice will reject Bob's proposal
 
 // Then Alice create a service, and others add proposals
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice] = await ethers.getSigners()

@@ -11,7 +11,7 @@ In this scriptAlice will review Carol and Carol will review Alice
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
@@ -21,7 +21,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.Reviewscontract),
   )
 
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
@@ -42,8 +42,8 @@ async function main() {
   )
   console.log('carolReviewAliceIpfsUri', carolReviewAlice)
 
-  const daveTalentLayerIdPlatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  console.log('Dave talentLayerIdPLatform', daveTalentLayerIdPlatform)
+  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
 
   await talentLayerReview
     .connect(alice)

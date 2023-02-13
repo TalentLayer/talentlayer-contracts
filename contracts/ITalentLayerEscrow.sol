@@ -35,9 +35,9 @@ interface ITalentLayerEscrow {
         uint256 _proposalId
     ) external payable returns (uint256);
 
-    function release(uint256 _transactionId, uint256 _amount) external;
+    function release(uint256 _tokenId, uint256 _transactionId, uint256 _amount) external;
 
-    function reimburse(uint256 _transactionId, uint256 _amount) external;
+    function reimburse(uint256 _tokenId, uint256 _transactionId, uint256 _amount) external;
 
     function claim(uint256 _platformId, address _tokenAddress) external;
 
