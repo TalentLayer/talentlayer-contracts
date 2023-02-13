@@ -141,13 +141,14 @@ contract TalentLayerReview is
     /**
      * @notice Called to mint a review token for a completed service
      * @dev Only one review can be minted per user
+     * @param _tokenId TalentLayer ID of the user
      * @param _serviceId Service ID
      * @param _reviewUri The IPFS URI of the review
      * @param _rating The review rate
      * @param _platformId The platform ID
      */
     function addReview(
-        uint256 _senderId,
+        uint256 _tokenId,
         uint256 _serviceId,
         string calldata _reviewUri,
         uint256 _rating,
@@ -160,19 +161,19 @@ contract TalentLayerReview is
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
-        if (_senderId == service.buyerId) {
+        if (_tokenId == service.buyerId) {
             toId = service.sellerId;
-            if (nftMintedByServiceAndBuyerId[_serviceId] == _senderId) {
+            if (nftMintedByServiceAndBuyerId[_serviceId] == _tokenId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndBuyerId[_serviceId] = _senderId;
+                nftMintedByServiceAndBuyerId[_serviceId] = _tokenId;
             }
         } else {
             toId = service.buyerId;
-            if (nftMintedByServiceAndSellerId[_serviceId] == _senderId) {
+            if (nftMintedByServiceAndSellerId[_serviceId] == _tokenId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndSellerId[_serviceId] = _senderId;
+                nftMintedByServiceAndSellerId[_serviceId] = _tokenId;
             }
         }
 

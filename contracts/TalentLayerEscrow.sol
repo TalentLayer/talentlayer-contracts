@@ -525,7 +525,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /**
      * @notice Allows the sender to release locked-in escrow value to the intended recipient.
      *         The amount released must not include the fees.
-     * @param _tokenId The talentLayerId of the sender
+     * @param _tokenId The talentLayerId of the user.
      * @param _transactionId Id of the transaction to release escrow value for.
      * @param _amount Value to be released without fees. Should not be more than amount locked in.
      */
@@ -544,7 +544,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /**
      * @notice Allows the intended receiver to return locked-in escrow value back to the sender.
      *         The amount reimbursed must not include the fees.
-     * @param _tokenId The talentLayerId of the sender
+     * @param _tokenId The talentLayerId of the user.
      * @param _transactionId Id of the transaction to reimburse escrow value for.
      * @param _amount Value to be reimbursed without fees. Should not be more than amount locked in.
      */
@@ -674,7 +674,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /** @notice Allows a party to submit a reference to evidence.
-     *  @param _tokenId The talentLayerId of the sender
+     *  @param _tokenId The talentLayerId of the user.
      *  @param _transactionId The index of the transaction.
      *  @param _evidence A link to an evidence using its URI.
      */
