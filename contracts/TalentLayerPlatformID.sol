@@ -131,7 +131,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
         // Increment counter to start tokenIds at index 1
         _nextTokenId.increment();
-        // set up the MintStatus on Whitelist
         minStatus = MintStatus.ONLY_WHITELIST;
     }
 
@@ -261,13 +260,24 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows a platform to update his fee
-     * @param _platformEscrowFeeRate Platform fee to update
+     * @param _originServiceFeeRate Platform fee to update
      */
-    function updatePlatformEscrowFeeRate(uint256 _platformId, uint16 _platformEscrowFeeRate) public {
+    function updateOriginServiceFeeRate(uint256 _platformId, uint16 _originServiceFeeRate) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
-        platforms[_platformId].fee = _platformEscrowFeeRate;
-        emit PlatformEscrowFeeRateUpdated(_platformId, _platformEscrowFeeRate);
+        platforms[_platformId].originServiceFeeRate = _originServiceFeeRate;
+        emit OriginServiceFeeRateUpdated(_platformId, _originServiceFeeRate);
+    }
+
+    /**
+     * @notice Allows a platform to update his fee
+     * @param _originValidatedProposalFeeRate Platform fee to update
+     */
+    function updateOriginValidatedProposalFeeRate(uint256 _platformId, uint16 _originValidatedProposalFeeRate) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].originValidatedProposalFeeRate = _originValidatedProposalFeeRate;
+        emit OriginValidatedProposalFeeRateUpdated(_platformId, _originValidatedProposalFeeRate);
     }
 
     /**
@@ -564,9 +574,15 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Emit when the fee is updated for a platform
-     * @param _platformEscrowFeeRate The new fee
+     * @param _originServiceFeeRate The new fee
      */
-    event PlatformEscrowFeeRateUpdated(uint256 _platformId, uint16 _platformEscrowFeeRate);
+    event OriginServiceFeeRateUpdated(uint256 _platformId, uint16 _originServiceFeeRate);
+
+    /**
+     * @notice Emit when the fee is updated for a platform
+     * @param _originValidatedProposalFeeRate The new fee
+     */
+    event OriginValidatedProposalFeeRateUpdated(uint256 _platformId, uint16 _originValidatedProposalFeeRate);
 
     /**
      * @notice Emit after the arbitrator is updated for a platform
