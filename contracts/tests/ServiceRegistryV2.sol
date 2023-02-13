@@ -215,7 +215,10 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _platformId platform ID on which the Service token was minted
      * @param _serviceDataUri token Id to IPFS URI mapping
      */
-    function createOpenServiceFromBuyer(uint256 _platformId, string calldata _serviceDataUri) public payable returns (uint256) {
+    function createOpenServiceFromBuyer(
+        uint256 _platformId,
+        string calldata _serviceDataUri
+    ) public payable returns (uint256) {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
         require(msg.value == servicePostingFee, "Non-matching funds");
         talentLayerPlatformIdContract.isValid(_platformId);
