@@ -35,8 +35,8 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         string dataUri;
         uint16 originServiceFeeRate;
         uint16 originValidatedProposalFeeRate;
-        uint16 servicePostingFee;
-        uint16 proposalPostingFee;
+        uint256 servicePostingFee;
+        uint256 proposalPostingFee;
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
@@ -143,7 +143,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId Platform Id to check
      * @return The Service posting fee
      */
-    function getServicePostingFee(uint256 _platformId) external view returns (uint16) {
+    function getServicePostingFee(uint256 _platformId) external view returns (uint256) {
         require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
         return platforms[_platformId].servicePostingFee;
     }
@@ -153,7 +153,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId Platform Id to check
      * @return The Proposal posting fee
      */
-    function getProposalPostingFee(uint256 _platformId) external view returns (uint16) {
+    function getProposalPostingFee(uint256 _platformId) external view returns (uint256) {
         require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
         return platforms[_platformId].proposalPostingFee;
     }
@@ -296,7 +296,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId The platform id
      * @param _servicePostingFee The new fee
      */
-    function updateServicePostingFee(uint256 _platformId, uint16 _servicePostingFee) public {
+    function updateServicePostingFee(uint256 _platformId, uint256 _servicePostingFee) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
         platforms[_platformId].servicePostingFee = _servicePostingFee;
@@ -308,7 +308,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId The platform id
      * @param _proposalPostingFee The new fee
      */
-    function updateProposalPostingFee(uint256 _platformId, uint16 _proposalPostingFee) public {
+    function updateProposalPostingFee(uint256 _platformId, uint256 _proposalPostingFee) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
 
         platforms[_platformId].proposalPostingFee = _proposalPostingFee;
@@ -557,11 +557,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @notice Emit when the service posting fee is updated for a platform
      * @param _servicePostingFee The new fee
      */
-    event ServicePostingFeeUpdated(uint256 _platformId, uint16 _servicePostingFee);
+    event ServicePostingFeeUpdated(uint256 _platformId, uint256 _servicePostingFee);
 
     /**
      * @notice Emit when the proposal posting fee is updated for a platform
      * @param _proposalPostingFee The new fee
      */
-    event ProposalPostingFeeUpdated(uint256 _platformId, uint16 _proposalPostingFee);
+    event ProposalPostingFeeUpdated(uint256 _platformId, uint256 _proposalPostingFee);
 }
