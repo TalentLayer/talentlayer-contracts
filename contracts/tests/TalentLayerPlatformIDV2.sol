@@ -16,6 +16,17 @@ import "../Arbitrator.sol";
 contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
+    // =========================== Enum ==============================
+
+    /**
+     * @notice Enum for the mint status
+     */
+    enum MintStatus {
+        ON_PAUSE,
+        ONLY_WHITELIST,
+        PUBLIC
+    }
+
     // =========================== Variables ==============================
 
     /// @notice TalentLayer Platform information struct
@@ -53,6 +64,11 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      */
     mapping(address => bool) public validArbitrators;
 
+    /** Whitelist mapping
+     * @notice Addresses which are allowed to mint a Platform ID
+     */
+    mapping(address => bool) public whitelist;
+
     /**
      * @notice Whether arbitrators are internal (are part of TalentLayer) or not
      *         Internal arbitrators will have the extra data set to the platform ID
@@ -86,6 +102,11 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @notice Test variable
      */
     string public testString;
+
+    /**
+     * @notice  The minting status
+     */
+    MintStatus public minStatus;
 
     // =========================== Initializers ==============================
 
@@ -167,6 +188,10 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _platformName Platform name
      */
     function mint(string memory _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
+        require(minStatus == MintStatus.ONLY_WHITELIST || minStatus == MintStatus.PUBLIC, "Mint status is not valid");
+        if (minStatus == MintStatus.ONLY_WHITELIST) {
+            require(whitelist[_msgSender()], "You are not whitelisted");
+        }
         _safeMint(msg.sender, _nextTokenId.current());
         _afterMint(_platformName, msg.sender);
     }
@@ -181,6 +206,10 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         string memory _platformName,
         address _platformAddress
     ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
+        require(minStatus == MintStatus.ONLY_WHITELIST || minStatus == MintStatus.PUBLIC, "Mint status is not valid");
+        if (minStatus == MintStatus.ONLY_WHITELIST) {
+            require(whitelist[_msgSender()], "You are not whitelisted");
+        }
         _safeMint(_platformAddress, _nextTokenId.current());
         _afterMint(_platformName, _platformAddress);
     }
@@ -259,6 +288,24 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     }
 
     // =========================== Owner functions ==============================
+
+    /**
+     * @notice whitelist a user.
+     * @param _user Address of the user to whitelist
+     */
+    function whitelistUser(address _user) public onlyRole(OWNER_ROLE) {
+        require(_user != address(0), "User address cannot be 0");
+        whitelist[_user] = true;
+    }
+
+    /**
+     * @notice Updates the mint status.
+     * @param _mintStatus The new mint status
+     */
+    function updateMintStatus(MintStatus _mintStatus) public onlyRole(OWNER_ROLE) {
+        minStatus = _mintStatus;
+        emit MintStatusUpdated(_mintStatus);
+    }
 
     /**
      * Updates the mint fee.
@@ -495,4 +542,10 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _minArbitrationFeeTimeout The new arbitration fee timeout
      */
     event MinArbitrationFeeTimeoutUpdated(uint256 _minArbitrationFeeTimeout);
+
+    /**
+     * Emit when mint the mint status is updated
+     * @param _mintStatus The new mint status
+     */
+    event MintStatusUpdated(MintStatus _mintStatus);
 }
