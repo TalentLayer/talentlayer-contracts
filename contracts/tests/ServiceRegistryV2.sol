@@ -215,7 +215,9 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _platformId platform ID on which the Service token was minted
      * @param _serviceDataUri token Id to IPFS URI mapping
      */
-    function createOpenServiceFromBuyer(uint256 _platformId, string calldata _serviceDataUri) public returns (uint256) {
+    function createOpenServiceFromBuyer(uint256 _platformId, string calldata _serviceDataUri) public payable returns (uint256) {
+        uint16 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
+        require(msg.value == servicePostingFee, "Non-matching funds");
         talentLayerPlatformIdContract.isValid(_platformId);
         uint256 senderId = tlId.walletOfOwner(_msgSender());
         return _createService(Status.Opened, senderId, senderId, 0, _serviceDataUri, _platformId);
@@ -234,10 +236,12 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _rateAmount,
         uint16 _platformId,
         string calldata _proposalDataUri
-    ) public {
+    ) public payable {
         uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId > 0, "You should have a TalentLayerId");
         require(allowedTokenList[_rateToken], "This token is not allowed");
+        uint16 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
+        require(msg.value == proposalPostingFee, "Non-matching funds");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
