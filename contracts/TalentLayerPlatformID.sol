@@ -62,7 +62,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     mapping(address => bool) public validArbitrators;
 
-    // Whitelist mapping
+    /** Whitelist mapping
+     * @notice Addresses which are allowed to mint a Platform ID
+     */
     mapping(address => bool) public whitelist;
 
     /**
@@ -94,7 +96,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     CountersUpgradeable.Counter private _nextTokenId;
 
-    /// Mint status
+    /**
+     * @notice  The minting status
+     */
     MintStatus public minStatus;
 
     // =========================== Initializers ==============================
@@ -183,10 +187,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformName Platform name
      */
     function mint(string memory _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
-        require(
-            minStatus == MintStatus.ONLY_WHITELIST || minStatus == MintStatus.ONLY_WHITELIST,
-            "Mint status is not valid"
-        );
+        require(minStatus == MintStatus.ONLY_WHITELIST || minStatus == MintStatus.PUBLIC, "Mint status is not valid");
         if (minStatus == MintStatus.ONLY_WHITELIST) {
             require(whitelist[_msgSender()], "You are not whitelisted");
         }
@@ -204,6 +205,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         string memory _platformName,
         address _platformAddress
     ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
+        require(minStatus == MintStatus.ONLY_WHITELIST || minStatus == MintStatus.PUBLIC, "Mint status is not valid");
+        if (minStatus == MintStatus.ONLY_WHITELIST) {
+            require(whitelist[_msgSender()], "You are not whitelisted");
+        }
         _safeMint(_platformAddress, _nextTokenId.current());
         _afterMint(_platformName, _platformAddress);
     }
