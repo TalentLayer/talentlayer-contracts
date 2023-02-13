@@ -547,31 +547,33 @@ describe('TalentLayer protocol global testing', function () {
       expect(serviceData.serviceDataUri).to.be.equal('aliceUpdateHerFirstService')
     })
 
-    it('Alice can cancel her own service', async function() {
+    it('Alice can cancel her own service', async function () {
       await serviceRegistry.connect(alice).cancelService(5)
       const serviceData = await serviceRegistry.services(5)
       expect(serviceData.status).to.be.equal(3)
     })
 
-    it('Alice can cancel only a service that is open', async function() {
-      expect(serviceRegistry.connect(alice).cancelService(5)).to.be.revertedWith("Only services with the open status can be cancelled")
+    it('Alice can cancel only a service that is open', async function () {
+      expect(serviceRegistry.connect(alice).cancelService(5)).to.be.revertedWith(
+        'Only services with the open status can be cancelled',
+      )
     })
 
-    it('After a service has been cancelled, nobody can post a proposal', async function() {
+    it('After a service has been cancelled, nobody can post a proposal', async function () {
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
       const bobTid = await talentLayerID.walletOfOwner(bob.address)
       await serviceRegistry.getProposal(5, bobTid)
-      expect(serviceRegistry.connect(bob).createProposal(
-        5,
-        rateToken,
-        1,
-        bobPlatformId,
-        'proposalOnCancelledService'
-      )).to.be.revertedWith("Service is not opened")
+      expect(
+        serviceRegistry
+          .connect(bob)
+          .createProposal(5, rateToken, 1, bobPlatformId, 'proposalOnCancelledService'),
+      ).to.be.revertedWith('Service is not opened')
     })
 
-    it('Bob cannot cancel Alice\'s service', async function() {
-      expect(serviceRegistry.connect(bob).cancelService(1)).to.be.revertedWith('Only the initiator can cancel the service')
+    it("Bob cannot cancel Alice's service", async function () {
+      expect(serviceRegistry.connect(bob).cancelService(1)).to.be.revertedWith(
+        'Only the initiator can cancel the service',
+      )
     })
 
     it('Bob can create his first proposal for an Open service n°1 from Alice', async function () {
@@ -586,7 +588,7 @@ describe('TalentLayer protocol global testing', function () {
       // Bob creates a proposal on Platform 1
       await serviceRegistry
         .connect(bob)
-        .createProposal(1, rateToken, 1, alicePlatformId, bobPlatformId, 'proposal1FromBobToAlice1Service')
+        .createProposal(1, rateToken, 1, alicePlatformId, 'proposal1FromBobToAlice1Service')
 
       const serviceData = await serviceRegistry.services(1)
       const proposalDataAfter = await serviceRegistry.getProposal(1, bobTid)
@@ -675,8 +677,11 @@ describe('TalentLayer protocol global testing', function () {
 
       it('Alice can NOT deposit tokens to escrow yet because there is no valid proposal', async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountBob)
-        await expect(talentLayerEscrow.connect(alice).createTokenTransaction('_metaEvidence', serviceId, proposalIdBob))
-          .to.be.revertedWith('ERC721: invalid token ID')
+        await expect(
+          talentLayerEscrow
+            .connect(alice)
+            .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob),
+        ).to.be.revertedWith('ERC721: invalid token ID')
       })
 
       it('Bob can make a second proposal on the Alice service n°2 on Platform n°2', async function () {
@@ -868,7 +873,7 @@ describe('TalentLayer protocol global testing', function () {
         )
       })
 
-      it('After a service has been cancelled, the owner cannot validate a proposal by depositing fund', async function() {
+      it('After a service has been cancelled, the owner cannot validate a proposal by depositing fund', async function () {
         // Create the service
         const serviceId = 6
         const proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
@@ -876,7 +881,9 @@ describe('TalentLayer protocol global testing', function () {
         await serviceRegistry.services(serviceId)
         // Create the proposal
         const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
-        await serviceRegistry.connect(bob).createProposal(serviceId, rateToken, 1, 'proposalOnService');
+        await serviceRegistry
+          .connect(bob)
+          .createProposal(serviceId, rateToken, 1, bobPlatformId, 'proposalOnService')
         // Cancel the service
         await serviceRegistry.connect(alice).cancelService(serviceId)
         // Try to deposit fund to validate the proposal
@@ -884,17 +891,20 @@ describe('TalentLayer protocol global testing', function () {
           .connect(alice)
           .getTransactionDetails(transactionId.toString())
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
-        const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
-        const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
+        const originServiceFeeRate = transactionDetails.originServiceFeeRate
+        const originValidatedProposalFeeRate = transactionDetails.originValidatedProposalFeeRate
         totalAmount =
           amountBob +
-          (amountBob * (protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)) / 10000
+          (amountBob *
+            (protocolEscrowFeeRate + originServiceFeeRate + originValidatedProposalFeeRate)) /
+            10000
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
 
-        await expect(talentLayerEscrow
-          .connect(alice)
-          .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob)
+        await expect(
+          talentLayerEscrow
+            .connect(alice)
+            .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob),
         ).to.be.revertedWith('Service status not open.')
       })
 
