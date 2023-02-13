@@ -15,6 +15,8 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
         string dataUri;
         uint16 originServiceFeeRate;
         uint16 originValidatedProposalFeeRate;
+        uint256 servicePostingFee;
+        uint256 proposalPostingFee;
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
@@ -59,6 +61,14 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
     function isValid(uint256 _platformId) external view;
 
     function updateMinArbitrationFeeTimeout(uint256 _minArbitrationFeeTimeout) external;
+
+    function getServicePostingFee(uint256 _platformId) external view returns (uint256);
+
+    function getProposalPostingFee(uint256 _platformId) external view returns (uint256);
+
+    function updateServicePostingFee(uint256 _platformId, uint256 _servicePostingFee) external;
+
+    function updateProposalPostingFee(uint256 _platformId, uint256 _proposalPostingFee) external;
 
     event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName);
 
