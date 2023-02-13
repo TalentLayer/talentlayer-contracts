@@ -105,7 +105,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     /**
      * @notice  The minting status
      */
-    MintStatus public minStatus;
+    MintStatus public mintStatus;
 
     // =========================== Initializers ==============================
 
@@ -207,8 +207,8 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _platformName Platform name
      */
     function mint(string memory _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
-        require(minStatus == MintStatus.ONLY_WHITELIST || minStatus == MintStatus.PUBLIC, "Mint status is not valid");
-        if (minStatus == MintStatus.ONLY_WHITELIST) {
+        require(mintStatus == MintStatus.ONLY_WHITELIST || mintStatus == MintStatus.PUBLIC, "Mint status is not valid");
+        if (mintStatus == MintStatus.ONLY_WHITELIST) {
             require(whitelist[_msgSender()], "You are not whitelisted");
         }
         _safeMint(msg.sender, _nextTokenId.current());
@@ -225,8 +225,8 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         string memory _platformName,
         address _platformAddress
     ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
-        require(minStatus == MintStatus.ONLY_WHITELIST || minStatus == MintStatus.PUBLIC, "Mint status is not valid");
-        if (minStatus == MintStatus.ONLY_WHITELIST) {
+        require(mintStatus == MintStatus.ONLY_WHITELIST || mintStatus == MintStatus.PUBLIC, "Mint status is not valid");
+        if (mintStatus == MintStatus.ONLY_WHITELIST) {
             require(whitelist[_msgSender()], "You are not whitelisted");
         }
         _safeMint(_platformAddress, _nextTokenId.current());
@@ -347,7 +347,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _mintStatus The new mint status
      */
     function updateMintStatus(MintStatus _mintStatus) public onlyRole(OWNER_ROLE) {
-        minStatus = _mintStatus;
+        mintStatus = _mintStatus;
         emit MintStatusUpdated(_mintStatus);
     }
 
