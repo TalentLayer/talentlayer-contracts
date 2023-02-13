@@ -9,7 +9,7 @@ After that we mint the new Platform ID Dave will update the profile data.
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log(network)
   console.log('Mint Dave platform ID start')
 
@@ -24,6 +24,7 @@ async function main() {
   //Deployer needs MINT_ROLE to mint for other addresses
   const grantRole = await platformIdContract.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
+  
   const mint1 = await platformIdContract.connect(alice).mintForAddress('Playground', dave.address)
   await mint1.wait()
   const mint2 = await platformIdContract.connect(alice).mintForAddress('Playground2', bob.address)

@@ -294,7 +294,7 @@ contract TalentLayerEscrowV2 is Initializable, ERC2771RecipientUpgradeable, UUPS
     mapping(uint256 => uint256) public disputeIDtoTransactionID;
 
     /**
-     * @notice Test variable to test upgradeability.
+     * @notice Test variable to test upgradability.
      */
     uint256 private testVariable;
 

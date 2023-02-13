@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../networkConfig'
 import postToIPFS from '../../utils/ipfs'
 import { transactionId } from './constants'
 
@@ -10,7 +9,7 @@ import hre = require('hardhat')
  * In this script, Alice and Bob submit evidence to support their viewpoints on the dispute.
  */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Network: ', network)
 
   const [, alice, bob] = await ethers.getSigners()
