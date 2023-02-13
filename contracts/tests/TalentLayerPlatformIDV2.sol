@@ -24,6 +24,8 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     /// @param dataUri the IPFS URI of the Platform metadata
     /// @param originServiceFeeRate the %fee (per ten thousands) asked by the platform for each service created on the platform
     /// @param originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
+    /// @param servicePostingFee the fee (flat) asked by the platform to post a service on the platform
+    /// @param proposalPostingFee the fee (flat) asked by the platform to post a proposal on the platform
     /// @param arbitrator address of the arbitrator used by the platform
     /// @param arbitratorExtraData extra information for the arbitrator
     /// @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
@@ -33,6 +35,8 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         string dataUri;
         uint16 originServiceFeeRate;
         uint16 originValidatedProposalFeeRate;
+        uint16 servicePostingFee;
+        uint16 proposalPostingFee;
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
@@ -123,6 +127,26 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
     function getOriginValidatedProposalFeeRate(uint256 _platformId) external view returns (uint16) {
         require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
         return platforms[_platformId].originValidatedProposalFeeRate;
+    }
+
+    /**
+     * @notice Allows retrieval of a service posting fee
+     * @param _platformId Platform Id to check
+     * @return The Service posting fee
+     */
+    function getServicePostingFee(uint256 _platformId) external view returns (uint16) {
+        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
+        return platforms[_platformId].servicePostingFee;
+    }
+
+    /**
+     * @notice Allows retrieval of a proposal posting fee
+     * @param _platformId Platform Id to check
+     * @return The Proposal posting fee
+     */
+    function getProposalPostingFee(uint256 _platformId) external view returns (uint16) {
+        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
+        return platforms[_platformId].proposalPostingFee;
     }
 
     /**
@@ -256,6 +280,30 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
 
         platforms[_platformId].arbitrationFeeTimeout = _arbitrationFeeTimeout;
         emit ArbitrationFeeTimeoutUpdated(_platformId, _arbitrationFeeTimeout);
+    }
+
+    /**
+     * @notice Allows a platform to update the service posting fee for the platform
+     * @param _platformId The platform id
+     * @param _servicePostingFee The new fee
+     */
+    function updateServicePostingFee(uint256 _platformId, uint16 _servicePostingFee) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].servicePostingFee = _servicePostingFee;
+        emit ServicePostingFeeUpdated(_platformId, _servicePostingFee);
+    }
+
+    /**
+     * @notice Allows a platform to update the proposal posting fee for the platform
+     * @param _platformId The platform id
+     * @param _proposalPostingFee The new fee
+     */
+    function updateProposalPostingFee(uint256 _platformId, uint16 _proposalPostingFee) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].proposalPostingFee = _proposalPostingFee;
+        emit ProposalPostingFeeUpdated(_platformId, _proposalPostingFee);
     }
 
     // =========================== Owner functions ==============================
@@ -427,7 +475,7 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
         require(bytes(_platformName).length >= 2, "Name too short");
-        require(bytes(_platformName).length <= 10, "Name too long");
+        require(bytes(_platformName).length <= 20, "Name too long");
         require(!takenNames[_platformName], "Name already taken");
         _;
     }
@@ -495,4 +543,16 @@ contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable,
      * @param _minArbitrationFeeTimeout The new arbitration fee timeout
      */
     event MinArbitrationFeeTimeoutUpdated(uint256 _minArbitrationFeeTimeout);
+
+    /**
+     * @notice Emit when the service posting fee is updated for a platform
+     * @param _servicePostingFee The new fee
+     */
+    event ServicePostingFeeUpdated(uint256 _platformId, uint16 _servicePostingFee);
+
+    /**
+     * @notice Emit when the proposal posting fee is updated for a platform
+     * @param _proposalPostingFee The new fee
+     */
+    event ProposalPostingFeeUpdated(uint256 _platformId, uint16 _proposalPostingFee);
 }
