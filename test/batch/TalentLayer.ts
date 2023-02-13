@@ -241,11 +241,12 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerPlatformID
         .connect(alice)
         .updateArbitrator(1, talentLayerArbitrator.address, [])
-      const arbitrator = (await talentLayerPlatformID.getPlatform(1)).arbitrator
+      const arbitrator = (await talentLayerPlatformID.getPlatform(alicePlatformId)).arbitrator
       expect(arbitrator).to.be.equal(talentLayerArbitrator.address)
 
       // Extra data is updated and is equal to the platform id since the arbitrator is internal
-      const arbitratorExtraData = (await talentLayerPlatformID.getPlatform(1)).arbitratorExtraData
+      const arbitratorExtraData = (await talentLayerPlatformID.getPlatform(alicePlatformId))
+        .arbitratorExtraData
       const platformId = BigNumber.from(arbitratorExtraData)
       expect(platformId).to.be.equal(1)
     })
@@ -271,8 +272,9 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerPlatformID
         .connect(alice)
         .updateArbitrationFeeTimeout(1, arbitrationFeeTimeout)
-      const updatedArbitrationFeeTimeout = (await talentLayerPlatformID.getPlatform(1))
-        .arbitrationFeeTimeout
+      const updatedArbitrationFeeTimeout = (
+        await talentLayerPlatformID.getPlatform(alicePlatformId)
+      ).arbitrationFeeTimeout
       expect(updatedArbitrationFeeTimeout).to.be.equal(arbitrationFeeTimeout)
     })
 
@@ -508,20 +510,31 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice the buyer can create a few Open service', async function () {
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformServicePostingFee = platform.servicePostingFee
+
       // Alice will create 4 Open services fo the whole unit test process
-      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(alicePlatformId, 'CID1')
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(alicePlatformId, 'CID1', {
+        value: alicePlatformServicePostingFee,
+      })
       const serviceData = await serviceRegistry.services(1)
 
       // service 2
-      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(alicePlatformId, 'CID2')
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(alicePlatformId, 'CID2', {
+        value: alicePlatformServicePostingFee,
+      })
       await serviceRegistry.services(2)
 
       // service 3
-      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(alicePlatformId, 'CID3')
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(alicePlatformId, 'CID3', {
+        value: alicePlatformServicePostingFee,
+      })
       await serviceRegistry.services(3)
 
       // service 4
-      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(alicePlatformId, 'CID4')
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(alicePlatformId, 'CID4', {
+        value: alicePlatformServicePostingFee,
+      })
       await serviceRegistry.services(4)
 
       // service 5 (will be cancelled)
@@ -580,6 +593,8 @@ describe('TalentLayer protocol global testing', function () {
       // Proposal on the Open service n 1
       const bobTid = await talentLayerID.walletOfOwner(bob.address)
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformProposalPostingFee = platform.servicePostingFee
 
       // Proposal data check before the proposal
       const proposalDataBefore = await serviceRegistry.getProposal(1, bobTid)
@@ -588,7 +603,9 @@ describe('TalentLayer protocol global testing', function () {
       // Bob creates a proposal on Platform 1
       await serviceRegistry
         .connect(bob)
-        .createProposal(1, rateToken, 1, alicePlatformId, 'proposal1FromBobToAlice1Service')
+        .createProposal(1, rateToken, 1, alicePlatformId, 'proposal1FromBobToAlice1Service', {
+          value: alicePlatformProposalPostingFee,
+        })
 
       const serviceData = await serviceRegistry.services(1)
       const proposalDataAfter = await serviceRegistry.getProposal(1, bobTid)
@@ -608,10 +625,15 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Carol can create her first proposal (will be rejected by Alice) ', async function () {
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+      const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
+      const bobPlatformProposalPostingFee = platform.proposalPostingFee
+
       // Carol creates a proposal on Platform 2
       await serviceRegistry
         .connect(carol)
-        .createProposal(1, rateToken, 2, bobPlatformId, 'proposal1FromCarolToAlice1Service')
+        .createProposal(1, rateToken, 2, bobPlatformId, 'proposal1FromCarolToAlice1Service', {
+          value: bobPlatformProposalPostingFee,
+        })
       await serviceRegistry.services(1)
       // get proposal info
       const carolTid = await talentLayerID.walletOfOwner(carol.address)
@@ -619,6 +641,9 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Should revert if Carol tries to create a proposal with a non-whitelisted payment token', async function () {
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformProposalPostingFee = platform.proposalPostingFee
+
       expect(
         serviceRegistry
           .connect(carol)
@@ -628,6 +653,7 @@ describe('TalentLayer protocol global testing', function () {
             2,
             alicePlatformId,
             'proposal1FromCarolToAlice1Service',
+            { value: alicePlatformProposalPostingFee },
           ),
       ).to.be.revertedWith('This token is not allowed')
     })
@@ -685,6 +711,9 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Bob can make a second proposal on the Alice service n°2 on Platform n°2', async function () {
+        const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
+        const bobPlatformProposalPostingFee = platform.proposalPostingFee
+
         proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
         await serviceRegistry
           .connect(bob)
@@ -694,10 +723,14 @@ describe('TalentLayer protocol global testing', function () {
             amountBob,
             bobPlatformId,
             'proposal2FromBobToAlice2Service',
+            { value: bobPlatformProposalPostingFee },
           )
       })
 
       it('Carol can make her second proposal on the Alice service n°2', async function () {
+        const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
+        const bobPlatformProposalPostingFee = platform.proposalPostingFee
+
         proposalIdCarol = (await talentLayerID.walletOfOwner(carol.address)).toNumber()
         await serviceRegistry
           .connect(carol)
@@ -707,6 +740,7 @@ describe('TalentLayer protocol global testing', function () {
             amountCarol,
             bobPlatformId,
             'proposal2FromCarolToAlice2Service',
+            { value: bobPlatformProposalPostingFee },
           )
       })
 
@@ -881,9 +915,13 @@ describe('TalentLayer protocol global testing', function () {
         await serviceRegistry.services(serviceId)
         // Create the proposal
         const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+        const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+        const alicePlatformProposalPostingFee = platform.proposalPostingFee
         await serviceRegistry
           .connect(bob)
-          .createProposal(serviceId, rateToken, 1, bobPlatformId, 'proposalOnService')
+          .createProposal(serviceId, rateToken, 1, alicePlatformId, 'proposalOnService', {
+            value: alicePlatformProposalPostingFee,
+          })
         // Cancel the service
         await serviceRegistry.connect(alice).cancelService(serviceId)
         // Try to deposit fund to validate the proposal
@@ -1006,6 +1044,9 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it("Bob can register a proposal on bob's platform.", async function () {
+        const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
+        const bobPlatformProposalPostingFee = platform.proposalPostingFee
+
         proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
         await serviceRegistry
           .connect(bob)
@@ -1015,10 +1056,14 @@ describe('TalentLayer protocol global testing', function () {
             amountBob,
             bobPlatformId,
             'proposal3FromBobToAlice3Service',
+            { value: bobPlatformProposalPostingFee },
           )
       })
 
       it("Carol can register a proposal on bob's platform.", async function () {
+        const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
+        const bobPlatformProposalPostingFee = platform.proposalPostingFee
+
         proposalIdCarol = (await talentLayerID.walletOfOwner(carol.address)).toNumber()
         await serviceRegistry
           .connect(carol)
@@ -1028,6 +1073,7 @@ describe('TalentLayer protocol global testing', function () {
             amountCarol,
             bobPlatformId,
             'proposal3FromCarolToAlice3Service',
+            { value: bobPlatformProposalPostingFee },
           )
       })
 
