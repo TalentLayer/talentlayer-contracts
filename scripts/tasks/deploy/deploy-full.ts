@@ -203,7 +203,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       if (useTestErc20) {
         // Deploy ERC20 contract
 
-        // amount transfered to bob, dave and carol
+        // amount transferred to bob, dave and carol
         const amount = ethers.utils.parseUnits('10', 18)
         const SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
         const simpleERC20 = await SimpleERC20.deploy()

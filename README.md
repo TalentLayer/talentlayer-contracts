@@ -35,8 +35,8 @@ Understand the protocol and how we tackle our main problems:
 
 - playground: use on local or testnet to create fake data and test the protocol
 - tasks: configurable commands to use in mainnet
-  - protocol: Used to managed the protocol by TalentLayer (mint a platform, allow a new arbitrator...)
-  - platform: Used to managed a platform by there owner (update fee)
+  - protocol: Used to manage the protocol by TalentLayer (mint a platform, allow a new arbitrator...)
+  - platform: Used to manage a platform by there owner (update fee)
   - deploy: Used to deploy the protocol and his upgrades
 - utils: common functions
 

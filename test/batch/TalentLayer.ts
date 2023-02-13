@@ -15,7 +15,7 @@ import {
 import { deploy } from '../utils/deploy'
 
 describe('TalentLayer protocol global testing', function () {
-  // we dedine the types of the variables we will use
+  // we define the types of the variables we will use
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -444,7 +444,7 @@ describe('TalentLayer protocol global testing', function () {
       it("Should revert when sender doesn't have enough tokens.", async function () {
         // await loadFixture(deployTokenFixture);
 
-        const initialdeployerBalance = await token.balanceOf(deployer.address)
+        const initialDeployerBalance = await token.balanceOf(deployer.address)
 
         // Try to send 1 token from dave (0 tokens) to deployer (1000 tokens).
         await expect(token.connect(dave).transfer(deployer.address, 1)).to.be.revertedWith(
@@ -452,7 +452,7 @@ describe('TalentLayer protocol global testing', function () {
         )
 
         // deployer balance shouldn't have changed.
-        await expect(await token.balanceOf(deployer.address)).to.equal(initialdeployerBalance)
+        await expect(await token.balanceOf(deployer.address)).to.equal(initialDeployerBalance)
       })
     })
   })
@@ -514,6 +514,10 @@ describe('TalentLayer protocol global testing', function () {
       await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID4')
       await serviceRegistry.services(4)
 
+      // service 5 (will be cancelled)
+      await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID5')
+      await serviceRegistry.services(5)
+
       expect(serviceData.status.toString()).to.be.equal('4')
       expect(serviceData.buyerId.toString()).to.be.equal('1')
       expect(serviceData.initiatorId.toString()).to.be.equal('1')
@@ -531,6 +535,32 @@ describe('TalentLayer protocol global testing', function () {
       await serviceRegistry.connect(alice).updateServiceData(1, 'aliceUpdateHerFirstService')
       const serviceData = await serviceRegistry.services(1)
       expect(serviceData.serviceDataUri).to.be.equal('aliceUpdateHerFirstService')
+    })
+
+    it('Alice can cancel her own service', async function() {
+      await serviceRegistry.connect(alice).cancelService(5)
+      const serviceData = await serviceRegistry.services(5)
+      expect(serviceData.status).to.be.equal(3)
+    })
+
+    it('Alice can cancel only a service that is open', async function() {
+      expect(serviceRegistry.connect(alice).cancelService(5)).to.be.revertedWith("Only services with the open status can be cancelled")
+    })
+
+    it('After a service has been cancelled, nobody can post a proposal', async function() {
+      const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+      const bobTid = await talentLayerID.walletOfOwner(bob.address)
+      await serviceRegistry.getProposal(5, bobTid)
+      expect(serviceRegistry.connect(bob).createProposal(
+        5,
+        rateToken,
+        1,
+        'proposalOnCancelledService'
+      )).to.be.revertedWith("Service is not opened")
+    })
+
+    it('Bob cannot cancel Alice\'s service', async function() {
+      expect(serviceRegistry.connect(bob).cancelService(1)).to.be.revertedWith('Only the initiator can cancel the service')
     })
 
     it('Bob can create his first proposal for an Open service n°1 from Alice', async function () {
@@ -605,18 +635,6 @@ describe('TalentLayer protocol global testing', function () {
       ).to.be.revertedWith('This token is not allowed')
     })
 
-    it('Alice can validate Bob proposal', async function () {
-      const bobTid = await talentLayerID.walletOfOwner(bob.address)
-
-      const proposalDataBefore = await serviceRegistry.getProposal(1, bobTid)
-      expect(proposalDataBefore.status.toString()).to.be.equal('0')
-
-      await serviceRegistry.connect(alice).validateProposal(1, bobTid)
-
-      const proposalDataAfter = await serviceRegistry.getProposal(1, bobTid)
-      expect(proposalDataAfter.status.toString()).to.be.equal('1')
-    })
-
     it('Alice can reject Carol proposal ', async function () {
       const carolTid = await talentLayerID.walletOfOwner(carol.address)
       await serviceRegistry.connect(alice).rejectProposal(1, carolTid)
@@ -636,13 +654,10 @@ describe('TalentLayer protocol global testing', function () {
       let proposalIdCarol = 0 //Will be set later
       let totalAmount = 0 //Will be set later
 
-      it('Alice can NOT deposit tokens to escrow yet.', async function () {
+      it('Alice can NOT deposit tokens to escrow yet because there is no valid proposal', async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountBob)
-        await expect(
-          talentLayerEscrow
-            .connect(alice)
-            .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob),
-        ).to.be.reverted
+        await expect(talentLayerEscrow.connect(alice).createTokenTransaction('_metaEvidence', serviceId, proposalIdBob))
+          .to.be.revertedWith('ERC721: invalid token ID')
       })
 
       it('Bob can make a second proposal on the Alice service n°2', async function () {
@@ -820,6 +835,36 @@ describe('TalentLayer protocol global testing', function () {
         )
       })
 
+      it('After a service has been cancelled, the owner cannot validate a proposal by depositing fund', async function() {
+        // Create the service
+        const serviceId = 6
+        const proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
+        await serviceRegistry.connect(alice).createOpenServiceFromBuyer(1, 'CID6')
+        await serviceRegistry.services(serviceId)
+        // Create the proposal
+        const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+        await serviceRegistry.connect(bob).createProposal(serviceId, rateToken, 1, 'proposalOnService');
+        // Cancel the service
+        await serviceRegistry.connect(alice).cancelService(serviceId)
+        // Try to deposit fund to validate the proposal
+        const transactionDetails = await talentLayerEscrow
+          .connect(alice)
+          .getTransactionDetails(transactionId.toString())
+        const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
+        const originPlatformEscrowFeeRate = transactionDetails.originPlatformEscrowFeeRate
+        const platformEscrowFeeRate = transactionDetails.platformEscrowFeeRate
+        totalAmount =
+          amountBob +
+          (amountBob * (protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)) / 10000
+
+        await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
+
+        await expect(talentLayerEscrow
+          .connect(alice)
+          .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob)
+        ).to.be.revertedWith('Service status not open.')
+      })
+
       it('Carol can NOT reimburse alice.', async function () {
         await expect(
           talentLayerEscrow.connect(carol).reimburse(transactionId, totalAmount / 4),
@@ -837,7 +882,7 @@ describe('TalentLayer protocol global testing', function () {
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
         /* When asking for the reimbursement of a fee-less amount,
-         * we expect the amount reimbursed to include all fees (calculated by the function,
+         * we expect the amount reimbursed to include all fees (calculated by the function)
          * hence the 'totalAmount / 4' expected.
          */
         await expect(transaction).to.changeTokenBalances(
@@ -1053,7 +1098,7 @@ describe('TalentLayer protocol global testing', function () {
           .connect(bob)
           .reimburse(transactionId, amountBob / 4)
         /* When asking for the reimbursement of a fee-less amount,
-         * we expect the amount reimbursed to include all fees (calculated by the function,
+         * we expect the amount reimbursed to include all fees (calculated by the function)
          * hence the 'totalAmount / 4' expected.
          */
         await expect(transaction).to.changeEtherBalances(

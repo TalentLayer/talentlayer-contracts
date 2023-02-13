@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { Network } from '../../../networkConfig'
 import { arbitrationCost, transactionId } from './constants'
 
 import hre = require('hardhat')
@@ -10,7 +9,7 @@ import hre = require('hardhat')
  * She now has to wait for Bob to pay the arbitration fee in order for the dispute to be created.
  */
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Network: ', network)
 
   const [, alice] = await ethers.getSigners()
