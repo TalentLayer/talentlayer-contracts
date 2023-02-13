@@ -1017,6 +1017,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _proposalId
     )
         private
+        view
         returns (IServiceRegistry.Proposal memory, IServiceRegistry.Service memory, address sender, address receiver)
     {
         IServiceRegistry.Proposal memory proposal = _getProposal(_serviceId, _proposalId);
