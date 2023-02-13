@@ -8,7 +8,7 @@ In this script Alice will update the first service.
 */
 
 async function main() {
-  const network = await hre.network.name
+  const network = hre.network.name
   console.log('Create service Test start---------------------')
   console.log(network)
 
@@ -18,13 +18,13 @@ async function main() {
     'ServiceRegistry',
     getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
   )
-  const platformIdContrat = await ethers.getContractAt(
+  const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const daveTalentLayerIdPLatform = await platformIdContrat.getPlatformIdFromAddress(dave.address)
-  console.log('Dave Talent Layer Id', daveTalentLayerIdPLatform)
+  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  console.log('Dave Talent Layer Id', daveTalentLayerIdPlatform)
 
   /* ----------- Alice Update her Service -------------- */
 

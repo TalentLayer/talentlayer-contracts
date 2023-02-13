@@ -21,7 +21,7 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         Filled,
         Confirmed,
         Finished,
-        Rejected,
+        Cancelled,
         Opened,
         Flagged
     }
@@ -86,7 +86,11 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /// @param serviceDataUri token Id to IPFS URI mapping
     event ServiceDataCreated(uint256 id, string serviceDataUri);
 
-    /// @notice Emitted after a service is flaged by the platform
+    /// @notice Emitted after a service is cancelled by the owner
+    /// @param id The service ID
+    event ServiceCancelled(uint256 id);
+
+    /// @notice Emitted after a service is flagged by the platform
     /// @param id The service ID (incremental)
     event ServiceFlagged(uint256 id);
 
@@ -294,26 +298,6 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Allows the buyer to validate a proposal
-     * @param _serviceId Service identifier
-     * @param _proposalId Proposal identifier
-     */
-    function validateProposal(uint256 _serviceId, uint256 _proposalId) public {
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
-        require(senderId > 0, "You should have a TalentLayerId");
-
-        Service storage service = services[_serviceId];
-        Proposal storage proposal = proposals[_serviceId][_proposalId];
-
-        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
-        require(senderId == service.buyerId, "You're not the buyer");
-
-        proposal.status = ProposalStatus.Validated;
-
-        emit ProposalValidated(_serviceId, _proposalId);
-    }
-
-    /**
      * @notice Allows the buyer to reject a proposal
      * @param _serviceId Service identifier
      * @param _proposalId Proposal identifier
@@ -399,6 +383,21 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         service.serviceDataUri = _newServiceDataUri;
 
         emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
+    }
+
+    /**
+    * Cancel a Service
+    * @param _serviceId, Service ID to cancel
+    */
+    function cancelService(uint256 _serviceId) public {
+        Service storage service = services[_serviceId];
+
+        require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can cancel the service");
+        require(service.status == Status.Opened, "Only services with the open status can be cancelled");
+
+        service.status = Status.Cancelled;
+
+        emit ServiceCancelled(_serviceId);
     }
 
     /**

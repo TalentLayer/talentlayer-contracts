@@ -1,5 +1,4 @@
 import { task } from 'hardhat/config'
-import { Network } from '../../../networkConfig'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 
 /**
