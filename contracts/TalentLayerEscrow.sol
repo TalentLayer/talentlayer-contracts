@@ -415,7 +415,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             .getPlatform(service.platformId);
         originServiceFeeRate = originServiceCreationPlatform.originServiceFeeRate;
 
-        if(service.platformId != proposal.platformId) {
+        if (service.platformId != proposal.platformId) {
             ITalentLayerPlatformID.Platform memory originValidatedProposalPlatform = talentLayerPlatformIdContract
                 .getPlatform(proposal.platformId);
             originValidatedProposalFeeRate = originValidatedProposalPlatform.originValidatedProposalFeeRate;
@@ -472,12 +472,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
         (proposal, service, sender, receiver) = _getTalentLayerData(_serviceId, _proposalId);
         ITalentLayerPlatformID.Platform memory originServiceCreationPlatform = talentLayerPlatformIdContract
-        .getPlatform(service.platformId);
+            .getPlatform(service.platformId);
         originServiceFeeRate = originServiceCreationPlatform.originServiceFeeRate;
 
-        if(service.platformId != proposal.platformId) {
+        if (service.platformId != proposal.platformId) {
             ITalentLayerPlatformID.Platform memory originValidatedProposalPlatform = talentLayerPlatformIdContract
-            .getPlatform(proposal.platformId);
+                .getPlatform(proposal.platformId);
             originValidatedProposalFeeRate = originValidatedProposalPlatform.originValidatedProposalFeeRate;
         } else {
             originValidatedProposalFeeRate = originServiceCreationPlatform.originValidatedProposalFeeRate;
@@ -932,10 +932,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      */
     function _release(Transaction memory _transaction, uint256 _releaseAmount) private {
         uint256 originServiceCreationPlatformId = serviceRegistryContract.getService(_transaction.serviceId).platformId;
-        uint256 originValidatedProposalPlatformId = serviceRegistryContract.getProposal(
-            _transaction.serviceId,
-            _transaction.proposalId
-        ).platformId;
+        uint256 originValidatedProposalPlatformId = serviceRegistryContract
+            .getProposal(_transaction.serviceId, _transaction.proposalId)
+            .platformId;
         uint256 protocolEscrowFeeRateAmount = (_transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
         uint256 originServiceFeeRate = (_transaction.originServiceFeeRate * _releaseAmount) / FEE_DIVIDER;
         uint256 originValidatedProposalFeeRate = (_transaction.originValidatedProposalFeeRate * _releaseAmount) /

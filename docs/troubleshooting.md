@@ -6,7 +6,7 @@
 
 - Due to slow network on sometimes on testnet, there is a wait in the execution off `setup-allFakeData`
 - Error `no such file or directory, open ... artifacts`: run `npx hardhat clean`
-- Error: `IPFS error FetchError [...] connect ETIMEDOUT`: try to switch your Wi-Fi network 
+- Error: `IPFS error FetchError [...] connect ETIMEDOUT`: try to switch your Wi-Fi network
 
 ## Subgraph
 

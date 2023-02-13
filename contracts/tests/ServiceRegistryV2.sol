@@ -251,12 +251,12 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
         service.countProposals++;
         proposals[_serviceId][senderId] = Proposal({
-        status: ProposalStatus.Pending,
-        sellerId: senderId,
-        rateToken: _rateToken,
-        rateAmount: _rateAmount,
-        platformId: _platformId,
-        proposalDataUri: _proposalDataUri
+            status: ProposalStatus.Pending,
+            sellerId: senderId,
+            rateToken: _rateToken,
+            rateAmount: _rateAmount,
+            platformId: _platformId,
+            proposalDataUri: _proposalDataUri
         });
 
         emit ProposalCreated(
@@ -390,9 +390,9 @@ contract ServiceRegistryV2 is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-    * Cancel a Service
-    * @param _serviceId, Service ID to cancel
-    */
+     * Cancel a Service
+     * @param _serviceId, Service ID to cancel
+     */
     function cancelService(uint256 _serviceId) public {
         Service storage service = services[_serviceId];
 

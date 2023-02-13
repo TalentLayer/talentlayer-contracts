@@ -24,7 +24,7 @@ async function main() {
   //Deployer needs MINT_ROLE to mint for other addresses
   const grantRole = await platformIdContract.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
-  
+
   const mint1 = await platformIdContract.connect(alice).mintForAddress('Playground', dave.address)
   await mint1.wait()
   const mint2 = await platformIdContract.connect(alice).mintForAddress('Playground2', bob.address)
