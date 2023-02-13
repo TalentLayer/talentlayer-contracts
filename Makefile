@@ -3,19 +3,26 @@ include .env
 
 #--------------FULL INSTALLATION FOR LOCALHOST ENV----------------#
 
-install: deploy-localhost setup-fakedata
+install: clean deploy-localhost setup-fakedata
+
+#--------------UTILS----------------#
+clean: 
+	npx hardhat clean
 
 #--------------DEPLOY----------------#
 
 deploy-mumbai: 
+	make clean
 	npx hardhat deploy-full --network mumbai --verify
 	npx hardhat initial-setup --network mumbai
 
 deploy-fuji: 
+	make clean
 	npx hardhat deploy-full --network fuji --verify
 	npx hardhat initial-setup --network fuji
 
 deploy-localhost: 
+	make clean
 	npx hardhat deploy-full --use-test-erc20 --network localhost
 	npx hardhat initial-setup --network localhost
 
