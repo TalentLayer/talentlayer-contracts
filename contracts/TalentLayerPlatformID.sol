@@ -68,7 +68,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     mapping(address => bool) public validArbitrators;
 
-    /** Whitelist mapping
+    /**
      * @notice Addresses which are allowed to mint a Platform ID
      */
     mapping(address => bool) public whitelist;
@@ -106,11 +106,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @notice  The minting status
      */
     MintStatus public mintStatus;
-
-    /**
-     * @notice  The minting status
-     */
-    MintStatus public minStatus;
 
     // =========================== Initializers ==============================
 
@@ -150,9 +145,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId Platform Id to check
      * @return The Platform fee
      */
-    function getPlatformEscrowFeeRate(uint256 _platformId) external view returns (uint16) {
+    function getOriginServiceFeeRate(uint256 _platformId) external view returns (uint16) {
         require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
-        return platforms[_platformId].fee;
+        return platforms[_platformId].originServiceFeeRate;
     }
 
     /**
@@ -217,10 +212,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformName Platform name
      */
     function mint(string memory _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
-        require(mintStatus == MintStatus.ONLY_WHITELIST || mintStatus == MintStatus.PUBLIC, "Mint status is not valid");
-        if (mintStatus == MintStatus.ONLY_WHITELIST) {
-            require(whitelist[_msgSender()], "You are not whitelisted");
-        }
         _safeMint(msg.sender, _nextTokenId.current());
         _afterMint(_platformName, msg.sender);
     }
@@ -235,10 +226,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         string memory _platformName,
         address _platformAddress
     ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
-        require(mintStatus == MintStatus.ONLY_WHITELIST || mintStatus == MintStatus.PUBLIC, "Mint status is not valid");
-        if (mintStatus == MintStatus.ONLY_WHITELIST) {
-            require(whitelist[_msgSender()], "You are not whitelisted");
-        }
         _safeMint(_platformAddress, _nextTokenId.current());
         _afterMint(_platformName, _platformAddress);
     }
@@ -533,6 +520,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformAddress address of the platform associated with the ID
      */
     modifier canMint(string memory _platformName, address _platformAddress) {
+        require(mintStatus == MintStatus.ONLY_WHITELIST || mintStatus == MintStatus.PUBLIC, "Mint status is not valid");
+        if (mintStatus == MintStatus.ONLY_WHITELIST) {
+            require(whitelist[_msgSender()], "You are not whitelisted");
+        }
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
         require(bytes(_platformName).length >= 2, "Name too short");

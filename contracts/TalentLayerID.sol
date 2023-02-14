@@ -428,10 +428,4 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _delegate Address of the delegate
      */
     event DelegateRemoved(uint256 _tokenId, address _delegate);
-
-    /**
-     * Emit when mint the mint status is updated
-     * @param _mintStatus The new mint status
-     */
-    event MintStatusUpdated(string _mintStatus);
 }
