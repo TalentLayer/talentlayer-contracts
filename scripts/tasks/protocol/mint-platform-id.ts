@@ -24,6 +24,6 @@ task('mint-platform-id', 'Mints platform Ids for an address')
 
     const tx = await platformIdContract.mintForAddress(name, address)
     await tx.wait()
-    const platformId = await platformIdContract.getPlatformIdFromAddress(address)
+    const platformId = await platformIdContract.ids(address)
     console.log(`Minted platform id: ${platformId} for address ${address}`)
   })

@@ -28,7 +28,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   console.log('Dave Talent Layer Id', daveTalentLayerIdPlatform)
 
   /* ----------- Create Open Service -------------- */

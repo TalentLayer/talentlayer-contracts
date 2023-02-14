@@ -42,7 +42,7 @@ async function main() {
   )
   console.log('carolReviewAliceIpfsUri', carolReviewAlice)
 
-  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
 
   await talentLayerReview

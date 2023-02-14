@@ -43,8 +43,8 @@ async function main() {
   // OriginService platform: Dave's platform #1
   // OriginService platform: Bob's platform #2
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
-  const daveTlPId = await platformIdContract.getPlatformIdFromAddress(dave.address)
-  const bobTlPId = await platformIdContract.getPlatformIdFromAddress(bob.address)
+  const daveTlPId = await platformIdContract.ids(dave.address)
+  const bobTlPId = await platformIdContract.ids(bob.address)
 
   const davePlatformData = await platformIdContract.platforms(daveTlPId)
   const bobPlatformData = await platformIdContract.platforms(bobTlPId)

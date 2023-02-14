@@ -355,7 +355,7 @@ contract TalentLayerReview is
     function balanceOf(address owner) public view virtual override returns (uint256) {
         require(owner != address(0), "TalentLayerReview: token zero is not a valid owner");
 
-        return _talentLayerIdToReviewCount[tlId.walletOfOwner(owner)];
+        return _talentLayerIdToReviewCount[tlId.ids(owner)];
     }
 
     /**

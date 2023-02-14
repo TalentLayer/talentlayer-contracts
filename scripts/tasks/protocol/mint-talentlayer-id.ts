@@ -21,7 +21,7 @@ task('mint-talentlayer-id', 'Mints talentLayer Id to an address.')
       getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
     )
     const tx = await talentLayerIdContract.freeMint(platform, address, handle)
-    const talentLayerId = await talentLayerIdContract.walletOfOwner(address)
+    const talentLayerId = await talentLayerIdContract.ids(address)
     console.log(
       `Minted talentLayer id: ${talentLayerId} for address ${address} on network ${network.name}`,
     )
