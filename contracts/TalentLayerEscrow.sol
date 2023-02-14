@@ -10,7 +10,7 @@ import "./interfaces/IServiceRegistry.sol";
 import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ITalentLayerPlatformID.sol";
 import "./libs/ERC2771RecipientUpgradeable.sol";
-import "./IArbitrable.sol";
+import "./interfaces/IArbitrable.sol";
 import "./Arbitrator.sol";
 
 contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, IArbitrable {
