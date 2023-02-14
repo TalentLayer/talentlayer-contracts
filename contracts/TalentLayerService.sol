@@ -58,14 +58,14 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param ownerId the talentLayerId of the seller
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
-    /// @param proposalDataUri token Id to IPFS URI mapping
+    /// @param dataUri token Id to IPFS URI mapping
     struct Proposal {
         ProposalStatus status;
         uint256 ownerId;
         address rateToken;
         uint256 rateAmount;
         uint16 platformId;
-        string proposalDataUri;
+        string dataUri;
     }
 
     // =========================== Events ==============================
@@ -97,7 +97,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Emitted after a new proposal is created
     /// @param serviceId The service id
     /// @param ownerId The talentLayerId of the seller who made the proposal
-    /// @param proposalDataUri token Id to IPFS URI mapping
+    /// @param dataUri token Id to IPFS URI mapping
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
@@ -105,7 +105,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     event ProposalCreated(
         uint256 serviceId,
         uint256 ownerId,
-        string proposalDataUri,
+        string dataUri,
         ProposalStatus status,
         address rateToken,
         uint256 rateAmount,
@@ -115,16 +115,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Emitted after an existing proposal has been updated
     /// @param serviceId The service id
     /// @param ownerId The talentLayerId of the seller who made the proposal
-    /// @param proposalDataUri token Id to IPFS URI mapping
+    /// @param dataUri token Id to IPFS URI mapping
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
-    event ProposalUpdated(
-        uint256 serviceId,
-        uint256 ownerId,
-        string proposalDataUri,
-        address rateToken,
-        uint256 rateAmount
-    );
+    event ProposalUpdated(uint256 serviceId, uint256 ownerId, string dataUri, address rateToken, uint256 rateAmount);
 
     /// @notice Emitted after a proposal is validated
     /// @param serviceId The service ID
@@ -251,7 +245,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
-     * @param _proposalDataUri token Id to IPFS URI mapping
+     * @param _dataUri token Id to IPFS URI mapping
      */
     function createProposal(
         uint256 _tokenId,
@@ -259,7 +253,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         address _rateToken,
         uint256 _rateAmount,
         uint16 _platformId,
-        string calldata _proposalDataUri
+        string calldata _dataUri
     ) public payable onlyOwnerOrDelegate(_tokenId) {
         require(allowedTokenList[_rateToken], "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
@@ -270,7 +264,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(proposals[_serviceId][_tokenId].ownerId != _tokenId, "You already created a proposal for this service");
 
         require(service.ownerId != _tokenId, "You couldn't create proposal for your own service");
-        require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.countProposals++;
         proposals[_serviceId][_tokenId] = Proposal({
@@ -279,13 +273,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             rateToken: _rateToken,
             rateAmount: _rateAmount,
             platformId: _platformId,
-            proposalDataUri: _proposalDataUri
+            dataUri: _dataUri
         });
 
         emit ProposalCreated(
             _serviceId,
             _tokenId,
-            _proposalDataUri,
+            _dataUri,
             ProposalStatus.Pending,
             _rateToken,
             _rateAmount,
@@ -299,14 +293,14 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
-     * @param _proposalDataUri token Id to IPFS URI mapping
+     * @param _dataUri token Id to IPFS URI mapping
      */
     function updateProposal(
         uint256 _tokenId,
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
-        string calldata _proposalDataUri
+        string calldata _dataUri
     ) public onlyOwnerOrDelegate(_tokenId) {
         require(allowedTokenList[_rateToken], "This token is not allowed");
 
@@ -314,14 +308,14 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Proposal storage proposal = proposals[_serviceId][_tokenId];
         require(service.status == Status.Opened, "Service is not opened");
         require(proposal.ownerId == _tokenId, "This proposal doesn't exist yet");
-        require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
         require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
 
         proposal.rateToken = _rateToken;
         proposal.rateAmount = _rateAmount;
-        proposal.proposalDataUri = _proposalDataUri;
+        proposal.dataUri = _dataUri;
 
-        emit ProposalUpdated(_serviceId, _tokenId, _proposalDataUri, _rateToken, _rateAmount);
+        emit ProposalUpdated(_serviceId, _tokenId, _dataUri, _rateToken, _rateAmount);
     }
 
     /**
