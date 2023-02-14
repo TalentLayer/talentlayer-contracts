@@ -49,7 +49,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
 
-    /// ProfileId counter
+    /// Profile Id counter
     CountersUpgradeable.Counter nextProfileId;
 
     /// TalentLayer ID to delegates
