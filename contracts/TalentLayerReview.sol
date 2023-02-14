@@ -147,6 +147,7 @@ contract TalentLayerReview is
      * @param _rating The review rate
      * @param _platformId The platform ID
      */
+<<<<<<< HEAD
     function addReview(
         uint256 _tokenId,
         uint256 _serviceId,
@@ -157,6 +158,12 @@ contract TalentLayerReview is
         ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
 
         require(_tokenId == service.buyerId || _tokenId == service.sellerId, "You're not an actor of this service");
+=======
+    function addReview(uint256 _serviceId, string calldata _reviewUri, uint256 _rating, uint256 _platformId) public {
+        ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
+        uint256 senderId = tlId.walletOfOwner(_msgSender());
+        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
+>>>>>>> 2713ee51e9241a067dfb2e987f2d3787a43913b7
         require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
 

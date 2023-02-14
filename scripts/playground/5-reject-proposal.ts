@@ -24,7 +24,11 @@ async function main() {
   console.log('serviceId', firstServiceId.toString())
 
   //Alice rejected Bob proposal
+<<<<<<< HEAD
   await talentLayerService.connect(alice).rejectProposal(aliceTlId, firstServiceId, 2)
+=======
+  await talentLayerService.connect(alice).rejectProposal(firstServiceId, 2)
+>>>>>>> 2713ee51e9241a067dfb2e987f2d3787a43913b7
   console.log('Alice rejected Bob proposal')
 }
 
