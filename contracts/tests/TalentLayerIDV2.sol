@@ -96,7 +96,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _owner Address to check
      * @return uint256 the id of the NFT
      */
-    function walletOfOwner2(address _owner) public view returns (uint256) {
+    function walletOfOwner(address _owner) public view returns (uint256) {
         return _ids[_owner];
     }
 
