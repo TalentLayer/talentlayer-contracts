@@ -397,7 +397,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
         require(service.ownerId == tlId.ids(msg.sender), "Only the owner can cancel the service");
         require(service.status == Status.Opened, "Only services with the open status can be cancelled");
-
         service.status = Status.Cancelled;
 
         emit ServiceCancelled(_serviceId);

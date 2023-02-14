@@ -43,6 +43,9 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /// Token ID to Profile struct
     mapping(uint256 => Profile) public profiles;
 
+    /// Address to TalentLayer id
+    mapping(address => uint256) public ids;
+
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
 
@@ -89,31 +92,11 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     }
 
     /**
-     * @notice Allows getting the TalentLayerID of one address
-     * @param _owner Address to check
-     * @return uint256 the id of the NFT
-     */
-    function walletOfOwner(address _owner) public view returns (uint256) {
-        uint256 currentTokenId = 1;
-
-        while (currentTokenId < nextTokenId.current()) {
-            address owner = _ownerOf(currentTokenId);
-
-            if (owner == _owner) {
-                return currentTokenId;
-            }
-
-            currentTokenId++;
-        }
-        return 0;
-    }
-
-    /**
      * @notice Returns the platform ID of the platform which onboarded the user.
      * @param _address The address of the user
      */
     function getOriginatorPlatformIdByAddress(address _address) external view returns (uint256) {
-        return profiles[walletOfOwner(_address)].platformId;
+        return profiles[ids[_address]].platformId;
     }
 
     /**
@@ -240,6 +223,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         profile.platformId = _platformId;
         profile.handle = _handle;
         takenHandles[_handle] = true;
+        ids[_userAddress] = userTokenId;
 
         emit Mint(_userAddress, userTokenId, _handle, _platformId, _fee);
     }

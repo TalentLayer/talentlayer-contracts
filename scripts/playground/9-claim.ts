@@ -29,9 +29,7 @@ async function main() {
 
   const rateToken = '0x0000000000000000000000000000000000000000'
   const ERC20TokenAddress = simpleERC20.address
-  const davePlatformId = await platformIdContract
-    .connect(dave)
-    .getPlatformIdFromAddress(dave.address)
+  const davePlatformId = await platformIdContract.connect(dave).ids(dave.address)
 
   // let balance = await talentLayerEscrow.connect(dave).getClaimableFeeBalance(rateToken)
   // console.log('balance before ', balance.toString())

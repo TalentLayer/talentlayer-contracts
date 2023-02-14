@@ -355,7 +355,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         if (owner() == sender) {
             return platformIdToTokenToBalance[PROTOCOL_INDEX][_token];
         } else {
-            uint256 platformId = talentLayerPlatformIdContract.getPlatformIdFromAddress(sender);
+            uint256 platformId = talentLayerPlatformIdContract.ids(sender);
             talentLayerPlatformIdContract.isValid(platformId);
             return platformIdToTokenToBalance[platformId][_token];
         }
@@ -916,8 +916,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function _afterCreateTransaction(uint256 _transactionId, string memory _metaEvidence, uint256 _sellerId) internal {
         Transaction storage transaction = transactions[_transactionId];
 
-        uint256 sender = talentLayerIdContract.walletOfOwner(transaction.sender);
-        uint256 receiver = talentLayerIdContract.walletOfOwner(transaction.receiver);
+        uint256 sender = talentLayerIdContract.ids(transaction.sender);
+        uint256 receiver = talentLayerIdContract.ids(transaction.receiver);
 
         emit TransactionCreated(
             _transactionId,
