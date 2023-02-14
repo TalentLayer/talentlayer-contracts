@@ -149,7 +149,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     // =========================== User functions ==============================
 
     /**
-     * @notice Allows a user to mint a new TalentLayerID without.
+     * @notice Allows a user to mint a new TalentLayerID.
      * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
      */
