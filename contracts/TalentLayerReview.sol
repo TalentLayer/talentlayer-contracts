@@ -156,20 +156,23 @@ contract TalentLayerReview is
     ) public onlyOwnerOrDelegate(_tokenId) {
         ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
 
-        require(_tokenId == service.buyerId || _tokenId == service.sellerId, "You're not an actor of this service");
+        require(
+            _tokenId == service.ownerId || _tokenId == service.acceptedProposalId,
+            "You're not an actor of this service"
+        );
         require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
-        if (_tokenId == service.buyerId) {
-            toId = service.sellerId;
+        if (_tokenId == service.ownerId) {
+            toId = service.acceptedProposalId;
             if (nftMintedByServiceAndBuyerId[_serviceId] == _tokenId) {
                 revert ReviewAlreadyMinted();
             } else {
                 nftMintedByServiceAndBuyerId[_serviceId] = _tokenId;
             }
         } else {
-            toId = service.buyerId;
+            toId = service.ownerId;
             if (nftMintedByServiceAndSellerId[_serviceId] == _tokenId) {
                 revert ReviewAlreadyMinted();
             } else {

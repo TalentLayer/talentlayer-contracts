@@ -82,9 +82,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /**
      * Emit when Cid is updated for a Service
      * @param id The service ID
-     * @param newServiceDataUri New service Data URI
+     * @param dataUri New service Data URI
      */
-    event ServiceDetailedUpdated(uint256 indexed id, string newServiceDataUri);
+    event ServiceDetailedUpdated(uint256 indexed id, string dataUri);
 
     /// @notice Emitted after a new proposal is created
     /// @param serviceId The service id
@@ -217,30 +217,25 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _dataUri token Id to IPFS URI mapping
      */
     function createService(
-        Status _status,
         uint256 _tokenId,
         uint256 _platformId,
-        uint256 _acceptedProposalId,
-        uint256 _ownerId,
         string calldata _dataUri
     ) public payable onlyOwnerOrDelegate(_tokenId) returns (uint256) {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
         require(msg.value == servicePostingFee, "Non-matching funds");
         require(_tokenId > 0, "You should have a TalentLayerId");
-        require(_acceptedProposalId != _ownerId, "Seller and buyer can't be the same");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
         uint256 id = nextServiceId;
         nextServiceId++;
 
         Service storage service = services[id];
-        service.status = _status;
-        service.ownerId = _ownerId;
-        service.acceptedProposalId = _acceptedProposalId;
+        service.status = Status.Opened;
+        service.ownerId = _tokenId;
         service.dataUri = _dataUri;
         service.platformId = _platformId;
 
-        emit ServiceCreated(id, _ownerId, _platformId, _dataUri);
+        emit ServiceCreated(id, _tokenId, _platformId, _dataUri);
 
         return id;
     }
@@ -372,12 +367,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * Update Service URI data
      * @param _tokenId The talentLayerId of the user
      * @param _serviceId, Service ID to update
-     * @param _newServiceDataUri New IPFS URI
+     * @param _dataUri New IPFS URI
      */
     function updateServiceData(
         uint256 _tokenId,
         uint256 _serviceId,
-        string calldata _newServiceDataUri
+        string calldata _dataUri
     ) public onlyOwnerOrDelegate(_tokenId) {
         Service storage service = services[_serviceId];
         require(_serviceId < nextServiceId, "This service doesn't exist");
@@ -385,11 +380,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
         );
-        require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
-        service.dataUri = _newServiceDataUri;
+        service.dataUri = _dataUri;
 
-        emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
+        emit ServiceDetailedUpdated(_serviceId, _dataUri);
     }
 
     /**

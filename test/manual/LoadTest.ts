@@ -79,7 +79,7 @@ describe('Load test', function () {
           await expect(
             await talentLayerService
               .connect(signers[signerIndex])
-              .createOpenServiceFromBuyer(talentLayerId, platformId, MOCK_DATA + '_' + i),
+              .createService(talentLayerId, platformId, MOCK_DATA + '_' + i),
           ).to.emit(talentLayerService, 'ServiceCreated')
         }
       }
