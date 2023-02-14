@@ -141,42 +141,42 @@ contract TalentLayerReview is
     /**
      * @notice Called to mint a review token for a completed service
      * @dev Only one review can be minted per user
-     * @param _tokenId TalentLayer ID of the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _serviceId Service ID
      * @param _reviewUri The IPFS URI of the review
      * @param _rating The review rate
      * @param _platformId The platform ID
      */
     function addReview(
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _serviceId,
         string calldata _reviewUri,
         uint256 _rating,
         uint256 _platformId
-    ) public onlyOwnerOrDelegate(_tokenId) {
+    ) public onlyOwnerOrDelegate(_profileId) {
         ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
 
         require(
-            _tokenId == service.ownerId || _tokenId == service.acceptedProposalId,
+            _profileId == service.ownerId || _profileId == service.acceptedProposalId,
             "You're not an actor of this service"
         );
         require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
-        if (_tokenId == service.ownerId) {
+        if (_profileId == service.ownerId) {
             toId = service.acceptedProposalId;
-            if (nftMintedByServiceAndBuyerId[_serviceId] == _tokenId) {
+            if (nftMintedByServiceAndBuyerId[_serviceId] == _profileId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndBuyerId[_serviceId] = _tokenId;
+                nftMintedByServiceAndBuyerId[_serviceId] = _profileId;
             }
         } else {
             toId = service.ownerId;
-            if (nftMintedByServiceAndSellerId[_serviceId] == _tokenId) {
+            if (nftMintedByServiceAndSellerId[_serviceId] == _profileId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndSellerId[_serviceId] = _tokenId;
+                nftMintedByServiceAndSellerId[_serviceId] = _profileId;
             }
         }
 
@@ -469,11 +469,11 @@ contract TalentLayerReview is
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner of the delegate of the given tokenId
-     * @param _tokenId the tokenId
+     * @notice Check if the given address is either the owner of the delegate of the given user
+     * @param _profileId The TalentLayer ID of the user
      */
-    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
-        require(tlId.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
+    modifier onlyOwnerOrDelegate(uint256 _profileId) {
+        require(tlId.isOwnerOrDelegate(_profileId, _msgSender()), "Not owner or delegate");
         _;
     }
 

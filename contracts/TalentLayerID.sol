@@ -21,7 +21,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     // =========================== Structs ==============================
 
     /// @notice TalentLayer Profile information struct
-    /// @param profileId the talentLayerId of the profile
+    /// @param id the talentLayerId of the profile
     /// @param handle the handle of the profile
     /// @param platformId the TalentLayer Platform Id linked to the profile
     /// @param dataUri the IPFS URI of the profile metadata
@@ -40,7 +40,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Taken handles
     mapping(string => bool) public takenHandles;
 
-    /// Token ID to Profile struct
+    /// TalentLayer ID to Profile struct
     mapping(uint256 => Profile) public profiles;
 
     /// Address to TalentLayer id
@@ -49,10 +49,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Price to mint an id (in wei, upgradable)
     uint256 public mintFee;
 
-    /// TokenId counter
-    CountersUpgradeable.Counter nextTokenId;
+    /// ProfileId counter
+    CountersUpgradeable.Counter nextProfileId;
 
-    /// TokenId to delegates
+    /// TalentLayer ID to delegates
     mapping(uint256 => mapping(address => bool)) private delegates;
 
     // =========================== Initializers ==============================
@@ -71,8 +71,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         __ERC721_init("TalentLayerID", "TID");
         __UUPSUpgradeable_init();
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
-        // Increment counter to start tokenIds at index 1
-        nextTokenId.increment();
+        // Increment counter to start profile ids at index 1
+        nextProfileId.increment();
     }
 
     // =========================== View functions ==============================
@@ -90,13 +90,13 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        return nextTokenId.current() - 1;
+        return nextProfileId.current() - 1;
     }
 
     /**
-     * @notice Returns the Profile struct of a given token ID
-     * @param _profileId the token ID of the profile
-     * @return The Profile struct of the token ID
+     * @notice Returns the Profile struct of a given TalentLayer ID
+     * @param _profileId The TalentLayer ID
+     * @return The Profile struct of the TalentLayer ID
      */
     function getProfile(uint256 _profileId) external view returns (Profile memory) {
         require(_exists(_profileId), "TalentLayerID: Profile does not exist");
@@ -112,29 +112,29 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Check whether the User Token Id is valid.
-     * @param _tokenId Token ID to check
+     * @notice Check whether a TalentLayer ID is valid.
+     * @param _profileId The TalentLayer ID to check
      */
-    function isValid(uint256 _tokenId) external view {
-        require(_tokenId > 0 && _tokenId < nextTokenId.current(), "Your ID is not a valid token ID");
+    function isValid(uint256 _profileId) external view {
+        require(_profileId > 0 && _profileId < nextProfileId.current(), "Your ID is not a valid TalentLayer ID");
     }
 
     /**
      * @notice Check whether an address is a delegate for the given user.
-     * @param _tokenId Token ID to check
+     * @param _profileId The TalentLayer ID of the user
      * @param _address Address to check if it is a delegate
      */
-    function isDelegate(uint256 _tokenId, address _address) public view returns (bool) {
-        return delegates[_tokenId][_address];
+    function isDelegate(uint256 _profileId, address _address) public view returns (bool) {
+        return delegates[_profileId][_address];
     }
 
     /**
-     * @notice Check whether an address is either the owner or a delegate for the token ID.
-     * @param _tokenId Token ID to check
+     * @notice Check whether an address is either the owner or a delegate for the given user.
+     * @param _profileId The TalentLayer ID of the user
      * @param _address Address to check
      */
-    function isOwnerOrDelegate(uint256 _tokenId, address _address) public view returns (bool) {
-        return ownerOf(_tokenId) == _address || isDelegate(_tokenId, _address);
+    function isOwnerOrDelegate(uint256 _profileId, address _address) public view returns (bool) {
+        return ownerOf(_profileId) == _address || isDelegate(_profileId, _address);
     }
 
     // =========================== User functions ==============================
@@ -149,41 +149,43 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         string memory _handle
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
-        _safeMint(sender, nextTokenId.current());
+        _safeMint(sender, nextProfileId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
      * @notice Update user data.
      * @dev we are trusting the user to provide the valid IPFS URI (changing in v2)
-     * @param _tokenId Token ID to update
+     * @param _profileId The TalentLayer ID of the user
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(uint256 _tokenId, string memory _newCid) public onlyOwnerOrDelegate(_tokenId) {
+    function updateProfileData(uint256 _profileId, string memory _newCid) public onlyOwnerOrDelegate(_profileId) {
         require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
-        profiles[_tokenId].dataUri = _newCid;
+        profiles[_profileId].dataUri = _newCid;
 
-        emit CidUpdated(_tokenId, _newCid);
+        emit CidUpdated(_profileId, _newCid);
     }
 
     /**
      * @notice Allows to give rights to a delegate to perform actions for a user's profile
+     * @param _profileId The TalentLayer ID of the user
      * @param _delegate Address of the delegate to add
      */
-    function addDelegate(uint256 _tokenId, address _delegate) external {
-        require(ownerOf(_tokenId) == _msgSender(), "Only owner can add delegates");
-        delegates[_tokenId][_delegate] = true;
-        emit DelegateAdded(_tokenId, _delegate);
+    function addDelegate(uint256 _profileId, address _delegate) external {
+        require(ownerOf(_profileId) == _msgSender(), "Only owner can add delegates");
+        delegates[_profileId][_delegate] = true;
+        emit DelegateAdded(_profileId, _delegate);
     }
 
     /**
      * @notice Allows to remove rights from a delegate to perform actions for a user's profile
+     * @param _profileId The TalentLayer ID of the user
      * @param _delegate Address of the delegate to remove
      */
-    function removeDelegate(uint256 _tokenId, address _delegate) external {
-        require(ownerOf(_tokenId) == _msgSender(), "Only owner can remove delegates");
-        delegates[_tokenId][_delegate] = false;
-        emit DelegateRemoved(_tokenId, _delegate);
+    function removeDelegate(uint256 _profileId, address _delegate) external {
+        require(ownerOf(_profileId) == _msgSender(), "Only owner can remove delegates");
+        delegates[_profileId][_delegate] = false;
+        emit DelegateRemoved(_profileId, _delegate);
     }
 
     // =========================== Owner functions ==============================
@@ -216,7 +218,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         address _userAddress,
         string memory _handle
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
-        _safeMint(_userAddress, nextTokenId.current());
+        _safeMint(_userAddress, nextProfileId.current());
         _afterMint(_userAddress, _handle, _platformId, 0);
     }
 
@@ -224,20 +226,20 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * @notice Update handle address mapping and emit event after mint.
-     * @dev Increments the nextTokenId counter.
+     * @dev Increments the nextProfileId counter.
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId was minted
      */
     function _afterMint(address _userAddress, string memory _handle, uint256 _platformId, uint256 _fee) private {
-        uint256 userTokenId = nextTokenId.current();
-        nextTokenId.increment();
-        Profile storage profile = profiles[userTokenId];
+        uint256 userProfileId = nextProfileId.current();
+        nextProfileId.increment();
+        Profile storage profile = profiles[userProfileId];
         profile.platformId = _platformId;
         profile.handle = _handle;
         takenHandles[_handle] = true;
-        ids[_userAddress] = userTokenId;
+        ids[_userAddress] = userProfileId;
 
-        emit Mint(_userAddress, userTokenId, _handle, _platformId, _fee);
+        emit Mint(_userAddress, userProfileId, _handle, _platformId, _fee);
     }
 
     // =========================== Internal functions ==============================
@@ -368,11 +370,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Check if the given address is either the owner of the delegate of the given tokenId
-     * @param _tokenId Token ID to check
+     * @notice Check if the given address is either the owner of the delegate of the given user
+     * @param _profileId The TalentLayer ID of the user
      */
-    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
-        require(isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
+    modifier onlyOwnerOrDelegate(uint256 _profileId) {
+        require(isOwnerOrDelegate(_profileId, _msgSender()), "Not owner or delegate");
         _;
     }
 
@@ -381,19 +383,19 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /**
      * Emit when new TalentLayerID is minted.
      * @param _user Address of the owner of the TalentLayerID
-     * @param _tokenId TalentLayer ID for the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId was minted
      * @param _fee Fee paid to mint the TalentLayerID
      */
-    event Mint(address indexed _user, uint256 _tokenId, string _handle, uint256 _platformId, uint256 _fee);
+    event Mint(address indexed _user, uint256 _profileId, string _handle, uint256 _platformId, uint256 _fee);
 
     /**
      * Emit when Cid is updated for a user.
-     * @param _tokenId TalentLayer ID for the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _newCid Content ID
      */
-    event CidUpdated(uint256 indexed _tokenId, string _newCid);
+    event CidUpdated(uint256 indexed _profileId, string _newCid);
 
     /**
      * Emit when mint fee is updated
@@ -403,15 +405,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * Emit when a delegate is added for a user.
-     * @param _tokenId TalentLayer ID for the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _delegate Address of the delegate
      */
-    event DelegateAdded(uint256 _tokenId, address _delegate);
+    event DelegateAdded(uint256 _profileId, address _delegate);
 
     /**
      * Emit when a delegate is removed for a user.
-     * @param _tokenId TalentLayer ID for the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _delegate Address of the delegate
      */
-    event DelegateRemoved(uint256 _tokenId, address _delegate);
+    event DelegateRemoved(uint256 _profileId, address _delegate);
 }

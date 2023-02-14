@@ -155,11 +155,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner of the delegate of the given tokenId
-     * @param _tokenId the tokenId
+     * @notice Check if the given address is either the owner of the delegate of the given user
+     * @param _profileId The TalentLayer ID of the user
      */
-    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
-        require(tlId.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
+    modifier onlyOwnerOrDelegate(uint256 _profileId) {
+        require(tlId.isOwnerOrDelegate(_profileId, _msgSender()), "Not owner or delegate");
         _;
     }
 
@@ -212,15 +212,15 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /**
      * @notice Allows an buyer to initiate an open service
-     * @param _tokenId The talentLayerId of the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _platformId platform ID on which the Service token was minted
      * @param _dataUri token Id to IPFS URI mapping
      */
     function createService(
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _platformId,
         string calldata _dataUri
-    ) public payable onlyOwnerOrDelegate(_tokenId) returns (uint256) {
+    ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
         require(msg.value == servicePostingFee, "Non-matching funds");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
@@ -230,45 +230,48 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
         Service storage service = services[id];
         service.status = Status.Opened;
-        service.ownerId = _tokenId;
+        service.ownerId = _profileId;
         service.dataUri = _dataUri;
         service.platformId = _platformId;
 
-        emit ServiceCreated(id, _tokenId, _platformId, _dataUri);
+        emit ServiceCreated(id, _profileId, _platformId, _dataUri);
 
         return id;
     }
 
     /**
      * @notice Allows an seller to propose his service for a service
-     * @param _tokenId The talentLayerId of the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
      * @param _dataUri token Id to IPFS URI mapping
      */
     function createProposal(
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
         uint16 _platformId,
         string calldata _dataUri
-    ) public payable onlyOwnerOrDelegate(_tokenId) {
+    ) public payable onlyOwnerOrDelegate(_profileId) {
         require(allowedTokenList[_rateToken], "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
-        require(proposals[_serviceId][_tokenId].ownerId != _tokenId, "You already created a proposal for this service");
+        require(
+            proposals[_serviceId][_profileId].ownerId != _profileId,
+            "You already created a proposal for this service"
+        );
 
-        require(service.ownerId != _tokenId, "You couldn't create proposal for your own service");
+        require(service.ownerId != _profileId, "You couldn't create proposal for your own service");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
-        proposals[_serviceId][_tokenId] = Proposal({
+        proposals[_serviceId][_profileId] = Proposal({
             status: ProposalStatus.Pending,
-            ownerId: _tokenId,
+            ownerId: _profileId,
             rateToken: _rateToken,
             rateAmount: _rateAmount,
             platformId: _platformId,
@@ -277,7 +280,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
         emit ProposalCreated(
             _serviceId,
-            _tokenId,
+            _profileId,
             _dataUri,
             ProposalStatus.Pending,
             _rateToken,
@@ -288,25 +291,25 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /**
      * @notice Allows an seller to update his own proposal for a given service
-     * @param _tokenId The talentLayerId of the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _serviceId The service linked to the new proposal
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
      * @param _dataUri token Id to IPFS URI mapping
      */
     function updateProposal(
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
         string calldata _dataUri
-    ) public onlyOwnerOrDelegate(_tokenId) {
+    ) public onlyOwnerOrDelegate(_profileId) {
         require(allowedTokenList[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
-        Proposal storage proposal = proposals[_serviceId][_tokenId];
+        Proposal storage proposal = proposals[_serviceId][_profileId];
         require(service.status == Status.Opened, "Service is not opened");
-        require(proposal.ownerId == _tokenId, "This proposal doesn't exist yet");
+        require(proposal.ownerId == _profileId, "This proposal doesn't exist yet");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
         require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
 
@@ -314,7 +317,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         proposal.rateAmount = _rateAmount;
         proposal.dataUri = _dataUri;
 
-        emit ProposalUpdated(_serviceId, _tokenId, _dataUri, _rateToken, _rateAmount);
+        emit ProposalUpdated(_serviceId, _profileId, _dataUri, _rateToken, _rateAmount);
     }
 
     /**
@@ -364,15 +367,15 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /**
      * Update Service URI data
-     * @param _tokenId The talentLayerId of the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _serviceId, Service ID to update
      * @param _dataUri New IPFS URI
      */
     function updateServiceData(
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _serviceId,
         string calldata _dataUri
-    ) public onlyOwnerOrDelegate(_tokenId) {
+    ) public onlyOwnerOrDelegate(_profileId) {
         Service storage service = services[_serviceId];
         require(_serviceId < nextServiceId, "This service doesn't exist");
         require(
@@ -388,13 +391,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /**
      * Cancel a Service
-     * @param _tokenId The talentLayerId of the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _serviceId, Service ID to cancel
      */
-    function cancelService(uint256 _tokenId, uint256 _serviceId) public onlyOwnerOrDelegate(_tokenId) {
+    function cancelService(uint256 _profileId, uint256 _serviceId) public onlyOwnerOrDelegate(_profileId) {
         Service storage service = services[_serviceId];
 
-        require(service.ownerId == _tokenId, "Only the owner can cancel the service");
+        require(service.ownerId == _profileId, "Only the owner can cancel the service");
         require(service.status == Status.Opened, "Only services with the open status can be cancelled");
         service.status = Status.Cancelled;
 
