@@ -28,8 +28,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Enum service status
     enum ProposalStatus {
         Pending,
-        Validated,
-        Rejected
+        Validated
     }
 
     // =========================== Struct ==============================
@@ -71,15 +70,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Emitted after a new service is created
     /// @param id The service ID (incremental)
     /// @param ownerId the talentLayerId of the buyer
-    /// @param acceptedProposalId the talentLayerId of the seller
     /// @param platformId platform ID on which the Service token was minted
     /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
-    event ServiceCreated(uint256 id, uint256 ownerId, uint256 acceptedProposalId, uint256 platformId);
-
-    /// @notice Emitted after a new service is created
-    /// @param id The service ID (incremental)
-    /// @param dataUri token Id to IPFS URI mapping
-    event ServiceDataCreated(uint256 id, string dataUri);
+    event ServiceCreated(uint256 id, uint256 ownerId, uint256 platformId);
 
     /// @notice Emitted after a service is cancelled by the owner
     /// @param id The service ID
@@ -122,11 +115,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param serviceId The service ID
     /// @param ownerId the talentLayerId of the seller
     event ProposalValidated(uint256 serviceId, uint256 ownerId);
-
-    /// @notice Emitted after a proposal is rejected
-    /// @param serviceId The service ID
-    /// @param ownerId the talentLayerId of the seller
-    event ProposalRejected(uint256 serviceId, uint256 ownerId);
 
     /**
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
@@ -227,14 +215,30 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _platformId platform ID on which the Service token was minted
      * @param _dataUri token Id to IPFS URI mapping
      */
-    function createOpenServiceFromBuyer(
+    function createService(
         uint256 _tokenId,
         uint256 _platformId,
         string calldata _dataUri
     ) public payable onlyOwnerOrDelegate(_tokenId) returns (uint256) {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
         require(msg.value == servicePostingFee, "Non-matching funds");
-        return _createService(Status.Opened, _tokenId, _tokenId, 0, _dataUri, _platformId);
+        require(_tokenId > 0, "You should have a TalentLayerId");
+        require(_acceptedProposalId != _ownerId, "Seller and buyer can't be the same");
+        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
+
+        uint256 id = nextServiceId;
+        nextServiceId++;
+
+        Service storage service = services[id];
+        service.status = _status;
+        service.ownerId = _ownerId;
+        service.acceptedProposalId = _acceptedProposalId;
+        service.dataUri = _dataUri;
+        service.platformId = _platformId;
+
+        emit ServiceCreated(id, _ownerId, _acceptedProposalId, _platformId, _dataUri);
+
+        return id;
     }
 
     /**
@@ -316,31 +320,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     }
 
     /**
-     * @notice Allows the buyer to reject a proposal
-     * @param _tokenId The talentLayerId of the user
-     * @param _serviceId Service identifier
-     * @param _proposalId Proposal identifier
-     */
-    function rejectProposal(
-        uint256 _tokenId,
-        uint256 _serviceId,
-        uint256 _proposalId
-    ) public onlyOwnerOrDelegate(_tokenId) {
-        Service storage service = services[_serviceId];
-        Proposal storage proposal = proposals[_serviceId][_proposalId];
-
-        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
-
-        require(proposal.status != ProposalStatus.Rejected, "Proposal has already been rejected");
-
-        require(_tokenId == service.ownerId, "You're not the buyer");
-
-        proposal.status = ProposalStatus.Rejected;
-
-        emit ProposalRejected(_serviceId, _proposalId);
-    }
-
-    /**
      * @notice Allow the escrow contract to upgrade the Service state after a deposit has been done
      * @param _serviceId Service identifier
      * @param _proposalId The chosen proposal id for this service
@@ -416,49 +395,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     function cancelService(uint256 _serviceId) public {
         Service storage service = services[_serviceId];
 
+        require(service.ownerId == tlId.ids(msg.sender), "Only the owner can cancel the service");
         require(service.status == Status.Opened, "Only services with the open status can be cancelled");
 
         service.status = Status.Cancelled;
 
         emit ServiceCancelled(_serviceId);
-    }
-
-    // =========================== Private functions ==============================
-
-    /**
-     * @notice Update handle address mapping and emit event after mint.
-     * @param _tokenId the talentLayerId of the _msgSender() address
-     * @param _ownerId the talentLayerId of the buyer
-     * @param _acceptedProposalId the proposalId accepted by the buyer
-     * @param _dataUri token Id to IPFS URI mapping
-     */
-    function _createService(
-        Status _status,
-        uint256 _tokenId,
-        uint256 _ownerId,
-        uint256 _acceptedProposalId,
-        string calldata _dataUri,
-        uint256 _platformId
-    ) private returns (uint256) {
-        require(_tokenId > 0, "You should have a TalentLayerId");
-        require(_acceptedProposalId != _ownerId, "Seller and buyer can't be the same");
-        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
-
-        uint256 id = nextServiceId;
-        nextServiceId++;
-
-        Service storage service = services[id];
-        service.status = _status;
-        service.ownerId = _ownerId;
-        service.acceptedProposalId = _acceptedProposalId;
-        service.dataUri = _dataUri;
-        service.platformId = _platformId;
-
-        emit ServiceCreated(id, _ownerId, _acceptedProposalId, _tokenId, _platformId);
-
-        emit ServiceDataCreated(id, _dataUri);
-
-        return id;
     }
 
     // =========================== Overrides ==============================
