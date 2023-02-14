@@ -1144,7 +1144,7 @@
             "src": "contracts/TalentLayerReview.sol:71"
           },
           {
-            "label": "nftMintedByServiceAndacceptedProposalId",
+            "label": "nftMintedByServiceAndAcceptedProposalId",
             "offset": 0,
             "slot": "258",
             "type": "t_mapping(t_uint256,t_uint256)",

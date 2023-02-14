@@ -1012,7 +1012,7 @@
                 "slot": "0"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "1"
@@ -1072,7 +1072,7 @@
                 "slot": "1"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "2"
@@ -1922,7 +1922,7 @@
                 "slot": "0"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "1"
@@ -1982,7 +1982,7 @@
                 "slot": "1"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "2"
@@ -2243,7 +2243,7 @@
                 "slot": "0"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "1"
@@ -2303,7 +2303,7 @@
                 "slot": "1"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "2"
@@ -3229,7 +3229,7 @@
                 "slot": "0"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "1"
@@ -3295,7 +3295,7 @@
                 "slot": "1"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "2"
