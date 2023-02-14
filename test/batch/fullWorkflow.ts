@@ -598,7 +598,7 @@ describe('TalentLayer protocol global testing', function () {
 
       // Proposal data check before the proposal
       const proposalDataBefore = await serviceRegistry.getProposal(1, bobTid)
-      expect(proposalDataBefore.sellerId.toString()).to.be.equal('0')
+      expect(proposalDataBefore.acceptedProposalId.toString()).to.be.equal('0')
 
       // Bob creates a proposal on Platform 1
       await serviceRegistry
@@ -619,7 +619,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.rateToken).to.be.equal(rateToken)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('1')
       expect(proposalDataAfter.proposalDataUri).to.be.equal('proposal1FromBobToAlice1Service')
-      expect(proposalDataAfter.sellerId.toString()).to.be.equal('2')
+      expect(proposalDataAfter.acceptedProposalId.toString()).to.be.equal('2')
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
     })
 
@@ -812,7 +812,7 @@ describe('TalentLayer protocol global testing', function () {
         const service = await serviceRegistry.getService(serviceId)
         await expect(service.status.toString()).to.be.equal('1')
         await expect(service.transactionId.toString()).to.be.equal('0')
-        await expect(service.sellerId).to.be.equal(proposalIdBob)
+        await expect(service.acceptedProposalId).to.be.equal(proposalIdBob)
       })
 
       it("Alice can NOT deposit funds for Carol's proposal.", async function () {
@@ -1100,7 +1100,7 @@ describe('TalentLayer protocol global testing', function () {
         const service = await serviceRegistry.getService(serviceId)
         await expect(service.status.toString()).to.be.equal('1')
         await expect(service.transactionId).to.be.equal(transactionId)
-        await expect(service.sellerId.toNumber()).to.be.equal(proposalIdBob)
+        await expect(service.acceptedProposalId.toNumber()).to.be.equal(proposalIdBob)
       })
 
       it("Alice can NOT deposit funds for Carol's proposal, and NO event should emit.", async function () {

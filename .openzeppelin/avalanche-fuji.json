@@ -907,7 +907,7 @@
                 "slot": "0"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "1"
@@ -967,7 +967,7 @@
                 "slot": "1"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "2"
@@ -1144,7 +1144,7 @@
             "src": "contracts/TalentLayerReview.sol:71"
           },
           {
-            "label": "nftMintedByServiceAndSellerId",
+            "label": "nftMintedByServiceAndacceptedProposalId",
             "offset": 0,
             "slot": "258",
             "type": "t_mapping(t_uint256,t_uint256)",
@@ -2502,7 +2502,7 @@
                 "slot": "0"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "1"
@@ -2568,7 +2568,7 @@
                 "slot": "1"
               },
               {
-                "label": "sellerId",
+                "label": "acceptedProposalId",
                 "type": "t_uint256",
                 "offset": 0,
                 "slot": "2"
