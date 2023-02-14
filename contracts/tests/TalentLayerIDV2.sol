@@ -212,6 +212,8 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     /**
      * @notice Allows the owner to mint a new TalentLayerID for a user for free.
+     * @param _platformId Platform ID from which UserId was minted
+     * @param _userAddress Address of the user
      * @param _handle Handle for the user
      */
     function freeMint(

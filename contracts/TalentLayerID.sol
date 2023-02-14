@@ -152,15 +152,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         return ownerOf(_tokenId) == _address || isDelegate(_tokenId, _address);
     }
 
-    /**
-     * @notice Check whether an address is either the owner or a delegate for the token ID.
-     * @param _tokenId Token ID to check
-     * @param _address Address to check
-     */
-    function isOwnerOrDelegate(uint256 _tokenId, address _address) public view returns (bool) {
-        return ownerOf(_tokenId) == _address || isDelegate(_tokenId, _address);
-    }
-
     // =========================== User functions ==============================
 
     /**
@@ -208,24 +199,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         require(ownerOf(_tokenId) == _msgSender(), "Only owner can remove delegates");
         delegates[_tokenId][_delegate] = false;
         emit DelegateRemoved(_tokenId, _delegate);
-    }
-
-    // =========================== Delegate functions ==============================
-
-    /**
-     * @notice Allows the delegate to mint a new TalentLayerID for a user paying the mint fee.
-     * @param _platformId Platform ID mint the id from
-     * @param _userAddress Address of the user
-     * @param _handle Handle for the user
-     */
-    function mintByDelegate(
-        uint256 _platformId,
-        address _userAddress,
-        string memory _handle
-    ) public payable canPay canMint(_userAddress, _handle, _platformId) {
-        require(isDelegate(_userAddress, _msgSender()), "You are not a delegate for this user");
-        _safeMint(_userAddress, nextTokenId.current());
-        _afterMint(_userAddress, _handle, false, _platformId, msg.value);
     }
 
     // =========================== Owner functions ==============================

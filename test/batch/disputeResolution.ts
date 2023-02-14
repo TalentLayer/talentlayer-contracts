@@ -38,7 +38,7 @@ async function deployAndSetup(
   arbitrationFeeTimeout: number,
   tokenAddress: string,
 ): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, ServiceRegistry]> {
-  const [deployer, alice, bob, carol] = await ethers.getSigners()
+  const [deployer, alice, bob, carol, dave] = await ethers.getSigners()
   const [
     talentLayerID,
     talentLayerPlatformID,
@@ -83,7 +83,7 @@ async function deployAndSetup(
   // Bob, the seller, creates a proposal for the service
   await serviceRegistry
     .connect(bob)
-    .createProposal(serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
+    .createProposal(bobTlId, serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry]
 }
@@ -174,7 +174,7 @@ describe('Dispute Resolution, standard flow', function () {
     it('On release funds are sent from escrow to seller (Bob)', async function () {
       const tx = await talentLayerEscrow
         .connect(alice)
-        .release(transactionId, transactionReleasedAmount)
+        .release(aliceTlId, transactionId, transactionReleasedAmount)
       await expect(tx).to.changeEtherBalances(
         [bob.address, talentLayerEscrow.address],
         [transactionReleasedAmount, -transactionReleasedAmount],
@@ -192,6 +192,12 @@ describe('Dispute Resolution, standard flow', function () {
       const tx = await talentLayerEscrow
         .connect(bob)
         .reimburse(bobTlId, transactionId, transactionReimbursedAmount)
+      await expect(tx).to.changeEtherBalances(
+        [alice.address, talentLayerEscrow.address],
+        [totalReimbursedAmount, -totalReimbursedAmount],
+      )
+
+      currentTransactionAmount = currentTransactionAmount.sub(transactionReimbursedAmount)
     })
   })
 
@@ -309,15 +315,17 @@ describe('Dispute Resolution, standard flow', function () {
   })
 
   describe('Attempt to release/reimburse after a dispute', async function () {
-    it('Release fails since there must be no dispute to release', async function () {
-      const tx = talentLayerEscrow.connect(alice).release(transactionId, transactionReleasedAmount)
+    it('Release fails since ther must be no dispute to release', async function () {
+      const tx = talentLayerEscrow
+        .connect(alice)
+        .release(aliceTlId, transactionId, transactionReleasedAmount)
       await expect(tx).to.be.revertedWith("The transaction shouldn't be disputed.")
     })
 
     it('Reimbursement fails since there must be no dispute to reimburse', async function () {
       const tx = talentLayerEscrow
         .connect(bob)
-        .reimburse(transactionId, transactionReimbursedAmount)
+        .reimburse(bobTlId, transactionId, transactionReimbursedAmount)
       await expect(tx).to.be.revertedWith("The transaction shouldn't be disputed.")
     })
   })
@@ -325,9 +333,11 @@ describe('Dispute Resolution, standard flow', function () {
   describe('Submission of Evidence', async function () {
     it('Fails if evidence is not submitted by either sender or receiver of the transaction', async function () {
       const daveEvidence = "Dave's evidence"
-      const tx = talentLayerEscrow.connect(dave).submitEvidence(transactionId, daveEvidence)
+      const tx = talentLayerEscrow
+        .connect(dave)
+        .submitEvidence(daveTlId, transactionId, daveEvidence)
       await expect(tx).to.be.revertedWith(
-        'The caller must be the sender or the receiver or their delegators.',
+        'The caller must be the sender or the receiver or their delegates.',
       )
     })
 

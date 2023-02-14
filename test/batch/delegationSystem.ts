@@ -127,7 +127,7 @@ describe('Delegation System', function () {
     it('Eve can create a proposal on behalf of Bob', async function () {
       await serviceRegistry
         .connect(eve)
-        .createProposal(bobTlId, serviceId, ethAddress, transactionAmount, 'uri')
+        .createProposal(bobTlId, serviceId, ethAddress, transactionAmount, carolPlatformId, 'uri')
       const proposal = await serviceRegistry.proposals(serviceId, bobTlId)
       expect(proposal.sellerId).to.eq(bobTlId)
     })
@@ -142,13 +142,13 @@ describe('Delegation System', function () {
     it('Dave can release a payment on behalf of Alice', async function () {
       const platformData = await talentLayerPlatformID.platforms(carolPlatformId)
       const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-      const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
-      const platformEscrowFeeRate = platformData.fee
+      const originServiceFeeRate = platformData.originServiceFeeRate
+      const originValidatedProposalFeeRate = platformData.originValidatedProposalFeeRate
 
       const totalAmount =
         transactionAmount +
         (transactionAmount *
-          (protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)) /
+          (protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)) /
           10000
 
       // Accept proposal through deposit

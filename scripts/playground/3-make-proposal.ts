@@ -87,6 +87,7 @@ async function main() {
   const bobProposal = await serviceRegistry
     .connect(bob)
     .createProposal(
+      bobTlId,
       firstServiceId,
       rateTokenBob,
       ethers.utils.parseUnits('0.001', 18),
@@ -104,6 +105,7 @@ async function main() {
   const carolProposal = await serviceRegistry
     .connect(carol)
     .createProposal(
+      carolTlId,
       firstServiceId,
       rateTokenCarol,
       ethers.utils.parseUnits('0.002', 18),
@@ -121,6 +123,7 @@ async function main() {
   const daveProposal = await serviceRegistry
     .connect(dave)
     .createProposal(
+      daveTlId,
       secondServiceId,
       rateTokenDave,
       ethers.utils.parseUnits('0.003', 18),

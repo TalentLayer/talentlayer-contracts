@@ -242,8 +242,9 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _tokenId,
         uint256 _platformId,
         string calldata _serviceDataUri
-    ) public onlyOwnerOrDelegate(_tokenId) returns (uint256) {
-        talentLayerPlatformIdContract.isValid(_platformId);
+    ) public payable onlyOwnerOrDelegate(_tokenId) returns (uint256) {
+        uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
+        require(msg.value == servicePostingFee, "Non-matching funds");
         return _createService(Status.Opened, _tokenId, _tokenId, 0, _serviceDataUri, _platformId);
     }
 
@@ -262,8 +263,10 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         uint256 _rateAmount,
         uint16 _platformId,
         string calldata _proposalDataUri
-    ) public onlyOwnerOrDelegate(_senderId) {
-        require(allowedTokens[_rateToken], "This token is not allowed");
+    ) public payable onlyOwnerOrDelegate(_tokenId) {
+        require(allowedTokenList[_rateToken], "This token is not allowed");
+        uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
+        require(msg.value == proposalPostingFee, "Non-matching funds");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -272,7 +275,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
             "You already created a proposal for this service"
         );
 
-        require(service.buyerId != senderId, "You couldn't create proposal for your own service");
+        require(service.buyerId != _tokenId, "You couldn't create proposal for your own service");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.countProposals++;
@@ -287,7 +290,7 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
 
         emit ProposalCreated(
             _serviceId,
-            senderId,
+            _tokenId,
             _proposalDataUri,
             ProposalStatus.Pending,
             _rateToken,
@@ -310,8 +313,8 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         address _rateToken,
         uint256 _rateAmount,
         string calldata _proposalDataUri
-    ) public onlyOwnerOrDelegate(_senderId) {
-        require(allowedTokens[_rateToken], "This token is not allowed");
+    ) public onlyOwnerOrDelegate(_tokenId) {
+        require(allowedTokenList[_rateToken], "This token is not allowed");
 
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_tokenId];
@@ -325,28 +328,6 @@ contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgr
         proposal.proposalDataUri = _proposalDataUri;
 
         emit ProposalUpdated(_serviceId, _tokenId, _proposalDataUri, _rateToken, _rateAmount);
-    }
-
-    /**
-     * @notice Allows the buyer to validate a proposal
-     * @param _senderId The talentLayerId of the sender
-     * @param _serviceId Service identifier
-     * @param _proposalId Proposal identifier
-     */
-    function validateProposal(
-        uint256 _senderId,
-        uint256 _serviceId,
-        uint256 _proposalId
-    ) public onlyOwnerOrDelegate(_senderId) {
-        Service storage service = services[_serviceId];
-        Proposal storage proposal = proposals[_serviceId][_proposalId];
-
-        require(proposal.status != ProposalStatus.Validated, "Proposal has already been validated");
-        require(_senderId == service.buyerId, "You're not the buyer");
-
-        proposal.status = ProposalStatus.Validated;
-
-        emit ProposalValidated(_serviceId, _proposalId);
     }
 
     /**

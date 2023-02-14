@@ -47,7 +47,9 @@ async function main() {
   const firstServiceId = nextServiceId.sub(2)
   console.log('the Alice service id is ', firstServiceId.toString())
 
-  await serviceRegistry.connect(alice).updateServiceData(aliceTlId, firstServiceId, aliceUpdateJobData)
+  await serviceRegistry
+    .connect(alice)
+    .updateServiceData(aliceTlId, firstServiceId, aliceUpdateJobData)
   const jobDataAfterUpdate = await serviceRegistry.getService(firstServiceId)
   console.log('Job Data after update', jobDataAfterUpdate)
 }

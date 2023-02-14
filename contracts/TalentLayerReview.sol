@@ -152,11 +152,10 @@ contract TalentLayerReview is
         uint256 _serviceId,
         string calldata _reviewUri,
         uint256 _rating,
-        uint256 _platformIds
-    ) public onlyOwnerOrDelegator(_senderId) {
+        uint256 _platformId
+    ) public onlyOwnerOrDelegate(_tokenId) {
         IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
-        uint256 senderId = tlId.walletOfOwner(_msgSender());
-        require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
+        require(_tokenId == service.buyerId || _tokenId == service.sellerId, "You're not an actor of this service");
         require(service.status == IServiceRegistry.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
 

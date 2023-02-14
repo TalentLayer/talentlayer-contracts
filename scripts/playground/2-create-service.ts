@@ -49,7 +49,7 @@ async function main() {
 
   const createFirstOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPlatform, aliceCreateFirstJobData)
+    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
@@ -72,7 +72,7 @@ async function main() {
 
   const createSecondOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPlatform, aliceCreateSecondJobData)
+    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateSecondJobData)
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
 
