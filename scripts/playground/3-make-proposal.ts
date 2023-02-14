@@ -21,7 +21,7 @@ async function main() {
   )
   const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const davePlatformId = await platformIdContract.getPlatformIdFromAddress(dave.address)
