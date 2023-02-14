@@ -19,9 +19,9 @@ task('remove-trusted-forwarder', 'Removes a trusted forwarder for meta transacti
       getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
     )
 
-    const serviceRegistry = await ethers.getContractAt(
-      'ServiceRegistry',
-      getDeploymentProperty(network.name, DeploymentProperty.ServiceRegistry),
+    const talentLayerService = await ethers.getContractAt(
+      'TalentLayerService',
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerService),
     )
 
     const talentLayerReview = await ethers.getContractAt(
@@ -37,8 +37,8 @@ task('remove-trusted-forwarder', 'Removes a trusted forwarder for meta transacti
     const talentLayerIdTx = await talentLayerId.removeTrustedForwarder(address)
     await talentLayerIdTx.wait()
 
-    const serviceRegistryTx = await serviceRegistry.removeTrustedForwarder(address)
-    await serviceRegistryTx.wait()
+    const talentLayerServiceTx = await talentLayerService.removeTrustedForwarder(address)
+    await talentLayerServiceTx.wait()
 
     const talentLayerReviewTx = await talentLayerReview.removeTrustedForwarder(address)
     await talentLayerReviewTx.wait()

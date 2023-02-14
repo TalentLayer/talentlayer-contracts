@@ -11,9 +11,9 @@ async function main() {
   const network = hre.network.name
   console.log(network)
 
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
 
   const [alice, bob, carol, dave] = await ethers.getSigners()

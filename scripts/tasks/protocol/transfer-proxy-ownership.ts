@@ -3,7 +3,7 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
 
 /**
  * @notice This task is used to transfer ownership of one proxy
- * @usage npx hardhat transfer-proxy-ownership --contract-name "ServiceRegistry" --address 0x99f117069F9ED15476003502AD8D96107A180648 --network mumbai
+ * @usage npx hardhat transfer-proxy-ownership --contract-name "TalentLayerService" --address 0x99f117069F9ED15476003502AD8D96107A180648 --network mumbai
  */
 task('transfer-proxy-ownership', 'Transfer ownership of proxy admin to a new address')
   .addParam('contractName', 'The name of the contract')
