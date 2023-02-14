@@ -57,9 +57,7 @@ describe('Load test', function () {
 
     // platform mints a Platform Id
     await talentLayerPlatformID.connect(platform).mint('someName')
-    platformId = await talentLayerPlatformID
-      .connect(platform)
-      .getPlatformIdFromAddress(platform.address)
+    platformId = await talentLayerPlatformID.connect(platform).ids(platform.address)
   })
 
   describe('Creating ' + AMOUNT_OF_SIGNERS + ' TalentLayerIDs', async function () {
@@ -75,10 +73,13 @@ describe('Load test', function () {
     const createServices = (signerIndex: number) =>
       async function () {
         for (let i = 0; i < AMOUNT_OF_SERVICES_PER_BUYER; i++) {
+          const talentLayerId = await talentLayerID
+            .connect(signers[signerIndex])
+            .ids(signers[signerIndex].address)
           await expect(
             await talentLayerService
               .connect(signers[signerIndex])
-              .createOpenServiceFromBuyer(platformId, MOCK_DATA + '_' + i),
+              .createOpenServiceFromBuyer(talentLayerId, platformId, MOCK_DATA + '_' + i),
           ).to.emit(talentLayerService, 'ServiceCreated')
         }
       }
@@ -95,10 +96,13 @@ describe('Load test', function () {
     const createProposals = (signerIndex: number) =>
       async function () {
         for (let serviceId = 1; serviceId <= AMOUNT_OF_SERVICES; serviceId++) {
+          const talentLayerId = await talentLayerID
+            .connect(signers[signerIndex])
+            .ids(signers[signerIndex].address)
           await expect(
             await talentLayerService
               .connect(signers[signerIndex])
-              .createProposal(serviceId, TOKEN, VALUE, MOCK_DATA),
+              .createProposal(talentLayerId, serviceId, TOKEN, VALUE, platformId, MOCK_DATA),
           ).to.emit(talentLayerService, 'ProposalCreated')
         }
       }

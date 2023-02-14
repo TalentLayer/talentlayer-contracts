@@ -87,7 +87,7 @@ describe('TalentLayer protocol global testing', function () {
 
   describe('Platform Id contract test', async function () {
     it('Alice successfully minted a PlatformId Id', async function () {
-      platformId = (await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)).toString()
+      platformId = (await talentLayerPlatformID.ids(alice.address)).toString()
       expect(platformId).to.be.equal('1')
     })
 
@@ -99,7 +99,7 @@ describe('TalentLayer protocol global testing', function () {
     it('Alice can update the platform Data', async function () {
       await talentLayerPlatformID.connect(alice).updateProfileData(aliceTlId, 'newPlatId')
 
-      const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
+      const aliceUserId = await talentLayerPlatformID.ids(alice.address)
       const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
       expect(alicePlatformData.dataUri).to.be.equal('newPlatId')
     })
@@ -132,7 +132,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it("Alice's PlatformID ownership data is coherent", async function () {
-      const aliceUserId = await talentLayerPlatformID.getPlatformIdFromAddress(alice.address)
+      const aliceUserId = await talentLayerPlatformID.ids(alice.address)
       const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
       const name = alicePlatformData.name
       const isNameTaken = await talentLayerPlatformID.takenNames(platformName)
@@ -186,7 +186,7 @@ describe('TalentLayer protocol global testing', function () {
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
       await talentLayerPlatformID.connect(bob).mint('BobPlat', { value: mintFee })
-      const bobPlatformId = await talentLayerPlatformID.getPlatformIdFromAddress(bob.address)
+      const bobPlatformId = await talentLayerPlatformID.ids(bob.address)
       expect(bobPlatformId).to.be.equal('2')
 
       // Bob balance is decreased by the mint fee (+ gas fees)
@@ -306,10 +306,10 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerID.connect(alice).mint('1', 'alice')
       await talentLayerID.connect(bob).mint('1', 'bob')
       await talentLayerID.connect(carol).mint('1', 'carol')
-      expect(await talentLayerID.walletOfOwner(alice.address)).to.be.equal(aliceTlId)
-      expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal(bobTlId)
-      expect(await talentLayerID.walletOfOwner(carol.address)).to.be.equal(carolTlId)
-      const carolUserId = await talentLayerID.walletOfOwner(carol.address)
+      expect(await talentLayerID.ids(alice.address)).to.be.equal(aliceTlId)
+      expect(await talentLayerID.ids(bob.address)).to.be.equal(bobTlId)
+      expect(await talentLayerID.ids(carol.address)).to.be.equal(carolTlId)
+      const carolUserId = await talentLayerID.ids(carol.address)
       const profileData = await talentLayerID.profiles(carolUserId)
       expect(profileData.platformId).to.be.equal('1')
     })
@@ -332,7 +332,7 @@ describe('TalentLayer protocol global testing', function () {
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
       await talentLayerID.connect(eve).mint('1', 'eve', { value: mintFee })
-      expect(await talentLayerID.walletOfOwner(eve.address)).to.be.equal('4')
+      expect(await talentLayerID.ids(eve.address)).to.be.equal('4')
 
       // Eve balance is decreased by the mint fee (+ gas fees)
       const eveBalanceAfter = await eve.getBalance()
@@ -604,7 +604,7 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Bob can create his first proposal for an Open service n°1 from Alice', async function () {
       // Proposal on the Open service n 1
-      const bobTid = await talentLayerID.walletOfOwner(bob.address)
+      const bobTid = await talentLayerID.ids(bob.address)
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformProposalPostingFee = platform.servicePostingFee
@@ -665,7 +665,7 @@ describe('TalentLayer protocol global testing', function () {
         )
       await talentLayerService.services(1)
       // get proposal info
-      const carolTid = await talentLayerID.walletOfOwner(carol.address)
+      const carolTid = await talentLayerID.ids(carol.address)
       await talentLayerService.getProposal(1, carolTid)
     })
 
@@ -689,7 +689,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Bob can update his first proposal ', async function () {
-      const bobTid = await talentLayerID.walletOfOwner(bob.address)
+      const bobTid = await talentLayerID.ids(bob.address)
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
 
       const proposalDataBefore = await talentLayerService.getProposal(1, bobTid)
@@ -719,7 +719,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can reject Carol proposal ', async function () {
-      const carolTid = await talentLayerID.walletOfOwner(carol.address)
+      const carolTid = await talentLayerID.ids(carol.address)
       await talentLayerService.connect(alice).rejectProposal(aliceTlId, 1, carolTid)
 
       const proposalDataAfter = await talentLayerService.getProposal(1, carolTid)
@@ -750,7 +750,7 @@ describe('TalentLayer protocol global testing', function () {
         const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
         const bobPlatformProposalPostingFee = platform.proposalPostingFee
 
-        proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
+        proposalIdBob = (await talentLayerID.ids(bob.address)).toNumber()
         await talentLayerService
           .connect(bob)
           .createProposal(
@@ -768,7 +768,7 @@ describe('TalentLayer protocol global testing', function () {
         const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
         const bobPlatformProposalPostingFee = platform.proposalPostingFee
 
-        proposalIdCarol = (await talentLayerID.walletOfOwner(carol.address)).toNumber()
+        proposalIdCarol = (await talentLayerID.ids(carol.address)).toNumber()
         await talentLayerService
           .connect(carol)
           .createProposal(
@@ -948,7 +948,7 @@ describe('TalentLayer protocol global testing', function () {
       it('After a service has been cancelled, the owner cannot validate a proposal by depositing fund', async function () {
         // Create the service
         const serviceId = 6
-        const proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
+        const proposalIdBob = (await talentLayerID.ids(bob.address)).toNumber()
         await talentLayerService.connect(alice).createOpenServiceFromBuyer(aliceTlId, 1, 'CID6')
         await talentLayerService.services(serviceId)
         // Create the proposal
@@ -1085,7 +1085,7 @@ describe('TalentLayer protocol global testing', function () {
         const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
         const bobPlatformProposalPostingFee = platform.proposalPostingFee
 
-        proposalIdBob = (await talentLayerID.walletOfOwner(bob.address)).toNumber()
+        proposalIdBob = (await talentLayerID.ids(bob.address)).toNumber()
         await talentLayerService
           .connect(bob)
           .createProposal(
@@ -1103,7 +1103,7 @@ describe('TalentLayer protocol global testing', function () {
         const platform = await talentLayerPlatformID.getPlatform(bobPlatformId)
         const bobPlatformProposalPostingFee = platform.proposalPostingFee
 
-        proposalIdCarol = (await talentLayerID.walletOfOwner(carol.address)).toNumber()
+        proposalIdCarol = (await talentLayerID.ids(carol.address)).toNumber()
         await talentLayerService
           .connect(carol)
           .createProposal(

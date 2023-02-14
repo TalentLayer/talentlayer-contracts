@@ -28,8 +28,8 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const davePlatformId = await platformIdContract.getPlatformIdFromAddress(dave.address)
-  const bobPlatformId = await platformIdContract.getPlatformIdFromAddress(bob.address)
+  const davePlatformId = await platformIdContract.ids(dave.address)
+  const bobPlatformId = await platformIdContract.ids(bob.address)
 
   const simpleERC20 = await ethers.getContractAt(
     'SimpleERC20',

@@ -45,8 +45,8 @@ async function main() {
   // OriginService platform: Dave's platform #1
   // OriginService platform: Bob's platform #2
 
-  const daveTlPId = await platformIdContract.getPlatformIdFromAddress(dave.address)
-  const bobTlPId = await platformIdContract.getPlatformIdFromAddress(bob.address)
+  const daveTlPId = await platformIdContract.ids(dave.address)
+  const bobTlPId = await platformIdContract.ids(bob.address)
 
   //Protocol fee
   const protocolEscrowFeeRate = ethers.BigNumber.from(

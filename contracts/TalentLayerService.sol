@@ -415,9 +415,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      */
     function cancelService(uint256 _serviceId) public {
         Service storage service = services[_serviceId];
-
         require(service.status == Status.Opened, "Only services with the open status can be cancelled");
-
         service.status = Status.Cancelled;
 
         emit ServiceCancelled(_serviceId);

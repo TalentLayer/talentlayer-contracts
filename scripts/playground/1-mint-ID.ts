@@ -31,7 +31,7 @@ async function main() {
   )
 
   // Dave is a TalentLayer Platform and a TalentLayer User
-  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
 
   await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPlatform, 'alice.lens')

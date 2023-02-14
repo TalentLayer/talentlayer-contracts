@@ -63,6 +63,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     mapping(address => bool) public internalArbitrators;
 
+    /**
+     * @notice Address to PlatformId
+     */
+    mapping(address => uint256) public ids;
+
     /// Price to mint a platform id (in wei, upgradable)
     uint256 public mintFee;
 
@@ -166,23 +171,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     function getPlatform(uint256 _platformId) external view returns (Platform memory) {
         require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
         return platforms[_platformId];
-    }
-
-    /**
-     * @notice Allows getting the Platform ID from an address
-     * @param _owner Platform Address to check
-     * @return The Platform Id associated to this address
-     */
-    function getPlatformIdFromAddress(address _owner) public view returns (uint256) {
-        uint256 currentTokenId = 1;
-
-        while (currentTokenId < _nextTokenId.current()) {
-            if (_ownerOf(currentTokenId) == _owner) {
-                return currentTokenId;
-            }
-            currentTokenId++;
-        }
-        return 0;
     }
 
     /**
@@ -380,6 +368,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         platform.id = platformId;
         platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
         takenNames[_platformName] = true;
+        ids[_platformAddress] = platformId;
 
         emit Mint(_platformAddress, platformId, _platformName, mintFee, minArbitrationFeeTimeout);
     }
