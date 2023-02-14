@@ -3,6 +3,8 @@ import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/dep
 import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
+const aliceTlId = 1
+
 /*
 In this script Alice will create two services.
 First we need to create Job Data and post it to IPFS to get the Service Data URI
@@ -47,7 +49,7 @@ async function main() {
 
   const createFirstOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPlatform, aliceCreateFirstJobData)
+    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
@@ -70,7 +72,7 @@ async function main() {
 
   const createSecondOpenService = await serviceRegistry
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPlatform, aliceCreateSecondJobData)
+    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateSecondJobData)
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
 

@@ -5,6 +5,8 @@ import { arbitrationCost, arbitrationFeeTimeout, transactionAmount } from './con
 
 import hre = require('hardhat')
 
+const aliceTlId = 1
+const bobTlId = 2
 const carolPlatformId = 1
 const serviceId = 1
 const ethAddress = '0x0000000000000000000000000000000000000000'
@@ -82,11 +84,13 @@ async function main() {
   console.log('Minted TL Id for Bob')
 
   // Alice, the buyer, initiates a new open service
-  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
   console.log('Open service created by Alice')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+  await serviceRegistry
+    .connect(bob)
+    .createProposal(bobTlId, serviceId, ethAddress, transactionAmount, carolPlatformId, 'cid')
   console.log('Proposal for service created by Bob')
 
   // Upload meta evidence to IPFS
@@ -119,11 +123,13 @@ async function main() {
   const proposalId = 2
   const feeDivider = 10000
   const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-  const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
-  const platformEscrowFeeRate = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+  const platformData = await talentLayerPlatformID.platforms(carolPlatformId)
+  const originServiceFeeRate = platformData.originServiceFeeRate
+  const originValidatedProposalFeeRate = platformData.originValidatedProposalFeeRate
+
   const totalTransactionAmount = transactionAmount.add(
     transactionAmount
-      .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
+      .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
       .div(feeDivider),
   )
   await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {

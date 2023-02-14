@@ -2,6 +2,10 @@ import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
 
+const bobTlId = 2
+const carolTlId = 3
+const daveTlId = 4
+
 /*
 In this script Bob, Carol and Dave will create proposals for Alice's services
 Bob and Carol for the first service (with ETH and Token) and Dave for the second service (Token)
@@ -21,7 +25,7 @@ async function main() {
   )
   const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
-    get(network as Network, ConfigProperty.TalentLayerPlatformID),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const davePlatformId = await platformIdContract.getPlatformIdFromAddress(dave.address)
@@ -83,6 +87,7 @@ async function main() {
   const bobProposal = await serviceRegistry
     .connect(bob)
     .createProposal(
+      bobTlId,
       firstServiceId,
       rateTokenBob,
       ethers.utils.parseUnits('0.001', 18),
@@ -100,6 +105,7 @@ async function main() {
   const carolProposal = await serviceRegistry
     .connect(carol)
     .createProposal(
+      carolTlId,
       firstServiceId,
       rateTokenCarol,
       ethers.utils.parseUnits('0.002', 18),
@@ -117,6 +123,7 @@ async function main() {
   const daveProposal = await serviceRegistry
     .connect(dave)
     .createProposal(
+      daveTlId,
       secondServiceId,
       rateTokenDave,
       ethers.utils.parseUnits('0.003', 18),

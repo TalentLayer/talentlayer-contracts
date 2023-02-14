@@ -1,6 +1,9 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
+
+const aliceTlId = 1
+
 /*
 In this script  Alice will release the full token Amount in token to Dave
 
@@ -16,7 +19,7 @@ async function main() {
   )
   const rateAmount = ethers.utils.parseUnits('0.003', 18)
 
-  const release = await talentLayerEscrow.connect(alice).release(1, rateAmount)
+  const release = await talentLayerEscrow.connect(alice).release(aliceTlId, 1, rateAmount)
   await release.wait()
 }
 
