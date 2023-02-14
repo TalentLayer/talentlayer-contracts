@@ -129,7 +129,7 @@ describe('Delegation System', function () {
         .connect(eve)
         .createProposal(bobTlId, serviceId, ethAddress, transactionAmount, carolPlatformId, 'uri')
       const proposal = await serviceRegistry.proposals(serviceId, bobTlId)
-      expect(proposal.sellerId).to.eq(bobTlId)
+      expect(proposal.acceptedProposalId).to.eq(bobTlId)
     })
 
     it('Eve can update a proposal on behalf of Bob', async function () {
