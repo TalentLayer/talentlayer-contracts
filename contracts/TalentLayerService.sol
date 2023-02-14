@@ -57,13 +57,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Proposal information struct
     /// @param status the current status of a service
-    /// @param sellerId the talentLayerId of the seller
+    /// @param ownerId the talentLayerId of the seller
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
     /// @param proposalDataUri token Id to IPFS URI mapping
     struct Proposal {
         ProposalStatus status;
-        uint256 sellerId;
+        uint256 ownerId;
         address rateToken;
         uint256 rateAmount;
         uint16 platformId;
@@ -105,7 +105,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Emitted after a new proposal is created
     /// @param serviceId The service id
-    /// @param sellerId The talentLayerId of the seller who made the proposal
+    /// @param ownerId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
@@ -113,7 +113,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param platformId the platform ID on which the proposal was created
     event ProposalCreated(
         uint256 serviceId,
-        uint256 sellerId,
+        uint256 ownerId,
         string proposalDataUri,
         ProposalStatus status,
         address rateToken,
@@ -123,13 +123,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Emitted after an existing proposal has been updated
     /// @param serviceId The service id
-    /// @param sellerId The talentLayerId of the seller who made the proposal
+    /// @param ownerId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
     event ProposalUpdated(
         uint256 serviceId,
-        uint256 sellerId,
+        uint256 ownerId,
         string proposalDataUri,
         address rateToken,
         uint256 rateAmount
@@ -137,13 +137,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Emitted after a proposal is validated
     /// @param serviceId The service ID
-    /// @param sellerId the talentLayerId of the seller
-    event ProposalValidated(uint256 serviceId, uint256 sellerId);
+    /// @param ownerId the talentLayerId of the seller
+    event ProposalValidated(uint256 serviceId, uint256 ownerId);
 
     /// @notice Emitted after a proposal is rejected
     /// @param serviceId The service ID
-    /// @param sellerId the talentLayerId of the seller
-    event ProposalRejected(uint256 serviceId, uint256 sellerId);
+    /// @param ownerId the talentLayerId of the seller
+    event ProposalRejected(uint256 serviceId, uint256 ownerId);
 
     /**
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
@@ -276,10 +276,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
-        require(
-            proposals[_serviceId][_tokenId].sellerId != _tokenId,
-            "You already created a proposal for this service"
-        );
+        require(proposals[_serviceId][_tokenId].ownerId != _tokenId, "You already created a proposal for this service");
 
         require(service.ownerId != _tokenId, "You couldn't create proposal for your own service");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
@@ -287,7 +284,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.countProposals++;
         proposals[_serviceId][_tokenId] = Proposal({
             status: ProposalStatus.Pending,
-            sellerId: _tokenId,
+            ownerId: _tokenId,
             rateToken: _rateToken,
             rateAmount: _rateAmount,
             platformId: _platformId,
@@ -325,7 +322,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_tokenId];
         require(service.status == Status.Opened, "Service is not opened");
-        require(proposal.sellerId == _tokenId, "This proposal doesn't exist yet");
+        require(proposal.ownerId == _tokenId, "This proposal doesn't exist yet");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
         require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
 
