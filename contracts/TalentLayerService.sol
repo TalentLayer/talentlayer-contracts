@@ -223,7 +223,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     ) public payable onlyOwnerOrDelegate(_tokenId) returns (uint256) {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
         require(msg.value == servicePostingFee, "Non-matching funds");
-        require(_tokenId > 0, "You should have a TalentLayerId");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
         uint256 id = nextServiceId;
