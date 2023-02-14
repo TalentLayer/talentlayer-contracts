@@ -22,10 +22,6 @@ async function main() {
   const nextServiceId = await talentLayerService.nextServiceId()
   const firstServiceId = nextServiceId.sub(2)
   console.log('serviceId', firstServiceId.toString())
-
-  //Alice rejected Bob proposal
-  await talentLayerService.connect(alice).rejectProposal(aliceTlId, firstServiceId, 2)
-  console.log('Alice rejected Bob proposal')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
