@@ -37,9 +37,9 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
 
   const talentLayerEscrow = await ethers.getContractAt(
@@ -82,11 +82,13 @@ async function main() {
   console.log('Minted TL Id for Bob')
 
   // Alice, the buyer, initiates a new open service
-  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+  await talentLayerService.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
   console.log('Open service created by Alice')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+  await talentLayerService
+    .connect(bob)
+    .createProposal(serviceId, ethAddress, transactionAmount, 'cid')
   console.log('Proposal for service created by Bob')
 
   // Upload meta evidence to IPFS

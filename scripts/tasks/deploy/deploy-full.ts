@@ -81,16 +81,16 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       setDeploymentProperty(network.name, DeploymentProperty.TalentLayerID, talentLayerID.address)
 
-      // Deploy Service Registry Contract
-      const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-      const serviceRegistryArgs: [string, string] = [
+      // Deploy Talent Layer Service Contract
+      const TalentLayerService = await ethers.getContractFactory('TalentLayerService')
+      const talentLayerServiceArgs: [string, string] = [
         talentLayerID.address,
         talentLayerPlatformID.address,
       ]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-      const serviceRegistry = await (upgrades as HardhatUpgrades).deployProxy(
-        ServiceRegistry,
-        serviceRegistryArgs,
+      const talentLayerService = await (upgrades as HardhatUpgrades).deployProxy(
+        TalentLayerService,
+        talentLayerServiceArgs,
         {
           timeout: 0,
           pollingInterval: 10000,
@@ -98,19 +98,19 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       )
 
       if (verify) {
-        await verifyAddress(serviceRegistry.address)
+        await verifyAddress(talentLayerService.address)
       }
-      const serviceRegistryImplementationAddress =
+      const talentLayerServiceImplementationAddress =
         await // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-        (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(serviceRegistry.address)
-      console.log('Service Registry addresses:', {
-        proxy: serviceRegistry.address,
-        implementation: serviceRegistryImplementationAddress,
+        (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(talentLayerService.address)
+      console.log('Talent Layer Service addresses:', {
+        proxy: talentLayerService.address,
+        implementation: talentLayerServiceImplementationAddress,
       })
       setDeploymentProperty(
         network.name,
-        DeploymentProperty.ServiceRegistry,
-        serviceRegistry.address,
+        DeploymentProperty.TalentLayerService,
+        talentLayerService.address,
       )
 
       // Deploy Review contract
@@ -119,7 +119,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         'TalentLayer Reviews',
         'TLR',
         talentLayerID.address,
-        serviceRegistry.address,
+        talentLayerService.address,
         talentLayerPlatformID.address,
       ]
       // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
@@ -169,7 +169,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
       const talentLayerEscrowArgs: [string, string, string, string | undefined] = [
-        serviceRegistry.address,
+        talentLayerService.address,
         talentLayerID.address,
         talentLayerPlatformID.address,
         networkConfig.multisigAddressList.fee,
@@ -225,8 +225,8 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       }
 
       // Grant escrow role
-      const escrowRole = await serviceRegistry.ESCROW_ROLE()
-      await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
+      const escrowRole = await talentLayerService.ESCROW_ROLE()
+      await talentLayerService.grantRole(escrowRole, talentLayerEscrow.address)
     } catch (e) {
       console.log('------------------------')
       console.log('FAILED')

@@ -12,17 +12,17 @@ async function main() {
   console.log(network)
 
   const [alice] = await ethers.getSigners()
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
 
-  const nextServiceId = await serviceRegistry.nextServiceId()
+  const nextServiceId = await talentLayerService.nextServiceId()
   const firstServiceId = nextServiceId.sub(2)
   console.log('serviceId', firstServiceId.toString())
 
   //Alice rejected Bob proposal
-  await serviceRegistry.connect(alice).rejectProposal(firstServiceId, 2)
+  await talentLayerService.connect(alice).rejectProposal(firstServiceId, 2)
   console.log('Alice rejected Bob proposal')
 }
 

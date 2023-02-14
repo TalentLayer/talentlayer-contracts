@@ -14,7 +14,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
+import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /**
@@ -96,9 +96,9 @@ contract TalentLayerReview is
     ITalentLayerID private tlId;
 
     /**
-     * @notice Service registry
+     * @notice TalentLayerService
      */
-    IServiceRegistry private serviceRegistry;
+    ITalentLayerService private talentLayerService;
 
     /**
      * @notice TalentLayer Platform ID registry
@@ -116,7 +116,7 @@ contract TalentLayerReview is
         string memory name_,
         string memory symbol_,
         address _talentLayerIdAddress,
-        address _serviceRegistryAddress,
+        address _talentLayerServiceAddress,
         address _talentLayerPlatformIdAddress
     ) public initializer {
         __UUPSUpgradeable_init();
@@ -125,7 +125,7 @@ contract TalentLayerReview is
         _name = name_;
         _symbol = symbol_;
         tlId = ITalentLayerID(_talentLayerIdAddress);
-        serviceRegistry = IServiceRegistry(_serviceRegistryAddress);
+        talentLayerService = ITalentLayerService(_talentLayerServiceAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
     }
 
@@ -147,10 +147,10 @@ contract TalentLayerReview is
      * @param _platformId The platform ID
      */
     function addReview(uint256 _serviceId, string calldata _reviewUri, uint256 _rating, uint256 _platformId) public {
-        IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
+        ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
         uint256 senderId = tlId.walletOfOwner(_msgSender());
         require(senderId == service.buyerId || senderId == service.sellerId, "You're not an actor of this service");
-        require(service.status == IServiceRegistry.Status.Finished, "The service is not finished yet");
+        require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;

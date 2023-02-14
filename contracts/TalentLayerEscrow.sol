@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "./interfaces/IServiceRegistry.sol";
+import "./interfaces/ITalentLayerService.sol";
 import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ITalentLayerPlatformID.sol";
 import "./libs/ERC2771RecipientUpgradeable.sol";
@@ -249,9 +249,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     mapping(uint256 => mapping(address => uint256)) private platformIdToTokenToBalance;
 
     /**
-     * @notice Instance of ServiceRegistry.sol
+     * @notice Instance of TalentLayerService.sol
      */
-    IServiceRegistry private serviceRegistryContract;
+    ITalentLayerService private talentLayerServiceContract;
 
     /**
      * @notice Instance of TalentLayerID.sol
@@ -302,12 +302,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     /**
      * @dev Called on contract deployment
-     * @param _serviceRegistryAddress Contract address to ServiceRegistry.sol
+     * @param _talentLayerServiceAddress Contract address to TalentLayerService.sol
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
      */
     function initialize(
-        address _serviceRegistryAddress,
+        address _talentLayerServiceAddress,
         address _talentLayerIDAddress,
         address _talentLayerPlatformIDAddress,
         address _protocolWallet
@@ -315,7 +315,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        serviceRegistryContract = IServiceRegistry(_serviceRegistryAddress);
+        talentLayerServiceContract = ITalentLayerService(_talentLayerServiceAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
         protocolWallet = payable(_protocolWallet);
@@ -403,8 +403,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _serviceId,
         uint256 _proposalId
     ) external payable returns (uint256) {
-        IServiceRegistry.Proposal memory proposal;
-        IServiceRegistry.Service memory service;
+        ITalentLayerService.Proposal memory proposal;
+        ITalentLayerService.Service memory service;
         address sender;
         address receiver;
         uint16 originServiceFeeRate;
@@ -434,8 +434,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
 
-        require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
-        require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
+        require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
+        require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
 
         uint256 transactionId = _saveTransaction(
             _serviceId,
@@ -446,7 +446,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             originServiceCreationPlatform.arbitratorExtraData,
             originServiceCreationPlatform.arbitrationFeeTimeout
         );
-        serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
+        talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _afterCreateTransaction(transactionId, _metaEvidence, proposal.sellerId);
 
         return transactionId;
@@ -463,8 +463,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _serviceId,
         uint256 _proposalId
     ) external returns (uint256) {
-        IServiceRegistry.Proposal memory proposal;
-        IServiceRegistry.Service memory service;
+        ITalentLayerService.Proposal memory proposal;
+        ITalentLayerService.Service memory service;
         address sender;
         address receiver;
         uint16 originServiceFeeRate;
@@ -491,8 +491,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         );
 
         require(_msgSender() == sender, "Access denied.");
-        require(service.status == IServiceRegistry.Status.Opened, "Service status not open.");
-        require(proposal.status == IServiceRegistry.ProposalStatus.Pending, "Proposal status not pending.");
+        require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
+        require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
 
         uint256 transactionId = _saveTransaction(
@@ -504,7 +504,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             originServiceCreationPlatform.arbitratorExtraData,
             originServiceCreationPlatform.arbitrationFeeTimeout
         );
-        serviceRegistryContract.afterDeposit(_serviceId, _proposalId, transactionId);
+        talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
         _afterCreateTransaction(transactionId, _metaEvidence, proposal.sellerId);
 
@@ -849,8 +849,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         bytes memory _arbitratorExtraData,
         uint256 _arbitrationFeeTimeout
     ) internal returns (uint256) {
-        IServiceRegistry.Proposal memory proposal;
-        IServiceRegistry.Service memory service;
+        ITalentLayerService.Proposal memory proposal;
+        ITalentLayerService.Service memory service;
         address sender;
         address receiver;
 
@@ -931,8 +931,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _releaseAmount The amount to release
      */
     function _release(Transaction memory _transaction, uint256 _releaseAmount) private {
-        uint256 originServiceCreationPlatformId = serviceRegistryContract.getService(_transaction.serviceId).platformId;
-        uint256 originValidatedProposalPlatformId = serviceRegistryContract
+        uint256 originServiceCreationPlatformId = talentLayerServiceContract
+            .getService(_transaction.serviceId)
+            .platformId;
+        uint256 originValidatedProposalPlatformId = talentLayerServiceContract
             .getProposal(_transaction.serviceId, _transaction.proposalId)
             .platformId;
         uint256 protocolEscrowFeeRateAmount = (_transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
@@ -999,13 +1001,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      */
     function _distributeMessage(uint256 _serviceId, uint256 _amount) private {
         if (_amount == 0) {
-            serviceRegistryContract.afterFullPayment(_serviceId);
+            talentLayerServiceContract.afterFullPayment(_serviceId);
             emit PaymentCompleted(_serviceId);
         }
     }
 
     /**
-     * @notice Used to retrieve data from ServiceRegistry & talentLayerId contracts.
+     * @notice Used to retrieve data from TalentLayerService & talentLayerId contracts.
      * @param _serviceId The id of the service
      * @param _proposalId The id of the proposal
      * @return proposal proposal struct, service The service struct, sender The sender address, receiver The receiver address
@@ -1016,21 +1018,21 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     )
         private
         returns (
-            IServiceRegistry.Proposal memory proposal,
-            IServiceRegistry.Service memory service,
+            ITalentLayerService.Proposal memory proposal,
+            ITalentLayerService.Service memory service,
             address sender,
             address receiver
         )
     {
-        IServiceRegistry.Proposal memory proposal = _getProposal(_serviceId, _proposalId);
-        IServiceRegistry.Service memory service = _getService(_serviceId);
+        ITalentLayerService.Proposal memory proposal = _getProposal(_serviceId, _proposalId);
+        ITalentLayerService.Service memory service = _getService(_serviceId);
         address sender = talentLayerIdContract.ownerOf(service.buyerId);
         address receiver = talentLayerIdContract.ownerOf(proposal.sellerId);
         return (proposal, service, sender, receiver);
     }
 
     /**
-     * @notice Used to get the Proposal data from the ServiceRegistry contract.
+     * @notice Used to get the Proposal data from the TalentLayerService contract.
      * @param _serviceId The id of the service
      * @param _proposalId The id of the proposal
      * @return The Proposal struct
@@ -1038,17 +1040,17 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function _getProposal(
         uint256 _serviceId,
         uint256 _proposalId
-    ) private view returns (IServiceRegistry.Proposal memory) {
-        return serviceRegistryContract.getProposal(_serviceId, _proposalId);
+    ) private view returns (ITalentLayerService.Proposal memory) {
+        return talentLayerServiceContract.getProposal(_serviceId, _proposalId);
     }
 
     /**
-     * @notice Used to get the Service data from the ServiceRegistry contract.
+     * @notice Used to get the Service data from the TalentLayerService contract.
      * @param _serviceId The id of the service
      * @return The Service struct
      */
-    function _getService(uint256 _serviceId) private view returns (IServiceRegistry.Service memory) {
-        return serviceRegistryContract.getService(_serviceId);
+    function _getService(uint256 _serviceId) private view returns (ITalentLayerService.Service memory) {
+        return talentLayerServiceContract.getService(_serviceId);
     }
 
     /**
