@@ -91,7 +91,7 @@ const config: HardhatUserConfig = {
     alphaSort: true,
     disambiguatePaths: false,
     runOnCompile: true,
-    only: ['TalentLayer', 'ServiceRegistry'],
+    only: ['TalentLayer', 'TalentLayerService'],
   },
   networks: {
     hardhat: {
@@ -115,16 +115,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.9',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      {
-        version: '0.5.17',
+        version: '0.8.18',
         settings: {
           optimizer: {
             enabled: true,

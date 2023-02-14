@@ -5,6 +5,9 @@ import { transactionId } from './constants'
 
 import hre = require('hardhat')
 
+const aliceTlId = 1
+const bobTlId = 2
+
 /**
  * In this script, Alice and Bob submit evidence to support their viewpoints on the dispute.
  */
@@ -30,7 +33,7 @@ async function main() {
         'This is an email sent to from Alice to Bob that clarifies the terms of the contract',
     }),
   )
-  await talentLayerEscrow.connect(alice).submitEvidence(transactionId, aliceEvidence)
+  await talentLayerEscrow.connect(alice).submitEvidence(aliceTlId, transactionId, aliceEvidence)
   console.log("Alice's evidence submitted")
 
   // Bob submits evidence
@@ -44,7 +47,7 @@ async function main() {
         'This is an email sent from Bob to Alice that shows that the work has been completed according to the terms of the contract',
     }),
   )
-  await talentLayerEscrow.connect(bob).submitEvidence(transactionId, bobEvidence)
+  await talentLayerEscrow.connect(bob).submitEvidence(bobTlId, transactionId, bobEvidence)
   console.log("Bob's evidence submitted")
 }
 

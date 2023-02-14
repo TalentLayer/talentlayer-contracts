@@ -3,6 +3,8 @@ import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/dep
 import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
+const aliceTlId = 1
+
 /*
 In this script Alice will create two services.
 First we need to create Job Data and post it to IPFS to get the Service Data URI
@@ -17,9 +19,9 @@ async function main() {
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
   const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
@@ -45,13 +47,13 @@ async function main() {
   )
   console.log('Alice First Job Data Uri', aliceCreateFirstJobData)
 
-  const createFirstOpenService = await serviceRegistry
+  const createFirstOpenService = await talentLayerService
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPlatform, aliceCreateFirstJobData)
+    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
-  const getFirstService = await serviceRegistry.getService(1)
+  const getFirstService = await talentLayerService.getService(1)
   console.log('First Service', getFirstService)
 
   // Alice create a second service #2
@@ -68,17 +70,17 @@ async function main() {
   )
   console.log('Alice Second Job Data Uri', aliceCreateSecondJobData)
 
-  const createSecondOpenService = await serviceRegistry
+  const createSecondOpenService = await talentLayerService
     .connect(alice)
-    .createOpenServiceFromBuyer(daveTalentLayerIdPlatform, aliceCreateSecondJobData)
+    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateSecondJobData)
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
 
-  const getSecondService = await serviceRegistry.getService(2)
+  const getSecondService = await talentLayerService.getService(2)
   console.log('Second Service', getSecondService)
 
   // the next service id will be 3
-  const getNextServiceId = await serviceRegistry.nextServiceId()
+  const getNextServiceId = await talentLayerService.nextServiceId()
   console.log('Next Service Id', getNextServiceId)
 }
 

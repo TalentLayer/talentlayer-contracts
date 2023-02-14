@@ -30,14 +30,14 @@ task('create-service', 'Create a new open service').setAction(async (args, { eth
   console.log('Job Data CID', jobDataCid)
 
   /* ----------- Create an open service -------------- */
-  const ServiceRegistry = await ethers.getContractFactory('ServiceRegistryV2')
+  const TalentLayerService = await ethers.getContractFactory('TalentLayerServiceV2')
 
-  const serviceRegistryAddress = getDeploymentProperty(
+  const talentLayerServiceAddress = getDeploymentProperty(
     network.name,
-    DeploymentProperty['ServiceRegistry'],
+    DeploymentProperty['TalentLayerService'],
   )
-  const serviceRegistry = await ServiceRegistry.attach(serviceRegistryAddress)
-  const tx = await serviceRegistry.createOpenServiceFromBuyer(1, jobDataCid)
+  const talentLayerService = await TalentLayerService.attach(talentLayerServiceAddress)
+  const tx = await talentLayerService.createOpenServiceFromBuyer(1, jobDataCid)
 
   console.log('Service created on tx:', tx.hash)
 })

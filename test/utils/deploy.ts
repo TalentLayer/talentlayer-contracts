@@ -1,7 +1,7 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { getConfig, Network, NetworkConfig } from '../../networkConfig'
 import {
-  ServiceRegistry,
+  TalentLayerService,
   SimpleERC20,
   TalentLayerArbitrator,
   TalentLayerEscrow,
@@ -22,7 +22,7 @@ export async function deploy(
     TalentLayerPlatformID,
     TalentLayerEscrow,
     TalentLayerArbitrator,
-    ServiceRegistry,
+    TalentLayerService,
     TalentLayerReview,
     SimpleERC20,
   ]
@@ -44,29 +44,29 @@ export async function deploy(
     talentLayerID = await upgrades.upgradeProxy(talentLayerID.address, TalentLayerIDV2)
   }
 
-  // Deploy ServiceRegistry
-  const ServiceRegistry = await ethers.getContractFactory('ServiceRegistry')
-  const serviceRegistryArgs: [string, string] = [
+  // Deploy TalentLayerService
+  const TalentLayerService = await ethers.getContractFactory('TalentLayerService')
+  const talentLayerServiceArgs: [string, string] = [
     talentLayerID.address,
     talentLayerPlatformID.address,
   ]
-  const serviceRegistry = await upgrades.deployProxy(ServiceRegistry, serviceRegistryArgs)
+  const talentLayerService = await upgrades.deployProxy(TalentLayerService, talentLayerServiceArgs)
 
   // Deploy TalentLayerArbitrator
   const TalentLayerArbitrator = await ethers.getContractFactory('TalentLayerArbitrator')
   const talentLayerArbitrator = await TalentLayerArbitrator.deploy(talentLayerPlatformID.address)
 
-  // Deploy TalentLayerEscrow and escrow role on ServiceRegistry
+  // Deploy TalentLayerEscrow and escrow role on TalentLayerService
   const TalentLayerEscrow = await ethers.getContractFactory('TalentLayerEscrow')
   const TalentLayerEscrowArgs: [string, string, string, string | undefined] = [
-    serviceRegistry.address,
+    talentLayerService.address,
     talentLayerID.address,
     talentLayerPlatformID.address,
     networkConfig.multisigAddressList.fee,
   ]
   const talentLayerEscrow = await upgrades.deployProxy(TalentLayerEscrow, TalentLayerEscrowArgs)
-  const escrowRole = await serviceRegistry.ESCROW_ROLE()
-  await serviceRegistry.grantRole(escrowRole, talentLayerEscrow.address)
+  const escrowRole = await talentLayerService.ESCROW_ROLE()
+  await talentLayerService.grantRole(escrowRole, talentLayerEscrow.address)
 
   // Deploy TalentLayerReview
   const TalentLayerReview = await ethers.getContractFactory('TalentLayerReview')
@@ -74,7 +74,7 @@ export async function deploy(
     'TalentLayer Review',
     'TLR',
     talentLayerID.address,
-    serviceRegistry.address,
+    talentLayerService.address,
     talentLayerPlatformID.address,
   ]
   const talentLayerReview = await upgrades.deployProxy(TalentLayerReview, talentLayerReviewArgs)
@@ -88,7 +88,7 @@ export async function deploy(
     talentLayerPlatformID as TalentLayerPlatformID,
     talentLayerEscrow as TalentLayerEscrow,
     talentLayerArbitrator,
-    serviceRegistry as ServiceRegistry,
+    talentLayerService as TalentLayerService,
     talentLayerReview as TalentLayerReview,
     simpleERC20,
   ]

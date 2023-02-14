@@ -5,6 +5,8 @@ import { arbitrationCost, arbitrationFeeTimeout, transactionAmount } from './con
 
 import hre = require('hardhat')
 
+const aliceTlId = 1
+const bobTlId = 2
 const carolPlatformId = 1
 const serviceId = 1
 const ethAddress = '0x0000000000000000000000000000000000000000'
@@ -37,9 +39,9 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
 
   const talentLayerEscrow = await ethers.getContractAt(
@@ -82,11 +84,23 @@ async function main() {
   console.log('Minted TL Id for Bob')
 
   // Alice, the buyer, initiates a new open service
-  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+<<<<<<< HEAD
+  await talentLayerService
+    .connect(alice)
+    .createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
+=======
+  await talentLayerService.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
+>>>>>>> 2713ee51e9241a067dfb2e987f2d3787a43913b7
   console.log('Open service created by Alice')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry.connect(bob).createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+  await talentLayerService
+    .connect(bob)
+<<<<<<< HEAD
+    .createProposal(bobTlId, serviceId, ethAddress, transactionAmount, 'cid')
+=======
+    .createProposal(serviceId, ethAddress, transactionAmount, 'cid')
+>>>>>>> 2713ee51e9241a067dfb2e987f2d3787a43913b7
   console.log('Proposal for service created by Bob')
 
   // Upload meta evidence to IPFS
@@ -119,11 +133,13 @@ async function main() {
   const proposalId = 2
   const feeDivider = 10000
   const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-  const originPlatformEscrowFeeRate = await talentLayerEscrow.originPlatformEscrowFeeRate()
-  const platformEscrowFeeRate = (await talentLayerPlatformID.platforms(carolPlatformId)).fee
+  const platformData = await talentLayerPlatformID.platforms(carolPlatformId)
+  const originServiceFeeRate = platformData.originServiceFeeRate
+  const originValidatedProposalFeeRate = platformData.originValidatedProposalFeeRate
+
   const totalTransactionAmount = transactionAmount.add(
     transactionAmount
-      .mul(protocolEscrowFeeRate + originPlatformEscrowFeeRate + platformEscrowFeeRate)
+      .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
       .div(feeDivider),
   )
   await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
