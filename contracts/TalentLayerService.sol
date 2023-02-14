@@ -37,7 +37,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Service information struct
     /// @param status the current status of a service
     /// @param buyerId the talentLayerId of the buyer
-    /// @param sellerId the talentLayerId of the seller
+    /// @param acceptedProposalId the talentLayerId of the seller
     /// @param initiatorId the talentLayerId of the user who initialized the service
     /// @param serviceDataUri token Id to IPFS URI mapping
     /// @param proposals all proposals for this service
@@ -47,7 +47,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     struct Service {
         Status status;
         uint256 buyerId;
-        uint256 sellerId;
+        uint256 acceptedProposalId;
         uint256 initiatorId;
         string serviceDataUri;
         uint256 countProposals;
@@ -57,13 +57,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Proposal information struct
     /// @param status the current status of a service
-    /// @param sellerId the talentLayerId of the seller
+    /// @param acceptedProposalId the talentLayerId of the seller
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
     /// @param proposalDataUri token Id to IPFS URI mapping
     struct Proposal {
         ProposalStatus status;
-        uint256 sellerId;
+        uint256 acceptedProposalId;
         address rateToken;
         uint256 rateAmount;
         uint16 platformId;
@@ -75,11 +75,17 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Emitted after a new service is created
     /// @param id The service ID (incremental)
     /// @param buyerId the talentLayerId of the buyer
-    /// @param sellerId the talentLayerId of the seller
+    /// @param acceptedProposalId the talentLayerId of the seller
     /// @param initiatorId the talentLayerId of the user who initialized the service
     /// @param platformId platform ID on which the Service token was minted
     /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
-    event ServiceCreated(uint256 id, uint256 buyerId, uint256 sellerId, uint256 initiatorId, uint256 platformId);
+    event ServiceCreated(
+        uint256 id,
+        uint256 buyerId,
+        uint256 acceptedProposalId,
+        uint256 initiatorId,
+        uint256 platformId
+    );
 
     /// @notice Emitted after a new service is created
     /// @param id The service ID (incremental)
@@ -99,7 +105,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Emitted after a new proposal is created
     /// @param serviceId The service id
-    /// @param sellerId The talentLayerId of the seller who made the proposal
+    /// @param acceptedProposalId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param status proposal status
     /// @param rateToken the token choose for the payment
@@ -107,7 +113,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param platformId the platform ID on which the proposal was created
     event ProposalCreated(
         uint256 serviceId,
-        uint256 sellerId,
+        uint256 acceptedProposalId,
         string proposalDataUri,
         ProposalStatus status,
         address rateToken,
@@ -117,13 +123,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Emitted after an existing proposal has been updated
     /// @param serviceId The service id
-    /// @param sellerId The talentLayerId of the seller who made the proposal
+    /// @param acceptedProposalId The talentLayerId of the seller who made the proposal
     /// @param proposalDataUri token Id to IPFS URI mapping
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
     event ProposalUpdated(
         uint256 serviceId,
-        uint256 sellerId,
+        uint256 acceptedProposalId,
         string proposalDataUri,
         address rateToken,
         uint256 rateAmount
@@ -131,13 +137,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Emitted after a proposal is validated
     /// @param serviceId The service ID
-    /// @param sellerId the talentLayerId of the seller
-    event ProposalValidated(uint256 serviceId, uint256 sellerId);
+    /// @param acceptedProposalId the talentLayerId of the seller
+    event ProposalValidated(uint256 serviceId, uint256 acceptedProposalId);
 
     /// @notice Emitted after a proposal is rejected
     /// @param serviceId The service ID
-    /// @param sellerId the talentLayerId of the seller
-    event ProposalRejected(uint256 serviceId, uint256 sellerId);
+    /// @param acceptedProposalId the talentLayerId of the seller
+    event ProposalRejected(uint256 serviceId, uint256 acceptedProposalId);
 
     /**
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
@@ -271,7 +277,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
         require(
-            proposals[_serviceId][_tokenId].sellerId != _tokenId,
+            proposals[_serviceId][_tokenId].acceptedProposalId != _tokenId,
             "You already created a proposal for this service"
         );
 
@@ -281,7 +287,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.countProposals++;
         proposals[_serviceId][_tokenId] = Proposal({
             status: ProposalStatus.Pending,
-            sellerId: _tokenId,
+            acceptedProposalId: _tokenId,
             rateToken: _rateToken,
             rateAmount: _rateAmount,
             platformId: _platformId,
@@ -319,7 +325,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_tokenId];
         require(service.status == Status.Opened, "Service is not opened");
-        require(proposal.sellerId == _tokenId, "This proposal doesn't exist yet");
+        require(proposal.acceptedProposalId == senderId, "This proposal doesn't exist yet");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
         require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
 
@@ -370,7 +376,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
         service.status = Status.Confirmed;
-        service.sellerId = proposal.sellerId;
+        service.acceptedProposalId = proposal.acceptedProposalId;
         service.transactionId = _transactionId;
         proposal.status = ProposalStatus.Validated;
     }
@@ -446,19 +452,19 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Update handle address mapping and emit event after mint.
      * @param _tokenId the talentLayerId of the _msgSender() address
      * @param _buyerId the talentLayerId of the buyer
-     * @param _sellerId the talentLayerId of the seller
+     * @param _acceptedProposalId the talentLayerId of the seller
      * @param _serviceDataUri token Id to IPFS URI mapping
      */
     function _createService(
         Status _status,
         uint256 _tokenId,
         uint256 _buyerId,
-        uint256 _sellerId,
+        uint256 _acceptedProposalId,
         string calldata _serviceDataUri,
         uint256 _platformId
     ) private returns (uint256) {
         require(_tokenId > 0, "You should have a TalentLayerId");
-        require(_sellerId != _buyerId, "Seller and buyer can't be the same");
+        require(_acceptedProposalId != _buyerId, "Seller and buyer can't be the same");
         require(bytes(_serviceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         uint256 id = nextServiceId;
@@ -467,12 +473,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Service storage service = services[id];
         service.status = _status;
         service.buyerId = _buyerId;
-        service.sellerId = _sellerId;
-        service.initiatorId = _tokenId;
+        service.acceptedProposalId = _acceptedProposalId;
+        service.initiatorId = _senderId;
         service.serviceDataUri = _serviceDataUri;
         service.platformId = _platformId;
 
-        emit ServiceCreated(id, _buyerId, _sellerId, _tokenId, _platformId);
+        emit ServiceCreated(id, _buyerId, _acceptedProposalId, _senderId, _platformId);
 
         emit ServiceDataCreated(id, _serviceDataUri);
 
