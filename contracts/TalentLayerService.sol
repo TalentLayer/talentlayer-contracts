@@ -71,8 +71,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param id The service ID (incremental)
     /// @param ownerId the talentLayerId of the buyer
     /// @param platformId platform ID on which the Service token was minted
+    /// @param dataUri token Id to IPFS URI mapping
     /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
-    event ServiceCreated(uint256 id, uint256 ownerId, uint256 platformId);
+    event ServiceCreated(uint256 id, uint256 ownerId, uint256 platformId, string dataUri);
 
     /// @notice Emitted after a service is cancelled by the owner
     /// @param id The service ID
@@ -216,8 +217,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _dataUri token Id to IPFS URI mapping
      */
     function createService(
+        Status _status,
         uint256 _tokenId,
         uint256 _platformId,
+        uint256 _acceptedProposalId,
+        uint256 _ownerId,
         string calldata _dataUri
     ) public payable onlyOwnerOrDelegate(_tokenId) returns (uint256) {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
@@ -236,7 +240,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.dataUri = _dataUri;
         service.platformId = _platformId;
 
-        emit ServiceCreated(id, _ownerId, _acceptedProposalId, _platformId, _dataUri);
+        emit ServiceCreated(id, _ownerId, _platformId, _dataUri);
 
         return id;
     }
@@ -334,7 +338,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
         service.status = Status.Confirmed;
-        service.acceptedProposalId = proposal.acceptedProposalId;
+        service.acceptedProposalId = proposal.ownerId;
         service.transactionId = _transactionId;
         proposal.status = ProposalStatus.Validated;
     }
