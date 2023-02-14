@@ -76,11 +76,12 @@ contract TalentLayerArbitrator is Arbitrator {
     }
 
     /** @dev Cost of appeal. Since it is not possible, it's a high value which can never be paid.
-     *  @param _disputeID ID of the dispute to be appealed. Not used by this contract.
-     *  @param _extraData Not used by this contract.
      *  @return fee Amount to be paid.
      */
-    function appealCost(uint256 _disputeID, bytes memory _extraData) public view override returns (uint256 fee) {
+    function appealCost(
+        uint256 /*_disputeID*/,
+        bytes memory /*_extraData*/
+    ) public pure override returns (uint256 fee) {
         return NOT_PAYABLE_VALUE;
     }
 

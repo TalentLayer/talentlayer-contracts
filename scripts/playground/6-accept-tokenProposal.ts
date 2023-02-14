@@ -13,9 +13,9 @@ async function main() {
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
 
   const talentLayerEscrow = await ethers.getContractAt(
@@ -76,7 +76,7 @@ async function main() {
   const approve = await token.approve(talentLayerEscrow.address, totalAmount)
   await waitConfirmations(network, approve, 10)
 
-  let secondServiceId = await serviceRegistry.nextServiceId()
+  let secondServiceId = await talentLayerService.nextServiceId()
   secondServiceId = secondServiceId.sub(1)
   console.log('serviceId', secondServiceId.toString())
 

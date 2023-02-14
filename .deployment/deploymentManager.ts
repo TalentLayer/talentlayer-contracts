@@ -2,7 +2,7 @@ import * as fs from 'fs'
 
 export enum DeploymentProperty {
   TalentLayerID = 'talentLayerIdAddress',
-  ServiceRegistry = 'serviceRegistryAddress',
+  TalentLayerService = 'talentLayerServiceAddress',
   Reviewscontract = 'talentLayerReviewAddress',
   TalentLayerArbitrator = 'talentLayerArbitratorAddress',
   TalentLayerEscrow = 'talentLayerEscrowAddress',

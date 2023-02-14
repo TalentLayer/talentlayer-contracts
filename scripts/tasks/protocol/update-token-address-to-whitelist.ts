@@ -17,15 +17,15 @@ task('update-token-address-to-whitelist', 'Add or remove a token address to the 
 
     console.log('network', network.name)
 
-    const serviceRegistry = await ethers.getContractAt(
-      'ServiceRegistry',
-      getDeploymentProperty(network.name, DeploymentProperty.ServiceRegistry),
+    const talentLayerService = await ethers.getContractAt(
+      'TalentLayerService',
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerService),
       deployer,
     )
 
-    const tx = await serviceRegistry.updateAllowedTokenList(address, action === Actions.ADD)
+    const tx = await talentLayerService.updateAllowedTokenList(address, action === Actions.ADD)
     await tx.wait()
-    const isTokenRegistered = await serviceRegistry.isTokenAllowed(address)
+    const isTokenRegistered = await talentLayerService.isTokenAllowed(address)
     console.log(
       `Updates token whitelist: ${address} was ${
         isTokenRegistered ? 'added to ' : 'removed from '
