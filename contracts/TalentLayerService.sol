@@ -38,7 +38,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param status the current status of a service
     /// @param ownerId the talentLayerId of the buyer
     /// @param acceptedProposalId the accepted proposal ID
-    /// @param initiatorId the talentLayerId of the user who initialized the service
     /// @param serviceDataUri token Id to IPFS URI mapping
     /// @param proposals all proposals for this service
     /// @param countProposals the total number of proposal for this service
@@ -48,7 +47,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Status status;
         uint256 ownerId;
         uint256 acceptedProposalId;
-        uint256 initiatorId;
         string serviceDataUri;
         uint256 countProposals;
         uint256 transactionId;
@@ -76,16 +74,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param id The service ID (incremental)
     /// @param ownerId the talentLayerId of the buyer
     /// @param acceptedProposalId the talentLayerId of the seller
-    /// @param initiatorId the talentLayerId of the user who initialized the service
     /// @param platformId platform ID on which the Service token was minted
     /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
-    event ServiceCreated(
-        uint256 id,
-        uint256 ownerId,
-        uint256 acceptedProposalId,
-        uint256 initiatorId,
-        uint256 platformId
-    );
+    event ServiceCreated(uint256 id, uint256 ownerId, uint256 acceptedProposalId, uint256 platformId);
 
     /// @notice Emitted after a new service is created
     /// @param id The service ID (incremental)
@@ -420,7 +411,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
         );
-        require(_tokenId == service.initiatorId, "Only the initiator or a delegate can update the service");
         require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.serviceDataUri = _newServiceDataUri;
@@ -435,7 +425,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     function cancelService(uint256 _serviceId) public {
         Service storage service = services[_serviceId];
 
-        require(service.initiatorId == tlId.walletOfOwner(msg.sender), "Only the initiator can cancel the service");
         require(service.status == Status.Opened, "Only services with the open status can be cancelled");
 
         service.status = Status.Cancelled;
@@ -471,7 +460,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.status = _status;
         service.ownerId = _ownerId;
         service.acceptedProposalId = _acceptedProposalId;
-        service.initiatorId = _tokenId;
         service.serviceDataUri = _serviceDataUri;
         service.platformId = _platformId;
 
