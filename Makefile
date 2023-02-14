@@ -6,8 +6,13 @@ include .env
 install: clean deploy-localhost setup-fakedata
 
 #--------------UTILS----------------#
+
 clean: 
 	npx hardhat clean
+
+test: 
+	make clean
+	npx hardhat test
 
 #--------------DEPLOY----------------#
 
