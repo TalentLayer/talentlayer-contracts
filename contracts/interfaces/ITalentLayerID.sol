@@ -11,8 +11,6 @@ interface ITalentLayerID {
 
     function numberMinted(address _user) external view returns (uint256);
 
-    function walletOfOwner(address _owner) external view returns (uint256);
-
     function mint(string memory _handle) external;
 
     function updateProfileData(uint256 _tokenId, string memory _newCid) external;
@@ -32,6 +30,8 @@ interface ITalentLayerID {
     function isDelegate(uint256 _tokenId, address _address) external view returns (bool);
 
     function isOwnerOrDelegate(uint256 _tokenId, address _address) external view returns (bool);
+
+    function ids(address _user) external view returns (uint256);
 
     event Mint(address indexed _user, uint256 _tokenId, string _handle);
 }
