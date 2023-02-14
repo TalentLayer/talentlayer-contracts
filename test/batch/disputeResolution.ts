@@ -38,11 +38,7 @@ async function deployAndSetup(
   arbitrationFeeTimeout: number,
   tokenAddress: string,
 ): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, TalentLayerService]> {
-<<<<<<< HEAD
   const [deployer, alice, bob, carol, dave] = await ethers.getSigners()
-=======
-  const [deployer, alice, bob, carol] = await ethers.getSigners()
->>>>>>> 2713ee51e9241a067dfb2e987f2d3787a43913b7
   const [
     talentLayerID,
     talentLayerPlatformID,
@@ -82,13 +78,9 @@ async function deployAndSetup(
   await talentLayerID.connect(dave).mint(carolPlatformId, 'dave')
 
   // Alice, the buyer, initiates a new open service
-<<<<<<< HEAD
   await talentLayerService
     .connect(alice)
     .createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
-=======
-  await talentLayerService.connect(alice).createOpenServiceFromBuyer(carolPlatformId, 'cid')
->>>>>>> 2713ee51e9241a067dfb2e987f2d3787a43913b7
 
   // Bob, the seller, creates a proposal for the service
   await talentLayerService
