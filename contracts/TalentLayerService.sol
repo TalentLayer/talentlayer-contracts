@@ -388,12 +388,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /**
      * Cancel a Service
+     * @param _tokenId The talentLayerId of the user
      * @param _serviceId, Service ID to cancel
      */
-    function cancelService(uint256 _serviceId) public {
+    function cancelService(uint256 _tokenId, uint256 _serviceId) public onlyOwnerOrDelegate(_tokenId) {
         Service storage service = services[_serviceId];
 
-        require(service.ownerId == tlId.ids(msg.sender), "Only the owner can cancel the service");
+        require(service.ownerId == _tokenId, "Only the owner can cancel the service");
         require(service.status == Status.Opened, "Only services with the open status can be cancelled");
         service.status = Status.Cancelled;
 
