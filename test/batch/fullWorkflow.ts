@@ -566,13 +566,13 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can cancel her own service', async function () {
-      await talentLayerService.connect(alice).cancelService(5)
+      await talentLayerService.connect(alice).cancelService(aliceTlId, 5)
       const serviceData = await talentLayerService.services(5)
       expect(serviceData.status).to.be.equal(3)
     })
 
     it('Alice can cancel only a service that is open', async function () {
-      expect(talentLayerService.connect(alice).cancelService(5)).to.be.revertedWith(
+      expect(talentLayerService.connect(alice).cancelService(aliceTlId, 5)).to.be.revertedWith(
         'Only services with the open status can be cancelled',
       )
     })
@@ -588,7 +588,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it("Bob cannot cancel Alice's service", async function () {
-      expect(talentLayerService.connect(bob).cancelService(1)).to.be.revertedWith(
+      expect(talentLayerService.connect(bob).cancelService(aliceTlId, 1)).to.be.revertedWith(
         'Only the initiator can cancel the service',
       )
     })
@@ -944,7 +944,7 @@ describe('TalentLayer protocol global testing', function () {
             value: alicePlatformProposalPostingFee,
           })
         // Cancel the service
-        await talentLayerService.connect(alice).cancelService(serviceId)
+        await talentLayerService.connect(alice).cancelService(aliceTlId, serviceId)
         // Try to deposit fund to validate the proposal
         const transactionDetails = await talentLayerEscrow
           .connect(alice)
