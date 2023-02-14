@@ -98,7 +98,7 @@ describe('Load test', function () {
           await expect(
             await serviceRegistry
               .connect(signers[signerIndex])
-              .createProposal(serviceId, TOKEN, VALUE, MOCK_DATA),
+              .createProposal(serviceId, TOKEN, VALUE, platformId, MOCK_DATA),
           ).to.emit(serviceRegistry, 'ProposalCreated')
         }
       }
