@@ -47,13 +47,9 @@ async function main() {
   const firstServiceId = nextServiceId.sub(2)
   console.log('the Alice service id is ', firstServiceId.toString())
 
-<<<<<<< HEAD
   await talentLayerService
     .connect(alice)
     .updateServiceData(aliceTlId, firstServiceId, aliceUpdateJobData)
-=======
-  await talentLayerService.connect(alice).updateServiceData(firstServiceId, aliceUpdateJobData)
->>>>>>> 2713ee51e9241a067dfb2e987f2d3787a43913b7
   const jobDataAfterUpdate = await talentLayerService.getService(firstServiceId)
   console.log('Job Data after update', jobDataAfterUpdate)
 }
