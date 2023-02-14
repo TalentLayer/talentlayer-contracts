@@ -10,7 +10,7 @@ install: clean deploy-localhost setup-fakedata
 clean: 
 	npx hardhat clean
 
-test: 
+tests:
 	make clean
 	npx hardhat test
 
