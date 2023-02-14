@@ -36,7 +36,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Service information struct
     /// @param status the current status of a service
-    /// @param buyerId the talentLayerId of the buyer
+    /// @param ownerId the talentLayerId of the buyer
     /// @param acceptedProposalId the accepted proposal ID
     /// @param initiatorId the talentLayerId of the user who initialized the service
     /// @param serviceDataUri token Id to IPFS URI mapping
@@ -46,7 +46,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param platformId the platform ID on which the service was created
     struct Service {
         Status status;
-        uint256 buyerId;
+        uint256 ownerId;
         uint256 acceptedProposalId;
         uint256 initiatorId;
         string serviceDataUri;
@@ -74,14 +74,14 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Emitted after a new service is created
     /// @param id The service ID (incremental)
-    /// @param buyerId the talentLayerId of the buyer
+    /// @param ownerId the talentLayerId of the buyer
     /// @param acceptedProposalId the talentLayerId of the seller
     /// @param initiatorId the talentLayerId of the user who initialized the service
     /// @param platformId platform ID on which the Service token was minted
     /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
     event ServiceCreated(
         uint256 id,
-        uint256 buyerId,
+        uint256 ownerId,
         uint256 acceptedProposalId,
         uint256 initiatorId,
         uint256 platformId
@@ -281,7 +281,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             "You already created a proposal for this service"
         );
 
-        require(service.buyerId != _tokenId, "You couldn't create proposal for your own service");
+        require(service.ownerId != _tokenId, "You couldn't create proposal for your own service");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.countProposals++;
@@ -354,7 +354,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
         require(proposal.status != ProposalStatus.Rejected, "Proposal has already been rejected");
 
-        require(_tokenId == service.buyerId, "You're not the buyer");
+        require(_tokenId == service.ownerId, "You're not the buyer");
 
         proposal.status = ProposalStatus.Rejected;
 
@@ -451,20 +451,20 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /**
      * @notice Update handle address mapping and emit event after mint.
      * @param _tokenId the talentLayerId of the _msgSender() address
-     * @param _buyerId the talentLayerId of the buyer
+     * @param _ownerId the talentLayerId of the buyer
      * @param _acceptedProposalId the proposalId accepted by the buyer
      * @param _serviceDataUri token Id to IPFS URI mapping
      */
     function _createService(
         Status _status,
         uint256 _tokenId,
-        uint256 _buyerId,
+        uint256 _ownerId,
         uint256 _acceptedProposalId,
         string calldata _serviceDataUri,
         uint256 _platformId
     ) private returns (uint256) {
         require(_tokenId > 0, "You should have a TalentLayerId");
-        require(_acceptedProposalId != _buyerId, "Seller and buyer can't be the same");
+        require(_acceptedProposalId != _ownerId, "Seller and buyer can't be the same");
         require(bytes(_serviceDataUri).length > 0, "Should provide a valid IPFS URI");
 
         uint256 id = nextServiceId;
@@ -472,13 +472,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
         Service storage service = services[id];
         service.status = _status;
-        service.buyerId = _buyerId;
+        service.ownerId = _ownerId;
         service.acceptedProposalId = _acceptedProposalId;
         service.initiatorId = _tokenId;
         service.serviceDataUri = _serviceDataUri;
         service.platformId = _platformId;
 
-        emit ServiceCreated(id, _buyerId, _acceptedProposalId, _tokenId, _platformId);
+        emit ServiceCreated(id, _ownerId, _acceptedProposalId, _tokenId, _platformId);
 
         emit ServiceDataCreated(id, _serviceDataUri);
 
