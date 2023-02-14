@@ -443,7 +443,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(_msgSender() == sender, "Access denied.");
         require(msg.value == transactionAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
-        require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
+        require(proposal.acceptedProposalId == _proposalId, "Incorrect proposal ID.");
 
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
@@ -458,7 +458,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             originServiceCreationPlatform.arbitrationFeeTimeout
         );
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
-        _afterCreateTransaction(transactionId, _metaEvidence, proposal.sellerId);
+        _afterCreateTransaction(transactionId, _metaEvidence, proposal.acceptedProposalId);
 
         return transactionId;
     }
@@ -504,7 +504,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(_msgSender() == sender, "Access denied.");
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
-        require(proposal.sellerId == _proposalId, "Incorrect proposal ID.");
+        require(proposal.acceptedProposalId == _proposalId, "Incorrect proposal ID.");
 
         uint256 transactionId = _saveTransaction(
             _serviceId,
@@ -517,7 +517,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         );
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _deposit(sender, proposal.rateToken, transactionAmount);
-        _afterCreateTransaction(transactionId, _metaEvidence, proposal.sellerId);
+        _afterCreateTransaction(transactionId, _metaEvidence, proposal.acceptedProposalId);
 
         return transactionId;
     }
@@ -1050,7 +1050,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         ITalentLayerService.Proposal memory proposal = _getProposal(_serviceId, _proposalId);
         ITalentLayerService.Service memory service = _getService(_serviceId);
         address sender = talentLayerIdContract.ownerOf(service.buyerId);
-        address receiver = talentLayerIdContract.ownerOf(proposal.sellerId);
+        address receiver = talentLayerIdContract.ownerOf(proposal.acceptedProposalId);
         return (proposal, service, sender, receiver);
     }
 

@@ -19,7 +19,7 @@ interface ITalentLayerService {
     struct Service {
         Status status;
         uint256 buyerId;
-        uint256 sellerId;
+        uint256 acceptedProposalId;
         uint256 initiatorId;
         string serviceDataUri;
         uint256 countProposals;
@@ -29,7 +29,7 @@ interface ITalentLayerService {
 
     struct Proposal {
         ProposalStatus status;
-        uint256 sellerId;
+        uint256 acceptedProposalId;
         address rateToken;
         uint256 rateAmount;
         uint16 platformId;
