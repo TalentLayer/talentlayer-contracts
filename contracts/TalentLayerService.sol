@@ -325,7 +325,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_tokenId];
         require(service.status == Status.Opened, "Service is not opened");
-        require(proposal.acceptedProposalId == senderId, "This proposal doesn't exist yet");
+        require(proposal.acceptedProposalId == _tokenId, "This proposal doesn't exist yet");
         require(bytes(_proposalDataUri).length > 0, "Should provide a valid IPFS URI");
         require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
 
@@ -474,11 +474,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.status = _status;
         service.buyerId = _buyerId;
         service.acceptedProposalId = _acceptedProposalId;
-        service.initiatorId = _senderId;
+        service.initiatorId = _tokenId;
         service.serviceDataUri = _serviceDataUri;
         service.platformId = _platformId;
 
-        emit ServiceCreated(id, _buyerId, _acceptedProposalId, _senderId, _platformId);
+        emit ServiceCreated(id, _buyerId, _acceptedProposalId, _tokenId, _platformId);
 
         emit ServiceDataCreated(id, _serviceDataUri);
 
