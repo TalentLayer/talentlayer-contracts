@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import {
-  ServiceRegistry,
+  TalentLayerService,
   TalentLayerArbitrator,
   TalentLayerEscrow,
   TalentLayerID,
@@ -20,7 +20,7 @@ describe('Load test', function () {
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerArbitrator: TalentLayerArbitrator,
     talentLayerEscrow: TalentLayerEscrow,
-    serviceRegistry: ServiceRegistry
+    talentLayerService: TalentLayerService
 
   //Each buyer creates a given amount of open services. Each seller creates a proposal for all services.
   //Buyers and sellers are two distinct sets of TalentLayerIDs.
@@ -48,7 +48,7 @@ describe('Load test', function () {
       talentLayerPlatformID,
       talentLayerEscrow,
       talentLayerArbitrator,
-      serviceRegistry,
+      talentLayerService,
     ] = await deploy(false)
 
     // Grant Platform Id Mint role to Alice
@@ -76,10 +76,10 @@ describe('Load test', function () {
       async function () {
         for (let i = 0; i < AMOUNT_OF_SERVICES_PER_BUYER; i++) {
           await expect(
-            await serviceRegistry
+            await talentLayerService
               .connect(signers[signerIndex])
               .createOpenServiceFromBuyer(platformId, MOCK_DATA + '_' + i),
-          ).to.emit(serviceRegistry, 'ServiceCreated')
+          ).to.emit(talentLayerService, 'ServiceCreated')
         }
       }
 
@@ -96,10 +96,10 @@ describe('Load test', function () {
       async function () {
         for (let serviceId = 1; serviceId <= AMOUNT_OF_SERVICES; serviceId++) {
           await expect(
-            await serviceRegistry
+            await talentLayerService
               .connect(signers[signerIndex])
               .createProposal(serviceId, TOKEN, VALUE, MOCK_DATA),
-          ).to.emit(serviceRegistry, 'ProposalCreated')
+          ).to.emit(talentLayerService, 'ProposalCreated')
         }
       }
 

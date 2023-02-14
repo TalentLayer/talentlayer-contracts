@@ -10,10 +10,10 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
- * @title ServiceRegistry Contract
+ * @title TalentLayerService Contract
  * @author TalentLayer Team
  */
-contract ServiceRegistry is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, AccessControlUpgradeable {
+contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, AccessControlUpgradeable {
     // =========================== Enum ==============================
 
     /// @notice Enum service status
