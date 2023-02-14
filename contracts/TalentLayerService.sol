@@ -40,7 +40,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param acceptedProposalId the accepted proposal ID
     /// @param dataUri token Id to IPFS URI mapping
     /// @param proposals all proposals for this service
-    /// @param countProposals the total number of proposal for this service
     /// @param transactionId the escrow transaction ID linked to the service
     /// @param platformId the platform ID on which the service was created
     struct Service {
@@ -48,7 +47,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 ownerId;
         uint256 acceptedProposalId;
         string dataUri;
-        uint256 countProposals;
         uint256 transactionId;
         uint256 platformId;
     }
@@ -266,7 +264,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(service.ownerId != _tokenId, "You couldn't create proposal for your own service");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
-        service.countProposals++;
         proposals[_serviceId][_tokenId] = Proposal({
             status: ProposalStatus.Pending,
             ownerId: _tokenId,
