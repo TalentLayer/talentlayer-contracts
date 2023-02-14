@@ -38,7 +38,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param status the current status of a service
     /// @param ownerId the talentLayerId of the buyer
     /// @param acceptedProposalId the accepted proposal ID
-    /// @param serviceDataUri token Id to IPFS URI mapping
+    /// @param dataUri token Id to IPFS URI mapping
     /// @param proposals all proposals for this service
     /// @param countProposals the total number of proposal for this service
     /// @param transactionId the escrow transaction ID linked to the service
@@ -47,7 +47,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Status status;
         uint256 ownerId;
         uint256 acceptedProposalId;
-        string serviceDataUri;
+        string dataUri;
         uint256 countProposals;
         uint256 transactionId;
         uint256 platformId;
@@ -80,8 +80,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Emitted after a new service is created
     /// @param id The service ID (incremental)
-    /// @param serviceDataUri token Id to IPFS URI mapping
-    event ServiceDataCreated(uint256 id, string serviceDataUri);
+    /// @param dataUri token Id to IPFS URI mapping
+    event ServiceDataCreated(uint256 id, string dataUri);
 
     /// @notice Emitted after a service is cancelled by the owner
     /// @param id The service ID
@@ -233,16 +233,16 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Allows an buyer to initiate an open service
      * @param _tokenId The talentLayerId of the user
      * @param _platformId platform ID on which the Service token was minted
-     * @param _serviceDataUri token Id to IPFS URI mapping
+     * @param _dataUri token Id to IPFS URI mapping
      */
     function createOpenServiceFromBuyer(
         uint256 _tokenId,
         uint256 _platformId,
-        string calldata _serviceDataUri
+        string calldata _dataUri
     ) public payable onlyOwnerOrDelegate(_tokenId) returns (uint256) {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
         require(msg.value == servicePostingFee, "Non-matching funds");
-        return _createService(Status.Opened, _tokenId, _tokenId, 0, _serviceDataUri, _platformId);
+        return _createService(Status.Opened, _tokenId, _tokenId, 0, _dataUri, _platformId);
     }
 
     /**
@@ -413,7 +413,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         );
         require(bytes(_newServiceDataUri).length > 0, "Should provide a valid IPFS URI");
 
-        service.serviceDataUri = _newServiceDataUri;
+        service.dataUri = _newServiceDataUri;
 
         emit ServiceDetailedUpdated(_serviceId, _newServiceDataUri);
     }
@@ -439,19 +439,19 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _tokenId the talentLayerId of the _msgSender() address
      * @param _ownerId the talentLayerId of the buyer
      * @param _acceptedProposalId the proposalId accepted by the buyer
-     * @param _serviceDataUri token Id to IPFS URI mapping
+     * @param _dataUri token Id to IPFS URI mapping
      */
     function _createService(
         Status _status,
         uint256 _tokenId,
         uint256 _ownerId,
         uint256 _acceptedProposalId,
-        string calldata _serviceDataUri,
+        string calldata _dataUri,
         uint256 _platformId
     ) private returns (uint256) {
         require(_tokenId > 0, "You should have a TalentLayerId");
         require(_acceptedProposalId != _ownerId, "Seller and buyer can't be the same");
-        require(bytes(_serviceDataUri).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
         uint256 id = nextServiceId;
         nextServiceId++;
@@ -460,12 +460,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.status = _status;
         service.ownerId = _ownerId;
         service.acceptedProposalId = _acceptedProposalId;
-        service.serviceDataUri = _serviceDataUri;
+        service.dataUri = _dataUri;
         service.platformId = _platformId;
 
         emit ServiceCreated(id, _ownerId, _acceptedProposalId, _tokenId, _platformId);
 
-        emit ServiceDataCreated(id, _serviceDataUri);
+        emit ServiceDataCreated(id, _dataUri);
 
         return id;
     }
