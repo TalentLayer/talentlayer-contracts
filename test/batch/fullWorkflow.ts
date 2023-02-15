@@ -65,6 +65,16 @@ describe('TalentLayer protocol global testing', function () {
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, bob.address)
 
+    // we first check the actual minting status (should be ONLY_WHITELIST )
+    const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
+    expect(mintingStatus).to.be.equal(1)
+    // then we whitelist the deployer and Alice to mint a PlatformId for someone
+    await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(alice.address)
+    // we check if the deployer is well whitelisted
+    const deployerWhitelisted = await talentLayerPlatformID.whitelist(deployer.address)
+    expect(deployerWhitelisted).to.be.equal(true)
+
     // Deployer mints Platform Id for Alice
     platformName = 'HireVibes'
     await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, alice.address)
@@ -173,6 +183,25 @@ describe('TalentLayer protocol global testing', function () {
       const updatedMintFee = await talentLayerPlatformID.mintFee()
 
       expect(updatedMintFee).to.be.equal(mintFee)
+    })
+
+    it('The deployer can update the minting status to PAUSE and trigger the event', async function () {
+      const transcation = await talentLayerPlatformID.connect(deployer).updateMintStatus(0)
+      const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
+      expect(mintingStatus).to.be.equal(0)
+      await expect(transcation).to.emit(talentLayerPlatformID, 'MintStatusUpdated').withArgs(0)
+    })
+
+    it('Bob cannot mint a platform id because the minting status is PAUSE', async function () {
+      await expect(
+        talentLayerPlatformID.connect(bob).mint('BobPlat', { value: mintFee }),
+      ).to.be.revertedWith('Mint status is not valid')
+    })
+
+    it('The deployer can update the minting status to PUBLIC', async function () {
+      await talentLayerPlatformID.connect(deployer).updateMintStatus(2)
+      const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
+      expect(mintingStatus).to.be.equal(2)
     })
 
     it('Bob can mint a platform id by paying the mint fee', async function () {
