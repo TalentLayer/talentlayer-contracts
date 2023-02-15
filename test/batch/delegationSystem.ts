@@ -17,7 +17,9 @@ const serviceId = 1
 const trasactionId = 0
 const transactionAmount = 100
 const ethAddress = '0x0000000000000000000000000000000000000000'
-const defaultProposalTimeout = 0
+
+const now = Math.floor(Date.now() / 1000)
+const defaultProposalTimeout = now + 60 * 60 * 24 * 15
 
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.

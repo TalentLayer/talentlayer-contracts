@@ -248,6 +248,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
      * @param _dataUri token Id to IPFS URI mapping
+     * @param _platformId platform ID
+     * @param _proposalTimeout the time before the proposal is automatically validated
      */
     function createProposal(
         uint256 _profileId,
@@ -258,7 +260,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         string calldata _dataUri,
         uint256 _proposalTimeout
     ) public payable onlyOwnerOrDelegate(_profileId) {
-        _proposalTimeout = _proposalTimeout == 0 ? 15 days : _proposalTimeout;
+        // _proposalTimeout = _proposalTimeout == 0 ? 15 days : _proposalTimeout;
         require(allowedTokenList[_rateToken], "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");

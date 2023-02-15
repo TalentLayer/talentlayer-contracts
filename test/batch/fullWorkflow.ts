@@ -20,7 +20,9 @@ const carolTlId = 3
 
 const alicePlatformId = 1
 const bobPlatformId = 2
-const defaultProposalTimeout = 0
+
+const now = Math.floor(Date.now() / 1000)
+const defaultProposalTimeout = now + 60 * 60 * 24 * 15
 
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
@@ -1150,6 +1152,21 @@ describe('TalentLayer protocol global testing', function () {
         await expect(transaction)
           .to.emit(talentLayerEscrow, 'ServiceProposalConfirmedWithDeposit')
           .withArgs(serviceId, proposalIdBob, transactionId)
+      })
+
+      // bob will try to frunt run the proposal by changing the proposal dataUri
+      it('Bob will try to front run the proposal validation by changing the proposal dataUri.', async function () {
+        await expect(
+          talentLayerService
+            .connect(bob)
+            .updateProposal(
+              bobTlId,
+              serviceId,
+              ethAddress,
+              amountBob,
+              'frontRunProposal3FromBobToAlice3Service',
+            ),
+        ).to.be.reverted
       })
 
       it('The deposit should also validate the proposal.', async function () {

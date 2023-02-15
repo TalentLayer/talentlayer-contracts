@@ -27,7 +27,9 @@ const disputeId = 0
 const metaEvidence = 'metaEvidence'
 const feeDivider = 10000
 const arbitrationFeeTimeout = 3600 * 24
-const defaultProposalTimeout = 0
+
+const now = Math.floor(Date.now() / 1000)
+const defaultProposalTimeout = now + 60 * 60 * 24 * 15
 
 /**
  * Deploys contract and sets up the context for dispute resolution.

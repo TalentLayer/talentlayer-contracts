@@ -5,7 +5,9 @@ import postToIPFS from '../utils/ipfs'
 const bobTlId = 2
 const carolTlId = 3
 const daveTlId = 4
-const defaultProposalTimeout = 0
+
+const now = Math.floor(Date.now() / 1000)
+const defaultProposalTimeout = now + 60 * 60 * 24 * 15
 
 /*
 In this script Bob, Carol and Dave will create proposals for Alice's services
