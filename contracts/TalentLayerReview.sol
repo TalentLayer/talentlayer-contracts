@@ -37,6 +37,8 @@ contract TalentLayerReview is
         uint256 owner;
         string dataUri;
         uint256 platformId;
+        uint256 serviceId;
+        uint256 rating;
     }
 
     /**
@@ -243,7 +245,7 @@ contract TalentLayerReview is
     }
 
     /**
-     * @dev CHeck whether a review token exists
+     * @dev Checks whether a review token exists
      * @param _tokenId The ID of the review token
      */
     function _exists(uint256 _tokenId) internal view virtual returns (bool) {
@@ -282,7 +284,14 @@ contract TalentLayerReview is
 
         _talentLayerIdToReviewCount[_to] += 1;
 
-        reviews[_totalSupply] = Review({id: _totalSupply, owner: _to, dataUri: _reviewUri, platformId: _platformId});
+        reviews[_totalSupply] = Review({
+            id: _totalSupply,
+            owner: _to,
+            dataUri: _reviewUri,
+            platformId: _platformId,
+            serviceId: _serviceId,
+            rating: _rating
+        });
 
         _totalSupply = _totalSupply + 1;
 
