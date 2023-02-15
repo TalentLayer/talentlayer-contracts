@@ -178,6 +178,22 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
+     * @notice Allows a whitelisted user to mint a new TalentLayerID with a reserved handle.
+     * @param _handle Handle reserved by the user
+     * @param _platformId Platform ID mint the id from
+     */
+    function whitelistMint(
+        uint256 _platformId,
+        string memory _handle,
+        bytes32[] calldata _proof
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
+        address sender = _msgSender();
+        require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
+        _safeMint(sender, nextProfileId.current());
+        _afterMint(sender, _handle, _platformId, msg.value);
+    }
+
+    /**
      * @notice Update user data.
      * @dev we are trusting the user to provide the valid IPFS URI (changing in v2)
      * @param _profileId The TalentLayer ID of the user
