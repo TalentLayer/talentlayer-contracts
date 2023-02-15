@@ -27,8 +27,7 @@ const local: NetworkConfig = {
     WorkPod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
   },
   whitelist: {
-    HireVibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    WorkPod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
+    deployer: '0x822e7287e61aDC163d0DB665c4b4c662518A053f',
   },
 }
 
@@ -44,7 +43,7 @@ const fuji = {
     HireVibes: '0x96573C632c88996711de69389b501F4D9005Ff4e',
   },
   whitelist: {
-    HireVibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    deployer: '0x822e7287e61aDC163d0DB665c4b4c662518A053f',
   },
 } as NetworkConfig
 
@@ -62,8 +61,7 @@ const mumbai = {
     WorkPod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
   },
   whitelist: {
-    HireVibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    WorkPod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
+    deployer: '0x822e7287e61aDC163d0DB665c4b4c662518A053f',
   },
 } as NetworkConfig
 
