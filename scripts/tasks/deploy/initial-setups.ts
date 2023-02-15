@@ -23,6 +23,13 @@ task(
     await run('print', { message: 'Hello, World!' })
 
     console.log('------------------------')
+    console.log('Platform ID Whitelist')
+    for (const [name, address] of Object.entries(networkConfig.whitelist)) {
+      await run('add-address-whitelist', { address })
+    }
+    console.log('------------------------')
+
+    console.log('------------------------')
     console.log('Mint Platform IDs')
     for (const [name, address] of Object.entries(networkConfig.platformList)) {
       await run('mint-platform-id', { name, address })

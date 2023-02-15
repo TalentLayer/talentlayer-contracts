@@ -12,6 +12,7 @@ export type NetworkConfig = {
   multisigAddressList: { deployer?: `0x${string}`; fee: `0x${string}` }
   allowedTokenList: { [key: string]: `0x${string}` }
   platformList: { [name: string]: `0x${string}` }
+  whitelist: { [name: string]: `0x${string}` }
 }
 
 const local: NetworkConfig = {
@@ -22,6 +23,10 @@ const local: NetworkConfig = {
     ETH: ethers.constants.AddressZero,
   },
   platformList: {
+    HireVibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    WorkPod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
+  },
+  whitelist: {
     HireVibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
     WorkPod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
   },
@@ -38,6 +43,9 @@ const fuji = {
   platformList: {
     HireVibes: '0x96573C632c88996711de69389b501F4D9005Ff4e',
   },
+  whitelist: {
+    HireVibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+  },
 } as NetworkConfig
 
 const mumbai = {
@@ -51,6 +59,10 @@ const mumbai = {
   },
   platformList: {
     HireVibes: '0x96573C632c88996711de69389b501F4D9005Ff4e',
+    WorkPod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
+  },
+  whitelist: {
+    HireVibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
     WorkPod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
   },
 } as NetworkConfig
