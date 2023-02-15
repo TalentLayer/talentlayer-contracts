@@ -360,7 +360,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformName Name of the platform.
      * @dev Increments the nextTokenId counter.
      */
-    function _afterMint(string memory _platformName, address _platformAddress) private {
+    function _afterMint(string memory _platformName, address _platformAddress) private returns (uint256) {
         uint256 platformId = nextPlatformId.current();
         nextPlatformId.increment();
         Platform storage platform = platforms[platformId];
@@ -371,6 +371,8 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         ids[_platformAddress] = platformId;
 
         emit Mint(_platformAddress, platformId, _platformName, mintFee, minArbitrationFeeTimeout);
+
+        return platformId;
     }
 
     // =========================== External functions ==============================

@@ -230,7 +230,12 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId was minted
      */
-    function _afterMint(address _userAddress, string memory _handle, uint256 _platformId, uint256 _fee) private {
+    function _afterMint(
+        address _userAddress,
+        string memory _handle,
+        uint256 _platformId,
+        uint256 _fee
+    ) private returns (uint256) {
         uint256 userProfileId = nextProfileId.current();
         nextProfileId.increment();
         Profile storage profile = profiles[userProfileId];
@@ -240,6 +245,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         ids[_userAddress] = userProfileId;
 
         emit Mint(_userAddress, userProfileId, _handle, _platformId, _fee);
+        return userProfileId;
     }
 
     // =========================== Internal functions ==============================
