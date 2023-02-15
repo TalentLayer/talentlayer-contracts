@@ -5,8 +5,6 @@ include .env
 
 install: clean deploy-localhost setup-fakedata
 
-install-full: clean deploy-localhost setup-allFakeData
-
 #--------------UTILS----------------#
 
 clean: 
@@ -53,7 +51,7 @@ endif
 #--------------PLAYGROUND LOCAL----------------#
 
 wait_localhost = 0
-wait_other_network = 0
+wait_other_network = 60
 
 ifeq ($(DEPLOY_NETWORK),localhost)
 	w := $(wait_localhost)
