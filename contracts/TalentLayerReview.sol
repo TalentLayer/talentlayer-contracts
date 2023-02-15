@@ -281,16 +281,14 @@ contract TalentLayerReview is
 
         _talentLayerIdToReviewCount[_to] += 1;
 
-        reviews[_totalSupply] = Review(
-            {
-                id: _totalSupply,
-                owner: _to,
-                dataUri: _reviewUri,
-                platformId: _platformId,
-                serviceId: _serviceId,
-                rating: _rating
-            }
-        );
+        reviews[_totalSupply] = Review({
+            id: _totalSupply,
+            owner: _to,
+            dataUri: _reviewUri,
+            platformId: _platformId,
+            serviceId: _serviceId,
+            rating: _rating
+        });
 
         _totalSupply = _totalSupply + 1;
 

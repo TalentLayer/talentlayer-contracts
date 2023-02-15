@@ -6,7 +6,6 @@ pragma solidity ^0.8.0;
  * @author TalentLayer Team
  */
 contract ITalentLayerReview {
-
     // Struct Review
     struct Review {
         uint256 id;
@@ -28,5 +27,4 @@ contract ITalentLayerReview {
         uint256 _rating,
         uint256 _platformId
     ) external;
-
 }
