@@ -6,43 +6,43 @@ interface ITalentLayerService {
         Filled,
         Confirmed,
         Finished,
-        Rejected,
+        Cancelled,
         Opened
     }
 
     enum ProposalStatus {
         Pending,
-        Validated,
-        Rejected
+        Validated
     }
 
     struct Service {
         Status status;
-        uint256 buyerId;
-        uint256 sellerId;
-        uint256 initiatorId;
-        string serviceDataUri;
-        uint256 countProposals;
+        uint256 ownerId;
+        uint256 acceptedProposalId;
+        string dataUri;
         uint256 transactionId;
         uint256 platformId;
     }
 
     struct Proposal {
         ProposalStatus status;
-        uint256 sellerId;
+        uint256 ownerId;
         address rateToken;
         uint256 rateAmount;
         uint16 platformId;
-        string proposalDataUri;
+        string dataUri;
     }
 
     function getService(uint256 _serviceId) external view returns (Service memory);
 
     function getProposal(uint256 _serviceId, uint256 _proposal) external view returns (Proposal memory);
 
-    function createOpenServiceFromBuyer(
+    function createService(
+        Status _status,
+        uint256 _tokenId,
         uint256 _platformId,
-        string calldata _serviceDataUri
+        uint256 _ownerId,
+        string calldata _dataUri
     ) external returns (uint256);
 
     function createProposal(
@@ -50,7 +50,7 @@ interface ITalentLayerService {
         address _rateToken,
         uint256 _rateAmount,
         uint16 _platformId,
-        string calldata _proposalDataUri
+        string calldata _dataUri
     ) external;
 
     function afterDeposit(uint256 _serviceId, uint256 _proposalId, uint256 _transactionId) external;
@@ -59,14 +59,12 @@ interface ITalentLayerService {
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
-        string calldata _proposalDataUri
+        string calldata _dataUri
     ) external;
 
     function validateProposal(uint256 _serviceId, uint256 _proposalId) external;
 
-    function rejectProposal(uint256 _serviceId, uint256 _proposalId) external;
-
     function afterFullPayment(uint256 _serviceId) external;
 
-    function updateServiceData(uint256 _serviceId, string calldata _newServiceDataUri) external;
+    function updateServiceData(uint256 _serviceId, string calldata _dataUri) external;
 }

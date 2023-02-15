@@ -59,7 +59,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     mapping(string => bool) public takenNames;
 
     /**
-     * @notice Token ID to Platform struct
+     * @notice Platform ID to Platform struct
      */
     mapping(uint256 => Platform) public platforms;
 
@@ -78,6 +78,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      *         Internal arbitrators will have the extra data set to the platform ID
      */
     mapping(address => bool) public internalArbitrators;
+
+    /**
+     * @notice Address to PlatformId
+     */
+    mapping(address => uint256) public ids;
 
     /// Price to mint a platform id (in wei, upgradable)
     uint256 public mintFee;
@@ -98,9 +103,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     uint256 public minArbitrationFeeTimeout;
 
     /**
-     * @notice Token Id counter
+     * @notice Platform Id counter
      */
-    CountersUpgradeable.Counter private _nextTokenId;
+    CountersUpgradeable.Counter private nextPlatformId;
 
     /**
      * @notice  The minting status
@@ -124,9 +129,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         mintFee = 0;
         validArbitrators[address(0)] = true; // The zero address means no arbitrator.
         updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
-        // Increment counter to start tokenIds at index 1
-        _nextTokenId.increment();
         mintStatus = MintStatus.ONLY_WHITELIST;
+        // Increment counter to start platform ids at index 1
+        nextPlatformId.increment();
     }
 
     // =========================== View functions ==============================
@@ -142,66 +147,59 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows retrieval of a Platform fee
-     * @param _platformId Platform Id to check
+     * @param _platformId The Platform Id of the platform
      * @return The Platform fee
      */
     function getOriginServiceFeeRate(uint256 _platformId) external view returns (uint16) {
-        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
         return platforms[_platformId].originServiceFeeRate;
     }
 
     /**
+     * @notice Allows retrieval of a Platform fee
+     * @param _platformId The Platform Id of the platform
+     * @return The Platform fee
+     */
+    function getOriginValidatedProposalFeeRate(uint256 _platformId) external view returns (uint16) {
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        return platforms[_platformId].originValidatedProposalFeeRate;
+    }
+
+    /**
      * @notice Allows retrieval of a service posting fee
-     * @param _platformId Platform Id to check
+     * @param _platformId The Platform Id of the platform
      * @return The Service posting fee
      */
     function getServicePostingFee(uint256 _platformId) external view returns (uint256) {
-        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
         return platforms[_platformId].servicePostingFee;
     }
 
     /**
      * @notice Allows retrieval of a proposal posting fee
-     * @param _platformId Platform Id to check
+     * @param _platformId The Platform Id of the platform
      * @return The Proposal posting fee
      */
     function getProposalPostingFee(uint256 _platformId) external view returns (uint256) {
-        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
         return platforms[_platformId].proposalPostingFee;
     }
 
     /**
      * @notice Allows retrieval of a Platform arbitrator
-     * @param _platformId Platform Id to check
+     * @param _platformId The Platform Id of the platform
      * @return Arbitrator The Platform arbitrator
      */
     function getPlatform(uint256 _platformId) external view returns (Platform memory) {
-        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
         return platforms[_platformId];
-    }
-
-    /**
-     * @notice Allows getting the Platform ID from an address
-     * @param _owner Platform Address to check
-     * @return The Platform Id associated to this address
-     */
-    function getPlatformIdFromAddress(address _owner) public view returns (uint256) {
-        uint256 currentTokenId = 1;
-
-        while (currentTokenId < _nextTokenId.current()) {
-            if (_ownerOf(currentTokenId) == _owner) {
-                return currentTokenId;
-            }
-            currentTokenId++;
-        }
-        return 0;
     }
 
     /**
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
-        return _nextTokenId.current() - 1;
+        return nextPlatformId.current() - 1;
     }
 
     // =========================== User functions ==============================
@@ -212,7 +210,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformName Platform name
      */
     function mint(string memory _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
-        _safeMint(msg.sender, _nextTokenId.current());
+        _safeMint(msg.sender, nextPlatformId.current());
         _afterMint(_platformName, msg.sender);
     }
 
@@ -226,14 +224,14 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         string memory _platformName,
         address _platformAddress
     ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
-        _safeMint(_platformAddress, _nextTokenId.current());
+        _safeMint(_platformAddress, nextPlatformId.current());
         _afterMint(_platformName, _platformAddress);
     }
 
     /**
      * @notice Update platform URI data.
      * @dev we are trusting the platform to provide the valid IPFS URI
-     * @param _platformId Token ID to update
+     * @param _platformId The Platform Id of the platform
      * @param _newCid New IPFS URI
      */
     function updateProfileData(uint256 _platformId, string memory _newCid) public {
@@ -305,7 +303,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows a platform to update the service posting fee for the platform
-     * @param _platformId The platform id
+     * @param _platformId The The platform Id of the platform
      * @param _servicePostingFee The new fee
      */
     function updateServicePostingFee(uint256 _platformId, uint256 _servicePostingFee) public {
@@ -317,7 +315,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows a platform to update the proposal posting fee for the platform
-     * @param _platformId The platform id
+     * @param _platformId The The platform Id of the platform
      * @param _proposalPostingFee The new fee
      */
     function updateProposalPostingFee(uint256 _platformId, uint256 _proposalPostingFee) public {
@@ -403,26 +401,29 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformName Name of the platform.
      * @dev Increments the nextTokenId counter.
      */
-    function _afterMint(string memory _platformName, address _platformAddress) private {
-        uint256 platformId = _nextTokenId.current();
-        _nextTokenId.increment();
+    function _afterMint(string memory _platformName, address _platformAddress) private returns (uint256) {
+        uint256 platformId = nextPlatformId.current();
+        nextPlatformId.increment();
         Platform storage platform = platforms[platformId];
         platform.name = _platformName;
         platform.id = platformId;
         platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
         takenNames[_platformName] = true;
+        ids[_platformAddress] = platformId;
 
         emit Mint(_platformAddress, platformId, _platformName, mintFee, minArbitrationFeeTimeout);
+
+        return platformId;
     }
 
     // =========================== External functions ==============================
 
     /**
      * @notice Check whether the TalentLayer Platform Id is valid.
-     * @param _platformId TalentLayer Platform ID
+     * @param _platformId The Platform Id of the platform.
      */
     function isValid(uint256 _platformId) external view {
-        require(_platformId > 0 && _platformId < _nextTokenId.current(), "Invalid platform ID");
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
     }
 
     // =========================== Overrides ==============================
@@ -537,14 +538,14 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /**
      * @notice Emit when new Platform ID is minted.
      * @param _platformOwnerAddress Address of the owner of the PlatformID
-     * @param _tokenId New Platform ID
+     * @param _platformId The Platform ID of the platform
      * @param _platformName Name of the platform
      * @param _fee Fee paid to mint the Platform ID
      * @param _arbitrationFeeTimeout Timeout to pay arbitration fee
      */
     event Mint(
         address indexed _platformOwnerAddress,
-        uint256 _tokenId,
+        uint256 _platformId,
         string _platformName,
         uint256 _fee,
         uint256 _arbitrationFeeTimeout
@@ -552,10 +553,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Emit when Cid is updated for a platform.
-     * @param _tokenId Platform ID concerned
+     * @param _platformId The Platform ID of the platform
      * @param _newCid New URI
      */
-    event CidUpdated(uint256 indexed _tokenId, string _newCid);
+    event CidUpdated(uint256 indexed _platformId, string _newCid);
 
     /**
      * @notice Emit when mint fee is updated
@@ -577,7 +578,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Emit after the arbitrator is updated for a platform
-     * @param _platformId The ID of the platform
+     * @param _platformId The Platform Id of the platform
      * @param _arbitrator The address of the new arbitrator
      * @param _extraData The new extra data for the arbitrator
      */
@@ -585,7 +586,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Emit after the arbitration fee timeout is updated for a platform
-     * @param _platformId The ID of the platform
+     * @param _platformId The Platform Id of the platform
      * @param _arbitrationFeeTimeout The new arbitration fee timeout
      */
     event ArbitrationFeeTimeoutUpdated(uint256 _platformId, uint256 _arbitrationFeeTimeout);

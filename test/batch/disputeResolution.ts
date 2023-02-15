@@ -79,9 +79,7 @@ async function deployAndSetup(
   await talentLayerID.connect(dave).mint(carolPlatformId, 'dave')
 
   // Alice, the buyer, initiates a new open service
-  await talentLayerService
-    .connect(alice)
-    .createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
+  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
   await talentLayerService

@@ -28,7 +28,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   console.log('Dave Talent Layer Id', daveTalentLayerIdPlatform)
 
   /* ----------- Create Open Service -------------- */
@@ -49,7 +49,7 @@ async function main() {
 
   const createFirstOpenService = await talentLayerService
     .connect(alice)
-    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData)
+    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
@@ -72,7 +72,7 @@ async function main() {
 
   const createSecondOpenService = await talentLayerService
     .connect(alice)
-    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateSecondJobData)
+    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateSecondJobData)
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
 

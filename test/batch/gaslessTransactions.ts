@@ -50,7 +50,7 @@ describe('Gasless Transactions', function () {
     await expect(tx).to.be.revertedWith('ERC721: transfer to non ERC721Receiver implementer')
 
     // The TalentLayer ID has not been minted for Bob
-    expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal('0')
+    expect(await talentLayerID.ids(bob.address)).to.be.equal('0')
   })
 
   it('Deployer can add a trusted forwarder for meta-transactions', async function () {
@@ -67,7 +67,7 @@ describe('Gasless Transactions', function () {
     const tx = mockForwarder.connect(relayer).execute(req)
     await expect(tx).to.not.be.reverted
 
-    expect(await talentLayerID.walletOfOwner(bob.address)).to.be.equal('1')
+    expect(await talentLayerID.ids(bob.address)).to.be.equal('1')
   })
 
   it('Deployer can remove a trusted forwarder for meta-transactions', async function () {

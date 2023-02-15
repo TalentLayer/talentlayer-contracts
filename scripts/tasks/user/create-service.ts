@@ -37,7 +37,7 @@ task('create-service', 'Create a new open service').setAction(async (args, { eth
     DeploymentProperty['TalentLayerService'],
   )
   const talentLayerService = await TalentLayerService.attach(talentLayerServiceAddress)
-  const tx = await talentLayerService.createOpenServiceFromBuyer(1, jobDataCid)
+  const tx = await talentLayerService.createService(1, jobDataCid)
 
   console.log('Service created on tx:', tx.hash)
 })
