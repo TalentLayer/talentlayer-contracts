@@ -60,6 +60,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Merkle root of the whitelist for handle reservation
     bytes32 private whitelistMerkleRoot;
 
+    /// Merkle root of the reserved handles
+    bytes32 private reservedHandlesMerkleRoot;
+
     // =========================== Initializers ==============================
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -159,6 +162,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
             _handle
         );
         return _proof.verify(whitelistMerkleRoot, keccak256(abi.encodePacked(concatenatedString)));
+    }
+
+    /**
+     * @notice Check whether an handle is reserved.
+     * @param _handle Handle to check
+     * @param _proof Merkle proof of the handle
+     */
+    function isHandleReserved(string memory _handle, bytes32[] memory _proof) public view returns (bool) {
+        return _proof.verify(reservedHandlesMerkleRoot, keccak256(abi.encodePacked(_handle)));
     }
 
     // =========================== User functions ==============================
@@ -264,10 +276,18 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * @notice Allows the owner to set the merkle root for the handle reservation whitelist.
-     * @param root The new whitelist merkle root
+     * @param root The new merkle root
      */
     function setWhitelistMerkleRoot(bytes32 root) public onlyOwner {
         whitelistMerkleRoot = root;
+    }
+
+    /**
+     * @notice Allows the owner to set the merkle root for the reserved handles.
+     * @param root The new merkle root
+     */
+    function setReservedHandlesMerkleRoot(bytes32 root) public onlyOwner {
+        reservedHandlesMerkleRoot = root;
     }
 
     // =========================== Private functions ==============================
