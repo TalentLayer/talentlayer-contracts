@@ -377,7 +377,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         string calldata _dataUri
     ) public onlyOwnerOrDelegate(_profileId) {
         Service storage service = services[_serviceId];
-        require(_serviceId < nextServiceId, "This service doesn't exist");
+
+        require(service.ownerId == _profileId, "Only the owner can update the service");
         require(
             service.status == Status.Opened || service.status == Status.Filled,
             "Service status should be opened or filled"
