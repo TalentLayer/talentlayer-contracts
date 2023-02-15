@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
  * @title TalentLayer Review Contract
  * @author TalentLayer Team
  */
-contract ITalentLayerReview {
+interface ITalentLayerReview {
     // Struct Review
     struct Review {
         uint256 id;
@@ -18,7 +18,7 @@ contract ITalentLayerReview {
 
     error ReviewAlreadyMinted();
 
-    function getReview(uint256 _reviewId) public view returns (Review memory);
+    function getReview(uint256 _reviewId) virtual external view returns (Review memory);
 
     function addReview(
         uint256 _tokenId,
@@ -26,5 +26,5 @@ contract ITalentLayerReview {
         string calldata _reviewUri,
         uint256 _rating,
         uint256 _platformId
-    ) external;
+    ) virtual external;
 }
