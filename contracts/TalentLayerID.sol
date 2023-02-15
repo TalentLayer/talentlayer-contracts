@@ -63,6 +63,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Merkle root of the reserved handles
     bytes32 private reservedHandlesMerkleRoot;
 
+    /// Whether the whitelist for handle reservation is enabled
+    bool public isWhitelistEnabled;
+
     // =========================== Initializers ==============================
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -81,6 +84,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         // Increment counter to start profile ids at index 1
         nextProfileId.increment();
+        isWhitelistEnabled = true;
     }
 
     // =========================== View functions ==============================
@@ -184,6 +188,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId,
         string memory _handle
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
+        require(!isWhitelistEnabled, "Whitelist must be disabled to use regular mint");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
@@ -203,6 +208,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         bytes32[] calldata _handleProof,
         bytes32[] calldata _whitelistProof
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
+        require(isWhitelistEnabled, "Whitelist must be enabled to mint a reserved handle");
         address sender = _msgSender();
 
         bool isReserved = isHandleReserved(_handle, _handleProof);
@@ -297,6 +303,14 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function setReservedHandlesMerkleRoot(bytes32 root) public onlyOwner {
         reservedHandlesMerkleRoot = root;
+    }
+
+    /**
+     * @notice Allows the owner to set whether the whitelist for handle reservation is enabled or not.
+     * @param _enabled Whether the whitelist is enabled or not
+     */
+    function setWhitelistEnabled(bool _enabled) public onlyOwner {
+        isWhitelistEnabled = _enabled;
     }
 
     // =========================== Private functions ==============================
