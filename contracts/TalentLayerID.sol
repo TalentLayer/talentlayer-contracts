@@ -190,17 +190,26 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Allows a whitelisted user to mint a new TalentLayerID with a reserved handle.
-     * @param _handle Handle reserved by the user
+     * @notice Allows a user to mint a new TalentLayerID while the whitelist for handle reservation is enabled.
+     *         If the handle is reserved, the user must be whitelisted.
+     * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
+     * @param _handleProof Merkle proof of the handle. Must be verified if the handle is reserved.
+     * @param _whitelistProof Merkle proof of the handle reservation whitelist
      */
     function whitelistMint(
         uint256 _platformId,
         string memory _handle,
-        bytes32[] calldata _proof
+        bytes32[] calldata _handleProof,
+        bytes32[] calldata _whitelistProof
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
-        require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
+
+        bool isReserved = isHandleReserved(_handle, _handleProof);
+        if (isReserved) {
+            require(isWhitelisted(sender, _handle, _whitelistProof), "You're not whitelisted");
+        }
+
         _safeMint(sender, nextProfileId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
     }
