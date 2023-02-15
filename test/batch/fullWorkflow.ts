@@ -20,6 +20,7 @@ const carolTlId = 3
 
 const alicePlatformId = 1
 const bobPlatformId = 2
+const defaultProposalTimeout = 0
 
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
@@ -583,7 +584,15 @@ describe('TalentLayer protocol global testing', function () {
       expect(
         talentLayerService
           .connect(bob)
-          .createProposal(bobTlId, 5, rateToken, 1, bobPlatformId, 'proposalOnCancelledService'),
+          .createProposal(
+            bobTlId,
+            5,
+            rateToken,
+            1,
+            bobPlatformId,
+            'proposalOnCancelledService',
+            defaultProposalTimeout,
+          ),
       ).to.be.revertedWith('Service is not opened')
     })
 
@@ -614,6 +623,7 @@ describe('TalentLayer protocol global testing', function () {
           1,
           alicePlatformId,
           'proposal1FromBobToAlice1Service',
+          defaultProposalTimeout,
           {
             value: alicePlatformProposalPostingFee,
           },
@@ -650,6 +660,7 @@ describe('TalentLayer protocol global testing', function () {
           2,
           bobPlatformId,
           'proposal1FromCarolToAlice1Service',
+          defaultProposalTimeout,
           {
             value: bobPlatformProposalPostingFee,
           },
@@ -674,6 +685,7 @@ describe('TalentLayer protocol global testing', function () {
             2,
             alicePlatformId,
             'proposal1FromCarolToAlice1Service',
+            defaultProposalTimeout,
             { value: alicePlatformProposalPostingFee },
           ),
       ).to.be.revertedWith('This token is not allowed')
@@ -744,6 +756,7 @@ describe('TalentLayer protocol global testing', function () {
             amountBob,
             bobPlatformId,
             'proposal2FromBobToAlice2Service',
+            defaultProposalTimeout,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -762,6 +775,7 @@ describe('TalentLayer protocol global testing', function () {
             amountCarol,
             bobPlatformId,
             'proposal2FromCarolToAlice2Service',
+            defaultProposalTimeout,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -944,9 +958,18 @@ describe('TalentLayer protocol global testing', function () {
         const alicePlatformProposalPostingFee = platform.proposalPostingFee
         await talentLayerService
           .connect(bob)
-          .createProposal(bobTlId, serviceId, rateToken, 1, alicePlatformId, 'proposalOnService', {
-            value: alicePlatformProposalPostingFee,
-          })
+          .createProposal(
+            bobTlId,
+            serviceId,
+            rateToken,
+            1,
+            alicePlatformId,
+            'proposalOnService',
+            defaultProposalTimeout,
+            {
+              value: alicePlatformProposalPostingFee,
+            },
+          )
         // Cancel the service
         await talentLayerService.connect(alice).cancelService(aliceTlId, serviceId)
         // Try to deposit fund to validate the proposal
@@ -1088,6 +1111,7 @@ describe('TalentLayer protocol global testing', function () {
             amountBob,
             bobPlatformId,
             'proposal3FromBobToAlice3Service',
+            defaultProposalTimeout,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -1106,6 +1130,7 @@ describe('TalentLayer protocol global testing', function () {
             amountCarol,
             bobPlatformId,
             'proposal3FromCarolToAlice3Service',
+            defaultProposalTimeout,
             { value: bobPlatformProposalPostingFee },
           )
       })

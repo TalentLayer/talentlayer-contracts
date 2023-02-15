@@ -5,6 +5,7 @@ import postToIPFS from '../utils/ipfs'
 const bobTlId = 2
 const carolTlId = 3
 const daveTlId = 4
+const defaultProposalTimeout = 0
 
 /*
 In this script Bob, Carol and Dave will create proposals for Alice's services
@@ -93,6 +94,7 @@ async function main() {
       ethers.utils.parseUnits('0.001', 18),
       davePlatformId,
       bobUri,
+      defaultProposalTimeout,
     )
   console.log('Bob proposal created')
   await bobProposal.wait()
@@ -111,6 +113,7 @@ async function main() {
       ethers.utils.parseUnits('0.002', 18),
       bobPlatformId,
       carolUri,
+      defaultProposalTimeout,
     )
   console.log('Carol proposal created')
   await carolProposal.wait()
@@ -129,6 +132,7 @@ async function main() {
       ethers.utils.parseUnits('0.003', 18),
       bobPlatformId,
       daveUri,
+      defaultProposalTimeout,
     )
   console.log('Dave proposal created')
   await daveProposal.wait()

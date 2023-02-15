@@ -17,6 +17,7 @@ const serviceId = 1
 const trasactionId = 0
 const transactionAmount = 100
 const ethAddress = '0x0000000000000000000000000000000000000000'
+const defaultProposalTimeout = 0
 
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.
@@ -127,7 +128,15 @@ describe('Delegation System', function () {
     it('Eve can create a proposal on behalf of Bob', async function () {
       await talentLayerService
         .connect(eve)
-        .createProposal(bobTlId, serviceId, ethAddress, transactionAmount, carolPlatformId, 'uri')
+        .createProposal(
+          bobTlId,
+          serviceId,
+          ethAddress,
+          transactionAmount,
+          carolPlatformId,
+          'uri',
+          defaultProposalTimeout,
+        )
       const proposal = await talentLayerService.proposals(serviceId, bobTlId)
       expect(proposal.ownerId).to.eq(bobTlId)
     })

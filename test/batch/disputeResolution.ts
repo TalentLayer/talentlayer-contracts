@@ -27,6 +27,7 @@ const disputeId = 0
 const metaEvidence = 'metaEvidence'
 const feeDivider = 10000
 const arbitrationFeeTimeout = 3600 * 24
+const defaultProposalTimeout = 0
 
 /**
  * Deploys contract and sets up the context for dispute resolution.
@@ -83,7 +84,15 @@ async function deployAndSetup(
   // Bob, the seller, creates a proposal for the service
   await talentLayerService
     .connect(bob)
-    .createProposal(bobTlId, serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
+    .createProposal(
+      bobTlId,
+      serviceId,
+      tokenAddress,
+      transactionAmount,
+      carolPlatformId,
+      'cid',
+      defaultProposalTimeout,
+    )
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService]
 }

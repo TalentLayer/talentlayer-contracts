@@ -55,6 +55,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
     /// @param dataUri token Id to IPFS URI mapping
+    /// @param proposalTimeout the timeout for the proposal
     struct Proposal {
         ProposalStatus status;
         uint256 ownerId;
@@ -62,6 +63,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 rateAmount;
         uint16 platformId;
         string dataUri;
+        uint256 proposalTimeout;
     }
 
     // =========================== Events ==============================
@@ -100,7 +102,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         ProposalStatus status,
         address rateToken,
         uint256 rateAmount,
-        uint16 platformId
+        uint16 platformId,
+        uint256 proposalTimeout
     );
 
     /// @notice Emitted after an existing proposal has been updated
@@ -252,8 +255,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         address _rateToken,
         uint256 _rateAmount,
         uint16 _platformId,
-        string calldata _dataUri
+        string calldata _dataUri,
+        uint256 _proposalTimeout
     ) public payable onlyOwnerOrDelegate(_profileId) {
+        _proposalTimeout = _proposalTimeout == 0 ? 15 days : _proposalTimeout;
         require(allowedTokenList[_rateToken], "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
@@ -274,7 +279,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             rateToken: _rateToken,
             rateAmount: _rateAmount,
             platformId: _platformId,
-            dataUri: _dataUri
+            dataUri: _dataUri,
+            proposalTimeout: _proposalTimeout
         });
 
         emit ProposalCreated(
@@ -284,7 +290,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             ProposalStatus.Pending,
             _rateToken,
             _rateAmount,
-            _platformId
+            _platformId,
+            _proposalTimeout
         );
     }
 
