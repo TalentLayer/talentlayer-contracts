@@ -88,39 +88,6 @@ describe('TalentLayer protocol global testing', function () {
   })
 
   describe('Platform Id contract test', async function () {
-    it("Grace can't mint a talentLayer platform Id with restricted characters", async function () {
-      await expect(
-        talentLayerPlatformID.connect(grace).mint('T@lentLy€rB@$€'),
-      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
-    })
-
-    it("Eve can't mint a talentLayer platform Id with handle length = 0", async function () {
-      await expect(talentLayerPlatformID.connect(eve).mint('')).to.be.revertedWithCustomError(
-        talentLayerPlatformID,
-        'HandleLengthInvalid',
-      )
-    })
-
-    it("Grace can't mint a talentLayer platform Id with a handle length > 31 characters", async function () {
-      const tooLongHandle = 'grace123456789qsitorhenchdyahe12'
-      expect(tooLongHandle.length).to.be.greaterThan(31)
-      await expect(
-        talentLayerPlatformID.connect(grace).mint(tooLongHandle),
-      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleLengthInvalid')
-    })
-
-    // it('Alice can mint a talentLayer platform Id with allowed characters and correct handle length', async function () {
-    //   expect(
-    //     await talentLayerPlatformID.connect(alice).mint('Ali-ce_Platform'),
-    //   ).not.to.be.revertedWith('HandleContainsInvalidCharacters')
-    // })
-    //
-    // it('Grace can mint a talentLayer platform Id with allowed characters and handle length', async function () {
-    //   expect(
-    //     await talentLayerPlatformID.connect(grace).mint('LongerBut_OK_PlatformByGrace'),
-    //   ).not.to.be.revertedWith('HandleContainsInvalidCharacters')
-    // })
-
     it('Alice owns a PlatformId Id minted by the deployer', async function () {
       platformId = (await talentLayerPlatformID.ids(alice.address)).toString()
       expect(platformId).to.be.equal('1')
@@ -220,11 +187,7 @@ describe('TalentLayer protocol global testing', function () {
       )
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
-      expect(
-        await talentLayerPlatformID
-          .connect(bob)
-          .mint('LongerBut_OK_PlatformIdByBob', { value: mintFee }),
-      ).not.to.be.revertedWith('HandleContainsInvalidCharacters')
+      await talentLayerPlatformID.connect(bob).mint('BobPlat', { value: mintFee })
       const bobPlatformId = await talentLayerPlatformID.ids(bob.address)
       expect(bobPlatformId).to.be.equal('2')
 
@@ -235,6 +198,34 @@ describe('TalentLayer protocol global testing', function () {
       // Platform id contract balance is increased by the mint fee
       const contractBalanceAfter = await ethers.provider.getBalance(talentLayerPlatformID.address)
       expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
+    })
+
+    it("Grace can't mint a talentLayer platform Id with restricted characters", async function () {
+      await expect(
+        talentLayerPlatformID.connect(grace).mint('T@lentLy€rB@$€', { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
+    })
+
+    it("Eve can't mint a talentLayer platform Id with handle length = 0", async function () {
+      await expect(
+        talentLayerPlatformID.connect(eve).mint('', { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleLengthInvalid')
+    })
+
+    it("Grace can't mint a talentLayer platform Id with a handle length > 31 characters", async function () {
+      const tooLongHandle = 'grace123456789qsitorhenchdyahe12'
+      expect(tooLongHandle.length).to.be.greaterThan(31)
+      await expect(
+        talentLayerPlatformID.connect(grace).mint(tooLongHandle, { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleLengthInvalid')
+    })
+
+    it('Grace can mint a talentLayer platform Id with allowed characters and handle length', async function () {
+      expect(
+        await talentLayerPlatformID
+          .connect(grace)
+          .mint('LongerBut_OK_PlatformByGrace', { value: mintFee }),
+      ).not.to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
     })
 
     it("The deployer can withdraw the contract's balance", async function () {
@@ -370,18 +361,8 @@ describe('TalentLayer protocol global testing', function () {
         talentLayerID.connect(alice).mint('1', tooLongHandle),
       ).to.be.revertedWithCustomError(talentLayerID, 'HandleLengthInvalid')
     })
-    // it('Alice can mint a talentLayerId with allowed characters and correct handle length', async function () {
-    //   expect(
-    //     await talentLayerID.connect(eve).mint('1', 'ali-ce'),
-    //   ).not.to.be.revertedWithCustomError(talentLayerID, 'HandleContainsInvalidCharacters')
-    // })
-    // it('Bob can mint a talentLayerId with allowed characters and correct handle length', async function () {
-    //   expect(
-    //     await talentLayerID.connect(grace).mint('1', 'b_ob'),
-    //   ).not.to.be.revertedWithCustomError(talentLayerID, 'HandleContainsInvalidCharacters')
-    // })
 
-    it('Alice, Bob and Carol can mint a talentLayerId, including with "-" & "_" characters', async function () {
+    it('Alice, Bob and Carol can mint a talentLayerId, including with "-" & "_" characters and correct handle length', async function () {
       expect(
         await talentLayerID.connect(alice).mint('1', 'ali-ce'),
       ).not.to.be.revertedWithCustomError(talentLayerID, 'HandleContainsInvalidCharacters')
