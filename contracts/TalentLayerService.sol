@@ -18,11 +18,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Enum service status
     enum Status {
-        Filled,
+        Opened,
         Confirmed,
         Finished,
-        Cancelled,
-        Opened
+        Cancelled
     }
 
     /// @notice Enum service status
@@ -378,10 +377,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     ) public onlyOwnerOrDelegate(_profileId) {
         Service storage service = services[_serviceId];
         require(_serviceId < nextServiceId, "This service doesn't exist");
-        require(
-            service.status == Status.Opened || service.status == Status.Filled,
-            "Service status should be opened or filled"
-        );
+        require(service.status == Status.Opened, "Service status should be opened");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.dataUri = _dataUri;

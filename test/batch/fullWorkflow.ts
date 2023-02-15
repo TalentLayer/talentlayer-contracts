@@ -545,7 +545,7 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerService.connect(alice).createService(aliceTlId, 1, 'CID5')
       await talentLayerService.services(5)
 
-      expect(serviceData.status.toString()).to.be.equal('4')
+      expect(serviceData.status.toString()).to.be.equal('0')
       expect(serviceData.ownerId).to.be.equal(aliceTlId)
       expect(serviceData.dataUri).to.be.equal('CID1')
       expect(serviceData.platformId).to.be.equal(1)
@@ -623,7 +623,7 @@ describe('TalentLayer protocol global testing', function () {
       const proposalDataAfter = await talentLayerService.getProposal(1, bobTid)
 
       // Service data check
-      expect(serviceData.status.toString()).to.be.equal('4')
+      expect(serviceData.status.toString()).to.be.equal('0')
       expect(serviceData.ownerId).to.be.equal(aliceTlId)
 
       // Proposal data check after the proposal
