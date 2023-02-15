@@ -10,6 +10,7 @@ import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC72
 import {MerkleProofUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 
 /**
  * @title TalentLayer ID Contract
@@ -17,6 +18,7 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
  */
 contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
+    using MerkleProofUpgradeable for bytes32[];
 
     // =========================== Structs ==============================
 
@@ -51,6 +53,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /// TokenId to delegates
     mapping(uint256 => mapping(address => bool)) private delegates;
+
+    /// Merkle root of the whitelist for handle reservation
+    bytes32 private whitelistMerkleRoot;
 
     // =========================== Initializers ==============================
 
@@ -152,6 +157,25 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         return ownerOf(_tokenId) == _address || isDelegate(_tokenId, _address);
     }
 
+    /**
+     * @notice Check whether an address has reserved a handle.
+     * @param _address Address to check
+     * @param _handle Handle to check
+     * @param _proof Merkle proof of the handle reservation
+     */
+    function isWhitelisted(
+        address _address,
+        string memory _handle,
+        bytes32[] memory _proof
+    ) public view returns (bool) {
+        string memory concatenatedString = string.concat(
+            StringsUpgradeable.toHexString(uint256(uint160(_address)), 20),
+            ";",
+            _handle
+        );
+        return _proof.verify(whitelistMerkleRoot, keccak256(abi.encodePacked(concatenatedString)));
+    }
+
     // =========================== User functions ==============================
 
     /**
@@ -233,6 +257,14 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, nextTokenId.current());
         _afterMint(_userAddress, _handle, _platformId, 0);
+    }
+
+    /**
+     * @notice Allows the owner to set the merkle root for the handle reservation whitelist.
+     * @param root The new whitelist merkle root
+     */
+    function setWhitelistMerkleRoot(bytes32 root) public onlyOwner {
+        whitelistMerkleRoot = root;
     }
 
     // =========================== Private functions ==============================
