@@ -30,14 +30,14 @@ async function main() {
   const mint2 = await platformIdContract.connect(alice).mintForAddress('Playground2', bob.address)
   await mint2.wait()
 
-  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   await platformIdContract.connect(dave).updateProfileData(daveTalentLayerIdPlatform, 'newCid')
   await platformIdContract.connect(dave).updateOriginServiceFeeRate(daveTalentLayerIdPlatform, 1000)
   await platformIdContract
     .connect(dave)
     .updateOriginValidatedProposalFeeRate(daveTalentLayerIdPlatform, 2500)
 
-  const bobTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(bob.address)
+  const bobTalentLayerIdPlatform = await platformIdContract.ids(bob.address)
   await platformIdContract.connect(bob).updateProfileData(bobTalentLayerIdPlatform, 'newCid')
   await platformIdContract.connect(bob).updateOriginServiceFeeRate(bobTalentLayerIdPlatform, 1500)
   await platformIdContract

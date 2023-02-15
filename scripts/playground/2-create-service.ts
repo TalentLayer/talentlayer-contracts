@@ -19,16 +19,16 @@ async function main() {
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
   const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   console.log('Dave Talent Layer Id', daveTalentLayerIdPlatform)
 
   /* ----------- Create Open Service -------------- */
@@ -47,13 +47,13 @@ async function main() {
   )
   console.log('Alice First Job Data Uri', aliceCreateFirstJobData)
 
-  const createFirstOpenService = await serviceRegistry
+  const createFirstOpenService = await talentLayerService
     .connect(alice)
-    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData)
+    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
-  const getFirstService = await serviceRegistry.getService(1)
+  const getFirstService = await talentLayerService.getService(1)
   console.log('First Service', getFirstService)
 
   // Alice create a second service #2
@@ -70,17 +70,17 @@ async function main() {
   )
   console.log('Alice Second Job Data Uri', aliceCreateSecondJobData)
 
-  const createSecondOpenService = await serviceRegistry
+  const createSecondOpenService = await talentLayerService
     .connect(alice)
-    .createOpenServiceFromBuyer(aliceTlId, daveTalentLayerIdPlatform, aliceCreateSecondJobData)
+    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateSecondJobData)
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
 
-  const getSecondService = await serviceRegistry.getService(2)
+  const getSecondService = await talentLayerService.getService(2)
   console.log('Second Service', getSecondService)
 
   // the next service id will be 3
-  const getNextServiceId = await serviceRegistry.nextServiceId()
+  const getNextServiceId = await talentLayerService.nextServiceId()
   console.log('Next Service Id', getNextServiceId)
 }
 

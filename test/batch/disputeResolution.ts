@@ -4,7 +4,7 @@ import { expect } from 'chai'
 import { BigNumber, ContractTransaction } from 'ethers'
 import { ethers } from 'hardhat'
 import {
-  ServiceRegistry,
+  TalentLayerService,
   SimpleERC20,
   TalentLayerArbitrator,
   TalentLayerEscrow,
@@ -37,18 +37,18 @@ const arbitrationFeeTimeout = 3600 * 24
 async function deployAndSetup(
   arbitrationFeeTimeout: number,
   tokenAddress: string,
-): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, ServiceRegistry]> {
+): Promise<[TalentLayerPlatformID, TalentLayerEscrow, TalentLayerArbitrator, TalentLayerService]> {
   const [deployer, alice, bob, carol, dave] = await ethers.getSigners()
   const [
     talentLayerID,
     talentLayerPlatformID,
     talentLayerEscrow,
     talentLayerArbitrator,
-    serviceRegistry,
+    talentLayerService,
   ] = await deploy(true)
 
   // Deployer whitelists a list of authorized tokens
-  await serviceRegistry.connect(deployer).updateAllowedTokenList(tokenAddress, true)
+  await talentLayerService.connect(deployer).updateAllowedTokenList(tokenAddress, true)
 
   // Grant Platform Id Mint role to Deployer and Bob
   const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -78,14 +78,14 @@ async function deployAndSetup(
   await talentLayerID.connect(dave).mint(carolPlatformId, 'dave')
 
   // Alice, the buyer, initiates a new open service
-  await serviceRegistry.connect(alice).createOpenServiceFromBuyer(aliceTlId, carolPlatformId, 'cid')
+  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, 'cid')
 
   // Bob, the seller, creates a proposal for the service
-  await serviceRegistry
+  await talentLayerService
     .connect(bob)
     .createProposal(bobTlId, serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
 
-  return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry]
+  return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService]
 }
 
 describe('Dispute Resolution, standard flow', function () {
@@ -96,7 +96,7 @@ describe('Dispute Resolution, standard flow', function () {
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
-    serviceRegistry: ServiceRegistry,
+    talentLayerService: TalentLayerService,
     protocolEscrowFeeRate: number,
     originServiceFeeRate: number,
     originValidatedProposalFeeRate: number,
@@ -109,7 +109,7 @@ describe('Dispute Resolution, standard flow', function () {
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService] =
       await deployAndSetup(arbitrationFeeTimeout, ethAddress)
 
     protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
@@ -419,7 +419,7 @@ describe('Dispute Resolution, standard flow', function () {
       })
 
       it('Sets the service as finished', async function () {
-        const service = await serviceRegistry.getService(serviceId)
+        const service = await talentLayerService.getService(serviceId)
         expect(service.status).to.be.eq(2)
       })
 
@@ -622,7 +622,7 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
     simpleERC20: SimpleERC20,
-    serviceRegistry: ServiceRegistry,
+    talentLayerService: TalentLayerService,
     totalTransactionAmount: BigNumber
 
   const rulingId = 1
@@ -633,11 +633,11 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
     // Deploy SimpleERC20 token and setup
     const SimpleERC20 = await ethers.getContractFactory('SimpleERC20')
     simpleERC20 = await SimpleERC20.deploy()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, serviceRegistry] =
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService] =
       await deployAndSetup(arbitrationFeeTimeout, simpleERC20.address)
 
-    if (!(await serviceRegistry.isTokenAllowed(simpleERC20.address))) {
-      await serviceRegistry.connect(deployer).updateAllowedTokenList(simpleERC20.address, true)
+    if (!(await talentLayerService.isTokenAllowed(simpleERC20.address))) {
+      await talentLayerService.connect(deployer).updateAllowedTokenList(simpleERC20.address, true)
     }
 
     const platform = await talentLayerPlatformID.platforms(carolPlatformId)

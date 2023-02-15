@@ -30,8 +30,6 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
 
     function getPlatform(uint256 _platformId) external view returns (Platform memory);
 
-    function getPlatformIdFromAddress(address _owner) external view returns (uint256);
-
     function mint(string memory _platformName) external;
 
     function mintForAddress(string memory _platformName, address _platformAddress) external payable;
@@ -69,6 +67,8 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
     function updateServicePostingFee(uint256 _platformId, uint256 _servicePostingFee) external;
 
     function updateProposalPostingFee(uint256 _platformId, uint256 _proposalPostingFee) external;
+
+    function ids(address _user) external view returns (uint256);
 
     event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName);
 

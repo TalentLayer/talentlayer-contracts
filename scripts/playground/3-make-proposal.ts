@@ -19,27 +19,27 @@ async function main() {
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
   const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const davePlatformId = await platformIdContract.getPlatformIdFromAddress(dave.address)
-  const bobPlatformId = await platformIdContract.getPlatformIdFromAddress(bob.address)
+  const davePlatformId = await platformIdContract.ids(dave.address)
+  const bobPlatformId = await platformIdContract.ids(bob.address)
 
   const simpleERC20 = await ethers.getContractAt(
     'SimpleERC20',
     getDeploymentProperty(network, DeploymentProperty.SimpleERC20),
   )
-  await serviceRegistry.connect(alice).updateAllowedTokenList(ethers.constants.AddressZero, true)
-  await serviceRegistry.connect(alice).updateAllowedTokenList(simpleERC20.address, true)
+  await talentLayerService.connect(alice).updateAllowedTokenList(ethers.constants.AddressZero, true)
+  await talentLayerService.connect(alice).updateAllowedTokenList(simpleERC20.address, true)
 
   // Get the first and second service id
-  const nextServiceId = await serviceRegistry.nextServiceId()
+  const nextServiceId = await talentLayerService.nextServiceId()
   const firstServiceId = nextServiceId.sub(2)
   const secondServiceId = nextServiceId.sub(1)
   console.log('firstServiceId', firstServiceId.toString())
@@ -84,7 +84,7 @@ async function main() {
 
   // Bob create a proposal #2 for Alice's service #1 on Dave's platform #1 (id : 1-2 in GraphQL)
   const rateTokenBob = simpleERC20.address
-  const bobProposal = await serviceRegistry
+  const bobProposal = await talentLayerService
     .connect(bob)
     .createProposal(
       bobTlId,
@@ -97,12 +97,12 @@ async function main() {
   console.log('Bob proposal created')
   await bobProposal.wait()
   // get the proposal
-  const bobProposalData = await serviceRegistry.proposals(firstServiceId, 2)
+  const bobProposalData = await talentLayerService.proposals(firstServiceId, 2)
   console.log('Bob proposal', bobProposalData)
 
   // Carol make a proposal #3 for Alice's service #1 on Bob's platform #2 (id : 1-3 in GraphQL)
   const rateTokenCarol = '0x0000000000000000000000000000000000000000'
-  const carolProposal = await serviceRegistry
+  const carolProposal = await talentLayerService
     .connect(carol)
     .createProposal(
       carolTlId,
@@ -115,12 +115,12 @@ async function main() {
   console.log('Carol proposal created')
   await carolProposal.wait()
   // get the proposal
-  const carolProposalData = await serviceRegistry.proposals(firstServiceId, 3)
+  const carolProposalData = await talentLayerService.proposals(firstServiceId, 3)
   console.log('Carol proposal', carolProposalData)
 
   // Dave create a proposal #4 for Alice's service #2 on Bob's platform #2 (id : 2-4 in GraphQL)
   const rateTokenDave = simpleERC20.address
-  const daveProposal = await serviceRegistry
+  const daveProposal = await talentLayerService
     .connect(dave)
     .createProposal(
       daveTlId,
@@ -133,7 +133,7 @@ async function main() {
   console.log('Dave proposal created')
   await daveProposal.wait()
   // get the proposal
-  const daveProposalData = await serviceRegistry.proposals(secondServiceId, 4)
+  const daveProposalData = await talentLayerService.proposals(secondServiceId, 4)
   console.log('Dave proposal', daveProposalData)
 }
 

@@ -14,7 +14,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {IServiceRegistry} from "./interfaces/IServiceRegistry.sol";
+import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /**
@@ -37,6 +37,8 @@ contract TalentLayerReview is
         uint256 owner;
         string dataUri;
         uint256 platformId;
+        uint256 serviceId;
+        uint256 rating;
     }
 
     /**
@@ -96,9 +98,9 @@ contract TalentLayerReview is
     ITalentLayerID private tlId;
 
     /**
-     * @notice Service registry
+     * @notice TalentLayerService
      */
-    IServiceRegistry private serviceRegistry;
+    ITalentLayerService private talentLayerService;
 
     /**
      * @notice TalentLayer Platform ID registry
@@ -116,7 +118,7 @@ contract TalentLayerReview is
         string memory name_,
         string memory symbol_,
         address _talentLayerIdAddress,
-        address _serviceRegistryAddress,
+        address _talentLayerServiceAddress,
         address _talentLayerPlatformIdAddress
     ) public initializer {
         __UUPSUpgradeable_init();
@@ -125,7 +127,7 @@ contract TalentLayerReview is
         _name = name_;
         _symbol = symbol_;
         tlId = ITalentLayerID(_talentLayerIdAddress);
-        serviceRegistry = IServiceRegistry(_serviceRegistryAddress);
+        talentLayerService = ITalentLayerService(_talentLayerServiceAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
     }
 
@@ -141,38 +143,42 @@ contract TalentLayerReview is
     /**
      * @notice Called to mint a review token for a completed service
      * @dev Only one review can be minted per user
-     * @param _tokenId TalentLayer ID of the user
+     * @param _profileId The TalentLayer ID of the user
      * @param _serviceId Service ID
      * @param _reviewUri The IPFS URI of the review
      * @param _rating The review rate
      * @param _platformId The platform ID
      */
     function addReview(
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _serviceId,
         string calldata _reviewUri,
         uint256 _rating,
         uint256 _platformId
-    ) public onlyOwnerOrDelegate(_tokenId) {
-        IServiceRegistry.Service memory service = serviceRegistry.getService(_serviceId);
-        require(_tokenId == service.buyerId || _tokenId == service.sellerId, "You're not an actor of this service");
-        require(service.status == IServiceRegistry.Status.Finished, "The service is not finished yet");
+    ) public onlyOwnerOrDelegate(_profileId) {
+        ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
+
+        require(
+            _profileId == service.ownerId || _profileId == service.acceptedProposalId,
+            "You're not an actor of this service"
+        );
+        require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
-        if (_tokenId == service.buyerId) {
-            toId = service.sellerId;
-            if (nftMintedByServiceAndBuyerId[_serviceId] == _tokenId) {
+        if (_profileId == service.ownerId) {
+            toId = service.acceptedProposalId;
+            if (nftMintedByServiceAndBuyerId[_serviceId] == _profileId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndBuyerId[_serviceId] = _tokenId;
+                nftMintedByServiceAndBuyerId[_serviceId] = _profileId;
             }
         } else {
-            toId = service.buyerId;
-            if (nftMintedByServiceAndSellerId[_serviceId] == _tokenId) {
+            toId = service.ownerId;
+            if (nftMintedByServiceAndSellerId[_serviceId] == _profileId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndSellerId[_serviceId] = _tokenId;
+                nftMintedByServiceAndSellerId[_serviceId] = _profileId;
             }
         }
 
@@ -239,7 +245,7 @@ contract TalentLayerReview is
     }
 
     /**
-     * @dev CHeck whether a review token exists
+     * @dev Checks whether a review token exists
      * @param _tokenId The ID of the review token
      */
     function _exists(uint256 _tokenId) internal view virtual returns (bool) {
@@ -278,7 +284,14 @@ contract TalentLayerReview is
 
         _talentLayerIdToReviewCount[_to] += 1;
 
-        reviews[_totalSupply] = Review({id: _totalSupply, owner: _to, dataUri: _reviewUri, platformId: _platformId});
+        reviews[_totalSupply] = Review({
+            id: _totalSupply,
+            owner: _to,
+            dataUri: _reviewUri,
+            platformId: _platformId,
+            serviceId: _serviceId,
+            rating: _rating
+        });
 
         _totalSupply = _totalSupply + 1;
 
@@ -355,7 +368,7 @@ contract TalentLayerReview is
     function balanceOf(address owner) public view virtual override returns (uint256) {
         require(owner != address(0), "TalentLayerReview: token zero is not a valid owner");
 
-        return _talentLayerIdToReviewCount[tlId.walletOfOwner(owner)];
+        return _talentLayerIdToReviewCount[tlId.ids(owner)];
     }
 
     /**
@@ -465,11 +478,11 @@ contract TalentLayerReview is
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner of the delegate of the given tokenId
-     * @param _tokenId the tokenId
+     * @notice Check if the given address is either the owner of the delegate of the given user
+     * @param _profileId The TalentLayer ID of the user
      */
-    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
-        require(tlId.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
+    modifier onlyOwnerOrDelegate(uint256 _profileId) {
+        require(tlId.isOwnerOrDelegate(_profileId, _msgSender()), "Not owner or delegate");
         _;
     }
 

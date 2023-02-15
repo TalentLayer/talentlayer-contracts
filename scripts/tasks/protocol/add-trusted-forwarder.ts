@@ -20,9 +20,9 @@ task('add-trusted-forwarder', 'Adds a trusted forwarder for meta transactions.')
       getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
     )
 
-    const serviceRegistry = await ethers.getContractAt(
-      'ServiceRegistry',
-      getDeploymentProperty(network.name, DeploymentProperty.ServiceRegistry),
+    const talentLayerService = await ethers.getContractAt(
+      'TalentLayerService',
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerService),
     )
 
     const talentLayerReview = await ethers.getContractAt(
@@ -38,8 +38,8 @@ task('add-trusted-forwarder', 'Adds a trusted forwarder for meta transactions.')
     const talentLayerIdTx = await talentLayerId.addTrustedForwarder(address)
     await talentLayerIdTx.wait()
 
-    const serviceRegistryTx = await serviceRegistry.addTrustedForwarder(address)
-    await serviceRegistryTx.wait()
+    const talentLayerServiceTx = await talentLayerService.addTrustedForwarder(address)
+    await talentLayerServiceTx.wait()
 
     const talentLayerReviewTx = await talentLayerReview.addTrustedForwarder(address)
     await talentLayerReviewTx.wait()

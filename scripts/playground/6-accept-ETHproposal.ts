@@ -15,9 +15,9 @@ async function main() {
   console.log(network)
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
 
   const talentLayerEscrow = await ethers.getContractAt(
@@ -35,7 +35,7 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerArbitrator),
   )
 
-  const nextServiceId = await serviceRegistry.nextServiceId()
+  const nextServiceId = await talentLayerService.nextServiceId()
   const firstServiceId = nextServiceId.sub(2) // service id #1
   console.log('serviceId', firstServiceId.toString())
 
@@ -43,8 +43,8 @@ async function main() {
   // OriginService platform: Dave's platform #1
   // OriginService platform: Bob's platform #2
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
-  const daveTlPId = await platformIdContract.getPlatformIdFromAddress(dave.address)
-  const bobTlPId = await platformIdContract.getPlatformIdFromAddress(bob.address)
+  const daveTlPId = await platformIdContract.ids(dave.address)
+  const bobTlPId = await platformIdContract.ids(bob.address)
 
   const davePlatformData = await platformIdContract.platforms(daveTlPId)
   const bobPlatformData = await platformIdContract.platforms(bobTlPId)

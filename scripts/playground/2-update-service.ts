@@ -16,16 +16,16 @@ async function main() {
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
-  const serviceRegistry = await ethers.getContractAt(
-    'ServiceRegistry',
-    getDeploymentProperty(network, DeploymentProperty.ServiceRegistry),
+  const talentLayerService = await ethers.getContractAt(
+    'TalentLayerService',
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
   )
   const platformIdContract = await ethers.getContractAt(
     'TalentLayerPlatformID',
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
-  const daveTalentLayerIdPlatform = await platformIdContract.getPlatformIdFromAddress(dave.address)
+  const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   console.log('Dave Talent Layer Id', daveTalentLayerIdPlatform)
 
   /* ----------- Alice Update her Service -------------- */
@@ -43,14 +43,14 @@ async function main() {
   )
   console.log('Alice Job Updated data Uri', aliceUpdateJobData)
 
-  const nextServiceId = await serviceRegistry.nextServiceId()
+  const nextServiceId = await talentLayerService.nextServiceId()
   const firstServiceId = nextServiceId.sub(2)
   console.log('the Alice service id is ', firstServiceId.toString())
 
-  await serviceRegistry
+  await talentLayerService
     .connect(alice)
     .updateServiceData(aliceTlId, firstServiceId, aliceUpdateJobData)
-  const jobDataAfterUpdate = await serviceRegistry.getService(firstServiceId)
+  const jobDataAfterUpdate = await talentLayerService.getService(firstServiceId)
   console.log('Job Data after update', jobDataAfterUpdate)
 }
 

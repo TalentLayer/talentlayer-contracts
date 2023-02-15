@@ -893,40 +893,40 @@
             "offset": 0,
             "slot": "301",
             "type": "t_uint256",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:135"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:135"
           },
           {
             "label": "tlId",
             "offset": 0,
             "slot": "302",
             "type": "t_contract(ITalentLayerID)12463",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:138"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:138"
           },
           {
             "label": "talentLayerPlatformIdContract",
             "offset": 0,
             "slot": "303",
             "type": "t_contract(ITalentLayerPlatformID)12553",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:141"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:141"
           },
           {
             "label": "services",
             "offset": 0,
             "slot": "304",
             "type": "t_mapping(t_uint256,t_struct(Service)5722_storage)",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:144"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:144"
           },
           {
             "label": "proposals",
             "offset": 0,
             "slot": "305",
             "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)5734_storage))",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:147"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:147"
           }
         ],
         "types": {
@@ -959,7 +959,7 @@
             "numberOfBytes": "20"
           },
           "t_enum(ProposalStatus)5704": {
-            "label": "enum ServiceRegistry.ProposalStatus",
+            "label": "enum TalentLayerService.ProposalStatus",
             "members": [
               "Pending",
               "Validated",
@@ -968,7 +968,7 @@
             "numberOfBytes": "1"
           },
           "t_enum(Status)5700": {
-            "label": "enum ServiceRegistry.Status",
+            "label": "enum TalentLayerService.Status",
             "members": [
               "Filled",
               "Confirmed",
@@ -987,15 +987,15 @@
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)5734_storage))": {
-            "label": "mapping(uint256 => mapping(uint256 => struct ServiceRegistry.Proposal))",
+            "label": "mapping(uint256 => mapping(uint256 => struct TalentLayerService.Proposal))",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Proposal)5734_storage)": {
-            "label": "mapping(uint256 => struct ServiceRegistry.Proposal)",
+            "label": "mapping(uint256 => struct TalentLayerService.Proposal)",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Service)5722_storage)": {
-            "label": "mapping(uint256 => struct ServiceRegistry.Service)",
+            "label": "mapping(uint256 => struct TalentLayerService.Service)",
             "numberOfBytes": "32"
           },
           "t_string_storage": {
@@ -1003,7 +1003,7 @@
             "numberOfBytes": "32"
           },
           "t_struct(Proposal)5734_storage": {
-            "label": "struct ServiceRegistry.Proposal",
+            "label": "struct TalentLayerService.Proposal",
             "members": [
               {
                 "label": "status",
@@ -1057,7 +1057,7 @@
             "numberOfBytes": "64"
           },
           "t_struct(Service)5722_storage": {
-            "label": "struct ServiceRegistry.Service",
+            "label": "struct TalentLayerService.Service",
             "members": [
               {
                 "label": "status",
@@ -1276,7 +1276,7 @@
             "label": "serviceRegistry",
             "offset": 0,
             "slot": "261",
-            "type": "t_contract(IServiceRegistry)12340",
+            "type": "t_contract(ITalentLayerService)12340",
             "contract": "TalentLayerReview",
             "src": "contracts/TalentLayerReview.sol:101"
           },
@@ -1306,8 +1306,8 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IServiceRegistry)12340": {
-            "label": "contract IServiceRegistry",
+          "t_contract(ITalentLayerService)12340": {
+            "label": "contract ITalentLayerService",
             "numberOfBytes": "20"
           },
           "t_contract(ITalentLayerID)12463": {
@@ -1466,7 +1466,7 @@
             "label": "serviceRegistryContract",
             "offset": 0,
             "slot": "203",
-            "type": "t_contract(IServiceRegistry)12340",
+            "type": "t_contract(ITalentLayerService)12340",
             "contract": "TalentLayerEscrow",
             "src": "contracts/TalentLayerEscrow.sol:248"
           },
@@ -1552,8 +1552,8 @@
             "label": "contract Arbitrator",
             "numberOfBytes": "20"
           },
-          "t_contract(IServiceRegistry)12340": {
-            "label": "contract IServiceRegistry",
+          "t_contract(ITalentLayerService)12340": {
+            "label": "contract ITalentLayerService",
             "numberOfBytes": "20"
           },
           "t_contract(ITalentLayerID)12463": {
@@ -1802,40 +1802,40 @@
             "offset": 0,
             "slot": "301",
             "type": "t_uint256",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:140"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:140"
           },
           {
             "label": "tlId",
             "offset": 0,
             "slot": "302",
             "type": "t_contract(ITalentLayerID)3237",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:143"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:143"
           },
           {
             "label": "talentLayerPlatformIdContract",
             "offset": 0,
             "slot": "303",
             "type": "t_contract(ITalentLayerPlatformID)3327",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:146"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:146"
           },
           {
             "label": "services",
             "offset": 0,
             "slot": "304",
             "type": "t_mapping(t_uint256,t_struct(Service)3375_storage)",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:149"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:149"
           },
           {
             "label": "proposals",
             "offset": 0,
             "slot": "305",
             "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)3387_storage))",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:152"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:152"
           }
         ],
         "types": {
@@ -1868,7 +1868,7 @@
             "numberOfBytes": "20"
           },
           "t_enum(ProposalStatus)3357": {
-            "label": "enum ServiceRegistryV2.ProposalStatus",
+            "label": "enum TalentLayerServiceV2.ProposalStatus",
             "members": [
               "Pending",
               "Validated",
@@ -1877,7 +1877,7 @@
             "numberOfBytes": "1"
           },
           "t_enum(Status)3353": {
-            "label": "enum ServiceRegistryV2.Status",
+            "label": "enum TalentLayerServiceV2.Status",
             "members": [
               "Filled",
               "Confirmed",
@@ -1897,15 +1897,15 @@
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)3387_storage))": {
-            "label": "mapping(uint256 => mapping(uint256 => struct ServiceRegistryV2.Proposal))",
+            "label": "mapping(uint256 => mapping(uint256 => struct TalentLayerServiceV2.Proposal))",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Proposal)3387_storage)": {
-            "label": "mapping(uint256 => struct ServiceRegistryV2.Proposal)",
+            "label": "mapping(uint256 => struct TalentLayerServiceV2.Proposal)",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Service)3375_storage)": {
-            "label": "mapping(uint256 => struct ServiceRegistryV2.Service)",
+            "label": "mapping(uint256 => struct TalentLayerServiceV2.Service)",
             "numberOfBytes": "32"
           },
           "t_string_storage": {
@@ -1913,7 +1913,7 @@
             "numberOfBytes": "32"
           },
           "t_struct(Proposal)3387_storage": {
-            "label": "struct ServiceRegistryV2.Proposal",
+            "label": "struct TalentLayerServiceV2.Proposal",
             "members": [
               {
                 "label": "status",
@@ -1967,7 +1967,7 @@
             "numberOfBytes": "64"
           },
           "t_struct(Service)3375_storage": {
-            "label": "struct ServiceRegistryV2.Service",
+            "label": "struct TalentLayerServiceV2.Service",
             "members": [
               {
                 "label": "status",
@@ -2123,40 +2123,40 @@
             "offset": 0,
             "slot": "301",
             "type": "t_uint256",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:140"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:140"
           },
           {
             "label": "tlId",
             "offset": 0,
             "slot": "302",
             "type": "t_contract(ITalentLayerID)3237",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:143"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:143"
           },
           {
             "label": "talentLayerPlatformIdContract",
             "offset": 0,
             "slot": "303",
             "type": "t_contract(ITalentLayerPlatformID)3327",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:146"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:146"
           },
           {
             "label": "services",
             "offset": 0,
             "slot": "304",
             "type": "t_mapping(t_uint256,t_struct(Service)3375_storage)",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:149"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:149"
           },
           {
             "label": "proposals",
             "offset": 0,
             "slot": "305",
             "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)3387_storage))",
-            "contract": "ServiceRegistryV2",
-            "src": "contracts/tests/ServiceRegistryV2.sol:152"
+            "contract": "TalentLayerServiceV2",
+            "src": "contracts/tests/TalentLayerServiceV2.sol:152"
           }
         ],
         "types": {
@@ -2189,7 +2189,7 @@
             "numberOfBytes": "20"
           },
           "t_enum(ProposalStatus)3357": {
-            "label": "enum ServiceRegistryV2.ProposalStatus",
+            "label": "enum TalentLayerServiceV2.ProposalStatus",
             "members": [
               "Pending",
               "Validated",
@@ -2198,7 +2198,7 @@
             "numberOfBytes": "1"
           },
           "t_enum(Status)3353": {
-            "label": "enum ServiceRegistryV2.Status",
+            "label": "enum TalentLayerServiceV2.Status",
             "members": [
               "Filled",
               "Confirmed",
@@ -2218,15 +2218,15 @@
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)3387_storage))": {
-            "label": "mapping(uint256 => mapping(uint256 => struct ServiceRegistryV2.Proposal))",
+            "label": "mapping(uint256 => mapping(uint256 => struct TalentLayerServiceV2.Proposal))",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Proposal)3387_storage)": {
-            "label": "mapping(uint256 => struct ServiceRegistryV2.Proposal)",
+            "label": "mapping(uint256 => struct TalentLayerServiceV2.Proposal)",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Service)3375_storage)": {
-            "label": "mapping(uint256 => struct ServiceRegistryV2.Service)",
+            "label": "mapping(uint256 => struct TalentLayerServiceV2.Service)",
             "numberOfBytes": "32"
           },
           "t_string_storage": {
@@ -2234,7 +2234,7 @@
             "numberOfBytes": "32"
           },
           "t_struct(Proposal)3387_storage": {
-            "label": "struct ServiceRegistryV2.Proposal",
+            "label": "struct TalentLayerServiceV2.Proposal",
             "members": [
               {
                 "label": "status",
@@ -2288,7 +2288,7 @@
             "numberOfBytes": "64"
           },
           "t_struct(Service)3375_storage": {
-            "label": "struct ServiceRegistryV2.Service",
+            "label": "struct TalentLayerServiceV2.Service",
             "members": [
               {
                 "label": "status",
@@ -3102,48 +3102,48 @@
             "offset": 0,
             "slot": "302",
             "type": "t_uint256",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:152"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:152"
           },
           {
             "label": "tlId",
             "offset": 0,
             "slot": "303",
             "type": "t_contract(ITalentLayerID)14063",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:155"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:155"
           },
           {
             "label": "talentLayerPlatformIdContract",
             "offset": 0,
             "slot": "304",
             "type": "t_contract(ITalentLayerPlatformID)14262",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:158"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:158"
           },
           {
             "label": "services",
             "offset": 0,
             "slot": "305",
             "type": "t_mapping(t_uint256,t_struct(Service)7087_storage)",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:161"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:161"
           },
           {
             "label": "proposals",
             "offset": 0,
             "slot": "306",
             "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)7101_storage))",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:164"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:164"
           },
           {
             "label": "allowedTokenList",
             "offset": 0,
             "slot": "307",
             "type": "t_mapping(t_address,t_bool)",
-            "contract": "ServiceRegistry",
-            "src": "contracts/ServiceRegistry.sol:167"
+            "contract": "TalentLayerService",
+            "src": "contracts/TalentLayerService.sol:167"
           }
         ],
         "types": {
@@ -3176,7 +3176,7 @@
             "numberOfBytes": "20"
           },
           "t_enum(ProposalStatus)7069": {
-            "label": "enum ServiceRegistry.ProposalStatus",
+            "label": "enum TalentLayerService.ProposalStatus",
             "members": [
               "Pending",
               "Validated",
@@ -3185,7 +3185,7 @@
             "numberOfBytes": "1"
           },
           "t_enum(Status)7065": {
-            "label": "enum ServiceRegistry.Status",
+            "label": "enum TalentLayerService.Status",
             "members": [
               "Filled",
               "Confirmed",
@@ -3204,15 +3204,15 @@
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Proposal)7101_storage))": {
-            "label": "mapping(uint256 => mapping(uint256 => struct ServiceRegistry.Proposal))",
+            "label": "mapping(uint256 => mapping(uint256 => struct TalentLayerService.Proposal))",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Proposal)7101_storage)": {
-            "label": "mapping(uint256 => struct ServiceRegistry.Proposal)",
+            "label": "mapping(uint256 => struct TalentLayerService.Proposal)",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Service)7087_storage)": {
-            "label": "mapping(uint256 => struct ServiceRegistry.Service)",
+            "label": "mapping(uint256 => struct TalentLayerService.Service)",
             "numberOfBytes": "32"
           },
           "t_string_storage": {
@@ -3220,7 +3220,7 @@
             "numberOfBytes": "32"
           },
           "t_struct(Proposal)7101_storage": {
-            "label": "struct ServiceRegistry.Proposal",
+            "label": "struct TalentLayerService.Proposal",
             "members": [
               {
                 "label": "status",
@@ -3280,7 +3280,7 @@
             "numberOfBytes": "64"
           },
           "t_struct(Service)7087_storage": {
-            "label": "struct ServiceRegistry.Service",
+            "label": "struct TalentLayerService.Service",
             "members": [
               {
                 "label": "status",
@@ -3511,7 +3511,7 @@
             "label": "serviceRegistry",
             "offset": 0,
             "slot": "262",
-            "type": "t_contract(IServiceRegistry)13820",
+            "type": "t_contract(ITalentLayerService)13820",
             "contract": "TalentLayerReview",
             "src": "contracts/TalentLayerReview.sol:101"
           },
@@ -3541,8 +3541,8 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IServiceRegistry)13820": {
-            "label": "contract IServiceRegistry",
+          "t_contract(ITalentLayerService)13820": {
+            "label": "contract ITalentLayerService",
             "numberOfBytes": "20"
           },
           "t_contract(ITalentLayerID)14063": {
@@ -3709,7 +3709,7 @@
             "label": "serviceRegistryContract",
             "offset": 0,
             "slot": "204",
-            "type": "t_contract(IServiceRegistry)13820",
+            "type": "t_contract(ITalentLayerService)13820",
             "contract": "TalentLayerEscrow",
             "src": "contracts/TalentLayerEscrow.sol:254"
           },
@@ -3787,8 +3787,8 @@
             "label": "contract Arbitrator",
             "numberOfBytes": "20"
           },
-          "t_contract(IServiceRegistry)13820": {
-            "label": "contract IServiceRegistry",
+          "t_contract(ITalentLayerService)13820": {
+            "label": "contract ITalentLayerService",
             "numberOfBytes": "20"
           },
           "t_contract(ITalentLayerID)14063": {
