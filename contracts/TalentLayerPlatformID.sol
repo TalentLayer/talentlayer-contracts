@@ -16,6 +16,8 @@ import "./Arbitrator.sol";
 contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
+    uint8 constant MAX_HANDLE_LENGTH = 31;
+
     // =========================== Variables ==============================
 
     /// @notice TalentLayer Platform information struct
@@ -90,6 +92,18 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @notice Platform Id counter
      */
     CountersUpgradeable.Counter private nextPlatformId;
+
+    // =========================== Errors ==============================
+
+    /**
+     * @notice error thrown when input handle is 0 or more than 31 characters long.
+     */
+    error HandleLengthInvalid();
+
+    /**
+     * @notice error thrown when input handle contains restricted characters.
+     */
+    error HandleContainsInvalidCharacters();
 
     // =========================== Initializers ==============================
 
@@ -187,7 +201,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @dev You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      */
-    function mint(string memory _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
+    function mint(string calldata _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
         _safeMint(msg.sender, nextPlatformId.current());
         _afterMint(_platformName, msg.sender);
     }
@@ -199,7 +213,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformAddress Eth Address to assign the Platform Id to
      */
     function mintForAddress(
-        string memory _platformName,
+        string calldata _platformName,
         address _platformAddress
     ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
         _safeMint(_platformAddress, nextPlatformId.current());
@@ -375,6 +389,24 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         return platformId;
     }
 
+    function _validateHandle(string calldata handle) private pure {
+        bytes memory byteHandle = bytes(handle);
+        if (byteHandle.length == 0 || byteHandle.length > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+
+        uint256 byteHandleLength = byteHandle.length;
+        for (uint256 i = 0; i < byteHandleLength; ) {
+            if (
+                (byteHandle[i] < "0" ||
+                    byteHandle[i] > "z" ||
+                    ((byteHandle[i] > "9" && byteHandle[i] < "A") || (byteHandle[i] > "Z" && byteHandle[i] < "a"))) &&
+                //                byteHandle[i] != "." &&
+                byteHandle[i] != "-" &&
+                byteHandle[i] != "_"
+            ) revert HandleContainsInvalidCharacters();
+            ++i;
+        }
+    }
+
     // =========================== External functions ==============================
 
     /**
@@ -479,12 +511,12 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformName name for the platform
      * @param _platformAddress address of the platform associated with the ID
      */
-    modifier canMint(string memory _platformName, address _platformAddress) {
+    modifier canMint(string calldata _platformName, address _platformAddress) {
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
-        require(bytes(_platformName).length >= 2, "Name too short");
-        require(bytes(_platformName).length <= 20, "Name too long");
         require(!takenNames[_platformName], "Name already taken");
+
+        _validateHandle(_platformName);
         _;
     }
 

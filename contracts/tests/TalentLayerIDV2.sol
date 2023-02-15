@@ -18,6 +18,8 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
 contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
+    uint8 constant MAX_HANDLE_LENGTH = 31;
+
     // =========================== Structs ==============================
 
     /// @notice TalentLayer Profile information struct
@@ -55,6 +57,18 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /// TalentLayer ID to delegates
     mapping(uint256 => mapping(address => bool)) private delegates;
     uint256 testVariable;
+
+    // =========================== Errors ==============================
+
+    /**
+     * @notice error thrown when input handle is 0 or more than 31 characters long.
+     */
+    error HandleLengthInvalid();
+
+    /**
+     * @notice error thrown when input handle contains restricted characters.
+     */
+    error HandleContainsInvalidCharacters();
 
     // =========================== Initializers ==============================
 
@@ -134,7 +148,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      */
     function mint(
         uint256 _platformId,
-        string memory _handle
+        string calldata _handle
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
@@ -204,7 +218,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     function freeMint(
         uint256 _platformId,
         address _userAddress,
-        string memory _handle
+        string calldata _handle
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, nextProfileId.current());
         _afterMint(_userAddress, _handle, _platformId, 0);
@@ -218,7 +232,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId was minted
      */
-    function _afterMint(address _userAddress, string memory _handle, uint256 _platformId, uint256 _fee) private {
+    function _afterMint(address _userAddress, string calldata _handle, uint256 _platformId, uint256 _fee) private {
         uint256 userProfileId = nextProfileId.current();
         nextProfileId.increment();
         Profile storage profile = profiles[userProfileId];
@@ -228,6 +242,22 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         ids[_userAddress] = userProfileId;
 
         emit Mint(_userAddress, userProfileId, _handle, _platformId, _fee);
+    }
+
+    function _validateHandle(string calldata _handle) private pure {
+        bytes memory byteHandle = bytes(_handle);
+        if (byteHandle.length == 0 || byteHandle.length > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+
+        uint256 byteHandleLength = byteHandle.length;
+        for (uint256 i = 0; i < byteHandleLength; ) {
+            if (
+                (byteHandle[i] < "0" || byteHandle[i] > "z" || (byteHandle[i] > "9" && byteHandle[i] < "a")) &&
+                //                byteHandle[i] != "." &&
+                byteHandle[i] != "-" &&
+                byteHandle[i] != "_"
+            ) revert HandleContainsInvalidCharacters();
+            ++i;
+        }
     }
 
     // =========================== Internal functions ==============================
@@ -346,14 +376,13 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      */
     modifier canMint(
         address _userAddress,
-        string memory _handle,
+        string calldata _handle,
         uint256 _platformId
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
-        require(bytes(_handle).length >= 2, "Handle too short");
-        require(bytes(_handle).length <= 20, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
-        talentLayerPlatformIdContract.isValid(_platformId);
+
+        _validateHandle(_handle);
         _;
     }
 
