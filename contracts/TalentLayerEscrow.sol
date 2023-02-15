@@ -301,11 +301,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner of the delegate of the given tokenId
-     * @param _tokenId the tokenId
+     * @notice Check if the given address is either the owner of the delegate of the given user
+     * @param _profileId The TalentLayer ID of the user
      */
-    modifier onlyOwnerOrDelegate(uint256 _tokenId) {
-        require(talentLayerIdContract.isOwnerOrDelegate(_tokenId, _msgSender()), "Not owner or delegate");
+    modifier onlyOwnerOrDelegate(uint256 _profileId) {
+        require(talentLayerIdContract.isOwnerOrDelegate(_profileId, _msgSender()), "Not owner or delegate");
         _;
     }
 
@@ -525,15 +525,19 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /**
      * @notice Allows the sender to release locked-in escrow value to the intended recipient.
      *         The amount released must not include the fees.
-     * @param _tokenId The talentLayerId of the user.
+     * @param _profileId The TalentLayer ID of the user
      * @param _transactionId Id of the transaction to release escrow value for.
      * @param _amount Value to be released without fees. Should not be more than amount locked in.
      */
-    function release(uint256 _tokenId, uint256 _transactionId, uint256 _amount) external onlyOwnerOrDelegate(_tokenId) {
+    function release(
+        uint256 _profileId,
+        uint256 _transactionId,
+        uint256 _amount
+    ) external onlyOwnerOrDelegate(_profileId) {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
-        require(transaction.sender == talentLayerIdContract.ownerOf(_tokenId), "Access denied.");
+        require(transaction.sender == talentLayerIdContract.ownerOf(_profileId), "Access denied.");
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
         require(transaction.amount >= _amount, "Insufficient funds.");
 
@@ -544,19 +548,19 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /**
      * @notice Allows the intended receiver to return locked-in escrow value back to the sender.
      *         The amount reimbursed must not include the fees.
-     * @param _tokenId The talentLayerId of the user.
+     * @param _profileId The TalentLayer ID of the user
      * @param _transactionId Id of the transaction to reimburse escrow value for.
      * @param _amount Value to be reimbursed without fees. Should not be more than amount locked in.
      */
     function reimburse(
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _transactionId,
         uint256 _amount
-    ) external onlyOwnerOrDelegate(_tokenId) {
+    ) external onlyOwnerOrDelegate(_profileId) {
         require(transactions.length > _transactionId, "Not a valid transaction id.");
         Transaction storage transaction = transactions[_transactionId];
 
-        require(transaction.receiver == talentLayerIdContract.ownerOf(_tokenId), "Access denied.");
+        require(transaction.receiver == talentLayerIdContract.ownerOf(_profileId), "Access denied.");
         require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
         require(transaction.amount >= _amount, "Insufficient funds.");
 
@@ -676,20 +680,20 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /** @notice Allows a party to submit a reference to evidence.
-     *  @param _tokenId The talentLayerId of the user.
+     *  @param _profileId The TalentLayer ID of the user
      *  @param _transactionId The index of the transaction.
      *  @param _evidence A link to an evidence using its URI.
      */
     function submitEvidence(
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _transactionId,
         string memory _evidence
-    ) public onlyOwnerOrDelegate(_tokenId) {
+    ) public onlyOwnerOrDelegate(_profileId) {
         Transaction storage transaction = transactions[_transactionId];
 
         require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
 
-        address party = talentLayerIdContract.ownerOf(_tokenId);
+        address party = talentLayerIdContract.ownerOf(_profileId);
         require(
             party == transaction.sender || party == transaction.receiver,
             "The caller must be the sender or the receiver or their delegates."
@@ -697,7 +701,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
 
         emit Evidence(transaction.arbitrator, _transactionId, party, _evidence);
-        emit EvidenceSubmitted(_transactionId, _tokenId, _evidence);
+        emit EvidenceSubmitted(_transactionId, _profileId, _evidence);
     }
 
     /** @notice Appeals an appealable ruling, paying the appeal fee to the arbitrator.
