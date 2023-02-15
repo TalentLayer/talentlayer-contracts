@@ -3,7 +3,7 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
 
 /**
  * @notice This task allow to update the platform id minting status
- * @param {uint256} mintstatus - The platform id minting status (0 = ON_PAUSE 1 = ONLY_WHITELIST, 2 = PUBLIC)
+ * @param {uint256} mintstatus - The platform id minting status (0 = ON_PAUSE, 1 = ONLY_WHITELIST, 2 = PUBLIC)
  * @dev Example of script use: "npx hardhat update-whitelist-status --status ONLY_WHITELIST --network mumbai"
  */
 task('update-whitelist-status', 'change the platform id minting status')

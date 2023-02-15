@@ -22,6 +22,10 @@ task(
 
     await run('print', { message: 'Hello, World!' })
 
+    // we set up the whitelist status to whitelist only
+    const mintstatus = '1'
+    await run('update-whitelist-status', { mintstatus })
+
     console.log('------------------------')
     console.log('Platform ID Whitelist')
     for (const [name, address] of Object.entries(networkConfig.whitelist)) {

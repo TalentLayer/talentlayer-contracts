@@ -11,6 +11,7 @@ task('add-address-whitelist', 'we add an address to the whitelist for platform i
   .setAction(async (taskArgs, { ethers, network }) => {
     const { address } = taskArgs
     const [deployer] = await ethers.getSigners()
+    console.log('deployer', deployer.address)
 
     console.log('network', network.name)
 
@@ -20,8 +21,8 @@ task('add-address-whitelist', 'we add an address to the whitelist for platform i
       deployer,
     )
 
-    const addressWhitelisted = await platformIdContract.whitelistUser(address)
-    console.log(`the ${address} is whitelisted for minting platform id `)
+    await platformIdContract.whitelistUser(address)
+    console.log(`address ${address} is whitelisted for minting platform id `)
 
     // we check if the address is whitelisted
     const isAddressWhitelisted = await platformIdContract.whitelist(address)
