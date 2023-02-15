@@ -151,10 +151,15 @@ describe('Delegation System', function () {
           (protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)) /
           10000
 
+      // we need to retreive the Bob proposal dataUri
+      const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
       // Accept proposal through deposit
-      await talentLayerEscrow.connect(alice).createETHTransaction('', serviceId, bobTlId, {
-        value: totalAmount,
-      })
+      await talentLayerEscrow
+        .connect(alice)
+        .createETHTransaction('', serviceId, bobTlId, proposal.dataUri, {
+          value: totalAmount,
+        })
 
       // Fails is caller is not the owner or delegate
       const failTx = talentLayerEscrow.connect(eve).release(aliceTlId, trasactionId, 100)
