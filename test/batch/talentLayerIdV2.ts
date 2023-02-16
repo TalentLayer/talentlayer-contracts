@@ -21,6 +21,9 @@ async function deployAndSetup(): Promise<[TalentLayerPlatformID, TalentLayerID]>
   await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
+  // Disable whitelist for reserved handles
+  await talentLayerID.connect(deployer).setWhitelistEnabled(false)
+
   // Mint TL Id for Alice and Bob
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')

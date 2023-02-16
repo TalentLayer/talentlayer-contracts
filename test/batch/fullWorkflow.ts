@@ -102,6 +102,9 @@ describe('TalentLayer protocol global testing', function () {
     for (const tokenAddress of allowedTokenList) {
       await talentLayerService.connect(deployer).updateAllowedTokenList(tokenAddress, true)
     }
+
+    // Disable whitelist for reserved handles
+    await talentLayerID.connect(deployer).setWhitelistEnabled(false)
   })
 
   describe('Platform Id contract test', async function () {
@@ -845,7 +848,7 @@ describe('TalentLayer protocol global testing', function () {
       let proposalIdBob = 0 //Will be set later
       let proposalIdCarol = 0 //Will be set later
       let totalAmount = 0 //Will be set later
-      let proposalDataUri = '' //Will be set later
+      const proposalDataUri = '' //Will be set later
 
       it('Alice can NOT deposit tokens to escrow yet because there is no valid proposal', async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountBob)

@@ -29,6 +29,9 @@ describe('Gasless Transactions', function () {
     await talentLayerPlatformID.connect(deployer).whitelistUser(alice.address)
     await talentLayerPlatformID.connect(alice).mint('aliceplat')
 
+    // Disable whitelist for reserved handles
+    await talentLayerID.connect(deployer).setWhitelistEnabled(false)
+
     // Meta-transaction to mint a TalentLayer ID for Bob
     req = {
       from: bob.address,

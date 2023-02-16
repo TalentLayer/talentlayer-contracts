@@ -76,6 +76,9 @@ async function deployAndSetup(
   // Update arbitration cost
   await talentLayerArbitrator.connect(carol).setArbitrationPrice(carolPlatformId, arbitrationCost)
 
+  // Disable whitelist for reserved handles
+  await talentLayerID.connect(deployer).setWhitelistEnabled(false)
+
   // Mint TL Id for Alice, Bob and Dave
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
