@@ -8,9 +8,9 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
 /**
  * @notice This task is used to set the whitelist for minting reserved handles
  * @param {string} file - The path to the JSON file containing the whitelist
- * @dev Example of script use: "npx hardhat set-whitelist --file whitelist.json --network mumbai"
+ * @dev Example of script use: "npx hardhat set-minting-whitelist --file whitelist.json --network mumbai"
  */
-task('set-whitelist', 'Sets the whitelist for minting reserved handles')
+task('set-minting-whitelist', 'Sets the whitelist for minting reserved handles')
   .addParam('file', 'The path to the file containing the whitelist')
   .setAction(async (taskArgs, { ethers, network }) => {
     const { file: filePath } = taskArgs
