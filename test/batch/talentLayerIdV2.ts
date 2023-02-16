@@ -17,7 +17,7 @@ async function deployAndSetup(): Promise<[TalentLayerPlatformID, TalentLayerID]>
   const [talentLayerID, talentLayerPlatformID] = await deploy(false)
 
   // Deployer mints Platform Id for Carol
-  const platformName = 'HireVibes'
+  const platformName = 'hirevibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Mint TL Id for Alice and Bob

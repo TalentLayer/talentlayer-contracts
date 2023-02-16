@@ -41,7 +41,7 @@ async function deployAndSetup(
   await talentLayerService.connect(deployer).updateAllowedTokenList(tokenAddress, true)
 
   // Deployer mints Platform Id for Carol
-  const platformName = 'HireVibes'
+  const platformName = 'hirehibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Mint TL Id for Alice and Bob

@@ -68,7 +68,7 @@ describe('TalentLayer protocol global testing', function () {
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, grace.address)
 
     // Deployer mints Platform Id for Alice
-    platformName = 'HireVibes'
+    platformName = 'hirevibes'
     await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, alice.address)
     mintFee = 100
 
@@ -121,7 +121,7 @@ describe('TalentLayer protocol global testing', function () {
     it("ALice can't mint a platformId for someone else", async function () {
       const mintRole = await talentLayerPlatformID.MINT_ROLE()
       await expect(
-        talentLayerPlatformID.connect(alice).mintForAddress('platId2', dave.address),
+        talentLayerPlatformID.connect(alice).mintForAddress('platid2', dave.address),
       ).to.be.revertedWith(
         `AccessControl: account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}`,
       )
@@ -182,12 +182,12 @@ describe('TalentLayer protocol global testing', function () {
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
 
       // Mint fails if not enough ETH is sent
-      await expect(talentLayerPlatformID.connect(bob).mint('BobPlat')).to.be.revertedWith(
+      await expect(talentLayerPlatformID.connect(bob).mint('bob_plat')).to.be.revertedWith(
         'Incorrect amount of ETH for mint fee',
       )
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
-      await talentLayerPlatformID.connect(bob).mint('BobPlat', { value: mintFee })
+      await talentLayerPlatformID.connect(bob).mint('bob_plat', { value: mintFee })
       const bobPlatformId = await talentLayerPlatformID.ids(bob.address)
       expect(bobPlatformId).to.be.equal('2')
 
@@ -200,9 +200,15 @@ describe('TalentLayer protocol global testing', function () {
       expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
     })
 
+    it("Grace can't mint a talentLayerId with caps characters", async function () {
+      await expect(
+        talentLayerPlatformID.connect(grace).mint('TalentLayer', { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
+    })
+
     it("Grace can't mint a talentLayer platform Id with restricted characters", async function () {
       await expect(
-        talentLayerPlatformID.connect(grace).mint('T@lentLy€rB@$€', { value: mintFee }),
+        talentLayerPlatformID.connect(grace).mint('t@lently€rB@$€', { value: mintFee }),
       ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
     })
 
@@ -224,7 +230,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(
         await talentLayerPlatformID
           .connect(grace)
-          .mint('LongerBut_OK_PlatformByGrace', { value: mintFee }),
+          .mint('longerbut_ok_platformbygrace', { value: mintFee }),
       ).not.to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
     })
 
