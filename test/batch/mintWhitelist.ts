@@ -6,15 +6,15 @@ import MerkleTree from 'merkletreejs'
 import { TalentLayerID } from '../../typechain-types'
 import { deploy } from '../utils/deploy'
 
-const aliceTlId = 1
-
 const reservedHandles = ['alice', 'bob', 'carol']
 
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.
  * @returns the deployed contracts
  */
-async function deployAndSetup(): Promise<[TalentLayerID, MerkleTree, string, MerkleTree, string]> {
+async function deployAndSetup(): Promise<
+  [TalentLayerID, SignerWithAddress[], MerkleTree, string, MerkleTree, string]
+> {
   const users = await ethers.getSigners()
   const deployer = users[0]
   const whitelistedUsers = users.slice(1, 4)
@@ -24,7 +24,7 @@ async function deployAndSetup(): Promise<[TalentLayerID, MerkleTree, string, Mer
 
   // Create whitelist of handle reservations
   const whitelist = whitelistedUsers.map(
-    (user, index) => `${user.address};${reservedHandles[index]}`,
+    (user, index) => `${user.address.toLowerCase()};${reservedHandles[index]}`,
   )
 
   // Set whitelist merkle root
@@ -49,6 +49,7 @@ async function deployAndSetup(): Promise<[TalentLayerID, MerkleTree, string, Mer
 
   return [
     talentLayerID,
+    whitelistedUsers,
     whitelistMerkleTree,
     whitelistMerkleRoot,
     handlesMerkleTree,
@@ -57,17 +58,17 @@ async function deployAndSetup(): Promise<[TalentLayerID, MerkleTree, string, Mer
 }
 
 describe.only('Whitelist to mint reserved handles', function () {
-  let alice: SignerWithAddress,
-    talentLayerID: TalentLayerID,
+  let talentLayerID: TalentLayerID,
+    whitelistedUsers: SignerWithAddress[],
     whitelistMerkleTree: MerkleTree,
     whitelistMerkleRoot: string,
     handlesMerkleTree: MerkleTree,
     handlesMerkleRoot: string
 
   before(async function () {
-    ;[, alice] = await ethers.getSigners()
     ;[
       talentLayerID,
+      whitelistedUsers,
       whitelistMerkleTree,
       whitelistMerkleRoot,
       handlesMerkleTree,
@@ -79,21 +80,37 @@ describe.only('Whitelist to mint reserved handles', function () {
     it('The reserved handles are reserved', async function () {
       for (const handle of reservedHandles) {
         const proof = handlesMerkleTree.getHexProof(keccak256(handle))
+
+        // Check handle is reserved with local merkle root
         const isReservedLocally = handlesMerkleTree.verify(
           proof,
           keccak256(handle),
           handlesMerkleRoot,
         )
-
         expect(isReservedLocally).to.be.true
 
+        // Check handle is reserved with the merkle root stored on the contract
         const isReservedOnContract = await talentLayerID.isHandleReserved(handle, proof)
         expect(isReservedOnContract).to.be.true
       }
     })
 
     it('The whitelisted users are whitelisted', async function () {
-      expect(true)
+      for (const [index, user] of whitelistedUsers.entries()) {
+        const address = user.address.toLocaleLowerCase()
+        const handle = reservedHandles[index]
+
+        // Check user is whitelisted with local merkle root
+        const whitelistEntry = `${address};${handle}`
+        const leaf = keccak256(whitelistEntry)
+        const proof = whitelistMerkleTree.getHexProof(leaf)
+        const isWhitelistedLocally = whitelistMerkleTree.verify(proof, leaf, whitelistMerkleRoot)
+        expect(isWhitelistedLocally).to.be.true
+
+        // Check user is whitelisted with local merkle root stored on the contract
+        const isWhitelistedOnContract = await talentLayerID.isWhitelisted(address, handle, proof)
+        expect(isWhitelistedOnContract).to.be.true
+      }
     })
   })
 
