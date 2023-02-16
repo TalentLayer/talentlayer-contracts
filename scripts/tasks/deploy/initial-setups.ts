@@ -24,12 +24,12 @@ task(
 
     // we set up the whitelist status to whitelist only
     const mintstatus = '1'
-    await run('update-whitelist-status', { mintstatus })
+    await run('update-platform-whitelist-status', { mintstatus })
 
     console.log('------------------------')
     console.log('Platform ID Whitelist')
     for (const [name, address] of Object.entries(networkConfig.whitelist)) {
-      await run('add-address-whitelist', { address })
+      await run('whitelist-platform-address', { address })
     }
     console.log('------------------------')
 

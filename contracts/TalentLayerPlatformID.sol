@@ -332,7 +332,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _user Address of the user to whitelist
      */
     function whitelistUser(address _user) public onlyRole(OWNER_ROLE) {
-        require(_user != address(0), "User address cannot be 0");
         whitelist[_user] = true;
         emit UserWhitelisted(_user);
     }

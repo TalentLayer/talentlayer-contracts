@@ -4,9 +4,9 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
 /**
  * @notice This task is used to whitelist a user for platform ID minting
  * @param {string} address - The whitelisted address for platform ID minting
- * @dev Example of script use: "npx hardhat add-address-whitelist --address 0x822e7287e61aDC163d0DB665c4b4c662518A053f --network mumbai"
+ * @dev Example of script use: "npx hardhat whitelist-platform-address --address 0x822e7287e61aDC163d0DB665c4b4c662518A053f --network mumbai"
  */
-task('add-address-whitelist', 'we add an address to the whitelist for platform id minting')
+task('whitelist-platform-address', 'we add an address to the whitelist for platform id minting')
   .addParam('address', "The whitelist's address")
   .setAction(async (taskArgs, { ethers, network }) => {
     const { address } = taskArgs
