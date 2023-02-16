@@ -7,7 +7,7 @@ const carolTlId = 3
 const daveTlId = 4
 
 const now = Math.floor(Date.now() / 1000)
-const defaultProposalTimeout = now + 60 * 60 * 24 * 15
+const proposalExpirationDate = now + 60 * 60 * 24 * 15
 
 /*
 In this script Bob, Carol and Dave will create proposals for Alice's services
@@ -96,7 +96,7 @@ async function main() {
       ethers.utils.parseUnits('0.001', 18),
       davePlatformId,
       bobUri,
-      defaultProposalTimeout,
+      proposalExpirationDate,
     )
   console.log('Bob proposal created')
   await bobProposal.wait()
@@ -115,7 +115,7 @@ async function main() {
       ethers.utils.parseUnits('0.002', 18),
       bobPlatformId,
       carolUri,
-      defaultProposalTimeout,
+      proposalExpirationDate,
     )
   console.log('Carol proposal created')
   await carolProposal.wait()
@@ -134,7 +134,7 @@ async function main() {
       ethers.utils.parseUnits('0.003', 18),
       bobPlatformId,
       daveUri,
-      defaultProposalTimeout,
+      proposalExpirationDate,
     )
   console.log('Dave proposal created')
   await daveProposal.wait()

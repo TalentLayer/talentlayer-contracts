@@ -22,7 +22,7 @@ const alicePlatformId = 1
 const bobPlatformId = 2
 
 const now = Math.floor(Date.now() / 1000)
-const defaultProposalTimeout = now + 60 * 60 * 24 * 15
+const proposalExpirationDate = now + 60 * 60 * 24 * 15
 
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
@@ -593,7 +593,7 @@ describe('TalentLayer protocol global testing', function () {
             1,
             bobPlatformId,
             'proposalOnCancelledService',
-            defaultProposalTimeout,
+            proposalExpirationDate,
           ),
       ).to.be.revertedWith('Service is not opened')
     })
@@ -625,7 +625,7 @@ describe('TalentLayer protocol global testing', function () {
           1,
           alicePlatformId,
           'proposal1FromBobToAlice1Service',
-          defaultProposalTimeout,
+          proposalExpirationDate,
           {
             value: alicePlatformProposalPostingFee,
           },
@@ -662,7 +662,7 @@ describe('TalentLayer protocol global testing', function () {
           2,
           bobPlatformId,
           'proposal1FromCarolToAlice1Service',
-          defaultProposalTimeout,
+          proposalExpirationDate,
           {
             value: bobPlatformProposalPostingFee,
           },
@@ -687,7 +687,7 @@ describe('TalentLayer protocol global testing', function () {
             2,
             alicePlatformId,
             'proposal1FromCarolToAlice1Service',
-            defaultProposalTimeout,
+            proposalExpirationDate,
             { value: alicePlatformProposalPostingFee },
           ),
       ).to.be.revertedWith('This token is not allowed')
@@ -758,7 +758,7 @@ describe('TalentLayer protocol global testing', function () {
             amountBob,
             bobPlatformId,
             'proposal2FromBobToAlice2Service',
-            defaultProposalTimeout,
+            proposalExpirationDate,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -777,7 +777,7 @@ describe('TalentLayer protocol global testing', function () {
             amountCarol,
             bobPlatformId,
             'proposal2FromCarolToAlice2Service',
-            defaultProposalTimeout,
+            proposalExpirationDate,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -967,7 +967,7 @@ describe('TalentLayer protocol global testing', function () {
             1,
             alicePlatformId,
             'proposalOnService',
-            defaultProposalTimeout,
+            proposalExpirationDate,
             {
               value: alicePlatformProposalPostingFee,
             },
@@ -1113,7 +1113,7 @@ describe('TalentLayer protocol global testing', function () {
             amountBob,
             bobPlatformId,
             'proposal3FromBobToAlice3Service',
-            defaultProposalTimeout,
+            proposalExpirationDate,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -1132,9 +1132,36 @@ describe('TalentLayer protocol global testing', function () {
             amountCarol,
             bobPlatformId,
             'proposal3FromCarolToAlice3Service',
-            defaultProposalTimeout,
+            proposalExpirationDate,
             { value: bobPlatformProposalPostingFee },
           )
+      })
+
+      // bob will try to frunt run the proposal by changing the proposal dataUri
+      it('Bob will try to front run the proposal validation by changing the proposal dataUri.', async function () {
+        await talentLayerService
+          .connect(bob)
+          .updateProposal(
+            bobTlId,
+            serviceId,
+            ethAddress,
+            amountBob,
+            'frontRunProposal3FromBobToAlice3Service',
+          )
+
+        await expect(
+          talentLayerEscrow
+            .connect(alice)
+            .createETHTransaction(
+              '_metaEvidence',
+              serviceId,
+              proposalIdBob,
+              'proposal3FromBobToAlice3Service',
+              {
+                value: totalAmount,
+              },
+            ),
+        ).to.be.revertedWith('Proposal dataUri has changed.')
       })
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
@@ -1152,21 +1179,6 @@ describe('TalentLayer protocol global testing', function () {
         await expect(transaction)
           .to.emit(talentLayerEscrow, 'ServiceProposalConfirmedWithDeposit')
           .withArgs(serviceId, proposalIdBob, transactionId)
-      })
-
-      // bob will try to frunt run the proposal by changing the proposal dataUri
-      it('Bob will try to front run the proposal validation by changing the proposal dataUri.', async function () {
-        await expect(
-          talentLayerService
-            .connect(bob)
-            .updateProposal(
-              bobTlId,
-              serviceId,
-              ethAddress,
-              amountBob,
-              'frontRunProposal3FromBobToAlice3Service',
-            ),
-        ).to.be.reverted
       })
 
       it('The deposit should also validate the proposal.', async function () {

@@ -55,7 +55,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
     /// @param dataUri token Id to IPFS URI mapping
-    /// @param proposalTimeout the timeout for the proposal
+    /// @param expirationDate the timeout for the proposal
     struct Proposal {
         ProposalStatus status;
         uint256 ownerId;
@@ -63,7 +63,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 rateAmount;
         uint16 platformId;
         string dataUri;
-        uint256 proposalTimeout;
+        uint256 expirationDate;
     }
 
     // =========================== Events ==============================
@@ -103,7 +103,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         address rateToken,
         uint256 rateAmount,
         uint16 platformId,
-        uint256 proposalTimeout
+        uint256 expirationDate
     );
 
     /// @notice Emitted after an existing proposal has been updated
@@ -249,7 +249,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _rateAmount the amount of token chosen
      * @param _dataUri token Id to IPFS URI mapping
      * @param _platformId platform ID
-     * @param _proposalTimeout the time before the proposal is automatically validated
+     * @param _expirationDate the time before the proposal is automatically validated
      */
     function createProposal(
         uint256 _profileId,
@@ -258,9 +258,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 _rateAmount,
         uint16 _platformId,
         string calldata _dataUri,
-        uint256 _proposalTimeout
+        uint256 _expirationDate
     ) public payable onlyOwnerOrDelegate(_profileId) {
-        // _proposalTimeout = _proposalTimeout == 0 ? 15 days : _proposalTimeout;
         require(allowedTokenList[_rateToken], "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
@@ -282,7 +281,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             rateAmount: _rateAmount,
             platformId: _platformId,
             dataUri: _dataUri,
-            proposalTimeout: _proposalTimeout
+            expirationDate: _expirationDate
         });
 
         emit ProposalCreated(
@@ -293,7 +292,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             _rateToken,
             _rateAmount,
             _platformId,
-            _proposalTimeout
+            _expirationDate
         );
     }
 

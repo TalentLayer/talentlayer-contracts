@@ -29,7 +29,7 @@ const feeDivider = 10000
 const arbitrationFeeTimeout = 3600 * 24
 
 const now = Math.floor(Date.now() / 1000)
-const defaultProposalTimeout = now + 60 * 60 * 24 * 15
+const proposalExpirationDate = now + 60 * 60 * 24 * 15
 
 /**
  * Deploys contract and sets up the context for dispute resolution.
@@ -93,7 +93,7 @@ async function deployAndSetup(
       transactionAmount,
       carolPlatformId,
       'cid',
-      defaultProposalTimeout,
+      proposalExpirationDate,
     )
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService]

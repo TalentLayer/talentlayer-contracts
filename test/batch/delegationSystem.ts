@@ -19,7 +19,7 @@ const transactionAmount = 100
 const ethAddress = '0x0000000000000000000000000000000000000000'
 
 const now = Math.floor(Date.now() / 1000)
-const defaultProposalTimeout = now + 60 * 60 * 24 * 15
+const proposalExpirationDate = now + 60 * 60 * 24 * 15
 
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.
@@ -137,7 +137,7 @@ describe('Delegation System', function () {
           transactionAmount,
           carolPlatformId,
           'uri',
-          defaultProposalTimeout,
+          proposalExpirationDate,
         )
       const proposal = await talentLayerService.proposals(serviceId, bobTlId)
       expect(proposal.ownerId).to.eq(bobTlId)

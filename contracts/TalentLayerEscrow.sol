@@ -447,7 +447,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
         require(
             keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(originDataUri)),
-            "Proposal data URI are not equal."
+            "Proposal dataUri has changed."
         );
 
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
