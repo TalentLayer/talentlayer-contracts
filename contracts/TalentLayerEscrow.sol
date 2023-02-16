@@ -412,7 +412,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function createETHTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
-        uint256 _proposalId
+        uint256 _proposalId,
+        string memory originDataUri
     ) external payable returns (uint256) {
         ITalentLayerService.Proposal memory proposal;
         ITalentLayerService.Service memory service;
@@ -444,6 +445,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(msg.value == transactionAmount, "Non-matching funds.");
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
+        require(
+            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(originDataUri)),
+            "Proposal dataUri has changed."
+        );
 
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
@@ -472,7 +477,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function createTokenTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
-        uint256 _proposalId
+        uint256 _proposalId,
+        string memory originDataUri
     ) external returns (uint256) {
         ITalentLayerService.Proposal memory proposal;
         ITalentLayerService.Service memory service;
@@ -505,6 +511,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
+        require(
+            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(originDataUri)),
+            "Proposal data URI are not equal."
+        );
 
         uint256 transactionId = _saveTransaction(
             _serviceId,
