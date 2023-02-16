@@ -38,7 +38,9 @@ async function deployAndSetup(): Promise<
   await talentLayerID.setWhitelistMerkleRoot(whitelistMerkleRoot)
 
   // Deployer mints Platform Id for Dave
-  const platformName = 'HireVibes'
+  await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
+
+  const platformName = 'hirevibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, dave.address)
 
   return [
