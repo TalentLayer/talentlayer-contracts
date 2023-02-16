@@ -194,6 +194,25 @@ describe('TalentLayer protocol global testing', function () {
       expect(updatedMintFee).to.be.equal(mintFee)
     })
 
+    it('The deployer can update the minting status to PAUSE and trigger the event', async function () {
+      const transcation = await talentLayerPlatformID.connect(deployer).updateMintStatus(0)
+      const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
+      expect(mintingStatus).to.be.equal(0)
+      await expect(transcation).to.emit(talentLayerPlatformID, 'MintStatusUpdated').withArgs(0)
+    })
+
+    it('Bob cannot mint a platform id because the minting status is PAUSE', async function () {
+      await expect(
+        talentLayerPlatformID.connect(bob).mint('BobPlat', { value: mintFee }),
+      ).to.be.revertedWith('Mint status is not valid')
+    })
+
+    it('The deployer can update the minting status to PUBLIC', async function () {
+      await talentLayerPlatformID.connect(deployer).updateMintStatus(2)
+      const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
+      expect(mintingStatus).to.be.equal(2)
+    })
+
     it('Bob can mint a platform id with allowed characters & correct name length by paying the mint fee', async function () {
       const bobBalanceBefore = await bob.getBalance()
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
