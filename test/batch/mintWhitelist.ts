@@ -14,7 +14,7 @@ const reservedHandles = ['alice', 'bob', 'carol']
  * Deploys contracts and sets up the context for TalentLayerId contract.
  * @returns the deployed contracts
  */
-async function deployAndSetup(): Promise<[TalentLayerID]> {
+async function deployAndSetup(): Promise<[TalentLayerID, MerkleTree, string, MerkleTree, string]> {
   const users = await ethers.getSigners()
   const deployer = users[0]
   const whitelistedUsers = users.slice(1, 4)
@@ -47,20 +47,49 @@ async function deployAndSetup(): Promise<[TalentLayerID]> {
   const platformName = 'HireVibes'
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, dave.address)
 
-  return [talentLayerID]
+  return [
+    talentLayerID,
+    whitelistMerkleTree,
+    whitelistMerkleRoot,
+    handlesMerkleTree,
+    handlesMerkleRoot,
+  ]
 }
 
 describe.only('Whitelist to mint reserved handles', function () {
-  let alice: SignerWithAddress, talentLayerID: TalentLayerID
+  let alice: SignerWithAddress,
+    talentLayerID: TalentLayerID,
+    whitelistMerkleTree: MerkleTree,
+    whitelistMerkleRoot: string,
+    handlesMerkleTree: MerkleTree,
+    handlesMerkleRoot: string
 
   before(async function () {
     ;[, alice] = await ethers.getSigners()
-    ;[talentLayerID] = await deployAndSetup()
+    ;[
+      talentLayerID,
+      whitelistMerkleTree,
+      whitelistMerkleRoot,
+      handlesMerkleTree,
+      handlesMerkleRoot,
+    ] = await deployAndSetup()
   })
 
   describe('Handle reservation', async function () {
     it('The reserved handles are reserved', async function () {
-      expect(true)
+      for (const handle of reservedHandles) {
+        const proof = handlesMerkleTree.getHexProof(keccak256(handle))
+        const isReservedLocally = handlesMerkleTree.verify(
+          proof,
+          keccak256(handle),
+          handlesMerkleRoot,
+        )
+
+        expect(isReservedLocally).to.be.true
+
+        const isReservedOnContract = await talentLayerID.isHandleReserved(handle, proof)
+        expect(isReservedOnContract).to.be.true
+      }
     })
 
     it('The whitelisted users are whitelisted', async function () {
