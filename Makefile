@@ -39,14 +39,18 @@ deploy-verify:
 
 #--------------COPY FILES----------------#
 
+update-graph-config: graph-copy-abis graph-copy-address
 
-ifeq ($(OS),Windows_NT)
-copy-configuration: 
+graph-copy-abis:
+	cp artifacts/contracts/TalentLayerID.sol/TalentLayerID.json $(SUBGRAPH_FOLDER)/abis/TalentLayerID.json
+	cp artifacts/contracts/TalentLayerPlatformID.sol/TalentLayerPlatformID.json $(SUBGRAPH_FOLDER)/abis/TalentLayerPlatformID.json
+	cp artifacts/contracts/TalentLayerService.sol/TalentLayerService.json $(SUBGRAPH_FOLDER)/abis/TalentLayerService.json
+	cp artifacts/contracts/TalentLayerEscrow.sol/TalentLayerEscrow.json $(SUBGRAPH_FOLDER)/abis/TalentLayerEscrow.json
+	cp artifacts/contracts/TalentLayerReview.sol/TalentLayerReview.json $(SUBGRAPH_FOLDER)/abis/TalentLayerReview.json
+	cp artifacts/contracts/TalentLayerArbitrator.sol/TalentLayerArbitrator.json $(SUBGRAPH_FOLDER)/abis/TalentLayerArbitrator.json
+
+graph-copy-address: 
 	npx hardhat run scripts/utils/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
-else
-copy-configuration: 
-	npx hardhat run scripts/utils/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
-endif
 
 #--------------PLAYGROUND LOCAL----------------#
 
