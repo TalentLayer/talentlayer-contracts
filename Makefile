@@ -5,6 +5,8 @@ include .env
 
 install: deploy-localhost setup-fakedata
 
+install-full: deploy-localhost setup-allFakeData
+
 #--------------UTILS----------------#
 
 clean: 

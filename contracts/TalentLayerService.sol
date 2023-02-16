@@ -112,7 +112,15 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param dataUri token Id to IPFS URI mapping
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
-    event ProposalUpdated(uint256 serviceId, uint256 ownerId, string dataUri, address rateToken, uint256 rateAmount);
+    /// @param _expirationDate the timeout for the proposal
+    event ProposalUpdated(
+        uint256 serviceId,
+        uint256 ownerId,
+        string dataUri,
+        address rateToken,
+        uint256 rateAmount,
+        uint256 _expirationDate
+    );
 
     /**
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
@@ -298,13 +306,15 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
      * @param _dataUri token Id to IPFS URI mapping
+     * @param _expirationDate the time before the proposal is automatically validated
      */
     function updateProposal(
         uint256 _profileId,
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
-        string calldata _dataUri
+        string calldata _dataUri,
+        uint256 _expirationDate
     ) public onlyOwnerOrDelegate(_profileId) {
         require(allowedTokenList[_rateToken], "This token is not allowed");
 
@@ -319,7 +329,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         proposal.rateAmount = _rateAmount;
         proposal.dataUri = _dataUri;
 
-        emit ProposalUpdated(_serviceId, _profileId, _dataUri, _rateToken, _rateAmount);
+        emit ProposalUpdated(_serviceId, _profileId, _dataUri, _rateToken, _rateAmount, _expirationDate);
     }
 
     /**
