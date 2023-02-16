@@ -6,6 +6,7 @@ import MerkleTree from 'merkletreejs'
 import { TalentLayerID } from '../../typechain-types'
 import { deploy } from '../utils/deploy'
 
+const platformId = 1
 const reservedHandles = ['alice', 'bob', 'carol']
 
 /**
@@ -115,8 +116,26 @@ describe.only('Whitelist to mint reserved handles', function () {
   })
 
   describe('Mint reserved handle', async function () {
-    it('Alice cannot mint the handle reserved by someone else', async function () {
-      expect(true)
+    let alice: SignerWithAddress, bob: SignerWithAddress
+
+    before(function () {
+      alice = whitelistedUsers[0]
+      bob = whitelistedUsers[1]
+    })
+
+    it('Alice cannot mint the handle reserved by Bob', async function () {
+      // Get proof for handle 'bob'
+      const handle = 'bob'
+      const handleProof = handlesMerkleTree.getHexProof(keccak256(handle))
+      const whitelistEntry = `${bob.address.toLocaleLowerCase()};${handle}`
+      const leaf = keccak256(whitelistEntry)
+      const whitelistProof = whitelistMerkleTree.getHexProof(leaf)
+
+      // Alice tries to mint the handle 'bob'
+      const tx = talentLayerID
+        .connect(alice)
+        .whitelistMint(platformId, handle, handleProof, whitelistProof)
+      await expect(tx).to.be.revertedWith("You're not whitelisted")
     })
 
     it('Alice can mint the handle she reserved', async function () {
