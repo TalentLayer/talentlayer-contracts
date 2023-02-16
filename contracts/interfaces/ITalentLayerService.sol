@@ -61,8 +61,6 @@ interface ITalentLayerService {
         string calldata _dataUri
     ) external;
 
-    function validateProposal(uint256 _serviceId, uint256 _proposalId) external;
-
     function afterFullPayment(uint256 _serviceId) external;
 
     function updateServiceData(uint256 _serviceId, string calldata _dataUri) external;
