@@ -67,7 +67,8 @@ describe.only('Whitelist to mint reserved handles', function () {
     whitelistMerkleTree: MerkleTree,
     whitelistMerkleRoot: string,
     handlesMerkleTree: MerkleTree,
-    handlesMerkleRoot: string
+    handlesMerkleRoot: string,
+    alice: SignerWithAddress
 
   before(async function () {
     ;[
@@ -79,6 +80,8 @@ describe.only('Whitelist to mint reserved handles', function () {
       handlesMerkleTree,
       handlesMerkleRoot,
     ] = await deployAndSetup()
+
+    alice = whitelistedUsers[0]
   })
 
   function getHandleProof(handle: string) {
@@ -128,17 +131,10 @@ describe.only('Whitelist to mint reserved handles', function () {
     })
   })
 
-  describe('Mint reserved handle', async function () {
-    let alice: SignerWithAddress, bob: SignerWithAddress, eve: SignerWithAddress
-
-    before(function () {
-      alice = whitelistedUsers[0]
-      bob = whitelistedUsers[1]
-      eve = nonWhitelistedUsers[0]
-    })
-
+  describe('Mint with whitelist enabled', async function () {
     it('Alice cannot mint the handle reserved by Bob', async function () {
       // Get proof for handle 'bob'
+      const bob = whitelistedUsers[1]
       const handle = 'bob'
       const handleProof = getHandleProof(handle)
       const [whitelistProof] = getWhitelistProof(bob.address, handle)
@@ -155,7 +151,6 @@ describe.only('Whitelist to mint reserved handles', function () {
       const handleProof = getHandleProof(handle)
       const [whitelistProof] = getWhitelistProof(alice.address, handle)
 
-      // Alice tries to mint the handle 'bob'
       await talentLayerID
         .connect(alice)
         .whitelistMint(platformId, handle, handleProof, whitelistProof)
@@ -167,6 +162,7 @@ describe.only('Whitelist to mint reserved handles', function () {
     })
 
     it('Eve can mint a non-reserved handle', async function () {
+      const eve = nonWhitelistedUsers[0]
       const handle = 'eve'
       const handleProof = getHandleProof(handle)
 
@@ -176,6 +172,42 @@ describe.only('Whitelist to mint reserved handles', function () {
       // Check profile is minted
       const eveTlId = await talentLayerID.ids(eve.address)
       const profile = await talentLayerID.getProfile(eveTlId)
+      expect(profile.handle).to.equal(handle)
+    })
+
+    it("Can't do regular mint when whitelist is enabled", async function () {
+      const frank = nonWhitelistedUsers[1]
+      const tx = talentLayerID.connect(frank).mint(platformId, 'frank')
+      await expect(tx).to.be.revertedWith('Whitelist must be disabled to use regular mint')
+    })
+  })
+
+  describe('Mint with whitelist disabled', async function () {
+    before(async function () {
+      const [deployer] = await ethers.getSigners()
+      await talentLayerID.connect(deployer).setWhitelistEnabled(false)
+    })
+
+    it("Can't mint with whitelist when it's disabled", async function () {
+      const carol = whitelistedUsers[2]
+      const handle = 'carol'
+      const handleProof = getHandleProof(handle)
+      const [whitelistProof] = getWhitelistProof(alice.address, handle)
+      const tx = talentLayerID
+        .connect(carol)
+        .whitelistMint(platformId, 'carol', handleProof, whitelistProof)
+
+      await expect(tx).to.be.revertedWith('Whitelist must be enabled to mint a reserved handle')
+    })
+
+    it('Can do regular mint when whitelist is disabled', async function () {
+      const frank = nonWhitelistedUsers[1]
+      const handle = 'frank'
+      await talentLayerID.connect(frank).mint(platformId, handle)
+
+      // Check profile is minted
+      const frankTlId = await talentLayerID.ids(frank.address)
+      const profile = await talentLayerID.getProfile(frankTlId)
       expect(profile.handle).to.equal(handle)
     })
   })
