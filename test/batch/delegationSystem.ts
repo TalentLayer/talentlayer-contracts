@@ -147,7 +147,14 @@ describe('Delegation System', function () {
     it('Eve can update a proposal on behalf of Bob', async function () {
       const tx = await talentLayerService
         .connect(eve)
-        .updateProposal(bobTlId, serviceId, ethAddress, transactionAmount, 'newUri')
+        .updateProposal(
+          bobTlId,
+          serviceId,
+          ethAddress,
+          transactionAmount,
+          'newUri',
+          proposalExpirationDate,
+        )
       await expect(tx).to.not.be.reverted
     })
 

@@ -806,7 +806,14 @@ describe('TalentLayer protocol global testing', function () {
 
       await talentLayerService
         .connect(bob)
-        .updateProposal(bobTlId, 1, rateToken, 2, 'updateProposal1FromBobToAlice1Service')
+        .updateProposal(
+          bobTlId,
+          1,
+          rateToken,
+          2,
+          'updateProposal1FromBobToAlice1Service',
+          proposalExpirationDate,
+        )
 
       const proposalDataAfter = await talentLayerService.getProposal(1, bobTid)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2')
@@ -823,6 +830,7 @@ describe('TalentLayer protocol global testing', function () {
             nonListedRateToken,
             2,
             'updateProposal1FromBobToAlice1Service',
+            proposalExpirationDate,
           ),
       ).to.be.revertedWith('This token is not allowed')
     })
@@ -1251,6 +1259,7 @@ describe('TalentLayer protocol global testing', function () {
             ethAddress,
             amountBob,
             'frontRunProposal3FromBobToAlice3Service',
+            proposalExpirationDate,
           )
 
         await expect(
