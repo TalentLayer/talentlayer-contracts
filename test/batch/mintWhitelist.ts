@@ -50,7 +50,7 @@ async function deployAndSetup(): Promise<
   ]
 }
 
-describe.only('Whitelist to mint reserved handles', function () {
+describe('Whitelist to mint reserved handles', function () {
   let talentLayerID: TalentLayerID,
     whitelistedUsers: SignerWithAddress[],
     nonWhitelistedUsers: SignerWithAddress[],
