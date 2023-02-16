@@ -58,13 +58,14 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     /// TalentLayer ID to delegates
     mapping(uint256 => mapping(address => bool)) private delegates;
-    uint256 testVariable;
 
     /// Merkle root of the whitelist for reserved handles
     bytes32 private whitelistMerkleRoot;
 
     /// Whether the whitelist for reserved handles is enabled
     bool public isWhitelistEnabled;
+
+    uint256 testVariable;
 
     // =========================== Errors ==============================
 
