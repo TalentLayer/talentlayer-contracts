@@ -56,7 +56,7 @@ describe('Load test', function () {
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, platform.address)
 
     // platform mints a Platform Id
-    await talentLayerPlatformID.connect(platform).mint('someName')
+    await talentLayerPlatformID.connect(platform).mint('somename')
     platformId = await talentLayerPlatformID.connect(platform).ids(platform.address)
   })
 

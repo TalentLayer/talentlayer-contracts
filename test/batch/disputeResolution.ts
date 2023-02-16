@@ -58,7 +58,7 @@ async function deployAndSetup(
   await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
 
   // Deployer mints Platform Id for Carol
-  const platformName = 'HireVibes'
+  const platformName = 'hirevibes'
   await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 

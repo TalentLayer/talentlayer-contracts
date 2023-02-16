@@ -67,6 +67,8 @@ describe('TalentLayer protocol global testing', function () {
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, bob.address)
+    await talentLayerPlatformID.connect(deployer).grantRole(mintRole, eve.address)
+    await talentLayerPlatformID.connect(deployer).grantRole(mintRole, grace.address)
 
     // we first check the actual minting status (should be ONLY_WHITELIST )
     const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
@@ -74,12 +76,16 @@ describe('TalentLayer protocol global testing', function () {
     // then we whitelist the deployer and Alice to mint a PlatformId for someone
     await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
     await talentLayerPlatformID.connect(deployer).whitelistUser(alice.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(bob.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(carol.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(grace.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(eve.address)
     // we check if the deployer is well whitelisted
     const deployerWhitelisted = await talentLayerPlatformID.whitelist(deployer.address)
     expect(deployerWhitelisted).to.be.equal(true)
 
     // Deployer mints Platform Id for Alice
-    platformName = 'HireVibes'
+    platformName = 'hirevibes'
     await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, alice.address)
     mintFee = 100
 
@@ -99,7 +105,7 @@ describe('TalentLayer protocol global testing', function () {
   })
 
   describe('Platform Id contract test', async function () {
-    it('Alice successfully minted a PlatformId Id', async function () {
+    it('Alice owns a PlatformId Id minted by the deployer', async function () {
       platformId = (await talentLayerPlatformID.ids(alice.address)).toString()
       expect(platformId).to.be.equal('1')
     })
@@ -132,7 +138,7 @@ describe('TalentLayer protocol global testing', function () {
     it("ALice can't mint a platformId for someone else", async function () {
       const mintRole = await talentLayerPlatformID.MINT_ROLE()
       await expect(
-        talentLayerPlatformID.connect(alice).mintForAddress('platId2', dave.address),
+        talentLayerPlatformID.connect(alice).mintForAddress('platid2', dave.address),
       ).to.be.revertedWith(
         `AccessControl: account ${alice.address.toLowerCase()} is missing role ${mintRole.toLowerCase()}`,
       )
@@ -207,17 +213,17 @@ describe('TalentLayer protocol global testing', function () {
       expect(mintingStatus).to.be.equal(2)
     })
 
-    it('Bob can mint a platform id by paying the mint fee', async function () {
+    it('Bob can mint a platform id with allowed characters & correct name length by paying the mint fee', async function () {
       const bobBalanceBefore = await bob.getBalance()
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerPlatformID.address)
 
       // Mint fails if not enough ETH is sent
-      await expect(talentLayerPlatformID.connect(bob).mint('BobPlat')).to.be.revertedWith(
+      await expect(talentLayerPlatformID.connect(bob).mint('bob_plat')).to.be.revertedWith(
         'Incorrect amount of ETH for mint fee',
       )
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
-      await talentLayerPlatformID.connect(bob).mint('BobPlat', { value: mintFee })
+      await talentLayerPlatformID.connect(bob).mint('bob_plat', { value: mintFee })
       const bobPlatformId = await talentLayerPlatformID.ids(bob.address)
       expect(bobPlatformId).to.be.equal('2')
 
@@ -228,6 +234,40 @@ describe('TalentLayer protocol global testing', function () {
       // Platform id contract balance is increased by the mint fee
       const contractBalanceAfter = await ethers.provider.getBalance(talentLayerPlatformID.address)
       expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
+    })
+
+    it("Grace can't mint a talentLayerId with caps characters", async function () {
+      await expect(
+        talentLayerPlatformID.connect(grace).mint('TalentLayer', { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
+    })
+
+    it("Grace can't mint a talentLayer platform Id with restricted characters", async function () {
+      await expect(
+        talentLayerPlatformID.connect(grace).mint('t@lently€rB@$€', { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
+    })
+
+    it("Eve can't mint a talentLayer platform Id with handle length = 0", async function () {
+      await expect(
+        talentLayerPlatformID.connect(eve).mint('', { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleLengthInvalid')
+    })
+
+    it("Grace can't mint a talentLayer platform Id with a handle length > 31 characters", async function () {
+      const tooLongHandle = 'grace123456789qsitorhenchdyahe12'
+      expect(tooLongHandle.length).to.be.greaterThan(31)
+      await expect(
+        talentLayerPlatformID.connect(grace).mint(tooLongHandle, { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleLengthInvalid')
+    })
+
+    it('Grace can mint a talentLayer platform Id with allowed characters and handle length', async function () {
+      expect(
+        await talentLayerPlatformID
+          .connect(grace)
+          .mint('longerbut_ok_platformbygrace', { value: mintFee }),
+      ).not.to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
     })
 
     it("The deployer can withdraw the contract's balance", async function () {
@@ -334,9 +374,44 @@ describe('TalentLayer protocol global testing', function () {
   })
 
   describe('Talent Layer ID contract test', function () {
-    it('Alice, Bob and Carol can mint a talentLayerId', async function () {
-      await talentLayerID.connect(alice).mint('1', 'alice')
-      await talentLayerID.connect(bob).mint('1', 'bob')
+    it("Alice can't mint a talentLayerId with caps characters", async function () {
+      await expect(talentLayerID.connect(alice).mint('1', 'Alice')).to.be.revertedWithCustomError(
+        talentLayerID,
+        'HandleContainsInvalidCharacters',
+      )
+    })
+    it("Alice can't mint a talentLayerId with restricted characters", async function () {
+      await expect(talentLayerID.connect(alice).mint('1', 'al/ce')).to.be.revertedWithCustomError(
+        talentLayerID,
+        'HandleContainsInvalidCharacters',
+      )
+      await expect(talentLayerID.connect(alice).mint('1', 'a***ce')).to.be.revertedWithCustomError(
+        talentLayerID,
+        'HandleContainsInvalidCharacters',
+      )
+    })
+    it("Alice can't mint a talentLayerId with handle length = 0", async function () {
+      await expect(talentLayerID.connect(alice).mint('1', '')).to.be.revertedWithCustomError(
+        talentLayerID,
+        'HandleLengthInvalid',
+      )
+    })
+    it("Alice can't mint a talentLayerId with a handle length > 31 characters", async function () {
+      const tooLongHandle = 'alice123456789qsitorhenchdyahe12'
+      expect(tooLongHandle.length).to.be.greaterThan(31)
+      await expect(
+        talentLayerID.connect(alice).mint('1', tooLongHandle),
+      ).to.be.revertedWithCustomError(talentLayerID, 'HandleLengthInvalid')
+    })
+
+    it('Alice, Bob and Carol can mint a talentLayerId, including with "-" & "_" characters and correct handle length', async function () {
+      expect(
+        await talentLayerID.connect(alice).mint('1', 'ali-ce'),
+      ).not.to.be.revertedWithCustomError(talentLayerID, 'HandleContainsInvalidCharacters')
+      expect(await talentLayerID.connect(bob).mint('1', 'b_ob')).not.to.be.revertedWithCustomError(
+        talentLayerID,
+        'HandleContainsInvalidCharacters',
+      )
       await talentLayerID.connect(carol).mint('1', 'carol')
       expect(await talentLayerID.ids(alice.address)).to.be.equal(aliceTlId)
       expect(await talentLayerID.ids(bob.address)).to.be.equal(bobTlId)
