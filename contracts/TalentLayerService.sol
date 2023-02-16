@@ -114,11 +114,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param rateAmount the amount of token chosen
     event ProposalUpdated(uint256 serviceId, uint256 ownerId, string dataUri, address rateToken, uint256 rateAmount);
 
-    /// @notice Emitted after a proposal is validated
-    /// @param serviceId The service ID
-    /// @param ownerId the talentLayerId of the seller
-    event ProposalValidated(uint256 serviceId, uint256 ownerId);
-
     /**
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
      * @param _tokenAddress The address of the payment token
