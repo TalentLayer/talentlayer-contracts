@@ -165,6 +165,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
+        talentLayerPlatformIdContract.isValid(_platformId);
     }
 
     /**
