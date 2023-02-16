@@ -48,6 +48,11 @@ task(
     }
     console.log('------------------------')
 
+    console.log('------------------------')
+    console.log('Disable Profile Minting Whitelist')
+    await run('disable-minting-whitelist')
+    console.log('------------------------')
+
     console.log('Signer')
     console.log('  at', deployer.address)
     console.log('  ETH', formatEther(await deployer.getBalance()))
