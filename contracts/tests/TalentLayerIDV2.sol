@@ -149,7 +149,6 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     function mint(
         uint256 _platformId,
         string calldata _handle
-    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
@@ -380,7 +379,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(!takenHandles[_handle], "Handle already taken");
-
+        talentLayerPlatformIdContract.isValid(_platformId);
         _validateHandle(_handle);
         _;
     }
