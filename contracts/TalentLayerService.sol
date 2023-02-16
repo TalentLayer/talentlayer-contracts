@@ -72,7 +72,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param ownerId the talentLayerId of the buyer
     /// @param platformId platform ID on which the Service token was minted
     /// @param dataUri token Id to IPFS URI mapping
-    /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
+    /// @dev Events "ServiceCreated"
     event ServiceCreated(uint256 id, uint256 ownerId, uint256 platformId, string dataUri);
 
     /// @notice Emitted after a service is cancelled by the owner

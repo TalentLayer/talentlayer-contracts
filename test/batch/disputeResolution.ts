@@ -56,6 +56,7 @@ async function deployAndSetup(
 
   // Deployer mints Platform Id for Carol
   const platformName = 'HireVibes'
+  await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Add arbitrator to platform available arbitrators
