@@ -139,7 +139,22 @@ describe.only('Whitelist to mint reserved handles', function () {
     })
 
     it('Alice can mint the handle she reserved', async function () {
-      expect(true)
+      const handle = 'alice'
+      const handleProof = handlesMerkleTree.getHexProof(keccak256(handle))
+      const whitelistEntry = `${alice.address.toLocaleLowerCase()};${handle}`
+      const leaf = keccak256(whitelistEntry)
+      const whitelistProof = whitelistMerkleTree.getHexProof(leaf)
+
+      // Alice tries to mint the handle 'bob'
+      const tx = talentLayerID
+        .connect(alice)
+        .whitelistMint(platformId, handle, handleProof, whitelistProof)
+      await expect(tx).to.not.be.reverted
+
+      // Check handle is minted
+      const aliceTlId = await talentLayerID.ids(alice.address)
+      const profile = await talentLayerID.getProfile(aliceTlId)
+      expect(profile.handle).to.equal(handle)
     })
 
     it('Eve can mint a non-reserved handle', async function () {
