@@ -27,7 +27,7 @@ task(
     await run('update-platform-whitelist-status', { mintstatus })
 
     console.log('------------------------')
-    console.log('Platform ID Whitelist')
+    console.log('Whitelist address in PlatformID contract')
     for (const [name, address] of Object.entries(networkConfig.whitelist)) {
       await run('whitelist-platform-address', { address })
     }
