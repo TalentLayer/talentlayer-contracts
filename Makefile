@@ -37,7 +37,7 @@ deploy:
 deploy-verify: 
 	npx hardhat deploy-full --use-test-erc20 --verify --network $(DEPLOY_NETWORK)
 
-#--------------COPY FILES----------------#
+#--------------GRAPH----------------#
 
 update-graph-config: graph-copy-abis graph-copy-address
 
@@ -51,6 +51,18 @@ graph-copy-abis:
 
 graph-copy-address: 
 	npx hardhat run scripts/utils/setSubgraphNetwork.ts --network $(DEPLOY_NETWORK)
+
+#--------------INDIE FRONTEND----------------#
+
+update-frontend-config: frontend-copy-abis
+
+frontend-copy-abis:
+	cp artifacts/contracts/TalentLayerID.sol/TalentLayerID.json ../indie-frontend/src/contracts/ABI/TalentLayerID.json
+	cp artifacts/contracts/TalentLayerPlatformID.sol/TalentLayerPlatformID.json ../indie-frontend/src/contracts/ABI/TalentLayerPlatformID.json
+	cp artifacts/contracts/TalentLayerService.sol/TalentLayerService.json ../indie-frontend/src/contracts/ABI/TalentLayerService.json
+	cp artifacts/contracts/TalentLayerEscrow.sol/TalentLayerEscrow.json ../indie-frontend/src/contracts/ABI/TalentLayerEscrow.json
+	cp artifacts/contracts/TalentLayerReview.sol/TalentLayerReview.json ../indie-frontend/src/contracts/ABI/TalentLayerReview.json
+	cp artifacts/contracts/TalentLayerArbitrator.sol/TalentLayerArbitrator.json ../indie-frontend/src/contracts/ABI/TalentLayerArbitrator.json
 
 #--------------PLAYGROUND LOCAL----------------#
 
