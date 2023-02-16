@@ -25,9 +25,9 @@ async function main() {
   const grantRole = await platformIdContract.connect(alice).grantRole(mintRole, alice.address)
   await grantRole.wait()
 
-  const mint1 = await platformIdContract.connect(alice).mintForAddress('Playground', dave.address)
+  const mint1 = await platformIdContract.connect(alice).mintForAddress('playground', dave.address)
   await mint1.wait()
-  const mint2 = await platformIdContract.connect(alice).mintForAddress('Playground2', bob.address)
+  const mint2 = await platformIdContract.connect(alice).mintForAddress('playground2', bob.address)
   await mint2.wait()
 
   const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)

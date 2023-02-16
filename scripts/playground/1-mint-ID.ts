@@ -34,17 +34,17 @@ async function main() {
   const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
 
-  await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPlatform, 'alice.lens')
-  console.log('alice.lens registered')
+  await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPlatform, 'alice')
+  console.log('alice registered')
 
-  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPlatform, 'bob.lens')
-  console.log('Bob.lens registered')
+  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPlatform, 'bob')
+  console.log('Bob registered')
 
-  await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPlatform, 'carol.lens')
-  console.log('carol.lens registered')
+  await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPlatform, 'carol')
+  console.log('carol registered')
 
-  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPlatform, 'dave.lens')
-  console.log('dave.lens registered')
+  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPlatform, 'dave')
+  console.log('dave registered')
 }
 
 // We recommend this pattern to be able to use async/await everywhere

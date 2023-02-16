@@ -865,7 +865,6 @@
           "t_enum(Status)7163": {
             "label": "enum TalentLayerService.Status",
             "members": [
-              "Filled",
               "Confirmed",
               "Finished",
               "Rejected",
@@ -2460,7 +2459,6 @@
           "t_enum(Status)7065": {
             "label": "enum TalentLayerService.Status",
             "members": [
-              "Filled",
               "Confirmed",
               "Finished",
               "Cancelled",

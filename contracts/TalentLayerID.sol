@@ -20,6 +20,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using MerkleProofUpgradeable for bytes32[];
 
+    uint8 constant MAX_HANDLE_LENGTH = 31;
+
     // =========================== Structs ==============================
 
     /// @notice TalentLayer Profile information struct
@@ -62,6 +64,18 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /// Whether the whitelist for reserved handles is enabled
     bool public isWhitelistEnabled;
+
+    // =========================== Errors ==============================
+
+    /**
+     * @notice error thrown when input handle is 0 or more than 31 characters long.
+     */
+    error HandleLengthInvalid();
+
+    /**
+     * @notice error thrown when input handle contains restricted characters.
+     */
+    error HandleContainsInvalidCharacters();
 
     // =========================== Initializers ==============================
 
@@ -174,8 +188,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function mint(
         uint256 _platformId,
-        string memory _handle
-    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
+        string calldata _handle
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay {
         require(!isWhitelistEnabled, "Whitelist must be disabled to use regular mint");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
@@ -190,7 +204,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function whitelistMint(
         uint256 _platformId,
-        string memory _handle,
+        string calldata _handle,
         bytes32[] calldata _proof
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         require(isWhitelistEnabled, "Whitelist must be enabled to mint a reserved handle");
@@ -264,7 +278,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function freeMint(
         uint256 _platformId,
         address _userAddress,
-        string memory _handle
+        string calldata _handle
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
         _safeMint(_userAddress, nextProfileId.current());
         _afterMint(_userAddress, _handle, _platformId, 0);
@@ -310,6 +324,21 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
         emit Mint(_userAddress, userProfileId, _handle, _platformId, _fee);
         return userProfileId;
+    }
+
+    function _validateHandle(string calldata handle) private pure {
+        bytes memory byteHandle = bytes(handle);
+        if (byteHandle.length == 0 || byteHandle.length > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+
+        uint256 byteHandleLength = byteHandle.length;
+        for (uint256 i = 0; i < byteHandleLength; ) {
+            if (
+                (byteHandle[i] < "0" || byteHandle[i] > "z" || (byteHandle[i] > "9" && byteHandle[i] < "a")) &&
+                byteHandle[i] != "-" &&
+                byteHandle[i] != "_"
+            ) revert HandleContainsInvalidCharacters();
+            ++i;
+        }
     }
 
     // =========================== Internal functions ==============================
@@ -428,14 +457,13 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     modifier canMint(
         address _userAddress,
-        string memory _handle,
+        string calldata _handle,
         uint256 _platformId
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
-        require(bytes(_handle).length >= 2, "Handle too short");
-        require(bytes(_handle).length <= 20, "Handle too long");
         require(!takenHandles[_handle], "Handle already taken");
         talentLayerPlatformIdContract.isValid(_platformId);
+        _validateHandle(_handle);
         _;
     }
 

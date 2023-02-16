@@ -3,11 +3,10 @@ pragma solidity ^0.8.9;
 
 interface ITalentLayerService {
     enum Status {
-        Filled,
+        Opened,
         Confirmed,
         Finished,
-        Cancelled,
-        Opened
+        Cancelled
     }
 
     enum ProposalStatus {
@@ -61,8 +60,6 @@ interface ITalentLayerService {
         uint256 _rateAmount,
         string calldata _dataUri
     ) external;
-
-    function validateProposal(uint256 _serviceId, uint256 _proposalId) external;
 
     function afterFullPayment(uint256 _serviceId) external;
 

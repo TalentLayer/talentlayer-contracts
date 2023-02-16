@@ -26,7 +26,8 @@ describe('Gasless Transactions', function () {
     // Mint platform id for Alice
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, alice.address)
-    await talentLayerPlatformID.connect(alice).mint('AlicePlat')
+    await talentLayerPlatformID.connect(deployer).whitelistUser(alice.address)
+    await talentLayerPlatformID.connect(alice).mint('aliceplat')
 
     // Meta-transaction to mint a TalentLayer ID for Bob
     req = {

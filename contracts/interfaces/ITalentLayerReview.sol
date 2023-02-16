@@ -18,7 +18,7 @@ interface ITalentLayerReview {
 
     error ReviewAlreadyMinted();
 
-    function getReview(uint256 _reviewId) virtual external view returns (Review memory);
+    function getReview(uint256 _reviewId) external view returns (Review memory);
 
     function addReview(
         uint256 _tokenId,
@@ -26,5 +26,5 @@ interface ITalentLayerReview {
         string calldata _reviewUri,
         uint256 _rating,
         uint256 _platformId
-    ) virtual external;
+    ) external;
 }

@@ -81,7 +81,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       setDeploymentProperty(network.name, DeploymentProperty.TalentLayerID, talentLayerID.address)
 
-      // Deploy Talent Layer Service Contract
+      // Deploy TalentLayerService Contract
       const TalentLayerService = await ethers.getContractFactory('TalentLayerService')
       const talentLayerServiceArgs: [string, string] = [
         talentLayerID.address,
@@ -103,7 +103,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       const talentLayerServiceImplementationAddress =
         await // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
         (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(talentLayerService.address)
-      console.log('Talent Layer Service addresses:', {
+      console.log('TalentLayerService addresses:', {
         proxy: talentLayerService.address,
         implementation: talentLayerServiceImplementationAddress,
       })
