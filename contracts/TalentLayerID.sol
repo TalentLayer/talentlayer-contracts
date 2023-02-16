@@ -270,7 +270,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         for (uint256 i = 0; i < byteHandleLength; ) {
             if (
                 (byteHandle[i] < "0" || byteHandle[i] > "z" || (byteHandle[i] > "9" && byteHandle[i] < "a")) &&
-                //                byteHandle[i] != "." &&
                 byteHandle[i] != "-" &&
                 byteHandle[i] != "_"
             ) revert HandleContainsInvalidCharacters();

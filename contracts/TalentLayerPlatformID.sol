@@ -396,10 +396,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         uint256 byteHandleLength = byteHandle.length;
         for (uint256 i = 0; i < byteHandleLength; ) {
             if (
-                (byteHandle[i] < "0" ||
-                    byteHandle[i] > "z" ||
-                    ((byteHandle[i] > "9" && byteHandle[i] < "A") || (byteHandle[i] > "Z" && byteHandle[i] < "a"))) &&
-                //                byteHandle[i] != "." &&
+                (byteHandle[i] < "0" || byteHandle[i] > "z" || (byteHandle[i] > "9" && byteHandle[i] < "a")) &&
                 byteHandle[i] != "-" &&
                 byteHandle[i] != "_"
             ) revert HandleContainsInvalidCharacters();
