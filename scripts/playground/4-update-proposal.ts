@@ -4,6 +4,8 @@ import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
 const bobTlId = 2
+const now = Math.floor(Date.now() / 1000)
+const proposalExpirationDate = now + 60 * 60 * 24 * 30
 
 /*
 In this script Bob will update his proposal
@@ -42,6 +44,7 @@ async function main() {
       rateTokenBob,
       ethers.utils.parseUnits('0.0015', 18),
       bobUri,
+      proposalExpirationDate,
     )
 
   console.log('Bob update his proposal')
