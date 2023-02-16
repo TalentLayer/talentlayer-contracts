@@ -18,6 +18,9 @@ const trasactionId = 0
 const transactionAmount = 100
 const ethAddress = '0x0000000000000000000000000000000000000000'
 
+const now = Math.floor(Date.now() / 1000)
+const proposalExpirationDate = now + 60 * 60 * 24 * 15
+
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.
  * @returns the deployed contracts
@@ -42,6 +45,7 @@ async function deployAndSetup(
 
   // Deployer mints Platform Id for Carol
   const platformName = 'hirehibes'
+  await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Mint TL Id for Alice and Bob
@@ -127,7 +131,15 @@ describe('Delegation System', function () {
     it('Eve can create a proposal on behalf of Bob', async function () {
       await talentLayerService
         .connect(eve)
-        .createProposal(bobTlId, serviceId, ethAddress, transactionAmount, carolPlatformId, 'uri')
+        .createProposal(
+          bobTlId,
+          serviceId,
+          ethAddress,
+          transactionAmount,
+          carolPlatformId,
+          'uri',
+          proposalExpirationDate,
+        )
       const proposal = await talentLayerService.proposals(serviceId, bobTlId)
       expect(proposal.ownerId).to.eq(bobTlId)
     })
@@ -151,10 +163,15 @@ describe('Delegation System', function () {
           (protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)) /
           10000
 
+      // we need to retreive the Bob proposal dataUri
+      const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
       // Accept proposal through deposit
-      await talentLayerEscrow.connect(alice).createETHTransaction('', serviceId, bobTlId, {
-        value: totalAmount,
-      })
+      await talentLayerEscrow
+        .connect(alice)
+        .createETHTransaction('', serviceId, bobTlId, proposal.dataUri, {
+          value: totalAmount,
+        })
 
       // Fails is caller is not the owner or delegate
       const failTx = talentLayerEscrow.connect(eve).release(aliceTlId, trasactionId, 100)

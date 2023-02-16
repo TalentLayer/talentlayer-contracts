@@ -970,7 +970,6 @@
           "t_enum(Status)5700": {
             "label": "enum TalentLayerService.Status",
             "members": [
-              "Filled",
               "Confirmed",
               "Finished",
               "Rejected",
@@ -1879,7 +1878,6 @@
           "t_enum(Status)3353": {
             "label": "enum TalentLayerServiceV2.Status",
             "members": [
-              "Filled",
               "Confirmed",
               "Finished",
               "Rejected",
@@ -2200,7 +2198,6 @@
           "t_enum(Status)3353": {
             "label": "enum TalentLayerServiceV2.Status",
             "members": [
-              "Filled",
               "Confirmed",
               "Finished",
               "Rejected",
@@ -3187,7 +3184,6 @@
           "t_enum(Status)7065": {
             "label": "enum TalentLayerService.Status",
             "members": [
-              "Filled",
               "Confirmed",
               "Finished",
               "Cancelled",

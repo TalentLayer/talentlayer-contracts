@@ -21,6 +21,9 @@ const carolTlId = 3
 const alicePlatformId = 1
 const bobPlatformId = 2
 
+const now = Math.floor(Date.now() / 1000)
+const proposalExpirationDate = now + 60 * 60 * 24 * 15
+
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
   let deployer: SignerWithAddress,
@@ -66,6 +69,20 @@ describe('TalentLayer protocol global testing', function () {
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, bob.address)
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, eve.address)
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, grace.address)
+
+    // we first check the actual minting status (should be ONLY_WHITELIST )
+    const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
+    expect(mintingStatus).to.be.equal(1)
+    // then we whitelist the deployer and Alice to mint a PlatformId for someone
+    await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(alice.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(bob.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(carol.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(grace.address)
+    await talentLayerPlatformID.connect(deployer).whitelistUser(eve.address)
+    // we check if the deployer is well whitelisted
+    const deployerWhitelisted = await talentLayerPlatformID.whitelist(deployer.address)
+    expect(deployerWhitelisted).to.be.equal(true)
 
     // Deployer mints Platform Id for Alice
     platformName = 'hirevibes'
@@ -616,7 +633,7 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerService.connect(alice).createService(aliceTlId, 1, 'CID5')
       await talentLayerService.services(5)
 
-      expect(serviceData.status.toString()).to.be.equal('4')
+      expect(serviceData.status.toString()).to.be.equal('0')
       expect(serviceData.ownerId).to.be.equal(aliceTlId)
       expect(serviceData.dataUri).to.be.equal('CID1')
       expect(serviceData.platformId).to.be.equal(1)
@@ -654,7 +671,15 @@ describe('TalentLayer protocol global testing', function () {
       expect(
         talentLayerService
           .connect(bob)
-          .createProposal(bobTlId, 5, rateToken, 1, bobPlatformId, 'proposalOnCancelledService'),
+          .createProposal(
+            bobTlId,
+            5,
+            rateToken,
+            1,
+            bobPlatformId,
+            'proposalOnCancelledService',
+            proposalExpirationDate,
+          ),
       ).to.be.revertedWith('Service is not opened')
     })
 
@@ -685,6 +710,7 @@ describe('TalentLayer protocol global testing', function () {
           1,
           alicePlatformId,
           'proposal1FromBobToAlice1Service',
+          proposalExpirationDate,
           {
             value: alicePlatformProposalPostingFee,
           },
@@ -694,7 +720,7 @@ describe('TalentLayer protocol global testing', function () {
       const proposalDataAfter = await talentLayerService.getProposal(1, bobTid)
 
       // Service data check
-      expect(serviceData.status.toString()).to.be.equal('4')
+      expect(serviceData.status.toString()).to.be.equal('0')
       expect(serviceData.ownerId).to.be.equal(aliceTlId)
 
       // Proposal data check after the proposal
@@ -721,6 +747,7 @@ describe('TalentLayer protocol global testing', function () {
           2,
           bobPlatformId,
           'proposal1FromCarolToAlice1Service',
+          proposalExpirationDate,
           {
             value: bobPlatformProposalPostingFee,
           },
@@ -745,6 +772,7 @@ describe('TalentLayer protocol global testing', function () {
             2,
             alicePlatformId,
             'proposal1FromCarolToAlice1Service',
+            proposalExpirationDate,
             { value: alicePlatformProposalPostingFee },
           ),
       ).to.be.revertedWith('This token is not allowed')
@@ -790,13 +818,14 @@ describe('TalentLayer protocol global testing', function () {
       let proposalIdBob = 0 //Will be set later
       let proposalIdCarol = 0 //Will be set later
       let totalAmount = 0 //Will be set later
+      let proposalDataUri = '' //Will be set later
 
       it('Alice can NOT deposit tokens to escrow yet because there is no valid proposal', async function () {
         await token.connect(alice).approve(talentLayerEscrow.address, amountBob)
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob),
+            .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob, proposalDataUri),
         ).to.be.revertedWith('ERC721: invalid token ID')
       })
 
@@ -814,6 +843,7 @@ describe('TalentLayer protocol global testing', function () {
             amountBob,
             bobPlatformId,
             'proposal2FromBobToAlice2Service',
+            proposalExpirationDate,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -832,6 +862,7 @@ describe('TalentLayer protocol global testing', function () {
             amountCarol,
             bobPlatformId,
             'proposal2FromCarolToAlice2Service',
+            proposalExpirationDate,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -881,9 +912,12 @@ describe('TalentLayer protocol global testing', function () {
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
 
+        // we need to retreive the Bob proposal dataUri
+        const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
         const transaction = await talentLayerEscrow
           .connect(alice)
-          .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob)
+          .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob, proposal.dataUri)
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, alice, bob],
@@ -912,7 +946,7 @@ describe('TalentLayer protocol global testing', function () {
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createTokenTransaction('_metaEvidence', serviceId, proposalIdCarol),
+            .createTokenTransaction('_metaEvidence', serviceId, proposalIdCarol, proposalDataUri),
         ).to.be.reverted
       })
 
@@ -1011,9 +1045,18 @@ describe('TalentLayer protocol global testing', function () {
         const alicePlatformProposalPostingFee = platform.proposalPostingFee
         await talentLayerService
           .connect(bob)
-          .createProposal(bobTlId, serviceId, rateToken, 1, alicePlatformId, 'proposalOnService', {
-            value: alicePlatformProposalPostingFee,
-          })
+          .createProposal(
+            bobTlId,
+            serviceId,
+            rateToken,
+            1,
+            alicePlatformId,
+            'proposalOnService',
+            proposalExpirationDate,
+            {
+              value: alicePlatformProposalPostingFee,
+            },
+          )
         // Cancel the service
         await talentLayerService.connect(alice).cancelService(aliceTlId, serviceId)
         // Try to deposit fund to validate the proposal
@@ -1031,10 +1074,13 @@ describe('TalentLayer protocol global testing', function () {
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
 
+        // we need to retreive the Bob proposal dataUri
+        const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob),
+            .createTokenTransaction('_metaEvidence', serviceId, proposalIdBob, proposal.dataUri),
         ).to.be.revertedWith('Service status not open.')
       })
 
@@ -1127,11 +1173,14 @@ describe('TalentLayer protocol global testing', function () {
             (protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)) /
             10000
 
+        // we need to retreive the Bob proposal dataUri
+        const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createETHTransaction('_metaEvidence', serviceId, proposalIdBob),
+            .createETHTransaction('_metaEvidence', serviceId, proposalIdBob, proposal.dataUri),
         ).to.be.reverted
       })
 
@@ -1149,6 +1198,7 @@ describe('TalentLayer protocol global testing', function () {
             amountBob,
             bobPlatformId,
             'proposal3FromBobToAlice3Service',
+            proposalExpirationDate,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -1167,14 +1217,45 @@ describe('TalentLayer protocol global testing', function () {
             amountCarol,
             bobPlatformId,
             'proposal3FromCarolToAlice3Service',
+            proposalExpirationDate,
             { value: bobPlatformProposalPostingFee },
           )
       })
 
+      // bob will try to frunt run the proposal by changing the proposal dataUri
+      it('Bob will try to front run the proposal validation by changing the proposal dataUri.', async function () {
+        await talentLayerService
+          .connect(bob)
+          .updateProposal(
+            bobTlId,
+            serviceId,
+            ethAddress,
+            amountBob,
+            'frontRunProposal3FromBobToAlice3Service',
+          )
+
+        await expect(
+          talentLayerEscrow
+            .connect(alice)
+            .createETHTransaction(
+              '_metaEvidence',
+              serviceId,
+              proposalIdBob,
+              'proposal3FromBobToAlice3Service',
+              {
+                value: totalAmount,
+              },
+            ),
+        ).to.be.revertedWith('Proposal dataUri has changed.')
+      })
+
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
+        const proposal = await talentLayerService.proposals(serviceId, bobTlId)
         const transaction = await talentLayerEscrow
           .connect(alice)
-          .createETHTransaction('_metaEvidence', serviceId, proposalIdBob, { value: totalAmount })
+          .createETHTransaction('_metaEvidence', serviceId, proposalIdBob, proposal.dataUri, {
+            value: totalAmount,
+          })
         await expect(transaction).to.changeEtherBalances(
           [talentLayerEscrow.address, alice, bob],
           [totalAmount, -totalAmount, 0],
@@ -1202,7 +1283,7 @@ describe('TalentLayer protocol global testing', function () {
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createETHTransaction('_metaEvidence', serviceId, proposalIdCarol, {
+            .createETHTransaction('_metaEvidence', serviceId, proposalIdCarol, 'dataUri', {
               value: amountCarol,
             }),
         ).to.be.reverted

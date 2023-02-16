@@ -67,10 +67,14 @@ async function main() {
   )
   console.log('totalAmount', totalAmount.toString())
 
+  // we need to retreive the carol proposal dataUri
+  const proposal = await talentLayerService.proposals(firstServiceId, 3)
+
   await talentLayerEscrow.connect(alice).createETHTransaction(
     '_metaEvidence',
     firstServiceId,
     3, //proposalId/talentLayerId of carol.
+    proposal.dataUri,
     { value: totalAmount },
   )
   console.log('ETH transaction created')

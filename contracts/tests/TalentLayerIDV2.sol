@@ -146,9 +146,10 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
      */
-    function mint() public payable canPay canMint(_msgSender(), _handle, _platformId) {
+    function mint(
         uint256 _platformId,
         string calldata _handle
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay {
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
         _afterMint(sender, _handle, _platformId, msg.value);

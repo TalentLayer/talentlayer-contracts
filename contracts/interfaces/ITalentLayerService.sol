@@ -3,11 +3,10 @@ pragma solidity ^0.8.9;
 
 interface ITalentLayerService {
     enum Status {
-        Filled,
+        Opened,
         Confirmed,
         Finished,
-        Cancelled,
-        Opened
+        Cancelled
     }
 
     enum ProposalStatus {

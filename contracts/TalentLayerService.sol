@@ -18,11 +18,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Enum service status
     enum Status {
-        Filled,
+        Opened,
         Confirmed,
         Finished,
-        Cancelled,
-        Opened
+        Cancelled
     }
 
     /// @notice Enum service status
@@ -56,6 +55,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
     /// @param dataUri token Id to IPFS URI mapping
+    /// @param expirationDate the timeout for the proposal
     struct Proposal {
         ProposalStatus status;
         uint256 ownerId;
@@ -63,6 +63,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 rateAmount;
         uint16 platformId;
         string dataUri;
+        uint256 expirationDate;
     }
 
     // =========================== Events ==============================
@@ -72,7 +73,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param ownerId the talentLayerId of the buyer
     /// @param platformId platform ID on which the Service token was minted
     /// @param dataUri token Id to IPFS URI mapping
-    /// @dev Events "ServiceCreated" & "ServiceDataCreated" are split to avoid "stack too deep" error
+    /// @dev Events "ServiceCreated"
     event ServiceCreated(uint256 id, uint256 ownerId, uint256 platformId, string dataUri);
 
     /// @notice Emitted after a service is cancelled by the owner
@@ -101,7 +102,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         ProposalStatus status,
         address rateToken,
         uint256 rateAmount,
-        uint16 platformId
+        uint16 platformId,
+        uint256 expirationDate
     );
 
     /// @notice Emitted after an existing proposal has been updated
@@ -111,11 +113,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param rateToken the token choose for the payment
     /// @param rateAmount the amount of token chosen
     event ProposalUpdated(uint256 serviceId, uint256 ownerId, string dataUri, address rateToken, uint256 rateAmount);
-
-    /// @notice Emitted after a proposal is validated
-    /// @param serviceId The service ID
-    /// @param ownerId the talentLayerId of the seller
-    event ProposalValidated(uint256 serviceId, uint256 ownerId);
 
     /**
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
@@ -246,6 +243,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
      * @param _dataUri token Id to IPFS URI mapping
+     * @param _platformId platform ID
+     * @param _expirationDate the time before the proposal is automatically validated
      */
     function createProposal(
         uint256 _profileId,
@@ -253,7 +252,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         address _rateToken,
         uint256 _rateAmount,
         uint16 _platformId,
-        string calldata _dataUri
+        string calldata _dataUri,
+        uint256 _expirationDate
     ) public payable onlyOwnerOrDelegate(_profileId) {
         require(allowedTokenList[_rateToken], "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
@@ -275,7 +275,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             rateToken: _rateToken,
             rateAmount: _rateAmount,
             platformId: _platformId,
-            dataUri: _dataUri
+            dataUri: _dataUri,
+            expirationDate: _expirationDate
         });
 
         emit ProposalCreated(
@@ -285,7 +286,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             ProposalStatus.Pending,
             _rateToken,
             _rateAmount,
-            _platformId
+            _platformId,
+            _expirationDate
         );
     }
 
@@ -377,12 +379,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         string calldata _dataUri
     ) public onlyOwnerOrDelegate(_profileId) {
         Service storage service = services[_serviceId];
-
         require(service.ownerId == _profileId, "Only the owner can update the service");
-        require(
-            service.status == Status.Opened || service.status == Status.Filled,
-            "Service status should be opened or filled"
-        );
+        require(service.status == Status.Opened, "Service status should be opened");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
 
         service.dataUri = _dataUri;

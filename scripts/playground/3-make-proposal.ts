@@ -6,6 +6,9 @@ const bobTlId = 2
 const carolTlId = 3
 const daveTlId = 4
 
+const now = Math.floor(Date.now() / 1000)
+const proposalExpirationDate = now + 60 * 60 * 24 * 15
+
 /*
 In this script Bob, Carol and Dave will create proposals for Alice's services
 Bob and Carol for the first service (with ETH and Token) and Dave for the second service (Token)
@@ -93,6 +96,7 @@ async function main() {
       ethers.utils.parseUnits('0.001', 18),
       davePlatformId,
       bobUri,
+      proposalExpirationDate,
     )
   console.log('Bob proposal created')
   await bobProposal.wait()
@@ -111,6 +115,7 @@ async function main() {
       ethers.utils.parseUnits('0.002', 18),
       bobPlatformId,
       carolUri,
+      proposalExpirationDate,
     )
   console.log('Carol proposal created')
   await carolProposal.wait()
@@ -129,6 +134,7 @@ async function main() {
       ethers.utils.parseUnits('0.003', 18),
       bobPlatformId,
       daveUri,
+      proposalExpirationDate,
     )
   console.log('Dave proposal created')
   await daveProposal.wait()

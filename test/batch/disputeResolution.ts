@@ -28,6 +28,9 @@ const metaEvidence = 'metaEvidence'
 const feeDivider = 10000
 const arbitrationFeeTimeout = 3600 * 24
 
+const now = Math.floor(Date.now() / 1000)
+const proposalExpirationDate = now + 60 * 60 * 24 * 15
+
 /**
  * Deploys contract and sets up the context for dispute resolution.
  * @param arbitrationFeeTimeout the timeout for the arbitration fee
@@ -56,6 +59,7 @@ async function deployAndSetup(
 
   // Deployer mints Platform Id for Carol
   const platformName = 'hirevibes'
+  await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Add arbitrator to platform available arbitrators
@@ -83,7 +87,15 @@ async function deployAndSetup(
   // Bob, the seller, creates a proposal for the service
   await talentLayerService
     .connect(bob)
-    .createProposal(bobTlId, serviceId, tokenAddress, transactionAmount, carolPlatformId, 'cid')
+    .createProposal(
+      bobTlId,
+      serviceId,
+      tokenAddress,
+      transactionAmount,
+      carolPlatformId,
+      'cid',
+      proposalExpirationDate,
+    )
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService]
 }
@@ -130,9 +142,12 @@ describe('Dispute Resolution, standard flow', function () {
           .div(feeDivider),
       )
 
+      // we need to retreive the Bob proposal dataUri
+      const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
       tx = await talentLayerEscrow
         .connect(alice)
-        .createETHTransaction(metaEvidence, serviceId, proposalId, {
+        .createETHTransaction(metaEvidence, serviceId, proposalId, proposal.dataUri, {
           value: totalTransactionAmount,
         })
     })
@@ -441,12 +456,13 @@ describe('Dispute Resolution, standard flow', function () {
 describe('Dispute Resolution, with party failing to pay arbitration fee on time', function () {
   let alice: SignerWithAddress,
     talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerService: TalentLayerService,
     talentLayerEscrow: TalentLayerEscrow,
     totalTransactionAmount: BigNumber
 
   before(async function () {
     ;[, alice] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow] = await deployAndSetup(
+    ;[talentLayerPlatformID, talentLayerEscrow, , talentLayerService] = await deployAndSetup(
       arbitrationFeeTimeout,
       ethAddress,
     )
@@ -461,9 +477,13 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
         .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
         .div(feeDivider),
     )
+
+    // we need to retreive the Bob proposal dataUri
+    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
     await talentLayerEscrow
       .connect(alice)
-      .createETHTransaction(metaEvidence, serviceId, proposalId, {
+      .createETHTransaction(metaEvidence, serviceId, proposalId, proposal.dataUri, {
         value: totalTransactionAmount,
       })
 
@@ -508,6 +528,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
+    talentLayerService: TalentLayerService,
     totalTransactionAmount: BigNumber,
     protocolEscrowFeeRate: number,
     originServiceFeeRate: number,
@@ -515,10 +536,8 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
 
   before(async function () {
     ;[deployer, alice, bob, carol] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator] = await deployAndSetup(
-      arbitrationFeeTimeout,
-      ethAddress,
-    )
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService] =
+      await deployAndSetup(arbitrationFeeTimeout, ethAddress)
 
     // Create transaction
     const platform = await talentLayerPlatformID.platforms(carolPlatformId)
@@ -530,9 +549,13 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
         .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
         .div(feeDivider),
     )
+
+    // we need to retreive the Bob proposal dataUri
+    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
     await talentLayerEscrow
       .connect(alice)
-      .createETHTransaction(metaEvidence, serviceId, proposalId, {
+      .createETHTransaction(metaEvidence, serviceId, proposalId, proposal.dataUri, {
         value: totalTransactionAmount,
       })
 
@@ -656,10 +679,13 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
     // Allow TalentLayerEscrow to transfer tokens on behalf of Alice
     await simpleERC20.connect(alice).approve(talentLayerEscrow.address, totalTransactionAmount)
 
+    // we need to retreive the Bob proposal dataUri
+    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
     // Create transaction
     await talentLayerEscrow
       .connect(alice)
-      .createTokenTransaction(metaEvidence, serviceId, proposalId)
+      .createTokenTransaction(metaEvidence, serviceId, proposalId, proposal.dataUri)
 
     // Alice wants to raise a dispute and pays the arbitration fee
     await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {

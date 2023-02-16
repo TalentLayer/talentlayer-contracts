@@ -15,8 +15,18 @@ import "./Arbitrator.sol";
  */
 contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
-
     uint8 constant MAX_HANDLE_LENGTH = 31;
+
+    // =========================== Enum ==============================
+
+    /**
+     * @notice Enum for the mint status
+     */
+    enum MintStatus {
+        ON_PAUSE,
+        ONLY_WHITELIST,
+        PUBLIC
+    }
 
     // =========================== Variables ==============================
 
@@ -60,6 +70,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     mapping(address => bool) public validArbitrators;
 
     /**
+     * @notice Addresses which are allowed to mint a Platform ID
+     */
+    mapping(address => bool) public whitelist;
+
+    /**
      * @notice Whether arbitrators are internal (are part of TalentLayer) or not
      *         Internal arbitrators will have the extra data set to the platform ID
      */
@@ -93,6 +108,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     CountersUpgradeable.Counter private nextPlatformId;
 
+    /**
+     * @notice  The minting status
+     */
+    MintStatus public mintStatus;
+
     // =========================== Errors ==============================
 
     /**
@@ -124,6 +144,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
         // Increment counter to start platform ids at index 1
         nextPlatformId.increment();
+        mintStatus = MintStatus.ONLY_WHITELIST;
     }
 
     // =========================== View functions ==============================
@@ -320,6 +341,24 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     // =========================== Owner functions ==============================
 
     /**
+     * @notice whitelist a user.
+     * @param _user Address of the user to whitelist
+     */
+    function whitelistUser(address _user) public onlyRole(OWNER_ROLE) {
+        whitelist[_user] = true;
+        emit UserWhitelisted(_user);
+    }
+
+    /**
+     * @notice Updates the mint status.
+     * @param _mintStatus The new mint status
+     */
+    function updateMintStatus(MintStatus _mintStatus) public onlyRole(OWNER_ROLE) {
+        mintStatus = _mintStatus;
+        emit MintStatusUpdated(_mintStatus);
+    }
+
+    /**
      * Updates the mint fee.
      * @param _mintFee The new mint fee
      */
@@ -509,6 +548,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformAddress address of the platform associated with the ID
      */
     modifier canMint(string calldata _platformName, address _platformAddress) {
+        require(mintStatus == MintStatus.ONLY_WHITELIST || mintStatus == MintStatus.PUBLIC, "Mint status is not valid");
+        if (mintStatus == MintStatus.ONLY_WHITELIST) {
+            require(whitelist[_msgSender()], "You are not whitelisted");
+        }
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
         require(!takenNames[_platformName], "Name already taken");
@@ -592,4 +635,14 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _proposalPostingFee The new fee
      */
     event ProposalPostingFeeUpdated(uint256 _platformId, uint256 _proposalPostingFee);
+
+    /**
+     * @notice Emit when the minting status is updated
+     */
+    event MintStatusUpdated(MintStatus _mintStatus);
+
+    /**
+     * @notice Emit when a platform is whitelisted
+     */
+    event UserWhitelisted(address indexed _user);
 }
