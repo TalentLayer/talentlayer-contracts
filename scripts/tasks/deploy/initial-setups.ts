@@ -28,7 +28,8 @@ task(
 
     console.log('------------------------')
     console.log('Whitelist address in PlatformID contract')
-    for (const [name, address] of Object.entries(networkConfig.whitelist)) {
+    await run('whitelist-platform-address', { address: deployer.address })
+    for (const [name, address] of Object.entries(networkConfig.platformList)) {
       await run('whitelist-platform-address', { address })
     }
     console.log('------------------------')

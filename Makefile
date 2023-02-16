@@ -3,7 +3,7 @@ include .env
 
 #--------------FULL INSTALLATION FOR LOCALHOST ENV----------------#
 
-install: clean deploy-localhost setup-fakedata
+install: deploy-localhost setup-fakedata
 
 #--------------UTILS----------------#
 
