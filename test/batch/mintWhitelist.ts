@@ -77,10 +77,21 @@ describe.only('Whitelist to mint reserved handles', function () {
     ] = await deployAndSetup()
   })
 
+  function getHandleProof(handle: string) {
+    return handlesMerkleTree.getHexProof(keccak256(handle))
+  }
+
+  function getWhitelistProof(address: string, handle: string): [string[], Buffer] {
+    const whitelistEntry = `${address.toLocaleLowerCase()};${handle}`
+    const leaf = keccak256(whitelistEntry)
+    const proof = whitelistMerkleTree.getHexProof(leaf)
+    return [proof, leaf]
+  }
+
   describe('Handle reservation', async function () {
     it('The reserved handles are reserved', async function () {
       for (const handle of reservedHandles) {
-        const proof = handlesMerkleTree.getHexProof(keccak256(handle))
+        const proof = getHandleProof(handle)
 
         // Check handle is reserved with local merkle root
         const isReservedLocally = handlesMerkleTree.verify(
@@ -102,9 +113,7 @@ describe.only('Whitelist to mint reserved handles', function () {
         const handle = reservedHandles[index]
 
         // Check user is whitelisted with local merkle root
-        const whitelistEntry = `${address};${handle}`
-        const leaf = keccak256(whitelistEntry)
-        const proof = whitelistMerkleTree.getHexProof(leaf)
+        const [proof, leaf] = getWhitelistProof(address, handle)
         const isWhitelistedLocally = whitelistMerkleTree.verify(proof, leaf, whitelistMerkleRoot)
         expect(isWhitelistedLocally).to.be.true
 
@@ -126,10 +135,8 @@ describe.only('Whitelist to mint reserved handles', function () {
     it('Alice cannot mint the handle reserved by Bob', async function () {
       // Get proof for handle 'bob'
       const handle = 'bob'
-      const handleProof = handlesMerkleTree.getHexProof(keccak256(handle))
-      const whitelistEntry = `${bob.address.toLocaleLowerCase()};${handle}`
-      const leaf = keccak256(whitelistEntry)
-      const whitelistProof = whitelistMerkleTree.getHexProof(leaf)
+      const handleProof = getHandleProof(handle)
+      const [whitelistProof] = getWhitelistProof(bob.address, handle)
 
       // Alice tries to mint the handle 'bob'
       const tx = talentLayerID
@@ -140,10 +147,8 @@ describe.only('Whitelist to mint reserved handles', function () {
 
     it('Alice can mint the handle she reserved', async function () {
       const handle = 'alice'
-      const handleProof = handlesMerkleTree.getHexProof(keccak256(handle))
-      const whitelistEntry = `${alice.address.toLocaleLowerCase()};${handle}`
-      const leaf = keccak256(whitelistEntry)
-      const whitelistProof = whitelistMerkleTree.getHexProof(leaf)
+      const handleProof = getHandleProof(handle)
+      const [whitelistProof] = getWhitelistProof(alice.address, handle)
 
       // Alice tries to mint the handle 'bob'
       const tx = talentLayerID
