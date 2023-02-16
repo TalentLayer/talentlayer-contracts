@@ -43,13 +43,15 @@ interface ITalentLayerEscrow {
     function createTokenTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
-        uint256 _proposalId
+        uint256 _proposalId,
+        string memory originDataUri
     ) external returns (uint256);
 
     function createETHTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
-        uint256 _proposalId
+        uint256 _proposalId,
+        string memory originDataUri
     ) external payable returns (uint256);
 
     function release(uint256 _transactionId, uint256 _amount) external;
