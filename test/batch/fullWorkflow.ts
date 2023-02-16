@@ -13,6 +13,7 @@ import {
   TalentLayerPlatformID,
   TalentLayerReview,
 } from '../../typechain-types'
+import { MintStatus } from '../utils/constant'
 
 const aliceTlId = 1
 const bobTlId = 2
@@ -104,7 +105,7 @@ describe('TalentLayer protocol global testing', function () {
     }
 
     // Disable whitelist for reserved handles
-    await talentLayerID.connect(deployer).setWhitelistEnabled(false)
+    await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
   })
 
   describe('Platform Id contract test', async function () {
@@ -198,9 +199,11 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('The deployer can update the minting status to PAUSE and trigger the event', async function () {
-      const transcation = await talentLayerPlatformID.connect(deployer).updateMintStatus(0)
+      const transcation = await talentLayerPlatformID
+        .connect(deployer)
+        .updateMintStatus(MintStatus.ON_PAUSE)
       const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
-      expect(mintingStatus).to.be.equal(0)
+      expect(mintingStatus).to.be.equal(MintStatus.ON_PAUSE)
       await expect(transcation).to.emit(talentLayerPlatformID, 'MintStatusUpdated').withArgs(0)
     })
 
@@ -211,9 +214,9 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('The deployer can update the minting status to PUBLIC', async function () {
-      await talentLayerPlatformID.connect(deployer).updateMintStatus(2)
+      await talentLayerPlatformID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
       const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
-      expect(mintingStatus).to.be.equal(2)
+      expect(mintingStatus).to.be.equal(MintStatus.PUBLIC)
     })
 
     it('Bob can mint a platform id with allowed characters & correct name length by paying the mint fee', async function () {
@@ -405,6 +408,24 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerID.connect(alice).mint('1', tooLongHandle),
       ).to.be.revertedWithCustomError(talentLayerID, 'HandleLengthInvalid')
+    })
+
+    it('The deployer can update the minting status to PAUSE and trigger the event', async function () {
+      const tx = await talentLayerID.connect(deployer).updateMintStatus(MintStatus.ON_PAUSE)
+      const mintingStatus = await talentLayerID.connect(deployer).mintStatus()
+      expect(mintingStatus).to.be.equal(MintStatus.ON_PAUSE)
+      await expect(tx).to.emit(talentLayerID, 'MintStatusUpdated').withArgs(0)
+    })
+
+    it('Bob cannot mint a platform id because the minting status is PAUSE', async function () {
+      const tx = talentLayerID.connect(carol).mint(alicePlatformId, 'carol')
+      await expect(tx).to.be.revertedWith('Public mint is not enabled')
+    })
+
+    it('The deployer can update the minting status to PUBLIC', async function () {
+      await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
+      const mintingStatus = await talentLayerID.connect(deployer).mintStatus()
+      expect(mintingStatus).to.be.equal(2)
     })
 
     it('Alice, Bob and Carol can mint a talentLayerId, including with "-" & "_" characters and correct handle length', async function () {

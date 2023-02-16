@@ -16,3 +16,9 @@ export enum PaymentType {
   Release,
   Reimburse,
 }
+
+export enum MintStatus {
+  ON_PAUSE,
+  ONLY_WHITELIST,
+  PUBLIC,
+}

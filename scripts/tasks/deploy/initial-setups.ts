@@ -49,8 +49,8 @@ task(
     console.log('------------------------')
 
     console.log('------------------------')
-    console.log('Disable Profile Minting Whitelist')
-    await run('disable-minting-whitelist')
+    console.log('Set profile minting status to public')
+    await run('update-profile-minting-status', { mintstatus: '2' })
     console.log('------------------------')
 
     console.log('Signer')

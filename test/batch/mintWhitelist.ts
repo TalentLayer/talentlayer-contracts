@@ -4,6 +4,7 @@ import { ethers } from 'hardhat'
 import keccak256 from 'keccak256'
 import MerkleTree from 'merkletreejs'
 import { TalentLayerID } from '../../typechain-types'
+import { MintStatus } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
 const platformId = 1
@@ -142,14 +143,14 @@ describe('Whitelist to mint reserved handles', function () {
     it("Can't do regular mint when whitelist is enabled", async function () {
       const frank = nonWhitelistedUsers[1]
       const tx = talentLayerID.connect(frank).mint(platformId, 'frank')
-      await expect(tx).to.be.revertedWith('Whitelist must be disabled to use regular mint')
+      await expect(tx).to.be.revertedWith('Public mint is not enabled')
     })
   })
 
   describe('Mint with whitelist disabled', async function () {
     before(async function () {
       const [deployer] = await ethers.getSigners()
-      await talentLayerID.connect(deployer).setWhitelistEnabled(false)
+      await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
     })
 
     it("Can't mint with whitelist when it's disabled", async function () {
@@ -157,7 +158,7 @@ describe('Whitelist to mint reserved handles', function () {
       const [whitelistProof] = getWhitelistProof(alice.address, handle)
       const tx = talentLayerID.connect(carol).whitelistMint(platformId, 'carol', whitelistProof)
 
-      await expect(tx).to.be.revertedWith('Whitelist must be enabled to mint a reserved handle')
+      await expect(tx).to.be.revertedWith('Whitelist mint is not enabled')
     })
 
     it('Can do regular mint when whitelist is disabled', async function () {

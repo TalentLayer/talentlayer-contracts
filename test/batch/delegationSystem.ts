@@ -8,6 +8,7 @@ import {
   TalentLayerPlatformID,
   TalentLayerReview,
 } from '../../typechain-types'
+import { MintStatus } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1
@@ -49,7 +50,7 @@ async function deployAndSetup(
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Disable whitelist for reserved handles
-  await talentLayerID.connect(deployer).setWhitelistEnabled(false)
+  await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
 
   // Mint TL Id for Alice and Bob
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')

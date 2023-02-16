@@ -22,6 +22,17 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     uint8 constant MAX_HANDLE_LENGTH = 31;
 
+    // =========================== Enums ==============================
+
+    /**
+     * @notice Enum for the mint status
+     */
+    enum MintStatus {
+        ON_PAUSE,
+        ONLY_WHITELIST,
+        PUBLIC
+    }
+
     // =========================== Structs ==============================
 
     /// @notice TalentLayer Profile information struct
@@ -62,8 +73,8 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /// Merkle root of the whitelist for reserved handles
     bytes32 private whitelistMerkleRoot;
 
-    /// Whether the whitelist for reserved handles is enabled
-    bool public isWhitelistEnabled;
+    /// The minting status
+    MintStatus public mintStatus;
 
     uint256 testVariable;
 
@@ -178,7 +189,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         uint256 _platformId,
         string calldata _handle
     ) public payable canMint(_msgSender(), _handle, _platformId) canPay {
-        require(!isWhitelistEnabled, "Whitelist must be disabled to use regular mint");
+        require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
@@ -195,7 +206,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         string calldata _handle,
         bytes32[] calldata _proof
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
-        require(isWhitelistEnabled, "Whitelist must be enabled to mint a reserved handle");
+        require(mintStatus == MintStatus.ONLY_WHITELIST, "Whitelist mint is not enabled");
         address sender = _msgSender();
         require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
 
@@ -281,11 +292,12 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     }
 
     /**
-     * @notice Allows the owner to set whether the whitelist for reserved handles is enabled or not.
-     * @param _enabled Whether the whitelist is enabled or not
+     * @notice Updates the mint status.
+     * @param _mintStatus The new mint status
      */
-    function setWhitelistEnabled(bool _enabled) public onlyOwner {
-        isWhitelistEnabled = _enabled;
+    function updateMintStatus(MintStatus _mintStatus) public onlyOwner {
+        mintStatus = _mintStatus;
+        emit MintStatusUpdated(_mintStatus);
     }
 
     // =========================== Private functions ==============================
@@ -502,4 +514,10 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _delegate Address of the delegate
      */
     event DelegateRemoved(uint256 _profileId, address _delegate);
+
+    /**
+     * Emit when the minting status is updated
+     * @param _mintStatus The new mint status
+     */
+    event MintStatusUpdated(MintStatus _mintStatus);
 }
