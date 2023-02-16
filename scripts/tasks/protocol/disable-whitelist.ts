@@ -3,7 +3,7 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
 
 /**
  * @notice This task is used to disable the whitelist period for minting reserved handles
- * @dev Example of script use: "npx hardhat disable-whitelist"
+ * @dev Example of script use: "npx hardhat disable-whitelist --network localhost"
  */
 task('disable-whitelist', 'Disables the whitelist period for minting reserved handles').setAction(
   async (_, { ethers, network }) => {

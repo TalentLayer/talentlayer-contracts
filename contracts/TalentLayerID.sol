@@ -57,13 +57,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// TalentLayer ID to delegates
     mapping(uint256 => mapping(address => bool)) private delegates;
 
-    /// Merkle root of the whitelist for handle reservation
+    /// Merkle root of the whitelist for reserved handles
     bytes32 private whitelistMerkleRoot;
 
-    /// Merkle root of the reserved handles
-    bytes32 private reservedHandlesMerkleRoot;
-
-    /// Whether the whitelist for handle reservation is enabled
+    /// Whether the whitelist for reserved handles is enabled
     bool public isWhitelistEnabled;
 
     // =========================== Initializers ==============================
@@ -153,7 +150,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @notice Check whether an address has reserved a handle.
      * @param _address Address to check
      * @param _handle Handle to check
-     * @param _proof Merkle proof of the handle reservation
+     * @param _proof Merkle proof to prove the user has reserved the handle to be minted
      */
     function isWhitelisted(
         address _address,
@@ -166,15 +163,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
             _handle
         );
         return _proof.verify(whitelistMerkleRoot, keccak256(abi.encodePacked(concatenatedString)));
-    }
-
-    /**
-     * @notice Check whether an handle is reserved.
-     * @param _handle Handle to check
-     * @param _proof Merkle proof of the handle
-     */
-    function isHandleReserved(string memory _handle, bytes32[] memory _proof) public view returns (bool) {
-        return _proof.verify(reservedHandlesMerkleRoot, keccak256(abi.encodePacked(_handle)));
     }
 
     // =========================== User functions ==============================
@@ -195,26 +183,19 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Allows a user to mint a new TalentLayerID while the whitelist for handle reservation is enabled.
-     *         If the handle is reserved, the user must be whitelisted.
+     * @notice Allows users who reserved a handle to mint a new TalentLayerID.
      * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
-     * @param _handleProof Merkle proof of the handle. Must be verified if the handle is reserved.
-     * @param _whitelistProof Merkle proof of the handle reservation whitelist
+     * @param _proof Merkle proof of the handle reservation whitelist
      */
     function whitelistMint(
         uint256 _platformId,
         string memory _handle,
-        bytes32[] calldata _handleProof,
-        bytes32[] calldata _whitelistProof
+        bytes32[] calldata _proof
     ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
         require(isWhitelistEnabled, "Whitelist must be enabled to mint a reserved handle");
         address sender = _msgSender();
-
-        bool isReserved = isHandleReserved(_handle, _handleProof);
-        if (isReserved) {
-            require(isWhitelisted(sender, _handle, _whitelistProof), "You're not whitelisted");
-        }
+        require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
 
         _safeMint(sender, nextProfileId.current());
         _afterMint(sender, _handle, _platformId, msg.value);
@@ -290,7 +271,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Allows the owner to set the merkle root for the handle reservation whitelist.
+     * @notice Allows the owner to set the merkle root for the whitelist for reserved handles
      * @param root The new merkle root
      */
     function setWhitelistMerkleRoot(bytes32 root) public onlyOwner {
@@ -298,15 +279,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Allows the owner to set the merkle root for the reserved handles.
-     * @param root The new merkle root
-     */
-    function setReservedHandlesMerkleRoot(bytes32 root) public onlyOwner {
-        reservedHandlesMerkleRoot = root;
-    }
-
-    /**
-     * @notice Allows the owner to set whether the whitelist for handle reservation is enabled or not.
+     * @notice Allows the owner to set whether the whitelist for reserved handles is enabled or not.
      * @param _enabled Whether the whitelist is enabled or not
      */
     function setWhitelistEnabled(bool _enabled) public onlyOwner {
