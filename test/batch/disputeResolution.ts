@@ -442,8 +442,8 @@ describe('Dispute Resolution, standard flow', function () {
         await expect(tx)
           .to.emit(talentLayerEscrow, 'Payment')
           .withArgs(
-            transactionId,
             PaymentType.Reimburse,
+            transactionId,
             currentTransactionAmount,
             ethAddress,
             serviceId,
@@ -626,8 +626,8 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Payment')
         .withArgs(
-          transactionId,
           PaymentType.Reimburse,
+          transactionId,
           halfTransactionAmount,
           ethAddress,
           serviceId,
