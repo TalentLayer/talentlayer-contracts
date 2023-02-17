@@ -64,10 +64,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param originServiceFeeRate The %fee (per ten thousands) paid to the platform on which the service was created
      * @param originValidatedProposalFeeRate the %fee (per ten thousands) paid to the platform on which the proposal was validated
      * @param disputeId The ID of the dispute, if it exists
-     * @param senderFee Total fees paid by the sender.
-     * @param receiverFee Total fees paid by the receiver.
+     * @param senderFee Total fees paid by the sender for the dispute procedure.
+     * @param receiverFee Total fees paid by the receiver for the dispute procedure.
      * @param lastInteraction Last interaction for the dispute procedure.
-     * @param status The status of the transaction
+     * @param status The status of the transaction for the dispute procedure.
      * @param arbitrator The address of the contract that can rule on a dispute for the transaction.
      * @param arbitratorExtraData Extra data to set up the arbitration.
      */
