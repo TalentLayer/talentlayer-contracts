@@ -402,15 +402,15 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /**
      * @dev Validates a proposal for a service by locking ETH into escrow.
      * @param _metaEvidence Link to the meta-evidence.
-     * @param _serviceId Service of transaction
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
+     * @param _originDataUri dataURI of the validated proposal
      */
     function createETHTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId,
-        string memory originDataUri
+        string memory _originDataUri
     ) external payable returns (uint256) {
         ITalentLayerService.Proposal memory proposal;
         ITalentLayerService.Service memory service;
@@ -443,7 +443,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
         require(
-            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(originDataUri)),
+            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
             "Proposal dataUri has changed."
         );
 
@@ -470,12 +470,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _metaEvidence Link to the meta-evidence.
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
+     * @param _originDataUri dataURI of the validated proposal
      */
     function createTokenTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId,
-        string memory originDataUri
+        string memory _originDataUri
     ) external returns (uint256) {
         ITalentLayerService.Proposal memory proposal;
         ITalentLayerService.Service memory service;
@@ -509,7 +510,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
         require(
-            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(originDataUri)),
+            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
             "Proposal data URI are not equal."
         );
 
