@@ -270,7 +270,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /**
      * @notice (Upgradable) Wallet which will receive the protocol fees
      */
-    address payable private protocolWallet;
+    address public protocolWallet;
 
     /**
      * @notice Amount of choices available for ruling the disputes
@@ -315,6 +315,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _talentLayerServiceAddress Contract address to TalentLayerService.sol
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
+     * @param _protocolWallet Wallet used to receive fees
      */
     function initialize(
         address _talentLayerServiceAddress,
@@ -334,14 +335,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     // =========================== View functions ==============================
-
-    /**
-     * @dev Only the owner can execute this function
-     * @return protocolWallet - The Protocol wallet
-     */
-    function getProtocolWallet() external view onlyOwner returns (address) {
-        return protocolWallet;
-    }
 
     /**
      * @dev Only the owner of the platform ID can execute this function
