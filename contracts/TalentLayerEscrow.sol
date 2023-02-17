@@ -748,7 +748,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
         uint256 amount = platformIdToTokenToBalance[_platformId][_tokenAddress];
         platformIdToTokenToBalance[_platformId][_tokenAddress] = 0;
-        _transferBalance(recipient, _tokenAddress, amount);
+        _safeTransferBalance(recipient, _tokenAddress, amount);
 
         emit FeesClaimed(_platformId, _tokenAddress, amount);
     }
@@ -1092,14 +1092,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
      */
-    function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
-        if (address(0) == _tokenAddress) {
-            _recipient.transfer(_amount);
-        } else {
-            IERC20(_tokenAddress).transfer(_recipient, _amount);
-        }
-    }
-
     function _safeTransferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.call{value: _amount}("");
