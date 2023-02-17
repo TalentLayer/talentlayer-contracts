@@ -73,6 +73,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param arbitratorExtraData Extra data to set up the arbitration.
      */
     struct Transaction {
+        Arbitrator arbitrator;
+        bytes arbitratorExtraData;
+        uint16 protocolEscrowFeeRate;
+        uint16 originServiceFeeRate;
+        uint16 originValidatedProposalFeeRate;
         uint256 id;
         address sender;
         address receiver;
@@ -80,16 +85,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 amount;
         uint256 serviceId;
         uint256 proposalId;
-        uint16 protocolEscrowFeeRate;
-        uint16 originServiceFeeRate;
-        uint16 originValidatedProposalFeeRate;
         uint256 disputeId;
         uint256 senderFee;
         uint256 receiverFee;
         uint256 lastInteraction;
         Status status;
-        Arbitrator arbitrator;
-        bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
     }
 
