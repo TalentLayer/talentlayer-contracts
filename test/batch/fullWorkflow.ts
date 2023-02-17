@@ -906,11 +906,11 @@ describe('TalentLayer protocol global testing', function () {
       it('The Deployer can update protocolEscrowFeeRate and protocolWallet', async function () {
         chainId = network.config.chainId ? network.config.chainId : Network.LOCAL
         networkConfig = getConfig(chainId)
-        let protocolWallet = await talentLayerEscrow.connect(deployer).getProtocolWallet()
+        let protocolWallet = await talentLayerEscrow.connect(deployer).protocolWallet()
 
         expect(protocolWallet).to.equal(networkConfig.multisigAddressList.fee)
         await talentLayerEscrow.connect(deployer).updateProtocolWallet(dave.address)
-        protocolWallet = await talentLayerEscrow.connect(deployer).getProtocolWallet()
+        protocolWallet = await talentLayerEscrow.connect(deployer).protocolWallet()
         expect(protocolWallet).to.equal(dave.address)
 
         await talentLayerEscrow.connect(deployer).updateProtocolEscrowFeeRate(800)
