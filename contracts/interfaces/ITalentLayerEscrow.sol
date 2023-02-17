@@ -30,8 +30,6 @@ interface ITalentLayerEscrow {
         Resolved // the transaction is solved (either no dispute has ever arisen or the dispute has been resolved)
     }
 
-    function getProtocolWallet() external view returns (address);
-
     function getClaimableFeeBalance(address _token) external view returns (uint256 balance);
 
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory);
