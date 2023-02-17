@@ -662,7 +662,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         if (transaction.receiverFee != 0) {
             receiverFee = transaction.receiverFee;
             transaction.receiverFee = 0;
-            payable(transaction.receiver).call{value: receiverFee}("");
+            payable(transaction.receiver).transfer(receiverFee);
         }
 
         _executeRuling(_transactionId, SENDER_WINS);
@@ -683,7 +683,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         if (transaction.senderFee != 0) {
             uint256 senderFee = transaction.senderFee;
             transaction.senderFee = 0;
-            payable(transaction.sender).call{value: senderFee}("");
+            payable(transaction.sender).transfer(senderFee);
         }
 
         _executeRuling(_transactionId, RECEIVER_WINS);
@@ -803,7 +803,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         if (transaction.senderFee > _arbitrationCost) {
             uint256 extraFeeSender = transaction.senderFee - _arbitrationCost;
             transaction.senderFee = _arbitrationCost;
-            payable(transaction.sender).call{value: extraFeeSender}("");
+            payable(transaction.sender).transfer(extraFeeSender);
             emit ArbitrationFeePayment(_transactionId, ArbitrationFeePaymentType.Reimburse, Party.Sender, msg.value);
         }
 
@@ -811,7 +811,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         if (transaction.receiverFee > _arbitrationCost) {
             uint256 extraFeeReceiver = transaction.receiverFee - _arbitrationCost;
             transaction.receiverFee = _arbitrationCost;
-            payable(transaction.receiver).call{value: extraFeeReceiver}("");
+            payable(transaction.receiver).transfer(extraFeeReceiver);
             emit ArbitrationFeePayment(_transactionId, ArbitrationFeePaymentType.Reimburse, Party.Receiver, msg.value);
         }
     }
@@ -840,10 +840,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
         // Send the funds to the winner and reimburse the arbitration fee.
         if (_ruling == SENDER_WINS) {
-            sender.call{value: senderFee}("");
+            sender.transfer(senderFee);
             _reimburse(transaction, amount);
         } else if (_ruling == RECEIVER_WINS) {
-            receiver.call{value: receiverFee}("");
+            receiver.transfer(receiverFee);
             _release(transaction, amount);
         } else {
             // If no ruling is given split funds in half
@@ -853,8 +853,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             _reimburse(transaction, splitTransactionAmount);
             _release(transaction, splitTransactionAmount);
 
-            sender.call{value: splitFeeAmount}("");
-            receiver.call{value: splitFeeAmount}("");
+            sender.transfer(splitFeeAmount);
+            receiver.transfer(splitFeeAmount);
         }
 
         emit RulingExecuted(_transactionId, _ruling);
@@ -1102,7 +1102,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     function _safeTransferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
-            _recipient.call{value: _amount}("");
+            _recipient.transfer(_amount);
         } else {
             IERC20(_tokenAddress).transfer(_recipient, _amount);
         }
