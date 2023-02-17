@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
-
 import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base64Upgradeable.sol";
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
@@ -54,7 +53,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Profile Id counter
     CountersUpgradeable.Counter nextProfileId;
 
-    /// TalentLayer ID to delegates
+    /// TalentLayer ID to delegates address to bool
     mapping(uint256 => mapping(address => bool)) private delegates;
 
     // =========================== Errors ==============================
