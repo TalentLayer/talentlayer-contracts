@@ -270,7 +270,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /**
      * @notice (Upgradable) Wallet which will receive the protocol fees
      */
-    address public protocolWallet;
+    address payable public protocolWallet;
 
     /**
      * @notice Amount of choices available for ruling the disputes
