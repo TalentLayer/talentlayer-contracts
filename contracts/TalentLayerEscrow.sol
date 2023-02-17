@@ -119,7 +119,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     );
 
     /**
-     * @notice Emitted after a service is finished
+     * @notice Emitted after the total amount of a transaction has been paid. At this moment the service is considered finished.
      * @param _serviceId The service ID
      */
     event PaymentCompleted(uint256 _serviceId);
@@ -197,9 +197,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      *  @param _token The token used for the transaction
      *  @param _amount The amount of the transaction EXCLUDING FEES
      *  @param _serviceId The ID of the associated service
-     *  @param _protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
-     *  @param _originServiceFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
-     *  @param _originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
+     *  @param _protocolEscrowFeeRate The %fee (per ten thousands) to pay to the protocol's owner
+     *  @param _originServiceFeeRate The %fee (per ten thousands) to pay to the platform on which the transaction was created
+     *  @param _originValidatedProposalFeeRate the %fee (per ten thousands) to pay to the platform on which the validated proposal was created
      *  @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
      *  @param _arbitratorExtraData Extra data to set up the arbitration.
      */
@@ -229,12 +229,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== Declarations ==============================
 
     /**
-     * @notice The index of the protocol in the "platformIdToTokenToBalance" mapping
-     */
-    uint8 private constant PROTOCOL_INDEX = 0;
-    uint16 private constant FEE_DIVIDER = 10000;
-
-    /**
      * @notice Transactions stored in array with index = id
      */
     Transaction[] private transactions;
@@ -243,7 +237,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @notice Mapping from platformId to Token address to Token Balance
      *         Represents the amount of ETH or token present on this contract which
      *         belongs to a platform and can be withdrawn.
-     * @dev Id 0 is reserved to the protocol balance & address(0) to ETH balance
+     * @dev Id 0 (PROTOCOL_INDEX) is reserved to the protocol balance
+     * @dev address(0) is reserved to ETH balance
      */
     mapping(uint256 => mapping(address => uint256)) private platformIdToTokenToBalance;
 
@@ -263,14 +258,24 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     ITalentLayerPlatformID private talentLayerPlatformIdContract;
 
     /**
+     * @notice (Upgradable) Wallet which will receive the protocol fees
+     */
+    address payable public protocolWallet;
+
+    /**
      * @notice Percentage paid to the protocol (per 10,000, upgradable)
      */
     uint16 public protocolEscrowFeeRate;
 
     /**
-     * @notice (Upgradable) Wallet which will receive the protocol fees
+     * @notice The index of the protocol in the "platformIdToTokenToBalance" mapping
      */
-    address payable public protocolWallet;
+    uint8 private constant PROTOCOL_INDEX = 0;
+
+    /**
+     * @notice The fee divider used for every fee rates
+     */
+    uint16 private constant FEE_DIVIDER = 10000;
 
     /**
      * @notice Amount of choices available for ruling the disputes
