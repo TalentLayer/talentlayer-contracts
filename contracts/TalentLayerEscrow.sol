@@ -739,6 +739,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         }
 
         uint256 amount = platformIdToTokenToBalance[_platformId][_tokenAddress];
+        require(amount > 0, "nothing to claim");
         platformIdToTokenToBalance[_platformId][_tokenAddress] = 0;
         _safeTransferBalance(recipient, _tokenAddress, amount);
 
