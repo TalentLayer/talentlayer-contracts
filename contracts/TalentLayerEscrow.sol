@@ -160,9 +160,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _amount The amount released.
      */
     event OriginValidatedProposalFeeRateReleased(
+        address indexed _token,
         uint256 _platformId,
         uint256 _serviceId,
-        address indexed _token,
         uint256 _amount
     );
 
@@ -999,9 +999,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             originServiceFeeRate
         );
         emit OriginValidatedProposalFeeRateReleased(
+            _transaction.token,
             originValidatedProposalPlatformId,
             _transaction.serviceId,
-            _transaction.token,
             originServiceFeeRate
         );
         emit Payment(PaymentType.Release, _transaction.id, _releaseAmount, _transaction.token, _transaction.serviceId);
