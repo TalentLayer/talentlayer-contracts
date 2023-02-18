@@ -17,8 +17,12 @@ abstract contract Arbitrable is IArbitrable {
     bytes public arbitratorExtraData; // Extra data to require particular dispute and appeal behaviour.
 
     modifier onlyArbitrator() {
-        require(msg.sender == address(arbitrator), "Can only be called by the arbitrator.");
+        _checkOwner();
         _;
+    }
+
+    function _checkOwner() internal view virtual {
+        require(msg.sender == address(arbitrator), "Can only be called by the arbitrator.");
     }
 
     /** @dev Constructor. Choose the arbitrator.
