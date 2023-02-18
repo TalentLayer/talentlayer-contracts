@@ -350,7 +350,7 @@ describe('Dispute Resolution, standard flow', function () {
       const daveEvidence = "Dave's evidence"
       const tx = talentLayerEscrow
         .connect(dave)
-        .submitEvidence(daveTlId, transactionId, daveEvidence)
+        .submitEvidence(daveEvidence, daveTlId, transactionId)
       await expect(tx).to.be.revertedWith(
         'The caller must be the sender or the receiver or their delegates.',
       )
@@ -360,7 +360,7 @@ describe('Dispute Resolution, standard flow', function () {
       const aliceEvidence = "Alice's evidence"
       const tx = await talentLayerEscrow
         .connect(alice)
-        .submitEvidence(aliceTlId, transactionId, aliceEvidence)
+        .submitEvidence(aliceEvidence, aliceTlId, transactionId)
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Evidence')
         .withArgs(talentLayerArbitrator.address, transactionId, alice.address, aliceEvidence)
@@ -370,7 +370,7 @@ describe('Dispute Resolution, standard flow', function () {
       const bobEvidence = "Bob's evidence"
       const tx = await talentLayerEscrow
         .connect(bob)
-        .submitEvidence(bobTlId, transactionId, bobEvidence)
+        .submitEvidence(bobEvidence, bobTlId, transactionId)
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Evidence')
         .withArgs(talentLayerArbitrator.address, transactionId, bob.address, bobEvidence)

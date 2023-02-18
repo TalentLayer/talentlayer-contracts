@@ -1149,7 +1149,7 @@ describe('TalentLayer protocol global testing', function () {
         const platformBalance = await talentLayerEscrow
           .connect(alice)
           .getClaimableFeeBalance(token.address)
-        const transaction = await talentLayerEscrow.connect(alice).claim(platformId, token.address)
+        const transaction = await talentLayerEscrow.connect(alice).claim(token.address, platformId)
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, alice.address],
@@ -1162,7 +1162,7 @@ describe('TalentLayer protocol global testing', function () {
           .connect(deployer)
           .getClaimableFeeBalance(token.address)
         // await talentLayerEscrow.updateProtocolWallet(alice.address);
-        const transaction = await talentLayerEscrow.connect(deployer).claim(0, token.address)
+        const transaction = await talentLayerEscrow.connect(deployer).claim(token.address, 0)
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, dave.address],
@@ -1435,7 +1435,7 @@ describe('TalentLayer protocol global testing', function () {
         const platformEthBalance = await talentLayerEscrow
           .connect(alice)
           .getClaimableFeeBalance(ethAddress)
-        const transaction = await talentLayerEscrow.connect(alice).claim(platformId, ethAddress)
+        const transaction = await talentLayerEscrow.connect(alice).claim(ethAddress, platformId)
         await expect(transaction).to.changeEtherBalances(
           [talentLayerEscrow.address, alice.address],
           [-platformEthBalance, platformEthBalance],
@@ -1446,7 +1446,7 @@ describe('TalentLayer protocol global testing', function () {
         const protocolEthBalance = await talentLayerEscrow
           .connect(deployer)
           .getClaimableFeeBalance(ethAddress)
-        const transaction = await talentLayerEscrow.connect(deployer).claim(0, ethAddress)
+        const transaction = await talentLayerEscrow.connect(deployer).claim(ethAddress, 0)
         await expect(transaction).to.changeEtherBalances(
           [talentLayerEscrow.address, dave.address],
           [-protocolEthBalance, protocolEthBalance],

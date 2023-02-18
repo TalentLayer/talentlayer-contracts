@@ -695,9 +695,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      *  @param _evidence A link to an evidence using its URI.
      */
     function submitEvidence(
+        string memory _evidence,
         uint256 _profileId,
-        uint256 _transactionId,
-        string memory _evidence
+        uint256 _transactionId
     ) public onlyOwnerOrDelegate(_profileId) {
         Transaction storage transaction = transactions[_transactionId];
 
@@ -735,7 +735,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
      * Emits a BalanceTransferred event
      */
-    function claim(uint256 _platformId, address _tokenAddress) external {
+    function claim(address _tokenAddress, uint256 _platformId) external {
         address payable recipient;
 
         if (owner() == _msgSender()) {
