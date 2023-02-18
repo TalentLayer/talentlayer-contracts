@@ -266,10 +266,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     function _validateHandle(string calldata handle) private pure {
         bytes memory byteHandle = bytes(handle);
-        if (byteHandle.length == 0 || byteHandle.length > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
-
         uint256 byteHandleLength = byteHandle.length;
-        for (uint256 i = 0; i < byteHandleLength; ) {
+        if (byteHandleLength == 0 || byteHandleLength > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+
+        for (uint256 i; i < byteHandleLength; ) {
             if (
                 (byteHandle[i] < "0" || byteHandle[i] > "z" || (byteHandle[i] > "9" && byteHandle[i] < "a")) &&
                 byteHandle[i] != "-" &&
