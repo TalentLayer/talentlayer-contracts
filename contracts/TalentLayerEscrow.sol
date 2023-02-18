@@ -205,17 +205,17 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      *  @param _arbitratorExtraData Extra data to set up the arbitration.
      */
     event TransactionCreated(
+        Arbitrator _arbitrator,
+        bytes _arbitratorExtraData,
+        uint16 _protocolEscrowFeeRate,
+        uint16 _originServiceFeeRate,
+        uint16 _originValidatedProposalFeeRate,
         uint256 _transactionId,
         uint256 _senderId,
         uint256 _receiverId,
         address _token,
         uint256 _amount,
         uint256 _serviceId,
-        uint16 _protocolEscrowFeeRate,
-        uint16 _originServiceFeeRate,
-        uint16 _originValidatedProposalFeeRate,
-        Arbitrator _arbitrator,
-        bytes _arbitratorExtraData,
         uint256 _arbitrationFeeTimeout
     );
 
@@ -938,17 +938,17 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 receiver = talentLayerIdContract.ids(transaction.receiver);
 
         emit TransactionCreated(
+            transaction.arbitrator,
+            transaction.arbitratorExtraData,
+            protocolEscrowFeeRate,
+            transaction.originServiceFeeRate,
+            transaction.originValidatedProposalFeeRate,
             _transactionId,
             sender,
             receiver,
             transaction.token,
             transaction.amount,
             transaction.serviceId,
-            protocolEscrowFeeRate,
-            transaction.originServiceFeeRate,
-            transaction.originValidatedProposalFeeRate,
-            transaction.arbitrator,
-            transaction.arbitratorExtraData,
             transaction.arbitrationFeeTimeout
         );
         emit MetaEvidence(_transactionId, _metaEvidence);

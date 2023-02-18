@@ -169,17 +169,17 @@ describe('Dispute Resolution, standard flow', function () {
       await expect(tx)
         .to.emit(talentLayerEscrow, 'TransactionCreated')
         .withArgs(
+          talentLayerArbitrator.address,
+          platform.arbitratorExtraData,
+          protocolEscrowFeeRate,
+          originServiceFeeRate,
+          originValidatedProposalFeeRate,
           transactionId,
           aliceTlId,
           bobTlId,
           ethAddress,
           transactionAmount,
           serviceId,
-          protocolEscrowFeeRate,
-          originServiceFeeRate,
-          originValidatedProposalFeeRate,
-          talentLayerArbitrator.address,
-          platform.arbitratorExtraData,
           arbitrationFeeTimeout,
         )
     })
