@@ -86,6 +86,8 @@ const config: HardhatUserConfig = {
     showTimeSpent: true,
     excludeContracts: [],
     src: './contracts',
+    token: 'MATIC',
+    gasPriceApi: 'https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice',
     // noColors: true,
     // outputFile: "./reports/LoadTest",
   },
