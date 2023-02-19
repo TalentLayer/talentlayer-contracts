@@ -444,8 +444,8 @@ describe('Dispute Resolution, standard flow', function () {
           .withArgs(
             transactionId,
             PaymentType.Reimburse,
-            currentTransactionAmount,
             ethAddress,
+            currentTransactionAmount,
             serviceId,
           )
       })
@@ -621,15 +621,15 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     it('Emits the Payment events', async function () {
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Payment')
-        .withArgs(transactionId, PaymentType.Release, halfTransactionAmount, ethAddress, serviceId)
+        .withArgs(transactionId, PaymentType.Release, ethAddress, halfTransactionAmount, serviceId)
 
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Payment')
         .withArgs(
           transactionId,
           PaymentType.Reimburse,
-          halfTransactionAmount,
           ethAddress,
+          halfTransactionAmount,
           serviceId,
         )
     })
