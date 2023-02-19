@@ -113,8 +113,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     event Payment(
         uint256 _transactionId,
         PaymentType _paymentType,
-        uint256 _amount,
         address _token,
+        uint256 _amount,
         uint256 _serviceId
     );
 
@@ -1003,7 +1003,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             _transaction.token,
             originServiceFeeRate
         );
-        emit Payment(_transaction.id, PaymentType.Release, _releaseAmount, _transaction.token, _transaction.serviceId);
+        emit Payment(_transaction.id, PaymentType.Release, _transaction.token, _releaseAmount, _transaction.serviceId);
 
         _distributeMessage(_transaction.serviceId, _transaction.amount);
     }
@@ -1026,8 +1026,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         emit Payment(
             _transaction.id,
             PaymentType.Reimburse,
-            _releaseAmount,
             _transaction.token,
+            _releaseAmount,
             _transaction.serviceId
         );
 
