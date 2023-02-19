@@ -82,12 +82,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint16 protocolEscrowFeeRate;
         uint16 originServiceFeeRate;
         uint16 originValidatedProposalFeeRate;
+        Arbitrator arbitrator;
+        Status status;
         uint256 disputeId;
         uint256 senderFee;
         uint256 receiverFee;
         uint256 lastInteraction;
-        Status status;
-        Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
     }
