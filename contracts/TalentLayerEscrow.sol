@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
@@ -65,10 +64,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param originServiceFeeRate The %fee (per ten thousands) paid to the platform on which the service was created
      * @param originValidatedProposalFeeRate the %fee (per ten thousands) paid to the platform on which the proposal was validated
      * @param disputeId The ID of the dispute, if it exists
-     * @param senderFee Total fees paid by the sender.
-     * @param receiverFee Total fees paid by the receiver.
+     * @param senderFee Total fees paid by the sender for the dispute procedure.
+     * @param receiverFee Total fees paid by the receiver for the dispute procedure.
      * @param lastInteraction Last interaction for the dispute procedure.
-     * @param status The status of the transaction
+     * @param status The status of the transaction for the dispute procedure.
      * @param arbitrator The address of the contract that can rule on a dispute for the transaction.
      * @param arbitratorExtraData Extra data to set up the arbitration.
      */
@@ -120,7 +119,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     );
 
     /**
-     * @notice Emitted after a service is finished
+     * @notice Emitted after the total amount of a transaction has been paid. At this moment the service is considered finished.
      * @param _serviceId The service ID
      */
     event PaymentCompleted(uint256 _serviceId);
@@ -198,9 +197,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      *  @param _token The token used for the transaction
      *  @param _amount The amount of the transaction EXCLUDING FEES
      *  @param _serviceId The ID of the associated service
-     *  @param _protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
-     *  @param _originServiceFeeRate The %fee (per ten thousands) paid to the platform on which the transaction was created
-     *  @param _originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
+     *  @param _protocolEscrowFeeRate The %fee (per ten thousands) to pay to the protocol's owner
+     *  @param _originServiceFeeRate The %fee (per ten thousands) to pay to the platform on which the transaction was created
+     *  @param _originValidatedProposalFeeRate the %fee (per ten thousands) to pay to the platform on which the validated proposal was created
      *  @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
      *  @param _arbitratorExtraData Extra data to set up the arbitration.
      */
@@ -230,12 +229,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== Declarations ==============================
 
     /**
-     * @notice The index of the protocol in the "platformIdToTokenToBalance" mapping
-     */
-    uint8 private constant PROTOCOL_INDEX = 0;
-    uint16 private constant FEE_DIVIDER = 10000;
-
-    /**
      * @notice Transactions stored in array with index = id
      */
     Transaction[] private transactions;
@@ -244,7 +237,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @notice Mapping from platformId to Token address to Token Balance
      *         Represents the amount of ETH or token present on this contract which
      *         belongs to a platform and can be withdrawn.
-     * @dev Id 0 is reserved to the protocol balance & address(0) to ETH balance
+     * @dev Id 0 (PROTOCOL_INDEX) is reserved to the protocol balance
+     * @dev address(0) is reserved to ETH balance
      */
     mapping(uint256 => mapping(address => uint256)) private platformIdToTokenToBalance;
 
@@ -264,14 +258,24 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     ITalentLayerPlatformID private talentLayerPlatformIdContract;
 
     /**
+     * @notice (Upgradable) Wallet which will receive the protocol fees
+     */
+    address payable public protocolWallet;
+
+    /**
      * @notice Percentage paid to the protocol (per 10,000, upgradable)
      */
     uint16 public protocolEscrowFeeRate;
 
     /**
-     * @notice (Upgradable) Wallet which will receive the protocol fees
+     * @notice The index of the protocol in the "platformIdToTokenToBalance" mapping
      */
-    address payable private protocolWallet;
+    uint8 private constant PROTOCOL_INDEX = 0;
+
+    /**
+     * @notice The fee divider used for every fee rates
+     */
+    uint16 private constant FEE_DIVIDER = 10000;
 
     /**
      * @notice Amount of choices available for ruling the disputes
@@ -316,6 +320,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _talentLayerServiceAddress Contract address to TalentLayerService.sol
      * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
      * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
+     * @param _protocolWallet Wallet used to receive fees
      */
     function initialize(
         address _talentLayerServiceAddress,
@@ -335,14 +340,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     // =========================== View functions ==============================
-
-    /**
-     * @dev Only the owner can execute this function
-     * @return protocolWallet - The Protocol wallet
-     */
-    function getProtocolWallet() external view onlyOwner returns (address) {
-        return protocolWallet;
-    }
 
     /**
      * @dev Only the owner of the platform ID can execute this function
@@ -405,15 +402,15 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     /**
      * @dev Validates a proposal for a service by locking ETH into escrow.
      * @param _metaEvidence Link to the meta-evidence.
-     * @param _serviceId Service of transaction
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
+     * @param _originDataUri dataURI of the validated proposal
      */
     function createETHTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId,
-        string memory originDataUri
+        string memory _originDataUri
     ) external payable returns (uint256) {
         ITalentLayerService.Proposal memory proposal;
         ITalentLayerService.Service memory service;
@@ -446,7 +443,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(proposal.rateToken == address(0), "Proposal token not ETH.");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
         require(
-            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(originDataUri)),
+            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
             "Proposal dataUri has changed."
         );
 
@@ -473,12 +470,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _metaEvidence Link to the meta-evidence.
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
+     * @param _originDataUri dataURI of the validated proposal
      */
     function createTokenTransaction(
         string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId,
-        string memory originDataUri
+        string memory _originDataUri
     ) external returns (uint256) {
         ITalentLayerService.Proposal memory proposal;
         ITalentLayerService.Service memory service;
@@ -512,7 +510,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
         require(
-            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(originDataUri)),
+            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
             "Proposal data URI are not equal."
         );
 
@@ -747,8 +745,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         }
 
         uint256 amount = platformIdToTokenToBalance[_platformId][_tokenAddress];
+        require(amount > 0, "nothing to claim");
         platformIdToTokenToBalance[_platformId][_tokenAddress] = 0;
-        _transferBalance(recipient, _tokenAddress, amount);
+        _safeTransferBalance(recipient, _tokenAddress, amount);
 
         emit FeesClaimed(_platformId, _tokenAddress, amount);
     }
@@ -1092,14 +1091,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _tokenAddress The token address
      * @param _amount The amount to transfer
      */
-    function _transferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
-        if (address(0) == _tokenAddress) {
-            _recipient.transfer(_amount);
-        } else {
-            IERC20(_tokenAddress).transfer(_recipient, _amount);
-        }
-    }
-
     function _safeTransferBalance(address payable _recipient, address _tokenAddress, uint256 _amount) private {
         if (address(0) == _tokenAddress) {
             _recipient.call{value: _amount}("");
