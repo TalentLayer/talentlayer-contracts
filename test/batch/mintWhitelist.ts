@@ -136,7 +136,7 @@ describe('Whitelist to mint reserved handles', function () {
 
       // Check profile is minted
       const aliceTlId = await talentLayerID.ids(alice.address)
-      const profile = await talentLayerID.getProfile(aliceTlId)
+      const profile = await talentLayerID.profiles(aliceTlId)
       expect(profile.handle).to.equal(handle)
     })
 
@@ -168,7 +168,7 @@ describe('Whitelist to mint reserved handles', function () {
 
       // Check profile is minted
       const frankTlId = await talentLayerID.ids(frank.address)
-      const profile = await talentLayerID.getProfile(frankTlId)
+      const profile = await talentLayerID.profiles(frankTlId)
       expect(profile.handle).to.equal(handle)
     })
   })
