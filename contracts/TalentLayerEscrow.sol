@@ -380,7 +380,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== Owner functions ==============================
 
     /**
-     * @notice Updated the Protocol Fee
+     * @notice Updates the Protocol Fee
      * @dev Only the owner can call this function
      * @param _protocolEscrowFeeRate The new protocol fee
      */
@@ -390,7 +390,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Updated the Protocol wallet
+     * @notice Updates the Protocol wallet
      * @dev Only the owner can call this function
      * @param _protocolWallet The new wallet address
      */
@@ -535,7 +535,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
                 arbitrationFeeTimeout: originServiceCreationPlatform.arbitrationFeeTimeout
             })
         );
-        _deposit(sender, proposal.rateToken, transactionAmount);
+        _deposit(proposal.rateToken, transactionAmount);
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
 
@@ -924,12 +924,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     /**
      * @notice Used to transfer ERC20 tokens balance from a wallet to the escrow contract's wallet.
-     * @param _sender The wallet to transfer the tokens from
      * @param _token The token to transfer
      * @param _amount The amount of tokens to transfer
      */
-    function _deposit(address _sender, address _token, uint256 _amount) private {
-        require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
+    function _deposit(address _token, uint256 _amount) private {
+        require(IERC20(_token).transferFrom(_msgSender(), address(this), _amount), "Transfer must not fail");
     }
 
     /**
