@@ -55,11 +55,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     mapping(uint256 => Review) public reviews;
 
     /**
-     * @notice Mapping owner TalentLayer ID to token count
-     */
-    mapping(uint256 => uint256) private _talentLayerIdToReviewCount;
-
-    /**
      * @notice Mapping to record whether a review token was minted by the buyer for a serviceId
      * TODO: make this boolean?
      */
@@ -200,8 +195,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     ) internal virtual {
         require(_to != 0, "TalentLayerReview: mint to invalid address");
         require(_rating <= 5 && _rating >= 0, "TalentLayerReview: invalid rating");
-
-        _talentLayerIdToReviewCount[_to] += 1;
 
         reviews[_totalSupply] = Review({
             id: _totalSupply,
