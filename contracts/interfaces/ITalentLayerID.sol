@@ -15,6 +15,8 @@ interface ITalentLayerID {
 
     function updateProfileData(uint256 _tokenId, string memory _newCid) external;
 
+    function freeMint(uint256 _platformId, address _userAddress, string calldata _handle) external returns (uint256);
+
     function isValid(uint256 _tokenId) external view;
 
     function setBaseURI(string memory _newBaseURI) external;

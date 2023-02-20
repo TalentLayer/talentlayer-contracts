@@ -6,7 +6,7 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
  * @notice This task is used to add or remove a token address to the whitelist
  * @param {string} tokenAddress - The address of the token to be added to the whitelist
  * @param {string} action - Input "add" to add the token address & "remove" to remove the token address from the whitelist
- * @dev Example of script use: "npx hardhat update-token-address-to-whitelist --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --action add --mintransactionamount 0.001 --network mumbai"
+ * @dev Example of script use: "npx hardhat update-token-address-to-whitelist --address 0x5FbDB2315678afecb367f032d93F642f64180aa3 --action add --mintransactionamount 0.001 --decimals 18 --network mumbai"
  * @dev Only contract owner can execute this task
  */
 task('update-token-address-to-whitelist', 'Add or remove a token address to the whitelist')
@@ -16,8 +16,10 @@ task('update-token-address-to-whitelist', 'Add or remove a token address to the 
     'mintransactionamount',
     'The minimum amount of tokens required to be sent in a transaction',
   )
+  .addParam('decimals', 'The number of decimals of the token')
   .setAction(async (taskArgs, { ethers, network }) => {
-    const { address, action, mintransactionamount } = taskArgs
+    const { address, action, mintransactionamount, decimals } = taskArgs
+
     const [deployer] = await ethers.getSigners()
 
     console.log('network', network.name)
@@ -31,7 +33,7 @@ task('update-token-address-to-whitelist', 'Add or remove a token address to the 
     const tx = await talentLayerService.updateAllowedTokenList(
       address,
       action === Actions.ADD,
-      ethers.utils.parseUnits(mintransactionamount, 18),
+      BigNumber.from(ethers.utils.parseUnits(mintransactionamount, decimals)),
     )
     await tx.wait()
     const isTokenRegistered = await talentLayerService.isTokenAllowed(address)
