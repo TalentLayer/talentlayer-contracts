@@ -1477,8 +1477,8 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerReview.connect(alice).addReview(aliceTlId, 2, 'cidReview1', 2, 1)
       await talentLayerReview.connect(bob).addReview(bobTlId, 2, 'cidReview2', 4, 1)
 
-      const reviewData1 = await talentLayerReview.getReview(0)
-      const reviewData2 = await talentLayerReview.getReview(1)
+      const reviewData1 = await talentLayerReview.getReview(1)
+      const reviewData2 = await talentLayerReview.getReview(2)
 
       expect(reviewData1.dataUri).to.be.equal('cidReview1')
       expect(reviewData2.dataUri).to.be.equal('cidReview2')

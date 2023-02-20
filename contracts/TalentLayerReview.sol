@@ -11,6 +11,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {ERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -23,6 +24,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
+    using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // Struct Review
     struct Review {
@@ -35,9 +37,9 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     }
 
     /**
-     * @notice Number of review tokens
+     * @notice Review id counter
      */
-    uint256 public _totalSupply;
+    CountersUpgradeable.Counter nextReviewId;
 
     /**
      * @notice Review Id to Review struct
@@ -101,10 +103,11 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         __ERC721_init("TalentLayerReview", "TLR");
         __UUPSUpgradeable_init();
         __Ownable_init();
-        _totalSupply = 0;
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerService = ITalentLayerService(_talentLayerServiceAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
+        // Increment counter to start review ids at index 1
+        nextReviewId.increment();
     }
 
     // =========================== View functions ==============================
@@ -112,6 +115,13 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     // get the data of the struct Review
     function getReview(uint256 _reviewId) public view returns (Review memory) {
         return reviews[_reviewId];
+    }
+
+    /**
+     * @dev Returns the total number of tokens in existence.
+     */
+    function totalSupply() public view returns (uint256) {
+        return nextReviewId.current() - 1;
     }
 
     // =========================== User functions ==============================
@@ -159,7 +169,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         }
 
         address sender = _msgSender();
-        _safeMint(sender, _totalSupply);
+        _safeMint(sender, nextReviewId.current());
         _afterMint(_serviceId, toId, _rating, _reviewUri, _platformId);
     }
 
@@ -184,8 +194,11 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         require(_to != 0, "TalentLayerReview: mint to invalid address");
         require(_rating <= 5 && _rating >= 0, "TalentLayerReview: invalid rating");
 
-        reviews[_totalSupply] = Review({
-            id: _totalSupply,
+        uint256 reviewId = nextReviewId.current();
+        nextReviewId.increment();
+
+        reviews[reviewId] = Review({
+            id: reviewId,
             owner: _to,
             dataUri: _reviewUri,
             platformId: _platformId,
@@ -193,9 +206,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
             rating: _rating
         });
 
-        _totalSupply = _totalSupply + 1;
-
-        emit Mint(_serviceId, _to, _totalSupply, _rating, _reviewUri, _platformId);
+        emit Mint(_serviceId, _to, reviewId, _rating, _reviewUri, _platformId);
     }
 
     // =========================== Internal functions ==========================
