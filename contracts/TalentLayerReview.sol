@@ -28,14 +28,14 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
 
     /// @notice Review information struct
     /// @param id the id of the review
-    /// @param owner the talentLayerId of the user who received the review
+    /// @param ownerId the talentLayerId of the user who received the review
     /// @param dataUri the IPFS URI of the review metadata
     /// @param platformId the platform ID on which the service of the review was created
     /// @param serviceId the id of the service of the review
     /// @param rating the rating of the review
     struct Review {
         uint256 id;
-        uint256 owner;
+        uint256 ownerId;
         string dataUri;
         uint256 platformId;
         uint256 serviceId;
@@ -205,7 +205,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
 
         reviews[reviewId] = Review({
             id: reviewId,
-            owner: _to,
+            ownerId: _to,
             dataUri: _reviewUri,
             platformId: _platformId,
             serviceId: _serviceId,
