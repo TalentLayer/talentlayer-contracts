@@ -161,7 +161,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
             hasBuyerBeenReviewed[_serviceId] = true;
         }
 
-        address sender = _msgSender();
+        address sender = tlId.ownerOf(toId);
         _safeMint(sender, nextReviewId.current());
         return _afterMint(_serviceId, toId, _rating, _reviewUri, _platformId);
     }
