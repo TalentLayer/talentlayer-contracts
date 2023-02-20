@@ -413,8 +413,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         string memory _metaEvidence,
         string memory _originDataUri
     ) external payable returns (uint256) {
-        ITalentLayerService.Service memory service = _getService(_serviceId);
-        ITalentLayerService.Proposal memory proposal = _getProposal(_serviceId, _proposalId);
+        ITalentLayerService.Service memory service = talentLayerServiceContract.getService(_serviceId);
+        ITalentLayerService.Proposal memory proposal = talentLayerServiceContract.getProposal(_serviceId, _proposalId);
         address sender = talentLayerIdContract.ownerOf(service.ownerId);
         address receiver = talentLayerIdContract.ownerOf(proposal.ownerId);
 
@@ -485,8 +485,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         string memory _metaEvidence,
         string memory _originDataUri
     ) external returns (uint256) {
-        ITalentLayerService.Service memory service = _getService(_serviceId);
-        ITalentLayerService.Proposal memory proposal = _getProposal(_serviceId, _proposalId);
+        ITalentLayerService.Service memory service = talentLayerServiceContract.getService(_serviceId);
+        ITalentLayerService.Proposal memory proposal = talentLayerServiceContract.getProposal(_serviceId, _proposalId);
         address sender = talentLayerIdContract.ownerOf(service.ownerId);
         address receiver = talentLayerIdContract.ownerOf(proposal.ownerId);
 
@@ -1012,28 +1012,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             talentLayerServiceContract.afterFullPayment(_serviceId);
             emit PaymentCompleted(_serviceId);
         }
-    }
-
-    /**
-     * @notice Used to get the Proposal data from the TalentLayerService contract.
-     * @param _serviceId The id of the service
-     * @param _proposalId The id of the proposal
-     * @return The Proposal struct
-     */
-    function _getProposal(
-        uint256 _serviceId,
-        uint256 _proposalId
-    ) private view returns (ITalentLayerService.Proposal memory) {
-        return talentLayerServiceContract.getProposal(_serviceId, _proposalId);
-    }
-
-    /**
-     * @notice Used to get the Service data from the TalentLayerService contract.
-     * @param _serviceId The id of the service
-     * @return The Service struct
-     */
-    function _getService(uint256 _serviceId) private view returns (ITalentLayerService.Service memory) {
-        return talentLayerServiceContract.getService(_serviceId);
     }
 
     /**
