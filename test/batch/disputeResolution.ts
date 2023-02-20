@@ -20,7 +20,7 @@ const carolPlatformId = 1
 const serviceId = 1
 const proposalId = bobTlId
 const transactionId = 0
-const transactionAmount = BigNumber.from(1000)
+const transactionAmount = BigNumber.from(1000000)
 const ethAddress = '0x0000000000000000000000000000000000000000'
 const arbitrationCost = BigNumber.from(10)
 const disputeId = 0
@@ -114,8 +114,8 @@ describe('Dispute Resolution, standard flow', function () {
     originValidatedProposalFeeRate: number,
     platform: TalentLayerPlatformID.PlatformStructOutput
 
-  const transactionReleasedAmount = BigNumber.from(100)
-  const transactionReimbursedAmount = BigNumber.from(50)
+  const transactionReleasedAmount = BigNumber.from(100000)
+  const transactionReimbursedAmount = BigNumber.from(50000)
   let currentTransactionAmount = transactionAmount
   const rulingId = 1
 

@@ -839,7 +839,7 @@ describe('TalentLayer protocol global testing', function () {
   describe('Escrow Contract test.', function () {
     describe('Successful use of Escrow for a service using an ERC20 token.', function () {
       const amountBob = 1000000
-      const amountCarol = 2000
+      const amountCarol = 20000
       const serviceId = 2
       const transactionId = 0
       let proposalIdBob = 0 //Will be set later
@@ -977,7 +977,7 @@ describe('TalentLayer protocol global testing', function () {
 
       it('Carol should not be allowed to release escrow the service.', async function () {
         await expect(
-          talentLayerEscrow.connect(carol).release(carolTlId, transactionId, 10),
+          talentLayerEscrow.connect(carol).release(carolTlId, transactionId, 10000),
         ).to.be.revertedWith('Access denied')
       })
 
@@ -1139,7 +1139,7 @@ describe('TalentLayer protocol global testing', function () {
 
       it('Alice can not release escrow because there is none left. ', async function () {
         await expect(
-          talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 1),
+          talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 10000),
         ).to.be.revertedWith('Insufficient funds')
       })
 
@@ -1315,7 +1315,7 @@ describe('TalentLayer protocol global testing', function () {
 
       it('Carol should not be allowed to release escrow the service.', async function () {
         await expect(
-          talentLayerEscrow.connect(carol).release(carolTlId, transactionId, 10),
+          talentLayerEscrow.connect(carol).release(carolTlId, transactionId, 10000),
         ).to.be.revertedWith('Access denied')
       })
 
@@ -1423,7 +1423,7 @@ describe('TalentLayer protocol global testing', function () {
 
       it('Alice can not release escrow because there is none left.', async function () {
         await expect(
-          talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 10),
+          talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 10000),
         ).to.be.revertedWith('Insufficient funds')
       })
 
