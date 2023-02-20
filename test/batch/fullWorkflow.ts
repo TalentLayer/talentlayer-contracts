@@ -23,7 +23,7 @@ const bobPlatformId = 2
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
-const minTokenWhitelistTranscationAmount = 10
+const minTokenWhitelistTransactionAmount = 10
 
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
@@ -103,7 +103,7 @@ describe('TalentLayer protocol global testing', function () {
     for (const tokenAddress of allowedTokenList) {
       await talentLayerService
         .connect(deployer)
-        .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTranscationAmount)
+        .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTransactionAmount)
     }
   })
 
@@ -588,7 +588,7 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(alice)
-          .updateAllowedTokenList(token.address, true, minTokenWhitelistTranscationAmount),
+          .updateAllowedTokenList(token.address, true, minTokenWhitelistTransactionAmount),
       ).to.be.revertedWith('Ownable: caller is not the owner')
     })
 
@@ -599,7 +599,7 @@ describe('TalentLayer protocol global testing', function () {
           .updateAllowedTokenList(
             ethers.constants.AddressZero,
             false,
-            minTokenWhitelistTranscationAmount,
+            minTokenWhitelistTransactionAmount,
           ),
       ).to.be.revertedWith("Owner can't remove Ox address")
     })
@@ -609,12 +609,12 @@ describe('TalentLayer protocol global testing', function () {
 
       await talentLayerService
         .connect(deployer)
-        .updateAllowedTokenList(randomTokenAddress, true, minTokenWhitelistTranscationAmount)
+        .updateAllowedTokenList(randomTokenAddress, true, minTokenWhitelistTransactionAmount)
       expect(await talentLayerService.isTokenAllowed(randomTokenAddress)).to.be.true
 
       await talentLayerService
         .connect(deployer)
-        .updateAllowedTokenList(randomTokenAddress, false, minTokenWhitelistTranscationAmount)
+        .updateAllowedTokenList(randomTokenAddress, false, minTokenWhitelistTransactionAmount)
       expect(await talentLayerService.isTokenAllowed(randomTokenAddress)).to.be.false
     })
 
@@ -721,6 +721,31 @@ describe('TalentLayer protocol global testing', function () {
       )
     })
 
+    it('Bob can t create a proposal with an amount under the transcation limit amount ', async function () {
+      // Proposal on the Open service n 1
+      const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformProposalPostingFee = platform.servicePostingFee
+
+      // Bob creates a proposal on Platform 1
+      await expect(
+        talentLayerService
+          .connect(bob)
+          .createProposal(
+            bobTlId,
+            1,
+            rateToken,
+            9,
+            alicePlatformId,
+            'proposal1FromBobToAlice1Service',
+            proposalExpirationDate,
+            {
+              value: alicePlatformProposalPostingFee,
+            },
+          ),
+      ).to.be.revertedWith('Amount is too low')
+    })
+
     it('Bob can create his first proposal for an Open service n°1 from Alice', async function () {
       // Proposal on the Open service n 1
       const bobTid = await talentLayerID.ids(bob.address)
@@ -794,7 +819,7 @@ describe('TalentLayer protocol global testing', function () {
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformProposalPostingFee = platform.proposalPostingFee
 
-      expect(
+      await expect(
         talentLayerService
           .connect(carol)
           .createProposal(

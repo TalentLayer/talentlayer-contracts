@@ -11,6 +11,7 @@ export enum Network {
 export type NetworkConfig = {
   multisigAddressList: { deployer?: `0x${string}`; fee: `0x${string}` }
   allowedTokenList: { [key: string]: `0x${string}` }
+  minTransactionAmount: { [key: string]: string }
   platformList: { [name: string]: `0x${string}` }
 }
 
@@ -20,6 +21,9 @@ const local: NetworkConfig = {
   },
   allowedTokenList: {
     ETH: ethers.constants.AddressZero,
+  },
+  minTransactionAmount: {
+    ETH: '0.001',
   },
   platformList: {
     hirevibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
@@ -35,6 +39,10 @@ const fuji = {
     AVAX: ethers.constants.AddressZero,
     USDC: '0xAF82969ECF299c1f1Bb5e1D12dDAcc9027431160',
   },
+  minTransactionAmount: {
+    AVAX: '0.001',
+    USDC: '0.001',
+  },
   platformList: {
     hirevibes: '0x96573C632c88996711de69389b501F4D9005Ff4e',
   },
@@ -48,6 +56,10 @@ const mumbai = {
   allowedTokenList: {
     MATIC: ethers.constants.AddressZero,
     USDC: '0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747',
+  },
+  minTransactionAmount: {
+    MATIC: '0.001',
+    USDC: '0.001',
   },
   platformList: {
     hirevibes: '0x96573C632c88996711de69389b501F4D9005Ff4e',
