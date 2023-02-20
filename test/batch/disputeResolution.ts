@@ -27,6 +27,7 @@ const disputeId = 0
 const metaEvidence = 'metaEvidence'
 const feeDivider = 10000
 const arbitrationFeeTimeout = 3600 * 24
+const minTokenWhitelistTranscationFees = 100
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
@@ -51,7 +52,9 @@ async function deployAndSetup(
   ] = await deploy(true)
 
   // Deployer whitelists a list of authorized tokens
-  await talentLayerService.connect(deployer).updateAllowedTokenList(tokenAddress, true)
+  await talentLayerService
+    .connect(deployer)
+    .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTranscationFees)
 
   // Grant Platform Id Mint role to Deployer and Bob
   const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -661,7 +664,9 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
       await deployAndSetup(arbitrationFeeTimeout, simpleERC20.address)
 
     if (!(await talentLayerService.isTokenAllowed(simpleERC20.address))) {
-      await talentLayerService.connect(deployer).updateAllowedTokenList(simpleERC20.address, true)
+      await talentLayerService
+        .connect(deployer)
+        .updateAllowedTokenList(simpleERC20.address, true, minTokenWhitelistTranscationFees)
     }
 
     const platform = await talentLayerPlatformID.platforms(carolPlatformId)

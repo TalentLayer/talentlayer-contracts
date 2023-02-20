@@ -23,6 +23,7 @@ const bobPlatformId = 2
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
+const minTokenWhitelistTranscationFees = 100
 
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
@@ -100,7 +101,9 @@ describe('TalentLayer protocol global testing', function () {
 
     // Deployer whitelists a list of authorized tokens
     for (const tokenAddress of allowedTokenList) {
-      await talentLayerService.connect(deployer).updateAllowedTokenList(tokenAddress, true)
+      await talentLayerService
+        .connect(deployer)
+        .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTranscationFees)
     }
   })
 
@@ -583,7 +586,9 @@ describe('TalentLayer protocol global testing', function () {
   describe('Service Registry & Proposal contract test', function () {
     it('Should revert if a user tries to whitelist a payment token without being the owner', async function () {
       await expect(
-        talentLayerService.connect(alice).updateAllowedTokenList(token.address, true),
+        talentLayerService
+          .connect(alice)
+          .updateAllowedTokenList(token.address, true, minTokenWhitelistTranscationFees),
       ).to.be.revertedWith('Ownable: caller is not the owner')
     })
 
@@ -591,17 +596,25 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(deployer)
-          .updateAllowedTokenList(ethers.constants.AddressZero, false),
+          .updateAllowedTokenList(
+            ethers.constants.AddressZero,
+            false,
+            minTokenWhitelistTranscationFees,
+          ),
       ).to.be.revertedWith("Owner can't remove Ox address")
     })
 
     it('Should update the token list accordingly if the owner updates it', async function () {
       const randomTokenAddress = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599'
 
-      await talentLayerService.connect(deployer).updateAllowedTokenList(randomTokenAddress, true)
+      await talentLayerService
+        .connect(deployer)
+        .updateAllowedTokenList(randomTokenAddress, true, minTokenWhitelistTranscationFees)
       expect(await talentLayerService.isTokenAllowed(randomTokenAddress)).to.be.true
 
-      await talentLayerService.connect(deployer).updateAllowedTokenList(randomTokenAddress, false)
+      await talentLayerService
+        .connect(deployer)
+        .updateAllowedTokenList(randomTokenAddress, false, minTokenWhitelistTranscationFees)
       expect(await talentLayerService.isTokenAllowed(randomTokenAddress)).to.be.false
     })
 
