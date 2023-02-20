@@ -108,8 +108,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @notice Emitted after each payment
      * @param _transactionId The id of the transaction.
      * @param _paymentType Whether the payment is a release or a reimbursement.
-     * @param _amount The amount paid.
      * @param _token The address of the token used for the payment.
+     * @param _amount The amount paid.
      * @param _serviceId The id of the concerned service.
      */
     event Payment(
@@ -153,6 +153,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         address indexed _token,
         uint256 _amount
     );
+
     /**
      * @notice Emitted after an origin service fee is released to a platform's balance
      * @param _platformId The platform ID.
@@ -167,16 +168,18 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _amount
     );
 
-    /** @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
-     *  @param _transactionId The id of the transaction.
-     *  @param _party The party who has to pay.
+    /**
+     * @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
+     * @param _transactionId The id of the transaction.
+     * @param _party The party who has to pay.
      */
     event HasToPayFee(uint256 indexed _transactionId, Party _party);
 
-    /** @notice Emitted when a party either pays the arbitration fee or gets it reimbursed.
-     *  @param _transactionId The id of the transaction.
-     *  @param _paymentType Whether the party paid or got reimbursed.
-     *  @param _party The party who has paid/got reimbursed the fee.
+    /**
+     * @notice Emitted when a party either pays the arbitration fee or gets it reimbursed.
+     * @param _transactionId The id of the transaction.
+     * @param _paymentType Whether the party paid or got reimbursed.
+     * @param _party The party who has paid/got reimbursed the fee.
      * @param _amount The amount paid/reimbursed
      */
     event ArbitrationFeePayment(
@@ -193,19 +196,20 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      */
     event RulingExecuted(uint256 indexed _transactionId, uint256 _ruling);
 
-    /** @notice Emitted when a transaction is created.
-     *  @param _transactionId Incremental idenfitifier
-     *  @param _senderId The TL Id of the party paying the escrow amount
-     *  @param _receiverId The TL Id of the intended receiver of the escrow amount
-     *  @param _token The token used for the transaction
-     *  @param _amount The amount of the transaction EXCLUDING FEES
-     *  @param _serviceId The ID of the associated service
-     *  @param _protocolEscrowFeeRate The %fee (per ten thousands) to pay to the protocol's owner
-     *  @param _originServiceFeeRate The %fee (per ten thousands) to pay to the platform on which the transaction was created
-     *  @param _originValidatedProposalFeeRate the %fee (per ten thousands) to pay to the platform on which the validated proposal was created
-     *  @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
-     *  @param _arbitratorExtraData Extra data to set up the arbitration.
-     *  @param _arbitrationFeeTimeout timeout for parties to pay the arbitration fee
+    /**
+     * @notice Emitted when a transaction is created.
+     * @param _transactionId Incremental idenfitifier
+     * @param _senderId The TL Id of the party paying the escrow amount
+     * @param _receiverId The TL Id of the intended receiver of the escrow amount
+     * @param _token The token used for the transaction
+     * @param _amount The amount of the transaction EXCLUDING FEES
+     * @param _serviceId The ID of the associated service
+     * @param _protocolEscrowFeeRate The %fee (per ten thousands) to pay to the protocol's owner
+     * @param _originServiceFeeRate The %fee (per ten thousands) to pay to the platform on which the transaction was created
+     * @param _originValidatedProposalFeeRate the %fee (per ten thousands) to pay to the platform on which the validated proposal was created
+     * @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
+     * @param _arbitratorExtraData Extra data to set up the arbitration.
+     * @param _arbitrationFeeTimeout timeout for parties to pay the arbitration fee
      */
     event TransactionCreated(
         uint256 _transactionId,
@@ -580,10 +584,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         _reimburse(transaction, _amount);
     }
 
-    /** @notice Allows the sender of the transaction to pay the arbitration fee to raise a dispute.
-     *  Note that the arbitrator can have createDispute throw, which will make this function throw and therefore lead to a party being timed-out.
-     *  This is not a vulnerability as the arbitrator can rule in favor of one party anyway.
-     *  @param _transactionId Id of the transaction.
+    /**
+     * @notice Allows the sender of the transaction to pay the arbitration fee to raise a dispute.
+     * Note that the arbitrator can have createDispute throw, which will make this function throw and therefore lead to a party being timed-out.
+     * This is not a vulnerability as the arbitrator can rule in favor of one party anyway.
+     * @param _transactionId Id of the transaction.
      */
     function payArbitrationFeeBySender(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
@@ -614,9 +619,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         }
     }
 
-    /** @notice Allows the receiver of the transaction to pay the arbitration fee to raise a dispute.
-     *  Note that this function mirrors payArbitrationFeeBySender.
-     *  @param _transactionId Id of the transaction.
+    /**
+     * @notice Allows the receiver of the transaction to pay the arbitration fee to raise a dispute.
+     * Note that this function mirrors payArbitrationFeeBySender.
+     * @param _transactionId Id of the transaction.
      */
     function payArbitrationFeeByReceiver(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
@@ -647,8 +653,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         }
     }
 
-    /** @notice Reimburses sender if receiver fails to pay the arbitration fee.
-     *  @param _transactionId Id of the transaction.
+    /**
+     * @notice Reimburses sender if receiver fails to pay the arbitration fee.
+     * @param _transactionId Id of the transaction.
      */
     function timeOutBySender(uint256 _transactionId) public {
         Transaction storage transaction = transactions[_transactionId];
@@ -670,8 +677,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         _executeRuling(_transactionId, SENDER_WINS);
     }
 
-    /** @notice Pays receiver if sender fails to pay the arbitration fee.
-     *  @param _transactionId Id of the transaction.
+    /**
+     * @notice Pays receiver if sender fails to pay the arbitration fee.
+     * @param _transactionId Id of the transaction.
      */
     function timeOutByReceiver(uint256 _transactionId) public {
         Transaction storage transaction = transactions[_transactionId];
@@ -691,10 +699,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         _executeRuling(_transactionId, RECEIVER_WINS);
     }
 
-    /** @notice Allows a party to submit a reference to evidence.
-     *  @param _profileId The TalentLayer ID of the user
-     *  @param _transactionId The index of the transaction.
-     *  @param _evidence A link to an evidence using its URI.
+    /**
+     * @notice Allows a party to submit a reference to evidence.
+     * @param _profileId The TalentLayer ID of the user
+     * @param _transactionId The index of the transaction.
+     * @param _evidence A link to an evidence using its URI.
      */
     function submitEvidence(
         uint256 _profileId,
@@ -716,10 +725,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         emit EvidenceSubmitted(_transactionId, _profileId, _evidence);
     }
 
-    /** @notice Appeals an appealable ruling, paying the appeal fee to the arbitrator.
-     *  Note that no checks are required as the checks are done by the arbitrator.
+    /**
+     * @notice Appeals an appealable ruling, paying the appeal fee to the arbitrator.
+     * Note that no checks are required as the checks are done by the arbitrator.
      *
-     *  @param _transactionId Id of the transaction.
+     * @param _transactionId Id of the transaction.
      */
     function appeal(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
@@ -766,9 +776,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     // =========================== Arbitrator functions ==============================
 
-    /** @notice Allows the arbitrator to give a ruling for a dispute.
-     *  @param _disputeID The ID of the dispute in the Arbitrator contract.
-     *  @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
+    /**
+     * @notice Allows the arbitrator to give a ruling for a dispute.
+     * @param _disputeID The ID of the dispute in the Arbitrator contract.
+     * @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
      */
     function rule(uint256 _disputeID, uint256 _ruling) public {
         address sender = _msgSender();
@@ -785,10 +796,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     // =========================== Internal functions ==============================
 
-    /** @notice Creates a dispute, paying the arbitration fee to the arbitrator. Parties are refund if
-     *          they overpaid for the arbitration fee.
-     *  @param _transactionId Id of the transaction.
-     *  @param _arbitrationCost Amount to pay the arbitrator.
+    /**
+     * @notice Creates a dispute, paying the arbitration fee to the arbitrator. Parties are refund if
+     *         they overpaid for the arbitration fee.
+     * @param _transactionId Id of the transaction.
+     * @param _arbitrationCost Amount to pay the arbitrator.
      */
     function _raiseDispute(uint256 _transactionId, uint256 _arbitrationCost) internal {
         Transaction storage transaction = transactions[_transactionId];
@@ -819,12 +831,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         }
     }
 
-    /** @notice Executes a ruling of a dispute. Sends the funds and reimburses the arbitration fee to the winning party.
-     *  @param _transactionId The index of the transaction.
-     *  @param _ruling Ruling given by the arbitrator.
-     *                 0: Refused to rule, split amount equally between sender and receiver.
-     *                 1: Reimburse the sender
-     *                 2: Pay the receiver
+    /**
+     * @notice Executes a ruling of a dispute. Sends the funds and reimburses the arbitration fee to the winning party.
+     * @param _transactionId The index of the transaction.
+     * @param _ruling Ruling given by the arbitrator.
+     *                0: Refused to rule, split amount equally between sender and receiver.
+     *                1: Reimburse the sender
+     *                2: Pay the receiver
      */
     function _executeRuling(uint256 _transactionId, uint256 _ruling) internal {
         Transaction storage transaction = transactions[_transactionId];
