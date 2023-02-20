@@ -3,12 +3,10 @@
 
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {ERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -21,13 +19,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  * @title TalentLayer Review Contract
  * @author TalentLayer Team
  */
-contract TalentLayerReview is
-    ERC2771RecipientUpgradeable,
-    ERC165Upgradeable,
-    IERC721Upgradeable,
-    IERC721MetadataUpgradeable,
-    UUPSUpgradeable
-{
+contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
 
@@ -69,11 +61,12 @@ contract TalentLayerReview is
 
     /**
      * @notice Mapping to record whether a review token was minted by the buyer for a serviceId
+     * TODO: make this boolean?
      */
     mapping(uint256 => uint256) public nftMintedByServiceAndBuyerId;
 
     /**
-     * @notice Mapping to record whether a review token was minted buy the seller for a serviceId
+     * @notice Mapping to record whether a review token was minted by the seller for a serviceId
      */
     mapping(uint256 => uint256) public nftMintedByServiceAndSellerId;
 
@@ -182,86 +175,12 @@ contract TalentLayerReview is
             }
         }
 
-        _mint(_serviceId, toId, _rating, _reviewUri, _platformId);
+        address sender = _msgSender();
+        _safeMint(sender, _totalSupply);
+        _afterMint(_serviceId, toId, _rating, _reviewUri, _platformId);
     }
 
     // =========================== Private functions ===========================
-
-    /**
-     * @notice Called after each safe transfer to verify whether the recipient received the token
-     * @param _from The address of the sender
-     * @param _to The address of the recipient
-     * @param _tokenId The ID of the review token
-     * @param _data Additional data with no specified format
-     */
-    function _checkOnERC721Received(
-        address _from,
-        address _to,
-        uint256 _tokenId,
-        bytes memory _data
-    ) private returns (bool) {
-        if (_to.isContract()) {
-            try IERC721ReceiverUpgradeable(_to).onERC721Received(_msgSender(), _from, _tokenId, _data) returns (
-                bytes4 retval
-            ) {
-                return retval == IERC721ReceiverUpgradeable.onERC721Received.selector;
-            } catch (bytes memory reason) {
-                if (reason.length == 0) {
-                    revert("TalentLayerReview: transfer to non ERC721Receiver implementer");
-                } else {
-                    /// @solidity memory-safe-assembly
-                    assembly {
-                        revert(add(32, reason), mload(reason))
-                    }
-                }
-            }
-        } else {
-            return true;
-        }
-    }
-
-    // =========================== Internal functions ==========================
-
-    /**
-     * @dev Override to block this function
-     */
-    function _baseURI() internal view virtual returns (string memory) {
-        return "";
-    }
-
-    /**
-     * @dev Transfers a token from one owner to another
-     * @param _from The address of the sender
-     * @param _to The address of the recipient
-     * @param _tokenId The ID of the review token
-     * @param _data Additional data with no specified format
-     */
-    function _safeTransfer(address _from, address _to, uint256 _tokenId, bytes memory _data) internal virtual {
-        _transfer(_from, _to, _tokenId);
-        require(
-            _checkOnERC721Received(_from, _to, _tokenId, _data),
-            "TalentLayerReview: transfer to non ERC721Receiver implementer"
-        );
-    }
-
-    /**
-     * @dev Checks whether a review token exists
-     * @param _tokenId The ID of the review token
-     */
-    function _exists(uint256 _tokenId) internal view virtual returns (bool) {
-        return reviews[_tokenId].id != 0;
-    }
-
-    /**
-     * @dev Checks whether an operator the owner of a token or whether he is approved
-      to perform operations on behalf of a user
-     * @param _spender The address of the operator
-     * @param _tokenId The ID of the review token
-     */
-    function _isApprovedOrOwner(address _spender, uint256 _tokenId) internal view virtual returns (bool) {
-        address owner = TalentLayerReview.ownerOf(_tokenId);
-        return (_spender == owner || isApprovedForAll(owner, _spender) || getApproved(_tokenId) == _spender);
-    }
 
     /**
      * @dev Mints a review token
@@ -272,7 +191,7 @@ contract TalentLayerReview is
      * @param _platformId The platform ID
      * Emits a "Mint" event
      */
-    function _mint(
+    function _afterMint(
         uint256 _serviceId,
         uint256 _to,
         uint256 _rating,
@@ -298,181 +217,62 @@ contract TalentLayerReview is
         emit Mint(_serviceId, _to, _totalSupply, _rating, _reviewUri, _platformId);
     }
 
-    /**
-     * @dev Blocks the burn function
-     * @param _tokenId The ID of the review token
-     */
-    function _burn(uint256 _tokenId) internal virtual {}
+    // =========================== Internal functions ==========================
 
     /**
-     * @dev Bocks the transfer function to restrict the use to only safe transfer
-     * @param _from The address of the sender
-     * @param _to The address of the recipient
-     * @param _tokenId The ID of the review token
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
+     * {upgradeTo} and {upgradeToAndCall}.
+     * @param newImplementation address of the new contract implementation
      */
-    function _transfer(address _from, address _to, uint256 _tokenId) internal virtual {}
-
-    /**
-     * @dev Approves an operator to perform operations on a token
-     * @param _to The address of the operator
-     * @param _tokenId The ID of the review token
-     */
-    function _approve(address _to, uint256 _tokenId) internal virtual {
-        _tokenApprovals[_tokenId] = _to;
-        emit Approval(TalentLayerReview.ownerOf(_tokenId), _to, _tokenId);
-    }
-
-    /**
-     * @dev Gives the approval to an operator to perform operations on behalf of a user
-     * @param _owner The user
-     * @param _operator The operator
-     * @param _approved The approval status
-     */
-    function _setApprovalForAll(address _owner, address _operator, bool _approved) internal virtual {
-        require(_owner != _operator, "TalentLayerReview: approve to caller");
-        _operatorApprovals[_owner][_operator] = _approved;
-        emit ApprovalForAll(_owner, _operator, _approved);
-    }
-
-    /**
-     * @dev Unused hook.
-     */
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
-
-    /**
-     * @dev Unused hook.
-     */
-    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
-
     function _authorizeUpgrade(address newImplementation) internal override(UUPSUpgradeable) onlyOwner {}
-
-    // =========================== External functions ==========================
 
     // =========================== Overrides ===================================
 
     /**
-     * @dev See {IERC165-supportsInterface}.
+     * @dev Override to prevent token transfer.
      */
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
-        return
-            interfaceId == type(IERC721Upgradeable).interfaceId ||
-            interfaceId == type(IERC721MetadataUpgradeable).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function transferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
-     * @dev See {IER721A-balanceOf}.
+     * @dev Override to prevent token transfer.
      */
-    function balanceOf(address owner) public view virtual override returns (uint256) {
-        require(owner != address(0), "TalentLayerReview: token zero is not a valid owner");
-
-        return _talentLayerIdToReviewCount[tlId.ids(owner)];
+    function safeTransferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
-     * @dev See {IER721A-ownerOf}.
+     * @dev Override to prevent token transfer.
      */
-    function ownerOf(uint256 tokenId) public view virtual override returns (address) {
-        address owner = tlId.ownerOf(reviews[tokenId].id);
-        require(owner != address(0), "TalentLayerReview: invalid token ID");
-        return owner;
+    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
-     * @dev See {IER721A-name}.
+     * @dev Blocks the burn function
+     * @param _tokenId The ID of the token
      */
-    function name() public view virtual override returns (string memory) {
-        return _name;
+    function _burn(uint256 _tokenId) internal virtual override(ERC721Upgradeable) {}
+
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (address)
+    {
+        return ERC2771RecipientUpgradeable._msgSender();
     }
 
-    /**
-     * @dev See {IER721A-symbol}.
-     */
-    function symbol() public view virtual override returns (string memory) {
-        return _symbol;
-    }
-
-    /**
-     * @dev See {IER721A-tokenUri}.
-     */
-    function tokenURI(uint256 tokenId) public view virtual override RequireMinted(tokenId) returns (string memory) {
-        string memory baseURI = _baseURI();
-        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
-    }
-
-    /**
-     * @dev See {IER721A-approve}.
-     */
-    function approve(address to, uint256 tokenId) public virtual override {
-        address owner = TalentLayerReview.ownerOf(tokenId);
-        require(to != owner, "TalentLayerReview: approval to current owner");
-
-        address sender = _msgSender();
-        require(
-            sender == owner || isApprovedForAll(owner, sender),
-            "TalentLayerReview: approve caller is not token owner nor approved for all"
-        );
-
-        _approve(to, tokenId);
-    }
-
-    /**
-     * @dev See {IER721A-getApproved}.
-     */
-    function getApproved(uint256 _tokenId) public view virtual override RequireMinted(_tokenId) returns (address) {
-        return _tokenApprovals[_tokenId];
-    }
-
-    /**
-     * @dev See {IER721A-setApprovedForAll}.
-     */
-    function setApprovalForAll(address operator, bool approved) public virtual override {
-        _setApprovalForAll(_msgSender(), operator, approved);
-    }
-
-    /**
-     * @dev See {IER721A-isApprovedForAll}.
-     */
-    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
-        return _operatorApprovals[owner][operator];
-    }
-
-    /**
-     * @dev See {IER721A-transferFrom}.
-     */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
-        //solhint-disable-next-line max-line-length
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
-
-        _transfer(from, to, tokenId);
-    }
-
-    /**
-     * @dev See {IER721A-safeTransferFrom}.
-     */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override {
-        safeTransferFrom(from, to, tokenId, "");
-    }
-
-    /**
-     * @dev See {IER721A-safeTransferFrom}.
-     */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual override {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "TalentLayerReview: caller is not token owner nor approved");
-        _safeTransfer(from, to, tokenId, data);
-    }
-
-    // =========================== Modifiers ===================================
-
-    /**
-     * @dev Throws an error if _tokenId does not exist
-     * @param _tokenId The ID of the review token
-     */
-    modifier RequireMinted(uint256 _tokenId) {
-        _;
-        require(_exists(_tokenId), "TalentLayerReview: invalid token ID");
+    function _msgData()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (bytes calldata)
+    {
+        return ERC2771RecipientUpgradeable._msgData();
     }
 
     // =========================== Modifiers ==============================
