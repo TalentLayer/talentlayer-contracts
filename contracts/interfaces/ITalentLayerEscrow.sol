@@ -38,17 +38,10 @@ interface ITalentLayerEscrow {
 
     function updateProtocolWallet(address payable _protocolWallet) external;
 
-    function createTokenTransaction(
-        string memory _metaEvidence,
+    function createTransaction(
         uint256 _serviceId,
         uint256 _proposalId,
-        string memory originDataUri
-    ) external returns (uint256);
-
-    function createETHTransaction(
         string memory _metaEvidence,
-        uint256 _serviceId,
-        uint256 _proposalId,
         string memory originDataUri
     ) external payable returns (uint256);
 

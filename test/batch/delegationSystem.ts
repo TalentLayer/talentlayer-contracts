@@ -15,7 +15,7 @@ const aliceTlId = 1
 const bobTlId = 2
 const serviceId = 1
 const trasactionId = 0
-const transactionAmount = 100
+const transactionAmount = 100000
 const ethAddress = '0x0000000000000000000000000000000000000000'
 
 const now = Math.floor(Date.now() / 1000)
@@ -176,16 +176,20 @@ describe('Delegation System', function () {
       // Accept proposal through deposit
       await talentLayerEscrow
         .connect(alice)
-        .createETHTransaction(serviceId, bobTlId, '', proposal.dataUri, {
+        .createTransaction(serviceId, bobTlId, '', proposal.dataUri, {
           value: totalAmount,
         })
 
       // Fails is caller is not the owner or delegate
-      const failTx = talentLayerEscrow.connect(eve).release(aliceTlId, trasactionId, 100)
+      const failTx = talentLayerEscrow
+        .connect(eve)
+        .release(aliceTlId, trasactionId, transactionAmount)
       await expect(failTx).to.be.revertedWith('Not owner or delegate')
 
       // Release payment
-      const tx = await talentLayerEscrow.connect(dave).release(aliceTlId, trasactionId, 100)
+      const tx = await talentLayerEscrow
+        .connect(dave)
+        .release(aliceTlId, trasactionId, transactionAmount)
       await expect(tx).to.not.be.reverted
     })
 
