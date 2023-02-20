@@ -83,10 +83,10 @@ async function main() {
   // we need to retreive the Bob proposal dataUri
   const proposal = await talentLayerService.proposals(secondServiceId, 4)
 
-  await talentLayerEscrow.connect(alice).createTokenTransaction(
-    '_metaEvidence',
+  await talentLayerEscrow.connect(alice).createTransaction(
     secondServiceId,
     4, //proposalId/talentLayerId of Dave.
+    '_metaEvidence',
     proposal.dataUri,
   )
 }

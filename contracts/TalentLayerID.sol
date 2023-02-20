@@ -128,16 +128,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Returns the Profile struct of a given TalentLayer ID
-     * @param _profileId The TalentLayer ID
-     * @return The Profile struct of the TalentLayer ID
-     */
-    function getProfile(uint256 _profileId) external view returns (Profile memory) {
-        require(_exists(_profileId), "TalentLayerID: Profile does not exist");
-        return profiles[_profileId];
-    }
-
-    /**
      * @notice Returns the platform ID of the platform which onboarded the user.
      * @param _address The address of the user
      */
@@ -200,11 +190,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function mint(
         uint256 _platformId,
         string calldata _handle
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
         require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
-        _afterMint(sender, _handle, _platformId, msg.value);
+        return _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
@@ -290,9 +280,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId,
         address _userAddress,
         string calldata _handle
-    ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
+    ) public canMint(_userAddress, _handle, _platformId) onlyOwner returns (uint256) {
         _safeMint(_userAddress, nextProfileId.current());
-        _afterMint(_userAddress, _handle, _platformId, 0);
+        return _afterMint(_userAddress, _handle, _platformId, 0);
     }
 
     /**
@@ -340,9 +330,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     function _validateHandle(string calldata handle) private pure {
         bytes memory byteHandle = bytes(handle);
-        if (byteHandle.length == 0 || byteHandle.length > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
-
         uint256 byteHandleLength = byteHandle.length;
+        if (byteHandleLength == 0 || byteHandleLength > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+
         for (uint256 i = 0; i < byteHandleLength; ) {
             if (
                 (byteHandle[i] < "0" || byteHandle[i] > "z" || (byteHandle[i] > "9" && byteHandle[i] < "a")) &&
@@ -365,20 +355,25 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     // =========================== Overrides ==============================
 
     /**
-     * @dev Blocks the transferFrom function
-     * @param from The address to transfer from
-     * @param to The address to transfer to
-     * @param tokenId The token ID to transfer
+     * @dev Override to prevent token transfer.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
 
     /**
-     * @dev Blocks the safeTransferFrom function
-     * @param from The address to transfer from
-     * @param to The address to transfer to
-     * @param tokenId The token ID to transfer
+     * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
+
+    /**
+     * @dev Override to prevent token transfer.
+     */
+    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
 
     /**
      * @dev Blocks the burn function

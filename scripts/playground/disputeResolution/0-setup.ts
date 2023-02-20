@@ -132,7 +132,7 @@ async function main() {
       .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
       .div(feeDivider),
   )
-  await talentLayerEscrow.connect(alice).createETHTransaction(metaEvidence, serviceId, proposalId, {
+  await talentLayerEscrow.connect(alice).createTransaction(serviceId, proposalId, metaEvidence, {
     value: totalTransactionAmount,
   })
 }

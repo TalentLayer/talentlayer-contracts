@@ -359,10 +359,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @dev Only the contract owner can call this function
      */
     function updateAllowedTokenList(address _tokenAddress, bool _status) public onlyOwner {
-        require(
-            (_tokenAddress == address(0) && _status != false) || (_tokenAddress != address(0)),
-            "Owner can't remove Ox address"
-        );
+        if (_tokenAddress == address(0) && _status == false) {
+            revert("Owner can't remove Ox address");
+        }
         allowedTokenList[_tokenAddress] = _status;
 
         emit AllowedTokenListUpdated(_tokenAddress, _status);

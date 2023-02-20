@@ -222,9 +222,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @dev You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      */
-    function mint(string calldata _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
+    function mint(
+        string calldata _platformName
+    ) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) returns (uint256) {
         _safeMint(msg.sender, nextPlatformId.current());
-        _afterMint(_platformName, msg.sender);
+        return _afterMint(_platformName, msg.sender);
     }
 
     /**
@@ -236,9 +238,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     function mintForAddress(
         string calldata _platformName,
         address _platformAddress
-    ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
+    ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) returns (uint256) {
         _safeMint(_platformAddress, nextPlatformId.current());
-        _afterMint(_platformName, _platformAddress);
+        return _afterMint(_platformName, _platformAddress);
     }
 
     /**
@@ -430,9 +432,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     function _validateHandle(string calldata handle) private pure {
         bytes memory byteHandle = bytes(handle);
-        if (byteHandle.length == 0 || byteHandle.length > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
-
         uint256 byteHandleLength = byteHandle.length;
+        if (byteHandleLength == 0 || byteHandleLength > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+
         for (uint256 i = 0; i < byteHandleLength; ) {
             if (
                 (byteHandle[i] < "0" || byteHandle[i] > "z" || (byteHandle[i] > "9" && byteHandle[i] < "a")) &&
@@ -468,23 +470,22 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /**
      * @dev Override to prevent token transfer.
      */
-    function transferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/
-    ) public virtual override(ERC721Upgradeable) {
-        revert("Not allowed");
+    function transferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
      * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/
-    ) public virtual override(ERC721Upgradeable) {
-        revert("Not allowed");
+    function safeTransferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
+
+    /**
+     * @dev Override to prevent token transfer.
+     */
+    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
