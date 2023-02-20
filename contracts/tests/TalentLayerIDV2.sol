@@ -96,16 +96,6 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     }
 
     /**
-     * @notice Returns the Profile struct of a given token ID
-     * @param _profileId the token ID of the profile
-     * @return The Profile struct of the token ID
-     */
-    function getProfile(uint256 _profileId) external view returns (Profile memory) {
-        require(_exists(_profileId), "TalentLayerID: Profile does not exist");
-        return profiles[_profileId];
-    }
-
-    /**
      * @notice Returns the platform ID of the platform which onboarded the user.
      * @param _address The address of the user
      */
@@ -271,20 +261,38 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     // =========================== Overrides ==============================
 
     /**
-     * @dev Blocks the transferFrom function
-     * @param from The address to transfer from
-     * @param to The address to transfer to
-     * @param tokenId The token ID to transfer
+     * @dev Override to prevent token transfer.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*tokenId*/
+    ) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
 
     /**
-     * @dev Blocks the safeTransferFrom function
-     * @param from The address to transfer from
-     * @param to The address to transfer to
-     * @param tokenId The token ID to transfer
+     * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*tokenId*/
+    ) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
+
+    /**
+     * @dev Override to prevent token transfer.
+     */
+    function safeTransferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*tokenId*/,
+        bytes memory /*data*/
+    ) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
 
     /**
      * @dev Blocks the burn function

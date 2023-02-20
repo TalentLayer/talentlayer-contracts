@@ -222,9 +222,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @dev You need to have MINT_ROLE to use this function
      * @param _platformName Platform name
      */
-    function mint(string calldata _platformName) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) {
+    function mint(
+        string calldata _platformName
+    ) public payable canMint(_platformName, msg.sender) onlyRole(MINT_ROLE) returns (uint256) {
         _safeMint(msg.sender, nextPlatformId.current());
-        _afterMint(_platformName, msg.sender);
+        return _afterMint(_platformName, msg.sender);
     }
 
     /**
@@ -236,9 +238,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     function mintForAddress(
         string calldata _platformName,
         address _platformAddress
-    ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) {
+    ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) returns (uint256) {
         _safeMint(_platformAddress, nextPlatformId.current());
-        _afterMint(_platformName, _platformAddress);
+        return _afterMint(_platformName, _platformAddress);
     }
 
     /**
@@ -468,23 +470,22 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /**
      * @dev Override to prevent token transfer.
      */
-    function transferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/
-    ) public virtual override(ERC721Upgradeable) {
-        revert("Not allowed");
+    function transferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
      * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/
-    ) public virtual override(ERC721Upgradeable) {
-        revert("Not allowed");
+    function safeTransferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
+
+    /**
+     * @dev Override to prevent token transfer.
+     */
+    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
