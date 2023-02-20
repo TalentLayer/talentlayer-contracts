@@ -147,6 +147,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
             "You're not an actor of this service"
         );
         require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
+        require(_rating <= 5 && _rating >= 0, "Invalid rating");
         talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
@@ -183,9 +184,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         string calldata _reviewUri,
         uint256 _platformId
     ) internal virtual returns (uint256) {
-        require(_to != 0, "TalentLayerReview: mint to invalid address");
-        require(_rating <= 5 && _rating >= 0, "TalentLayerReview: invalid rating");
-
         uint256 reviewId = nextReviewId.current();
         nextReviewId.increment();
 
