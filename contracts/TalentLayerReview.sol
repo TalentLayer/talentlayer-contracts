@@ -56,12 +56,12 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     /**
      * @notice Mapping to record whether a review token was minted by the buyer for a serviceId
      */
-    mapping(uint256 => uint256) public nftMintedByServiceAndBuyerId;
+    mapping(uint256 => uint256) public reviewMintedByServiceAndBuyerId;
 
     /**
      * @notice Mapping to record whether a review token was minted by the seller for a serviceId
      */
-    mapping(uint256 => uint256) public nftMintedByServiceAndSellerId;
+    mapping(uint256 => uint256) public reviewMintedByServiceAndSellerId;
 
     /**
      * @notice Error thrown when caller already minted a review
@@ -149,17 +149,17 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         uint256 toId;
         if (_profileId == service.ownerId) {
             toId = service.acceptedProposalId;
-            if (nftMintedByServiceAndBuyerId[_serviceId] == _profileId) {
+            if (reviewMintedByServiceAndBuyerId[_serviceId] == _profileId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndBuyerId[_serviceId] = _profileId;
+                reviewMintedByServiceAndBuyerId[_serviceId] = _profileId;
             }
         } else {
             toId = service.ownerId;
-            if (nftMintedByServiceAndSellerId[_serviceId] == _profileId) {
+            if (reviewMintedByServiceAndSellerId[_serviceId] == _profileId) {
                 revert ReviewAlreadyMinted();
             } else {
-                nftMintedByServiceAndSellerId[_serviceId] = _profileId;
+                reviewMintedByServiceAndSellerId[_serviceId] = _profileId;
             }
         }
 
