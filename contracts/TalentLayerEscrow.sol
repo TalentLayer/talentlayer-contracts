@@ -401,13 +401,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== User functions ==============================
 
     /**
-     * @dev Validates a proposal for a service by locking ETH into escrow.
+     * @dev Validates a proposal for a service by locking token into escrow.
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
      * @param _metaEvidence Link to the meta-evidence.
      * @param _originDataUri dataURI of the validated proposal
      */
-    function createETHTransaction(
+    function createTransaction(
         uint256 _serviceId,
         uint256 _proposalId,
         string memory _metaEvidence,
@@ -431,9 +431,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             originProposalCreationPlatform.originValidatedProposalFeeRate
         );
 
+        if (proposal.rateToken == address(0)) {
+            require(msg.value == transactionAmount, "Non-matching funds");
+        } else {
+            require(msg.value == 0, "Non-matching funds");
+        }
+
         require(_msgSender() == sender, "Access denied");
-        require(msg.value == transactionAmount, "Non-matching funds");
-        require(proposal.rateToken == address(0), "Proposal token not ETH");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open");
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending");
@@ -467,79 +471,47 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         );
 
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
+
+        if (proposal.rateToken != address(0)) {
+            _deposit(sender, proposal.rateToken, transactionAmount);
+        }
+
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
 
         return transactionId;
     }
 
     /**
-     * @dev Validates a proposal for a service by locking ERC20 into escrow.
-     * @param _serviceId Id of the service that the sender created and the proposal was made for.
-     * @param _proposalId Id of the proposal that the transaction validates.
-     * @param _metaEvidence Link to the meta-evidence.
-     * @param _originDataUri dataURI of the validated proposal
+     * @notice Emits the events related to the creation of a transaction.
+     * @param _senderId The TL ID of the sender
+     * @param _receiverId The TL ID of the receiver
+     * @param _transactionId The ID of the transavtion
+     * @param _metaEvidence The meta evidence of the transaction
      */
-    function createTokenTransaction(
-        uint256 _serviceId,
-        uint256 _proposalId,
-        string memory _metaEvidence,
-        string memory _originDataUri
-    ) external returns (uint256) {
-        ITalentLayerService.Service memory service = talentLayerServiceContract.getService(_serviceId);
-        ITalentLayerService.Proposal memory proposal = talentLayerServiceContract.getProposal(_serviceId, _proposalId);
-        address sender = talentLayerIdContract.ownerOf(service.ownerId);
-        address receiver = talentLayerIdContract.ownerOf(proposal.ownerId);
+    function _afterCreateTransaction(
+        uint256 _senderId,
+        uint256 _receiverId,
+        uint256 _transactionId,
+        string memory _metaEvidence
+    ) internal {
+        Transaction storage transaction = transactions[_transactionId];
 
-        ITalentLayerPlatformID.Platform memory originServiceCreationPlatform = talentLayerPlatformIdContract
-            .getPlatform(service.platformId);
-        ITalentLayerPlatformID.Platform memory originProposalCreationPlatform = service.platformId !=
-            proposal.platformId
-            ? talentLayerPlatformIdContract.getPlatform(proposal.platformId)
-            : originServiceCreationPlatform;
-
-        uint256 transactionAmount = _calculateTotalEscrowAmount(
-            proposal.rateAmount,
-            originServiceCreationPlatform.originServiceFeeRate,
-            originProposalCreationPlatform.originValidatedProposalFeeRate
+        emit TransactionCreated(
+            _transactionId,
+            _senderId,
+            _receiverId,
+            transaction.token,
+            transaction.amount,
+            transaction.serviceId,
+            transaction.proposalId,
+            protocolEscrowFeeRate,
+            transaction.originServiceFeeRate,
+            transaction.originValidatedProposalFeeRate,
+            transaction.arbitrator,
+            transaction.arbitratorExtraData,
+            transaction.arbitrationFeeTimeout
         );
-
-        require(_msgSender() == sender, "Access denied");
-        require(service.status == ITalentLayerService.Status.Opened, "Service status not open");
-        require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending");
-        require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
-        require(
-            keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
-            "Proposal data URI are not equal"
-        );
-
-        uint256 transactionId = transactions.length;
-        transactions.push(
-            Transaction({
-                id: transactionId,
-                sender: sender,
-                receiver: receiver,
-                token: proposal.rateToken,
-                amount: proposal.rateAmount,
-                serviceId: _serviceId,
-                proposalId: _proposalId,
-                protocolEscrowFeeRate: protocolEscrowFeeRate,
-                originServiceFeeRate: originServiceCreationPlatform.originServiceFeeRate,
-                originValidatedProposalFeeRate: originProposalCreationPlatform.originValidatedProposalFeeRate,
-                disputeId: 0,
-                senderFee: 0,
-                receiverFee: 0,
-                lastInteraction: block.timestamp,
-                status: Status.NoDispute,
-                arbitrator: originServiceCreationPlatform.arbitrator,
-                arbitratorExtraData: originServiceCreationPlatform.arbitratorExtraData,
-                arbitrationFeeTimeout: originServiceCreationPlatform.arbitrationFeeTimeout
-            })
-        );
-        _deposit(sender, proposal.rateToken, transactionAmount);
-        talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
-        _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
-
-        return transactionId;
+        emit MetaEvidence(_transactionId, _metaEvidence);
     }
 
     /**
@@ -554,7 +526,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         uint256 _amount
     ) external onlyOwnerOrDelegate(_profileId) {
-        require(_amount > FEE_DIVIDER, "Amount too low");
+        // require(_amount > FEE_DIVIDER, "Amount too low");
         require(transactions.length > _transactionId, "Not a valid transaction id");
         Transaction storage transaction = transactions[_transactionId];
 
@@ -578,7 +550,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         uint256 _amount
     ) external onlyOwnerOrDelegate(_profileId) {
-        require(_amount > FEE_DIVIDER, "Amount too low");
+        // require(_amount > FEE_DIVIDER, "Amount too low");
         require(transactions.length > _transactionId, "Not a valid transaction id");
         Transaction storage transaction = transactions[_transactionId];
 
@@ -890,39 +862,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // =========================== Private functions ==============================
-
-    /**
-     * @notice Emits the events related to the creation of a transaction.
-     * @param _senderId The TL ID of the sender
-     * @param _receiverId The TL ID of the receiver
-     * @param _transactionId The ID of the transavtion
-     * @param _metaEvidence The meta evidence of the transaction
-     */
-    function _afterCreateTransaction(
-        uint256 _senderId,
-        uint256 _receiverId,
-        uint256 _transactionId,
-        string memory _metaEvidence
-    ) internal {
-        Transaction storage transaction = transactions[_transactionId];
-
-        emit TransactionCreated(
-            _transactionId,
-            _senderId,
-            _receiverId,
-            transaction.token,
-            transaction.amount,
-            transaction.serviceId,
-            transaction.proposalId,
-            protocolEscrowFeeRate,
-            transaction.originServiceFeeRate,
-            transaction.originValidatedProposalFeeRate,
-            transaction.arbitrator,
-            transaction.arbitratorExtraData,
-            transaction.arbitrationFeeTimeout
-        );
-        emit MetaEvidence(_transactionId, _metaEvidence);
-    }
 
     /**
      * @notice Used to transfer ERC20 tokens balance from a wallet to the escrow contract's wallet.

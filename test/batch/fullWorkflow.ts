@@ -852,7 +852,7 @@ describe('TalentLayer protocol global testing', function () {
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createTokenTransaction(serviceId, proposalIdBob, '_metaEvidence', proposalDataUri),
+            .createTransaction(serviceId, proposalIdBob, '_metaEvidence', proposalDataUri),
         ).to.be.revertedWith('ERC721: invalid token ID')
       })
 
@@ -944,7 +944,7 @@ describe('TalentLayer protocol global testing', function () {
 
         const transaction = await talentLayerEscrow
           .connect(alice)
-          .createTokenTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri)
+          .createTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri)
         await expect(transaction).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, alice, bob],
@@ -971,7 +971,7 @@ describe('TalentLayer protocol global testing', function () {
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createTokenTransaction(serviceId, proposalIdCarol, '_metaEvidence', proposalDataUri),
+            .createTransaction(serviceId, proposalIdCarol, '_metaEvidence', proposalDataUri),
         ).to.be.reverted
       })
 
@@ -1105,7 +1105,7 @@ describe('TalentLayer protocol global testing', function () {
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createTokenTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri),
+            .createTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri),
         ).to.be.revertedWith('Service status not open')
       })
 
@@ -1205,7 +1205,7 @@ describe('TalentLayer protocol global testing', function () {
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createETHTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri),
+            .createTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri),
         ).to.be.reverted
       })
 
@@ -1263,7 +1263,7 @@ describe('TalentLayer protocol global testing', function () {
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createETHTransaction(
+            .createTransaction(
               serviceId,
               proposalIdBob,
               '_metaEvidence',
@@ -1279,7 +1279,7 @@ describe('TalentLayer protocol global testing', function () {
         const proposal = await talentLayerService.proposals(serviceId, bobTlId)
         const transaction = await talentLayerEscrow
           .connect(alice)
-          .createETHTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri, {
+          .createTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri, {
             value: totalAmount,
           })
         await expect(transaction).to.changeEtherBalances(
@@ -1307,7 +1307,7 @@ describe('TalentLayer protocol global testing', function () {
         await expect(
           talentLayerEscrow
             .connect(alice)
-            .createETHTransaction(serviceId, proposalIdCarol, '_metaEvidence', 'dataUri', {
+            .createTransaction(serviceId, proposalIdCarol, '_metaEvidence', 'dataUri', {
               value: amountCarol,
             }),
         ).to.be.reverted

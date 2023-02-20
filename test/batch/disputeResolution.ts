@@ -147,7 +147,7 @@ describe('Dispute Resolution, standard flow', function () {
 
       tx = await talentLayerEscrow
         .connect(alice)
-        .createETHTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
+        .createTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
           value: totalTransactionAmount,
         })
     })
@@ -484,7 +484,7 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
 
     await talentLayerEscrow
       .connect(alice)
-      .createETHTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
+      .createTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
         value: totalTransactionAmount,
       })
 
@@ -556,7 +556,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
 
     await talentLayerEscrow
       .connect(alice)
-      .createETHTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
+      .createTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
         value: totalTransactionAmount,
       })
 
@@ -686,7 +686,7 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
     // Create transaction
     await talentLayerEscrow
       .connect(alice)
-      .createTokenTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri)
+      .createTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri)
 
     // Alice wants to raise a dispute and pays the arbitration fee
     await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
