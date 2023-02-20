@@ -17,7 +17,7 @@ const serviceId = 1
 const trasactionId = 0
 const transactionAmount = 100
 const ethAddress = '0x0000000000000000000000000000000000000000'
-const minTokenWhitelistTranscationFees = 100
+const minTokenWhitelistTranscationAmount = 10
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
@@ -44,7 +44,7 @@ async function deployAndSetup(
   // Deployer whitelists a list of authorized tokens
   await talentLayerService
     .connect(deployer)
-    .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTranscationFees)
+    .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTranscationAmount)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'hirehibes'

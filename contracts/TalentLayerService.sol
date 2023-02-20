@@ -68,10 +68,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Whitelisted token information struct
     /// @param tokenAddress the token address
-    /// @param minimumTransactionFees the minimum transaction fees
+    /// @param minimumTransactionAmount the minimum transaction fees
     struct AllowedToken {
         bool isWhitelisted;
-        uint256 minimumTransactionFees;
+        uint256 minimumTransactionAmount;
     }
 
     // =========================== Events ==============================
@@ -275,6 +275,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(allowedTokenList[_rateToken].isWhitelisted, "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
+        require(allowedTokenList[_rateToken].minimumTransactionAmount <= _rateAmount, "Amount is too low");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -376,7 +377,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             revert("Owner can't remove Ox address");
         }
         allowedTokenList[_tokenAddress].isWhitelisted = _status;
-        allowedTokenList[_tokenAddress].minimumTransactionFees = _minimumTransactionFees;
+        allowedTokenList[_tokenAddress].minimumTransactionAmount = _minimumTransactionFees;
 
         emit AllowedTokenListUpdated(_tokenAddress, _status, _minimumTransactionFees);
     }
