@@ -161,10 +161,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function mint(
         uint256 _platformId,
         string calldata _handle
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
-        _afterMint(sender, _handle, _platformId, msg.value);
+        return _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
@@ -231,9 +231,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId,
         address _userAddress,
         string calldata _handle
-    ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
+    ) public canMint(_userAddress, _handle, _platformId) onlyOwner returns (uint256) {
         _safeMint(_userAddress, nextProfileId.current());
-        _afterMint(_userAddress, _handle, _platformId, 0);
+        return _afterMint(_userAddress, _handle, _platformId, 0);
     }
 
     // =========================== Private functions ==============================
