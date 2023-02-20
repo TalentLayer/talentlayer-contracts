@@ -107,7 +107,10 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
 
     // =========================== View functions ==============================
 
-    // get the data of the struct Review
+    /**
+     * @notice Returns the review information
+     * @param _reviewId The id of the review
+     */
     function getReview(uint256 _reviewId) public view returns (Review memory) {
         return reviews[_reviewId];
     }
