@@ -141,7 +141,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         string calldata _reviewUri,
         uint256 _rating,
         uint256 _platformId
-    ) public onlyOwnerOrDelegate(_profileId) {
+    ) public onlyOwnerOrDelegate(_profileId) returns (uint256) {
         ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
 
         require(
@@ -170,7 +170,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
 
         address sender = _msgSender();
         _safeMint(sender, nextReviewId.current());
-        _afterMint(_serviceId, toId, _rating, _reviewUri, _platformId);
+        return _afterMint(_serviceId, toId, _rating, _reviewUri, _platformId);
     }
 
     // =========================== Private functions ===========================
@@ -190,7 +190,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         uint256 _rating,
         string calldata _reviewUri,
         uint256 _platformId
-    ) internal virtual {
+    ) internal virtual returns (uint256) {
         require(_to != 0, "TalentLayerReview: mint to invalid address");
         require(_rating <= 5 && _rating >= 0, "TalentLayerReview: invalid rating");
 
@@ -207,6 +207,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         });
 
         emit Mint(_serviceId, _to, reviewId, _rating, _reviewUri, _platformId);
+        return reviewId;
     }
 
     // =========================== Internal functions ==========================
