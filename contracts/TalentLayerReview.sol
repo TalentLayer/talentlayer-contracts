@@ -34,16 +34,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     }
 
     /**
-     * @notice Token name
-     */
-    string private _name;
-
-    /**
-     * @notice Token symbol
-     */
-    string private _symbol;
-
-    /**
      * @notice Number of review tokens
      */
     uint256 public _totalSupply;
@@ -103,17 +93,14 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     }
 
     function initialize(
-        string memory name_,
-        string memory symbol_,
         address _talentLayerIdAddress,
         address _talentLayerServiceAddress,
         address _talentLayerPlatformIdAddress
     ) public initializer {
+        __ERC721_init("TalentLayerReview", "TLR");
         __UUPSUpgradeable_init();
         __Ownable_init();
         _totalSupply = 0;
-        _name = name_;
-        _symbol = symbol_;
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerService = ITalentLayerService(_talentLayerServiceAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);

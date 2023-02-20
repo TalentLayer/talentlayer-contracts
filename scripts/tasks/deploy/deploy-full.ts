@@ -115,9 +115,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       // Deploy Review contract
       const TalentLayerReview = await ethers.getContractFactory('TalentLayerReview')
-      const talentLayerReviewArgs: [string, string, string, string, string] = [
-        'TalentLayer Reviews',
-        'TLR',
+      const talentLayerReviewArgs: [string, string, string] = [
         talentLayerID.address,
         talentLayerService.address,
         talentLayerPlatformID.address,
