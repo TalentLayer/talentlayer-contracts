@@ -176,7 +176,7 @@ describe('Delegation System', function () {
       // Accept proposal through deposit
       await talentLayerEscrow
         .connect(alice)
-        .createETHTransaction('', serviceId, bobTlId, proposal.dataUri, {
+        .createETHTransaction(serviceId, bobTlId, '', proposal.dataUri, {
           value: totalAmount,
         })
 

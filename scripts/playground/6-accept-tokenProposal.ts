@@ -84,9 +84,9 @@ async function main() {
   const proposal = await talentLayerService.proposals(secondServiceId, 4)
 
   await talentLayerEscrow.connect(alice).createTokenTransaction(
-    '_metaEvidence',
     secondServiceId,
     4, //proposalId/talentLayerId of Dave.
+    '_metaEvidence',
     proposal.dataUri,
   )
 }

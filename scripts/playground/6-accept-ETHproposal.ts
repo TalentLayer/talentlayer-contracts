@@ -71,9 +71,9 @@ async function main() {
   const proposal = await talentLayerService.proposals(firstServiceId, 3)
 
   await talentLayerEscrow.connect(alice).createETHTransaction(
-    '_metaEvidence',
     firstServiceId,
     3, //proposalId/talentLayerId of carol.
+    '_metaEvidence',
     proposal.dataUri,
     { value: totalAmount },
   )
