@@ -3,6 +3,11 @@
 
 pragma solidity ^0.8.9;
 
+import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
+import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
+import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
+import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
@@ -10,10 +15,6 @@ import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC72
 import {ERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
-import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
-import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /**
  * @title TalentLayer Review Contract
