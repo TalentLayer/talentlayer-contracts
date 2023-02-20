@@ -467,7 +467,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         );
 
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
-        _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
+        _afterCreateTransaction(service.ownerId, proposal.ownerId, proposal.rateAmount, transactionId, _metaEvidence);
 
         return transactionId;
     }
@@ -537,7 +537,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         );
         _deposit(sender, proposal.rateToken, transactionAmount);
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
-        _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
+        _afterCreateTransaction(service.ownerId, proposal.ownerId, proposal.rateAmount, transactionId, _metaEvidence);
 
         return transactionId;
     }
@@ -893,12 +893,14 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @notice Emits the events related to the creation of a transaction.
      * @param _senderId The TL ID of the sender
      * @param _receiverId The TL ID of the receiver
+     * @param _amount The total amount of the transaction
      * @param _transactionId The ID of the transavtion
      * @param _metaEvidence The meta evidence of the transaction
      */
     function _afterCreateTransaction(
         uint256 _senderId,
         uint256 _receiverId,
+        uint256 _amount,
         uint256 _transactionId,
         string memory _metaEvidence
     ) internal {
@@ -909,7 +911,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             _senderId,
             _receiverId,
             transaction.token,
-            transaction.amount,
+            _amount,
             transaction.serviceId,
             transaction.proposalId,
             protocolEscrowFeeRate,
