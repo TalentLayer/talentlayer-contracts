@@ -30,9 +30,9 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
 
     function getPlatform(uint256 _platformId) external view returns (Platform memory);
 
-    function mint(string memory _platformName) external;
+    function mint(string memory _platformName) external returns (uint256);
 
-    function mintForAddress(string memory _platformName, address _platformAddress) external payable;
+    function mintForAddress(string memory _platformName, address _platformAddress) external payable returns (uint256);
 
     function totalSupply() external view returns (uint256);
 

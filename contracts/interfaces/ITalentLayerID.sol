@@ -11,7 +11,7 @@ interface ITalentLayerID {
 
     function numberMinted(address _user) external view returns (uint256);
 
-    function mint(string memory _handle) external;
+    function mint(string memory _handle) external returns (uint256);
 
     function updateProfileData(uint256 _tokenId, string memory _newCid) external;
 
@@ -21,7 +21,7 @@ interface ITalentLayerID {
 
     function getProfile(uint256 _profileId) external view returns (Profile memory);
 
-    function _afterMint(string memory _handle) external;
+    function _afterMint(string memory _handle) external returns (uint256);
 
     function ownerOf(uint256 _tokenId) external view returns (address);
 
