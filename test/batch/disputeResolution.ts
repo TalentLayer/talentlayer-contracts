@@ -10,7 +10,7 @@ import {
   TalentLayerEscrow,
   TalentLayerPlatformID,
 } from '../../typechain-types'
-import { TransactionStatus, DisputeStatus, PaymentType } from '../utils/constant'
+import { TransactionStatus, DisputeStatus, PaymentType, MintStatus } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
 const aliceTlId = 1
@@ -75,6 +75,9 @@ async function deployAndSetup(
 
   // Update arbitration cost
   await talentLayerArbitrator.connect(carol).setArbitrationPrice(carolPlatformId, arbitrationCost)
+
+  // Disable whitelist for reserved handles
+  await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
 
   // Mint TL Id for Alice, Bob and Dave
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
