@@ -347,7 +347,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Proposal storage proposal = proposals[_serviceId][_proposalId];
 
         service.status = Status.Confirmed;
-        //TODO confusing, should be _proposalId
         service.acceptedProposalId = proposal.ownerId;
         service.transactionId = _transactionId;
         proposal.status = ProposalStatus.Validated;
