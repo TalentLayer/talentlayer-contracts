@@ -19,8 +19,6 @@ interface ITalentLayerID {
 
     function setBaseURI(string memory _newBaseURI) external;
 
-    function getProfile(uint256 _profileId) external view returns (Profile memory);
-
     function _afterMint(string memory _handle) external;
 
     function ownerOf(uint256 _tokenId) external view returns (address);
