@@ -535,7 +535,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
                 arbitrationFeeTimeout: originServiceCreationPlatform.arbitrationFeeTimeout
             })
         );
-        _deposit(proposal.rateToken, transactionAmount);
+        require(IERC20(proposal.rateToken).transferFrom(_msgSender(), address(this), transactionAmount), "Transfer must not fail");
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
 
@@ -920,15 +920,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             transaction.arbitrationFeeTimeout
         );
         emit MetaEvidence(_transactionId, _metaEvidence);
-    }
-
-    /**
-     * @notice Used to transfer ERC20 tokens balance from a wallet to the escrow contract's wallet.
-     * @param _token The token to transfer
-     * @param _amount The amount of tokens to transfer
-     */
-    function _deposit(address _token, uint256 _amount) private {
-        require(IERC20(_token).transferFrom(_msgSender(), address(this), _amount), "Transfer must not fail");
     }
 
     /**
