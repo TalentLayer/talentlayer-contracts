@@ -54,22 +54,24 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     /**
      * @notice Transaction struct
+     * @param id Incremental idenfitifier
      * @param sender The party paying the escrow amount
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
      * @param amount The amount of the transaction EXCLUDING FEES
-     * @param proposalId The id of the validated proposal
      * @param serviceId The ID of the associated service
+     * @param proposalId The id of the validated proposal
      * @param protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
      * @param originServiceFeeRate The %fee (per ten thousands) paid to the platform on which the service was created
      * @param originValidatedProposalFeeRate the %fee (per ten thousands) paid to the platform on which the proposal was validated
+     * @param arbitrator The address of the contract that can rule on a dispute for the transaction.
+     * @param status The status of the transaction for the dispute procedure.
      * @param disputeId The ID of the dispute, if it exists
      * @param senderFee Total fees paid by the sender for the dispute procedure.
      * @param receiverFee Total fees paid by the receiver for the dispute procedure.
      * @param lastInteraction Last interaction for the dispute procedure.
-     * @param status The status of the transaction for the dispute procedure.
-     * @param arbitrator The address of the contract that can rule on a dispute for the transaction.
      * @param arbitratorExtraData Extra data to set up the arbitration.
+     * @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
      */
     struct Transaction {
         uint256 id;
@@ -192,6 +194,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     event RulingExecuted(uint256 indexed _transactionId, uint256 _ruling);
 
     /** @notice Emitted when a transaction is created.
+     *  @param _transactionId Incremental idenfitifier
      *  @param _senderId The TL Id of the party paying the escrow amount
      *  @param _receiverId The TL Id of the intended receiver of the escrow amount
      *  @param _token The token used for the transaction
@@ -202,6 +205,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      *  @param _originValidatedProposalFeeRate the %fee (per ten thousands) to pay to the platform on which the validated proposal was created
      *  @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
      *  @param _arbitratorExtraData Extra data to set up the arbitration.
+     *  @param _arbitrationFeeTimeout timeout for parties to pay the arbitration fee
      */
     event TransactionCreated(
         uint256 _transactionId,
