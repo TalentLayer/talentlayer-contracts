@@ -1454,28 +1454,28 @@ describe('TalentLayer protocol global testing', function () {
   describe('Talent Layer Review contract test', function () {
     it("Bob can't write a review yet", async function () {
       await expect(
-        talentLayerReview.connect(bob).addReview(bobTlId, 1, 'cidReview', 3, 1),
+        talentLayerReview.connect(bob).mint(bobTlId, 1, 'cidReview', 3, 1),
       ).to.be.revertedWith("You're not an actor of this service")
     })
 
     it("Carol can't write a review as she's not linked to this service", async function () {
       await expect(
-        talentLayerReview.connect(carol).addReview(carolTlId, 1, 'cidReview', 5, 1),
+        talentLayerReview.connect(carol).mint(carolTlId, 1, 'cidReview', 5, 1),
       ).to.be.revertedWith("You're not an actor of this service")
     })
 
     it("Alice and Bob can't write a review for the same Service", async function () {
       await expect(
-        talentLayerReview.connect(alice).addReview(aliceTlId, 1, 'cidReview', 3, 1),
+        talentLayerReview.connect(alice).mint(aliceTlId, 1, 'cidReview', 3, 1),
       ).to.be.revertedWith('The service is not finished yet')
       await expect(
-        talentLayerReview.connect(bob).addReview(bobTlId, 1, 'cidReview', 3, 1),
+        talentLayerReview.connect(bob).mint(bobTlId, 1, 'cidReview', 3, 1),
       ).to.be.revertedWith(`You're not an actor of this service`)
     })
 
     it('Alice and Bob can write a review now and we can get review data', async function () {
-      await talentLayerReview.connect(alice).addReview(aliceTlId, 2, 'cidReview1', 2, 1)
-      await talentLayerReview.connect(bob).addReview(bobTlId, 2, 'cidReview2', 4, 1)
+      await talentLayerReview.connect(alice).mint(aliceTlId, 2, 'cidReview1', 2, 1)
+      await talentLayerReview.connect(bob).mint(bobTlId, 2, 'cidReview2', 4, 1)
 
       const reviewData1 = await talentLayerReview.getReview(1)
       const reviewData2 = await talentLayerReview.getReview(2)

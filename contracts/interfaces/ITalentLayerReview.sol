@@ -20,7 +20,7 @@ interface ITalentLayerReview {
 
     function getReview(uint256 _reviewId) external view returns (Review memory);
 
-    function addReview(
+    function mint(
         uint256 _tokenId,
         uint256 _serviceId,
         string calldata _reviewUri,

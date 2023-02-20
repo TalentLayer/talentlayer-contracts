@@ -47,11 +47,11 @@ async function main() {
 
   await talentLayerReview
     .connect(alice)
-    .addReview(aliceTlId, 1, aliceReviewCarol, 5, daveTalentLayerIdPlatform)
+    .mint(aliceTlId, 1, aliceReviewCarol, 5, daveTalentLayerIdPlatform)
   console.log('Alice reviewed Carol')
   await talentLayerReview
     .connect(carol)
-    .addReview(carolTlId, 1, carolReviewAlice, 3, daveTalentLayerIdPlatform)
+    .mint(carolTlId, 1, carolReviewAlice, 3, daveTalentLayerIdPlatform)
   console.log('Carol reviewed Alice')
 }
 

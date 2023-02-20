@@ -135,7 +135,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      * @param _rating The review rate
      * @param _platformId The platform ID
      */
-    function addReview(
+    function mint(
         uint256 _profileId,
         uint256 _serviceId,
         string calldata _reviewUri,
