@@ -26,7 +26,13 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     using StringsUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
-    // Struct Review
+    /// @notice Review information struct
+    /// @param id the id of the review
+    /// @param owner the talentLayerId of the user who received the review
+    /// @param dataUri the IPFS URI of the review metadata
+    /// @param platformId the platform ID on which the service of the review was created
+    /// @param serviceId the id of the service of the review
+    /// @param rating the rating of the review
     struct Review {
         uint256 id;
         uint256 owner;
