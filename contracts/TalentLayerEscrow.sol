@@ -409,15 +409,15 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     /**
      * @dev Validates a proposal for a service by locking ETH into escrow.
-     * @param _metaEvidence Link to the meta-evidence.
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
+     * @param _metaEvidence Link to the meta-evidence.
      * @param _originDataUri dataURI of the validated proposal
      */
     function createETHTransaction(
-        string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId,
+        string memory _metaEvidence,
         string memory _originDataUri
     ) external payable returns (uint256) {
         ITalentLayerService.Proposal memory proposal;
@@ -475,15 +475,15 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     /**
      * @dev Validates a proposal for a service by locking ERC20 into escrow.
-     * @param _metaEvidence Link to the meta-evidence.
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
+     * @param _metaEvidence Link to the meta-evidence.
      * @param _originDataUri dataURI of the validated proposal
      */
     function createTokenTransaction(
-        string memory _metaEvidence,
         uint256 _serviceId,
         uint256 _proposalId,
+        string memory _metaEvidence,
         string memory _originDataUri
     ) external returns (uint256) {
         ITalentLayerService.Proposal memory proposal;
