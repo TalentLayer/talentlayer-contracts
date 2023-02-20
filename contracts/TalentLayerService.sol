@@ -368,6 +368,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _status Whether the token is allowed or not
      * @dev Only the contract owner can call this function
      */
+
     function updateAllowedTokenList(
         address _tokenAddress,
         bool _status,
@@ -380,6 +381,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         allowedTokenList[_tokenAddress].minimumTransactionAmount = _minimumTransactionAmount;
 
         emit AllowedTokenListUpdated(_tokenAddress, _status, _minimumTransactionAmount);
+
     }
 
     /**

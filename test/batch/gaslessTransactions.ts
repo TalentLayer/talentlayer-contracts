@@ -2,6 +2,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { MockForwarder, TalentLayerID, TalentLayerPlatformID } from '../../typechain-types'
+import { MintStatus } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
 describe('Gasless Transactions', function () {
@@ -28,6 +29,9 @@ describe('Gasless Transactions', function () {
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, alice.address)
     await talentLayerPlatformID.connect(deployer).whitelistUser(alice.address)
     await talentLayerPlatformID.connect(alice).mint('aliceplat')
+
+    // Disable whitelist for reserved handles
+    await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
 
     // Meta-transaction to mint a TalentLayer ID for Bob
     req = {
