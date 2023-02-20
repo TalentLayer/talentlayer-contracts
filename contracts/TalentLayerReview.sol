@@ -55,7 +55,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
 
     /**
      * @notice Mapping to record whether a review token was minted by the buyer for a serviceId
-     * TODO: make this boolean?
      */
     mapping(uint256 => uint256) public nftMintedByServiceAndBuyerId;
 
@@ -63,16 +62,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      * @notice Mapping to record whether a review token was minted by the seller for a serviceId
      */
     mapping(uint256 => uint256) public nftMintedByServiceAndSellerId;
-
-    /**
-     * @notice Mapping from review token ID to approved address
-     */
-    mapping(uint256 => address) private _tokenApprovals;
-
-    /**
-     * @notice Mapping from owner to operator approvals
-     */
-    mapping(address => mapping(address => bool)) private _operatorApprovals;
 
     /**
      * @notice Error thrown when caller already minted a review
