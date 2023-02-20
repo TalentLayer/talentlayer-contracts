@@ -59,6 +59,11 @@ task(
       }
     console.log('------------------------')
 
+    console.log('------------------------')
+    console.log('Set profile minting status to public')
+    await run('update-profile-minting-status', { mintstatus: '2' })
+    console.log('------------------------')
+
     console.log('Signer')
     console.log('  at', deployer.address)
     console.log('  ETH', formatEther(await deployer.getBalance()))
