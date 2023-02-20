@@ -366,13 +366,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @return transaction The transaction details
      */
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory) {
-        require(transactions.length > _transactionId, "Not a valid transaction id.");
+        require(transactions.length > _transactionId, "Not a valid transaction id");
         Transaction memory transaction = transactions[_transactionId];
 
         address sender = _msgSender();
         require(
             sender == transaction.sender || sender == transaction.receiver,
-            "You are not related to this transaction."
+            "You are not related to this transaction"
         );
         return transaction;
     }
@@ -431,15 +431,15 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             originProposalCreationPlatform.originValidatedProposalFeeRate
         );
 
-        require(_msgSender() == sender, "Access denied.");
-        require(msg.value == transactionAmount, "Non-matching funds.");
-        require(proposal.rateToken == address(0), "Proposal token not ETH.");
-        require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
-        require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
-        require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
+        require(_msgSender() == sender, "Access denied");
+        require(msg.value == transactionAmount, "Non-matching funds");
+        require(proposal.rateToken == address(0), "Proposal token not ETH");
+        require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
+        require(service.status == ITalentLayerService.Status.Opened, "Service status not open");
+        require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending");
         require(
             keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
-            "Proposal dataUri has changed."
+            "Proposal dataUri has changed"
         );
 
         uint256 transactionId = transactions.length;
@@ -503,13 +503,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             originProposalCreationPlatform.originValidatedProposalFeeRate
         );
 
-        require(_msgSender() == sender, "Access denied.");
-        require(service.status == ITalentLayerService.Status.Opened, "Service status not open.");
-        require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending.");
-        require(proposal.ownerId == _proposalId, "Incorrect proposal ID.");
+        require(_msgSender() == sender, "Access denied");
+        require(service.status == ITalentLayerService.Status.Opened, "Service status not open");
+        require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending");
+        require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
         require(
             keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
-            "Proposal data URI are not equal."
+            "Proposal data URI are not equal"
         );
 
         uint256 transactionId = transactions.length;
@@ -554,12 +554,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         uint256 _amount
     ) external onlyOwnerOrDelegate(_profileId) {
-        require(transactions.length > _transactionId, "Not a valid transaction id.");
+        require(transactions.length > _transactionId, "Not a valid transaction id");
         Transaction storage transaction = transactions[_transactionId];
 
-        require(transaction.sender == talentLayerIdContract.ownerOf(_profileId), "Access denied.");
-        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
-        require(transaction.amount >= _amount, "Insufficient funds.");
+        require(transaction.sender == talentLayerIdContract.ownerOf(_profileId), "Access denied");
+        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed");
+        require(transaction.amount >= _amount, "Insufficient funds");
 
         transaction.amount -= _amount;
         _release(transaction, _amount);
@@ -577,12 +577,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         uint256 _amount
     ) external onlyOwnerOrDelegate(_profileId) {
-        require(transactions.length > _transactionId, "Not a valid transaction id.");
+        require(transactions.length > _transactionId, "Not a valid transaction id");
         Transaction storage transaction = transactions[_transactionId];
 
-        require(transaction.receiver == talentLayerIdContract.ownerOf(_profileId), "Access denied.");
-        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed.");
-        require(transaction.amount >= _amount, "Insufficient funds.");
+        require(transaction.receiver == talentLayerIdContract.ownerOf(_profileId), "Access denied");
+        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed");
+        require(transaction.amount >= _amount, "Insufficient funds");
 
         transaction.amount -= _amount;
         _reimburse(transaction, _amount);
@@ -597,17 +597,17 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function payArbitrationFeeBySender(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
 
-        require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
+        require(address(transaction.arbitrator) != address(0), "Arbitrator not set");
         require(
             transaction.status < Status.DisputeCreated,
-            "Dispute has already been created or because the transaction has been executed."
+            "Dispute has already been created or because the transaction has been executed"
         );
-        require(_msgSender() == transaction.sender, "The caller must be the sender.");
+        require(_msgSender() == transaction.sender, "The caller must be the sender");
 
         uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
         transaction.senderFee += msg.value;
         // The total fees paid by the sender should be at least the arbitration cost.
-        require(transaction.senderFee == arbitrationCost, "The sender fee must be equal to the arbitration cost.");
+        require(transaction.senderFee == arbitrationCost, "The sender fee must be equal to the arbitration cost");
 
         transaction.lastInteraction = block.timestamp;
 
@@ -631,17 +631,17 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function payArbitrationFeeByReceiver(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
 
-        require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
+        require(address(transaction.arbitrator) != address(0), "Arbitrator not set");
         require(
             transaction.status < Status.DisputeCreated,
-            "Dispute has already been created or because the transaction has been executed."
+            "Dispute has already been created or because the transaction has been executed"
         );
-        require(_msgSender() == transaction.receiver, "The caller must be the receiver.");
+        require(_msgSender() == transaction.receiver, "The caller must be the receiver");
 
         uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(transaction.arbitratorExtraData);
         transaction.receiverFee += msg.value;
         // The total fees paid by the receiver should be at least the arbitration cost.
-        require(transaction.receiverFee == arbitrationCost, "The receiver fee must be equal to the arbitration cost.");
+        require(transaction.receiverFee == arbitrationCost, "The receiver fee must be equal to the arbitration cost");
 
         transaction.lastInteraction = block.timestamp;
 
@@ -663,10 +663,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      */
     function timeOutBySender(uint256 _transactionId) public {
         Transaction storage transaction = transactions[_transactionId];
-        require(transaction.status == Status.WaitingReceiver, "The transaction is not waiting on the receiver.");
+        require(transaction.status == Status.WaitingReceiver, "The transaction is not waiting on the receiver");
         require(
             block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
-            "Timeout time has not passed yet."
+            "Timeout time has not passed yet"
         );
 
         uint256 receiverFee;
@@ -687,10 +687,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      */
     function timeOutByReceiver(uint256 _transactionId) public {
         Transaction storage transaction = transactions[_transactionId];
-        require(transaction.status == Status.WaitingSender, "The transaction is not waiting on the sender.");
+        require(transaction.status == Status.WaitingSender, "The transaction is not waiting on the sender");
         require(
             block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
-            "Timeout time has not passed yet."
+            "Timeout time has not passed yet"
         );
 
         // Reimburse sender if has paid any fees.
@@ -716,14 +716,14 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     ) public onlyOwnerOrDelegate(_profileId) {
         Transaction storage transaction = transactions[_transactionId];
 
-        require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
+        require(address(transaction.arbitrator) != address(0), "Arbitrator not set");
 
         address party = talentLayerIdContract.ownerOf(_profileId);
         require(
             party == transaction.sender || party == transaction.receiver,
-            "The caller must be the sender or the receiver or their delegates."
+            "The caller must be the sender or the receiver or their delegates"
         );
-        require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved.");
+        require(transaction.status < Status.Resolved, "Must not send evidence if the dispute is resolved");
 
         emit Evidence(transaction.arbitrator, _transactionId, party, _evidence);
         emit EvidenceSubmitted(_transactionId, _profileId, _evidence);
@@ -738,7 +738,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function appeal(uint256 _transactionId) public payable {
         Transaction storage transaction = transactions[_transactionId];
 
-        require(address(transaction.arbitrator) != address(0), "Arbitrator not set.");
+        require(address(transaction.arbitrator) != address(0), "Arbitrator not set");
 
         transaction.arbitrator.appeal{value: msg.value}(transaction.disputeId, transaction.arbitratorExtraData);
     }
@@ -755,7 +755,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         address payable recipient;
 
         if (owner() == _msgSender()) {
-            require(_platformId == PROTOCOL_INDEX, "Access denied.");
+            require(_platformId == PROTOCOL_INDEX, "Access denied");
             recipient = protocolWallet;
         } else {
             talentLayerPlatformIdContract.isValid(_platformId);
@@ -790,8 +790,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 transactionId = disputeIDtoTransactionID[_disputeID];
         Transaction storage transaction = transactions[transactionId];
 
-        require(sender == address(transaction.arbitrator), "The caller must be the arbitrator.");
-        require(transaction.status == Status.DisputeCreated, "The dispute has already been resolved.");
+        require(sender == address(transaction.arbitrator), "The caller must be the arbitrator");
+        require(transaction.status == Status.DisputeCreated, "The dispute has already been resolved");
 
         emit Ruling(Arbitrator(sender), _disputeID, _ruling);
 
@@ -845,7 +845,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      */
     function _executeRuling(uint256 _transactionId, uint256 _ruling) internal {
         Transaction storage transaction = transactions[_transactionId];
-        require(_ruling <= AMOUNT_OF_CHOICES, "Invalid ruling.");
+        require(_ruling <= AMOUNT_OF_CHOICES, "Invalid ruling");
 
         address payable sender = payable(transaction.sender);
         address payable receiver = payable(transaction.receiver);

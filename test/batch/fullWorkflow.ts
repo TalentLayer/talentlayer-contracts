@@ -978,7 +978,7 @@ describe('TalentLayer protocol global testing', function () {
       it('Carol should not be allowed to release escrow the service.', async function () {
         await expect(
           talentLayerEscrow.connect(carol).release(carolTlId, transactionId, 10),
-        ).to.be.revertedWith('Access denied.')
+        ).to.be.revertedWith('Access denied')
       })
 
       it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
@@ -1106,19 +1106,19 @@ describe('TalentLayer protocol global testing', function () {
           talentLayerEscrow
             .connect(alice)
             .createTokenTransaction(serviceId, proposalIdBob, '_metaEvidence', proposal.dataUri),
-        ).to.be.revertedWith('Service status not open.')
+        ).to.be.revertedWith('Service status not open')
       })
 
       it('Carol can NOT reimburse alice.', async function () {
         await expect(
           talentLayerEscrow.connect(carol).reimburse(carolTlId, transactionId, totalAmount / 4),
-        ).to.revertedWith('Access denied.')
+        ).to.revertedWith('Access denied')
       })
 
       it('Bob can NOT reimburse alice for more than what is left in escrow.', async function () {
         await expect(
           talentLayerEscrow.connect(bob).reimburse(bobTlId, transactionId, totalAmount),
-        ).to.revertedWith('Insufficient funds.')
+        ).to.revertedWith('Insufficient funds')
       })
 
       it('Bob can reimburse alice for what is left in the escrow, an emit will be sent.', async function () {
@@ -1140,7 +1140,7 @@ describe('TalentLayer protocol global testing', function () {
       it('Alice can not release escrow because there is none left. ', async function () {
         await expect(
           talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 1),
-        ).to.be.revertedWith('Insufficient funds.')
+        ).to.be.revertedWith('Insufficient funds')
       })
 
       it('Alice can claim her token balance.', async function () {
@@ -1272,7 +1272,7 @@ describe('TalentLayer protocol global testing', function () {
                 value: totalAmount,
               },
             ),
-        ).to.be.revertedWith('Proposal dataUri has changed.')
+        ).to.be.revertedWith('Proposal dataUri has changed')
       })
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
@@ -1316,7 +1316,7 @@ describe('TalentLayer protocol global testing', function () {
       it('Carol should not be allowed to release escrow the service.', async function () {
         await expect(
           talentLayerEscrow.connect(carol).release(carolTlId, transactionId, 10),
-        ).to.be.revertedWith('Access denied.')
+        ).to.be.revertedWith('Access denied')
       })
 
       it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
@@ -1397,13 +1397,13 @@ describe('TalentLayer protocol global testing', function () {
       it('Carol can NOT reimburse alice.', async function () {
         await expect(
           talentLayerEscrow.connect(carol).reimburse(carolTlId, transactionId, totalAmount / 4),
-        ).to.revertedWith('Access denied.')
+        ).to.revertedWith('Access denied')
       })
 
       it('Bob can NOT reimburse alice for more than what is left in escrow.', async function () {
         await expect(
           talentLayerEscrow.connect(bob).reimburse(bobTlId, transactionId, totalAmount),
-        ).to.revertedWith('Insufficient funds.')
+        ).to.revertedWith('Insufficient funds')
       })
 
       it('Bob can reimburse alice for what is left in the escrow, an emit will be sent.', async function () {
@@ -1424,7 +1424,7 @@ describe('TalentLayer protocol global testing', function () {
       it('Alice can not release escrow because there is none left.', async function () {
         await expect(
           talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 10),
-        ).to.be.revertedWith('Insufficient funds.')
+        ).to.be.revertedWith('Insufficient funds')
       })
 
       it('Alice can claim her ETH balance.', async function () {
