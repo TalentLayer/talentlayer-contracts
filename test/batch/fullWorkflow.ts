@@ -125,8 +125,20 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Alice should not be able to transfer her PlatformId Id to Bob', async function () {
       await expect(
-        talentLayerPlatformID.transferFrom(alice.address, bob.address, 1),
-      ).to.be.revertedWith('Not allowed')
+        talentLayerPlatformID.connect(alice).transferFrom(alice.address, bob.address, 1),
+      ).to.be.revertedWith('Token transfer is not allowed')
+
+      await expect(
+        talentLayerPlatformID
+          .connect(alice)
+          ['safeTransferFrom(address,address,uint256)'](alice.address, bob.address, 1),
+      ).to.be.revertedWith('Token transfer is not allowed')
+
+      await expect(
+        talentLayerPlatformID
+          .connect(alice)
+          ['safeTransferFrom(address,address,uint256,bytes)'](alice.address, bob.address, 1, []),
+      ).to.be.revertedWith('Token transfer is not allowed')
     })
 
     it('Alice should not be able to mint a new PlatformId ID', async function () {
@@ -419,6 +431,24 @@ describe('TalentLayer protocol global testing', function () {
       const carolUserId = await talentLayerID.ids(carol.address)
       const profileData = await talentLayerID.profiles(carolUserId)
       expect(profileData.platformId).to.be.equal('1')
+    })
+
+    it('Alice should not be able to transfer her talentLayerId to Bob', async function () {
+      await expect(
+        talentLayerID.connect(alice).transferFrom(alice.address, bob.address, 1),
+      ).to.be.revertedWith('Token transfer is not allowed')
+
+      await expect(
+        talentLayerID
+          .connect(alice)
+          ['safeTransferFrom(address,address,uint256)'](alice.address, bob.address, 1),
+      ).to.be.revertedWith('Token transfer is not allowed')
+
+      await expect(
+        talentLayerID
+          .connect(alice)
+          ['safeTransferFrom(address,address,uint256,bytes)'](alice.address, bob.address, 1, []),
+      ).to.be.revertedWith('Token transfer is not allowed')
     })
 
     it('The deployer can update the mint fee', async function () {

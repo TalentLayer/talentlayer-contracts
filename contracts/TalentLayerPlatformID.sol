@@ -468,23 +468,22 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /**
      * @dev Override to prevent token transfer.
      */
-    function transferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/
-    ) public virtual override(ERC721Upgradeable) {
-        revert("Not allowed");
+    function transferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
      * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/
-    ) public virtual override(ERC721Upgradeable) {
-        revert("Not allowed");
+    function safeTransferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
+
+    /**
+     * @dev Override to prevent token transfer.
+     */
+    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**

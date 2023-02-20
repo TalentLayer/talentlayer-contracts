@@ -271,20 +271,38 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     // =========================== Overrides ==============================
 
     /**
-     * @dev Blocks the transferFrom function
-     * @param from The address to transfer from
-     * @param to The address to transfer to
-     * @param tokenId The token ID to transfer
+     * @dev Override to prevent token transfer.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
+    function transferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*tokenId*/
+    ) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
 
     /**
-     * @dev Blocks the safeTransferFrom function
-     * @param from The address to transfer from
-     * @param to The address to transfer to
-     * @param tokenId The token ID to transfer
+     * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721Upgradeable) {}
+    function safeTransferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*tokenId*/
+    ) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
+
+    /**
+     * @dev Override to prevent token transfer.
+     */
+    function safeTransferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*tokenId*/,
+        bytes memory /*data*/
+    ) public virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
+    }
 
     /**
      * @dev Blocks the burn function
