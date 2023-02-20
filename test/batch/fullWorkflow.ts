@@ -951,9 +951,7 @@ describe('TalentLayer protocol global testing', function () {
           [totalAmount, -totalAmount, 0],
         )
 
-        await expect(transaction)
-          .to.emit(talentLayerEscrow, 'ServiceProposalConfirmedWithDeposit')
-          .withArgs(serviceId, proposalIdBob, transactionId)
+        await expect(transaction).to.emit(talentLayerEscrow, 'TransactionCreated')
       })
 
       it('The deposit should also validate the proposal.', async function () {
@@ -1289,9 +1287,7 @@ describe('TalentLayer protocol global testing', function () {
           [totalAmount, -totalAmount, 0],
         )
 
-        await expect(transaction)
-          .to.emit(talentLayerEscrow, 'ServiceProposalConfirmedWithDeposit')
-          .withArgs(serviceId, proposalIdBob, transactionId)
+        await expect(transaction).to.emit(talentLayerEscrow, 'TransactionCreated')
       })
 
       it('The deposit should also validate the proposal.', async function () {

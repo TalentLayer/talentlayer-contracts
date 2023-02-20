@@ -165,7 +165,7 @@ describe('Dispute Resolution, standard flow', function () {
         .withArgs(transactionId, metaEvidence)
     })
 
-    it('MetaEvidence is submitted', async function () {
+    it('Transaction is created', async function () {
       await expect(tx)
         .to.emit(talentLayerEscrow, 'TransactionCreated')
         .withArgs(
@@ -175,6 +175,7 @@ describe('Dispute Resolution, standard flow', function () {
           ethAddress,
           transactionAmount,
           serviceId,
+          proposalId,
           protocolEscrowFeeRate,
           originServiceFeeRate,
           originValidatedProposalFeeRate,
