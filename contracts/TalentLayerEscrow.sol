@@ -425,7 +425,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             ? talentLayerPlatformIdContract.getPlatform(proposal.platformId)
             : originServiceCreationPlatform;
 
-        uint256 transactionAmount = _calculateTotalEscrowAmount(
+        uint256 transactionAmount = _calculateTotalWithFees(
             proposal.rateAmount,
             originServiceCreationPlatform.originServiceFeeRate,
             originProposalCreationPlatform.originValidatedProposalFeeRate
@@ -924,11 +924,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _releaseAmount The amount to reimburse without fees
      */
     function _reimburse(Transaction memory _transaction, uint256 _releaseAmount) private {
-        uint256 totalReleaseAmount = _releaseAmount +
-            (((_transaction.protocolEscrowFeeRate +
-                _transaction.originValidatedProposalFeeRate +
-                _transaction.originServiceFeeRate) * _releaseAmount) / FEE_DIVIDER);
-
+        uint256 totalReleaseAmount = _calculateTotalWithFees(
+            _releaseAmount,
+            _transaction.originServiceFeeRate,
+            _transaction.originValidatedProposalFeeRate
+        );
         _safeTransferBalance(payable(_transaction.sender), _transaction.token, totalReleaseAmount);
 
         emit Payment(
@@ -975,7 +975,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(
+    function _calculateTotalWithFees(
         uint256 _amount,
         uint16 _originServiceFeeRate,
         uint16 _originValidatedProposalFeeRate
