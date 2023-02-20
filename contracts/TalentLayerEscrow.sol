@@ -554,6 +554,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         uint256 _amount
     ) external onlyOwnerOrDelegate(_profileId) {
+        require(_amount > FEE_DIVIDER, "Amount too low");
         require(transactions.length > _transactionId, "Not a valid transaction id");
         Transaction storage transaction = transactions[_transactionId];
 
@@ -577,6 +578,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         uint256 _amount
     ) external onlyOwnerOrDelegate(_profileId) {
+        require(_amount > FEE_DIVIDER, "Amount too low");
         require(transactions.length > _transactionId, "Not a valid transaction id");
         Transaction storage transaction = transactions[_transactionId];
 
