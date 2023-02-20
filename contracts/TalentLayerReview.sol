@@ -54,14 +54,14 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     mapping(uint256 => Review) public reviews;
 
     /**
-     * @notice Mapping to record whether a review token was minted by the buyer for a serviceId
+     * @notice Mapping to record whether the buyer has been reviewed for a service
      */
-    mapping(uint256 => bool) public reviewMintedByServiceAndBuyerId;
+    mapping(uint256 => bool) public hasBuyerBeenReviewed;
 
     /**
-     * @notice Mapping to record whether a review token was minted by the seller for a serviceId
+     * @notice Mapping to record whether the seller has been reviewed for a service
      */
-    mapping(uint256 => bool) public reviewMintedByServiceAndSellerId;
+    mapping(uint256 => bool) public hasSellerBeenReviewed;
 
     /**
      * @notice Error thrown when caller already minted a review
@@ -149,18 +149,12 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         uint256 toId;
         if (_profileId == service.ownerId) {
             toId = service.acceptedProposalId;
-            if (reviewMintedByServiceAndBuyerId[_serviceId]) {
-                revert ReviewAlreadyMinted();
-            } else {
-                reviewMintedByServiceAndBuyerId[_serviceId] = true;
-            }
+            require(!hasSellerBeenReviewed[_serviceId], "You already minted a review for this service");
+            hasSellerBeenReviewed[_serviceId] = true;
         } else {
             toId = service.ownerId;
-            if (reviewMintedByServiceAndSellerId[_serviceId]) {
-                revert ReviewAlreadyMinted();
-            } else {
-                reviewMintedByServiceAndSellerId[_serviceId] = true;
-            }
+            require(!hasBuyerBeenReviewed[_serviceId], "You already minted a review for this service");
+            hasBuyerBeenReviewed[_serviceId] = true;
         }
 
         address sender = _msgSender();
