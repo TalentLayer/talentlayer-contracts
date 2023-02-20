@@ -950,8 +950,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 originValidatedProposalFeeRate = (_transaction.originValidatedProposalFeeRate * _releaseAmount) /
             FEE_DIVIDER;
 
-        //Index zero represents protocol's balance
-        platformIdToTokenToBalance[0][_transaction.token] += protocolEscrowFeeRateAmount;
+        platformIdToTokenToBalance[PROTOCOL_INDEX][_transaction.token] += protocolEscrowFeeRateAmount;
         platformIdToTokenToBalance[originServiceCreationPlatformId][_transaction.token] += originServiceFeeRate;
         platformIdToTokenToBalance[originValidatedProposalPlatformId][
             _transaction.token
