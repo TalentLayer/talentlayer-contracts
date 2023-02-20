@@ -96,16 +96,6 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     }
 
     /**
-     * @notice Returns the Profile struct of a given token ID
-     * @param _profileId the token ID of the profile
-     * @return The Profile struct of the token ID
-     */
-    function getProfile(uint256 _profileId) external view returns (Profile memory) {
-        require(_exists(_profileId), "TalentLayerID: Profile does not exist");
-        return profiles[_profileId];
-    }
-
-    /**
      * @notice Returns the platform ID of the platform which onboarded the user.
      * @param _address The address of the user
      */
