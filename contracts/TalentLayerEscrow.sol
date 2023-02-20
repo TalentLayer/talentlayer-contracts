@@ -482,39 +482,6 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Emits the events related to the creation of a transaction.
-     * @param _senderId The TL ID of the sender
-     * @param _receiverId The TL ID of the receiver
-     * @param _transactionId The ID of the transavtion
-     * @param _metaEvidence The meta evidence of the transaction
-     */
-    function _afterCreateTransaction(
-        uint256 _senderId,
-        uint256 _receiverId,
-        uint256 _transactionId,
-        string memory _metaEvidence
-    ) internal {
-        Transaction storage transaction = transactions[_transactionId];
-
-        emit TransactionCreated(
-            _transactionId,
-            _senderId,
-            _receiverId,
-            transaction.token,
-            transaction.amount,
-            transaction.serviceId,
-            transaction.proposalId,
-            protocolEscrowFeeRate,
-            transaction.originServiceFeeRate,
-            transaction.originValidatedProposalFeeRate,
-            transaction.arbitrator,
-            transaction.arbitratorExtraData,
-            transaction.arbitrationFeeTimeout
-        );
-        emit MetaEvidence(_transactionId, _metaEvidence);
-    }
-
-    /**
      * @notice Allows the sender to release locked-in escrow value to the intended recipient.
      *         The amount released must not include the fees.
      * @param _profileId The TalentLayer ID of the user
@@ -862,6 +829,39 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // =========================== Private functions ==============================
+
+    /**
+     * @notice Emits the events related to the creation of a transaction.
+     * @param _senderId The TL ID of the sender
+     * @param _receiverId The TL ID of the receiver
+     * @param _transactionId The ID of the transavtion
+     * @param _metaEvidence The meta evidence of the transaction
+     */
+    function _afterCreateTransaction(
+        uint256 _senderId,
+        uint256 _receiverId,
+        uint256 _transactionId,
+        string memory _metaEvidence
+    ) internal {
+        Transaction storage transaction = transactions[_transactionId];
+
+        emit TransactionCreated(
+            _transactionId,
+            _senderId,
+            _receiverId,
+            transaction.token,
+            transaction.amount,
+            transaction.serviceId,
+            transaction.proposalId,
+            protocolEscrowFeeRate,
+            transaction.originServiceFeeRate,
+            transaction.originValidatedProposalFeeRate,
+            transaction.arbitrator,
+            transaction.arbitratorExtraData,
+            transaction.arbitrationFeeTimeout
+        );
+        emit MetaEvidence(_transactionId, _metaEvidence);
+    }
 
     /**
      * @notice Used to transfer ERC20 tokens balance from a wallet to the escrow contract's wallet.
