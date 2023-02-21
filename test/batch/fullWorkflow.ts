@@ -411,7 +411,17 @@ describe('TalentLayer protocol global testing', function () {
         'HandleContainsInvalidCharacters',
       )
     })
-    it("Alice can't mint a talentLayerId with handle length = 0", async function () {
+    it("Alice can't mint a talentLayerId that start with a restricted character", async function () {
+      await expect(talentLayerID.connect(alice).mint('1', '-alice')).to.be.revertedWithCustomError(
+        talentLayerID,
+        'HandleFirstCharInvalid',
+      )
+      await expect(talentLayerID.connect(alice).mint('1', '_alice')).to.be.revertedWithCustomError(
+        talentLayerID,
+        'HandleFirstCharInvalid',
+      )
+    })
+    it("Alice can't mint a talentLayerId with handle length < 5 characters", async function () {
       await expect(talentLayerID.connect(alice).mint('1', '')).to.be.revertedWithCustomError(
         talentLayerID,
         'HandleLengthInvalid',
@@ -447,7 +457,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(
         await talentLayerID.connect(alice).mint('1', 'ali-ce'),
       ).not.to.be.revertedWithCustomError(talentLayerID, 'HandleContainsInvalidCharacters')
-      expect(await talentLayerID.connect(bob).mint('1', 'b_ob')).not.to.be.revertedWithCustomError(
+      expect(await talentLayerID.connect(bob).mint('1', 'bob__')).not.to.be.revertedWithCustomError(
         talentLayerID,
         'HandleContainsInvalidCharacters',
       )
@@ -490,12 +500,12 @@ describe('TalentLayer protocol global testing', function () {
       const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
 
       // Mint fails if not enough ETH is sent
-      await expect(talentLayerID.connect(eve).mint('1', 'eve')).to.be.revertedWith(
+      await expect(talentLayerID.connect(eve).mint('1', 'eve__')).to.be.revertedWith(
         'Incorrect amount of ETH for mint fee',
       )
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
-      await talentLayerID.connect(eve).mint('1', 'eve', { value: mintFee })
+      await talentLayerID.connect(eve).mint('1', 'eve__', { value: mintFee })
       expect(await talentLayerID.ids(eve.address)).to.be.equal('4')
 
       // Eve balance is decreased by the mint fee (+ gas fees)

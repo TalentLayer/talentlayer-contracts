@@ -57,7 +57,7 @@ async function deployAndSetup(
 
   // Mint TL Id for Alice and Bob
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
-  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
+  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob__')
 
   return [
     talentLayerID,
