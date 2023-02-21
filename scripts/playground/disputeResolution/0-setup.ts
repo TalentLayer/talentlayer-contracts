@@ -1,7 +1,13 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 import postToIPFS from '../../utils/ipfs'
-import { arbitrationCost, arbitrationFeeTimeout, transactionAmount } from './constants'
+import {
+  arbitrationCost,
+  arbitrationFeeTimeout,
+  cid,
+  proposalExpirationDate,
+  transactionAmount,
+} from '../constants'
 
 import hre = require('hardhat')
 
@@ -84,13 +90,21 @@ async function main() {
   console.log('Minted TL Id for Bob')
 
   // Alice, the buyer, initiates a new open service
-  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, 'cid')
+  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, cid)
   console.log('Open service created by Alice')
 
   // Bob, the seller, creates a proposal for the service
   await talentLayerService
     .connect(bob)
-    .createProposal(bobTlId, serviceId, ethAddress, transactionAmount, 'cid')
+    .createProposal(
+      bobTlId,
+      serviceId,
+      ethAddress,
+      transactionAmount,
+      carolPlatformId,
+      cid,
+      proposalExpirationDate,
+    )
   console.log('Proposal for service created by Bob')
 
   // Upload meta evidence to IPFS
@@ -132,9 +146,11 @@ async function main() {
       .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
       .div(feeDivider),
   )
-  await talentLayerEscrow.connect(alice).createTransaction(serviceId, proposalId, metaEvidence, {
-    value: totalTransactionAmount,
-  })
+  await talentLayerEscrow
+    .connect(alice)
+    .createTransaction(serviceId, proposalId, metaEvidence, cid, {
+      value: totalTransactionAmount,
+    })
 }
 
 // We recommend this pattern to be able to use async/await everywhere

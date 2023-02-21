@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
-import { disputeId, rulingId } from './constants'
+import { disputeId, rulingId } from '../constants'
 
 import hre = require('hardhat')
 

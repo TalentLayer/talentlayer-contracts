@@ -6,8 +6,6 @@ const bobTlId = 2
 const carolTlId = 3
 const daveTlId = 4
 
-const now = Math.floor(Date.now() / 1000)
-const proposalExpirationDate = now + 60 * 60 * 24 * 15
 const minTokenWhitelistTransactionAmount = ethers.utils.parseUnits('0.0001', 18)
 
 /*
@@ -16,6 +14,7 @@ Bob and Carol for the first service (with ETH and Token) and Dave for the second
 */
 
 import hre = require('hardhat')
+import { proposalExpirationDate } from './constants'
 
 // Then Alice create a service, and others add proposals
 async function main() {
