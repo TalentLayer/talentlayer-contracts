@@ -18,7 +18,7 @@ const serviceId = 1
 const trasactionId = 0
 const transactionAmount = 100000
 const ethAddress = '0x0000000000000000000000000000000000000000'
-const minTokenWhitelistTranscationFees = 100
+const minTokenWhitelistTransactionAmount = 10
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
@@ -45,7 +45,7 @@ async function deployAndSetup(
   // Deployer whitelists a list of authorized tokens
   await talentLayerService
     .connect(deployer)
-    .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTranscationFees)
+    .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTransactionAmount)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'hirehibes'
@@ -202,14 +202,10 @@ describe('Delegation System', function () {
 
     it('Dave can create a review on behalf of Alice', async function () {
       // Fails is caller is not the owner or delegate
-      const failTx = talentLayerReview
-        .connect(eve)
-        .addReview(aliceTlId, serviceId, 'uri', 5, carolPlatformId)
+      const failTx = talentLayerReview.connect(eve).mint(aliceTlId, serviceId, 'uri', 5)
       await expect(failTx).to.be.revertedWith('Not owner or delegate')
 
-      const tx = await talentLayerReview
-        .connect(dave)
-        .addReview(aliceTlId, serviceId, 'uri', 5, carolPlatformId)
+      const tx = await talentLayerReview.connect(dave).mint(aliceTlId, serviceId, 'uri', 5)
       await expect(tx).to.not.be.reverted
     })
   })

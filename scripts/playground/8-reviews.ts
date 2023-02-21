@@ -14,16 +14,11 @@ async function main() {
   const network = hre.network.name
   console.log(network)
 
-  const [alice, bob, carol, dave] = await ethers.getSigners()
+  const [alice, , carol] = await ethers.getSigners()
 
   const talentLayerReview = await ethers.getContractAt(
     'TalentLayerReview',
     getDeploymentProperty(network, DeploymentProperty.Reviewscontract),
-  )
-
-  const platformIdContract = await ethers.getContractAt(
-    'TalentLayerPlatformID',
-    getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
   const aliceReviewCarol = await postToIPFS(
@@ -42,16 +37,9 @@ async function main() {
   )
   console.log('carolReviewAliceIpfsUri', carolReviewAlice)
 
-  const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
-  console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
-
-  await talentLayerReview
-    .connect(alice)
-    .addReview(aliceTlId, 1, aliceReviewCarol, 5, daveTalentLayerIdPlatform)
+  await talentLayerReview.connect(alice).mint(aliceTlId, 1, aliceReviewCarol, 5)
   console.log('Alice reviewed Carol')
-  await talentLayerReview
-    .connect(carol)
-    .addReview(carolTlId, 1, carolReviewAlice, 3, daveTalentLayerIdPlatform)
+  await talentLayerReview.connect(carol).mint(carolTlId, 1, carolReviewAlice, 3)
   console.log('Carol reviewed Alice')
 }
 

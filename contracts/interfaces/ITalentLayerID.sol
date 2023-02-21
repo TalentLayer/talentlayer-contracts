@@ -11,11 +11,19 @@ interface ITalentLayerID {
 
     function numberMinted(address _user) external view returns (uint256);
 
-    function mint(string memory _handle) external;
+    function mint(string memory _handle) external returns (uint256);
 
     function updateProfileData(uint256 _tokenId, string memory _newCid) external;
 
+    function freeMint(uint256 _platformId, address _userAddress, string calldata _handle) external returns (uint256);
+
     function isValid(uint256 _tokenId) external view;
+
+    function whitelistMint(
+        uint256 _platformId,
+        string calldata _handle,
+        bytes32[] calldata _proof
+    ) external returns (uint256);
 
     function setBaseURI(string memory _newBaseURI) external;
 

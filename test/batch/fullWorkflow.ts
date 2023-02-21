@@ -24,7 +24,7 @@ const bobPlatformId = 2
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
-const minTokenWhitelistTranscationFees = 100
+const minTokenWhitelistTransactionAmount = 10
 
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
@@ -104,7 +104,7 @@ describe('TalentLayer protocol global testing', function () {
     for (const tokenAddress of allowedTokenList) {
       await talentLayerService
         .connect(deployer)
-        .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTranscationFees)
+        .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTransactionAmount)
     }
 
     // Disable whitelist for reserved handles
@@ -642,7 +642,7 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(alice)
-          .updateAllowedTokenList(token.address, true, minTokenWhitelistTranscationFees),
+          .updateAllowedTokenList(token.address, true, minTokenWhitelistTransactionAmount),
       ).to.be.revertedWith('Ownable: caller is not the owner')
     })
 
@@ -653,7 +653,7 @@ describe('TalentLayer protocol global testing', function () {
           .updateAllowedTokenList(
             ethers.constants.AddressZero,
             false,
-            minTokenWhitelistTranscationFees,
+            minTokenWhitelistTransactionAmount,
           ),
       ).to.be.revertedWith("Owner can't remove Ox address")
     })
@@ -663,12 +663,12 @@ describe('TalentLayer protocol global testing', function () {
 
       await talentLayerService
         .connect(deployer)
-        .updateAllowedTokenList(randomTokenAddress, true, minTokenWhitelistTranscationFees)
+        .updateAllowedTokenList(randomTokenAddress, true, minTokenWhitelistTransactionAmount)
       expect(await talentLayerService.isTokenAllowed(randomTokenAddress)).to.be.true
 
       await talentLayerService
         .connect(deployer)
-        .updateAllowedTokenList(randomTokenAddress, false, minTokenWhitelistTranscationFees)
+        .updateAllowedTokenList(randomTokenAddress, false, minTokenWhitelistTransactionAmount)
       expect(await talentLayerService.isTokenAllowed(randomTokenAddress)).to.be.false
     })
 
@@ -775,6 +775,31 @@ describe('TalentLayer protocol global testing', function () {
       )
     })
 
+    it('Bob can t create a proposal with an amount under the transcation limit amount ', async function () {
+      // Proposal on the Open service n 1
+      const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformProposalPostingFee = platform.servicePostingFee
+
+      // Bob creates a proposal on Platform 1
+      await expect(
+        talentLayerService
+          .connect(bob)
+          .createProposal(
+            bobTlId,
+            1,
+            rateToken,
+            9,
+            alicePlatformId,
+            'proposal1FromBobToAlice1Service',
+            proposalExpirationDate,
+            {
+              value: alicePlatformProposalPostingFee,
+            },
+          ),
+      ).to.be.revertedWith('Amount is too low')
+    })
+
     it('Bob can create his first proposal for an Open service n°1 from Alice', async function () {
       // Proposal on the Open service n 1
       const bobTid = await talentLayerID.ids(bob.address)
@@ -793,7 +818,7 @@ describe('TalentLayer protocol global testing', function () {
           bobTlId,
           1,
           rateToken,
-          1,
+          15,
           alicePlatformId,
           'proposal1FromBobToAlice1Service',
           proposalExpirationDate,
@@ -812,7 +837,7 @@ describe('TalentLayer protocol global testing', function () {
       // Proposal data check after the proposal
 
       expect(proposalDataAfter.rateToken).to.be.equal(rateToken)
-      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('1')
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('15')
       expect(proposalDataAfter.dataUri).to.be.equal('proposal1FromBobToAlice1Service')
       expect(proposalDataAfter.ownerId).to.be.equal(bobTlId)
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
@@ -830,7 +855,7 @@ describe('TalentLayer protocol global testing', function () {
           carolTlId,
           1,
           rateToken,
-          2,
+          16,
           bobPlatformId,
           'proposal1FromCarolToAlice1Service',
           proposalExpirationDate,
@@ -848,14 +873,14 @@ describe('TalentLayer protocol global testing', function () {
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformProposalPostingFee = platform.proposalPostingFee
 
-      expect(
+      await expect(
         talentLayerService
           .connect(carol)
           .createProposal(
             carolTlId,
             1,
             nonListedRateToken,
-            2,
+            16,
             alicePlatformId,
             'proposal1FromCarolToAlice1Service',
             proposalExpirationDate,
@@ -869,7 +894,7 @@ describe('TalentLayer protocol global testing', function () {
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
 
       const proposalDataBefore = await talentLayerService.getProposal(1, bobTid)
-      expect(proposalDataBefore.rateAmount.toString()).to.be.equal('1')
+      expect(proposalDataBefore.rateAmount.toString()).to.be.equal('15')
 
       await talentLayerService
         .connect(bob)
@@ -877,13 +902,13 @@ describe('TalentLayer protocol global testing', function () {
           bobTlId,
           1,
           rateToken,
-          2,
+          18,
           'updateProposal1FromBobToAlice1Service',
           proposalExpirationDate,
         )
 
       const proposalDataAfter = await talentLayerService.getProposal(1, bobTid)
-      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2')
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('18')
       expect(proposalDataAfter.dataUri).to.be.equal('updateProposal1FromBobToAlice1Service')
     })
 
@@ -1141,7 +1166,7 @@ describe('TalentLayer protocol global testing', function () {
             bobTlId,
             serviceId,
             rateToken,
-            1,
+            15,
             alicePlatformId,
             'proposalOnService',
             proposalExpirationDate,
@@ -1519,38 +1544,98 @@ describe('TalentLayer protocol global testing', function () {
   })
 
   describe('Talent Layer Review contract test', function () {
-    it("Bob can't write a review yet", async function () {
-      await expect(
-        talentLayerReview.connect(bob).addReview(bobTlId, 1, 'cidReview', 3, 1),
-      ).to.be.revertedWith("You're not an actor of this service")
-    })
+    const unfinishedServiceId = 1 // Service between Alice (buyer) and Carol (seller)
+    const finishedServiceId = 2 // Service between Alice (buyer) and Bob (seller)
+    const bobReviewId = 1 // Review received by Bob
+    const aliceReviewId = 2 // Review received by Alice
 
-    it("Carol can't write a review as she's not linked to this service", async function () {
+    it("Alice can't write a review as the service is not finished", async function () {
       await expect(
-        talentLayerReview.connect(carol).addReview(carolTlId, 1, 'cidReview', 5, 1),
-      ).to.be.revertedWith("You're not an actor of this service")
-    })
-
-    it("Alice and Bob can't write a review for the same Service", async function () {
-      await expect(
-        talentLayerReview.connect(alice).addReview(aliceTlId, 1, 'cidReview', 3, 1),
+        talentLayerReview.connect(alice).mint(aliceTlId, unfinishedServiceId, 'cidReview', 3),
       ).to.be.revertedWith('The service is not finished yet')
-      await expect(
-        talentLayerReview.connect(bob).addReview(bobTlId, 1, 'cidReview', 3, 1),
-      ).to.be.revertedWith(`You're not an actor of this service`)
     })
 
-    it('Alice and Bob can write a review now and we can get review data', async function () {
-      await talentLayerReview.connect(alice).addReview(aliceTlId, 2, 'cidReview1', 2, 1)
-      await talentLayerReview.connect(bob).addReview(bobTlId, 2, 'cidReview2', 4, 1)
+    it("Carol can't write a review as she's not an actor of the service", async function () {
+      await expect(
+        talentLayerReview.connect(carol).mint(carolTlId, finishedServiceId, 'cidReview', 5),
+      ).to.be.revertedWith("You're not an actor of this service")
+    })
 
-      const reviewData1 = await talentLayerReview.getReview(0)
-      const reviewData2 = await talentLayerReview.getReview(1)
+    it('The rating needs to be between 0 and 5', async function () {
+      await expect(
+        talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 6),
+      ).to.be.revertedWith('Invalid rating')
+    })
 
-      expect(reviewData1.dataUri).to.be.equal('cidReview1')
-      expect(reviewData2.dataUri).to.be.equal('cidReview2')
+    it('Alice can review Bob for the service they had', async function () {
+      await talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 4)
 
-      expect(await reviewData1.platformId).to.be.equal(1)
+      const owner = await talentLayerReview.ownerOf(bobReviewId)
+      expect(owner).to.be.equal(bob.address)
+
+      const balance = await talentLayerReview.balanceOf(bob.address)
+      expect(balance).to.be.equal(1)
+
+      const review = await talentLayerReview.getReview(bobReviewId)
+      expect(review.id).to.be.equal(bobReviewId)
+      expect(review.ownerId).to.be.equal(bobTlId)
+      expect(review.dataUri).to.be.equal('cidReview')
+      expect(review.serviceId).to.be.equal(finishedServiceId)
+      expect(review.rating).to.be.equal(4)
+
+      const hasSellerBeenReviewed = await talentLayerReview.hasSellerBeenReviewed(finishedServiceId)
+      expect(hasSellerBeenReviewed).to.be.equal(true)
+    })
+
+    it('Bob can review Alice for the service they had', async function () {
+      await talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, 'cidReview', 5)
+
+      const owner = await talentLayerReview.ownerOf(aliceReviewId)
+      expect(owner).to.be.equal(alice.address)
+
+      const hasBuyerBeenReviewed = await talentLayerReview.hasBuyerBeenReviewed(finishedServiceId)
+      expect(hasBuyerBeenReviewed).to.be.equal(true)
+    })
+
+    it("Alice can't review Bob again for the same service", async function () {
+      await expect(
+        talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 4),
+      ).to.be.revertedWith('You have already minted a review for this service')
+    })
+
+    it("Bob can't review Alice again for the same service", async function () {
+      await expect(
+        talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, 'cidReview', 4),
+      ).to.be.revertedWith('You have already minted a review for this service')
+    })
+
+    it('Alice should not be able to transfer her review to carol', async function () {
+      await expect(
+        talentLayerPlatformID
+          .connect(alice)
+          .transferFrom(alice.address, carol.address, aliceReviewId),
+      ).to.be.revertedWith('Token transfer is not allowed')
+
+      await expect(
+        talentLayerPlatformID
+          .connect(alice)
+          ['safeTransferFrom(address,address,uint256)'](
+            alice.address,
+            carol.address,
+            aliceReviewId,
+          ),
+      ).to.be.revertedWith('Token transfer is not allowed')
+
+      await expect(
+        talentLayerPlatformID
+          .connect(alice)
+          ['safeTransferFrom(address,address,uint256,bytes)'](
+            alice.address,
+            carol.address,
+            aliceReviewId,
+            [],
+          ),
+      ).to.be.revertedWith('Token transfer is not allowed')
     })
   })
 
