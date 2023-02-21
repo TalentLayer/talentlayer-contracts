@@ -66,6 +66,14 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 expirationDate;
     }
 
+    /// @notice Whitelisted token information struct
+    /// @param tokenAddress the token address
+    /// @param minimumTransactionFees the minimum transaction fees
+    struct AllowedToken {
+        bool isWhitelisted;
+        uint256 minimumTransactionFees;
+    }
+
     // =========================== Events ==============================
 
     /// @notice Emitted after a new service is created
@@ -126,8 +134,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
      * @param _tokenAddress The address of the payment token
      * @param _status Whether the token is allowed or not
+     * @param _minimumTransactionFees The minimum transaction fees for the token
      */
-    event AllowedTokenListUpdated(address _tokenAddress, bool _status);
+    event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionFees);
 
     // =========================== Mappings & Variables ==============================
 
@@ -147,7 +156,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     /// @notice Allowed payment tokens addresses
-    mapping(address => bool) public allowedTokenList;
+    mapping(address => AllowedToken) public allowedTokenList;
 
     // @notice
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
@@ -210,7 +219,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _tokenAddress Token address
      */
     function isTokenAllowed(address _tokenAddress) external view returns (bool) {
-        return allowedTokenList[_tokenAddress];
+        return allowedTokenList[_tokenAddress].isWhitelisted;
     }
 
     // =========================== User functions ==============================
@@ -263,7 +272,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         string calldata _dataUri,
         uint256 _expirationDate
     ) public payable onlyOwnerOrDelegate(_profileId) {
-        require(allowedTokenList[_rateToken], "This token is not allowed");
+        require(allowedTokenList[_rateToken].isWhitelisted, "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
 
@@ -316,7 +325,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         string calldata _dataUri,
         uint256 _expirationDate
     ) public onlyOwnerOrDelegate(_profileId) {
-        require(allowedTokenList[_rateToken], "This token is not allowed");
+        require(allowedTokenList[_rateToken].isWhitelisted, "This token is not allowed");
 
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_profileId];
@@ -358,14 +367,18 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _status Whether the token is allowed or not
      * @dev Only the contract owner can call this function
      */
-    function updateAllowedTokenList(address _tokenAddress, bool _status) public onlyOwner {
-        require(
-            (_tokenAddress == address(0) && _status != false) || (_tokenAddress != address(0)),
-            "Owner can't remove Ox address"
-        );
-        allowedTokenList[_tokenAddress] = _status;
+    function updateAllowedTokenList(
+        address _tokenAddress,
+        bool _status,
+        uint256 _minimumTransactionFees
+    ) public onlyOwner {
+        if (_tokenAddress == address(0) && _status == false) {
+            revert("Owner can't remove Ox address");
+        }
+        allowedTokenList[_tokenAddress].isWhitelisted = _status;
+        allowedTokenList[_tokenAddress].minimumTransactionFees = _minimumTransactionFees;
 
-        emit AllowedTokenListUpdated(_tokenAddress, _status);
+        emit AllowedTokenListUpdated(_tokenAddress, _status, _minimumTransactionFees);
     }
 
     /**
