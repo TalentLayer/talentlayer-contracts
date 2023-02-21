@@ -594,7 +594,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Pays receiver if sender fails to pay the arbitration fee in time.
+     * @notice If one party fails to pay the arbitration fee in time, the other can call this function and will win the case
      * @param _transactionId Id of the transaction.
      */
     function arbitrationFeeTimeout(uint256 _transactionId) public {
