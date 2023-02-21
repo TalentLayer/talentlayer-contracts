@@ -8,7 +8,13 @@ import {
   TalentLayerPlatformID,
   TalentLayerReview,
 } from '../../typechain-types'
-import { MintStatus } from '../utils/constant'
+import {
+  cid,
+  metaEvidenceCid,
+  minTokenWhitelistTransactionAmount,
+  MintStatus,
+  proposalExpirationDate,
+} from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1
@@ -18,12 +24,6 @@ const serviceId = 1
 const trasactionId = 0
 const transactionAmount = 100000
 const ethAddress = '0x0000000000000000000000000000000000000000'
-const minTokenWhitelistTransactionAmount = 10
-const cid = 'QmQLVYemsvvqk58y8UTrCEp8MrcQaMzzT2e2duDEmFG99Z'
-const metaEvidenceCid = 'QmQ2hcACF6r2Gf8PDxG4NcBdurzRUopwcaYQHNhSah6a8v'
-
-const now = Math.floor(Date.now() / 1000)
-const proposalExpirationDate = now + 60 * 60 * 24 * 15
 
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.

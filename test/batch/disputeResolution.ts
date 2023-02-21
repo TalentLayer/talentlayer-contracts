@@ -10,7 +10,18 @@ import {
   TalentLayerEscrow,
   TalentLayerPlatformID,
 } from '../../typechain-types'
-import { TransactionStatus, DisputeStatus, PaymentType, MintStatus } from '../utils/constant'
+import {
+  TransactionStatus,
+  DisputeStatus,
+  PaymentType,
+  MintStatus,
+  minTokenWhitelistTransactionAmount,
+  cid,
+  proposalExpirationDate,
+  arbitrationFeeTimeout,
+  feeDivider,
+  metaEvidenceCid,
+} from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
 const aliceTlId = 1
@@ -21,17 +32,8 @@ const serviceId = 1
 const proposalId = bobTlId
 const transactionId = 0
 const transactionAmount = BigNumber.from(1000000)
-const ethAddress = '0x0000000000000000000000000000000000000000'
 const arbitrationCost = BigNumber.from(10)
 const disputeId = 0
-const feeDivider = 10000
-const arbitrationFeeTimeout = 3600 * 24
-const minTokenWhitelistTransactionAmount = 10
-
-const now = Math.floor(Date.now() / 1000)
-const proposalExpirationDate = now + 60 * 60 * 24 * 15
-const cid = 'QmQLVYemsvvqk58y8UTrCEp8MrcQaMzzT2e2duDEmFG99Z'
-const metaEvidenceCid = 'QmQ2hcACF6r2Gf8PDxG4NcBdurzRUopwcaYQHNhSah6a8v'
 
 /**
  * Deploys contract and sets up the context for dispute resolution.
@@ -129,7 +131,7 @@ describe('Dispute Resolution, standard flow', function () {
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
     ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService] =
-      await deployAndSetup(arbitrationFeeTimeout, ethAddress)
+      await deployAndSetup(arbitrationFeeTimeout, ethers.constants.AddressZero)
 
     protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
     platform = await talentLayerPlatformID.platforms(carolPlatformId)
@@ -179,7 +181,7 @@ describe('Dispute Resolution, standard flow', function () {
           transactionId,
           aliceTlId,
           bobTlId,
-          ethAddress,
+          ethers.constants.AddressZero,
           transactionAmount,
           serviceId,
           proposalId,
@@ -452,7 +454,7 @@ describe('Dispute Resolution, standard flow', function () {
           .withArgs(
             transactionId,
             PaymentType.Reimburse,
-            ethAddress,
+            ethers.constants.AddressZero,
             currentTransactionAmount,
             serviceId,
           )
@@ -472,7 +474,7 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
     ;[, alice] = await ethers.getSigners()
     ;[talentLayerPlatformID, talentLayerEscrow, , talentLayerService] = await deployAndSetup(
       arbitrationFeeTimeout,
-      ethAddress,
+      ethers.constants.AddressZero,
     )
 
     // Create transaction
@@ -545,7 +547,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
   before(async function () {
     ;[deployer, alice, bob, carol] = await ethers.getSigners()
     ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService] =
-      await deployAndSetup(arbitrationFeeTimeout, ethAddress)
+      await deployAndSetup(arbitrationFeeTimeout, ethers.constants.AddressZero)
 
     // Create transaction
     const platform = await talentLayerPlatformID.platforms(carolPlatformId)
@@ -609,7 +611,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     it('Increases platform token balance by the platform fee', async function () {
       const carolPlatformBalance = await talentLayerEscrow
         .connect(carol)
-        .getClaimableFeeBalance(ethAddress)
+        .getClaimableFeeBalance(ethers.constants.AddressZero)
       const platformEscrowFeeRatesPaid = halfTransactionAmount
         .mul(originValidatedProposalFeeRate + originServiceFeeRate)
         .div(feeDivider)
@@ -619,7 +621,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     it('Increases protocol token balance by the protocol fee', async function () {
       const protocolBalance = await talentLayerEscrow
         .connect(deployer)
-        .getClaimableFeeBalance(ethAddress)
+        .getClaimableFeeBalance(ethers.constants.AddressZero)
       const protocolEscrowFeeRatesPaid = halfTransactionAmount
         .mul(protocolEscrowFeeRate)
         .div(feeDivider)
@@ -629,14 +631,20 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     it('Emits the Payment events', async function () {
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Payment')
-        .withArgs(transactionId, PaymentType.Release, ethAddress, halfTransactionAmount, serviceId)
+        .withArgs(
+          transactionId,
+          PaymentType.Release,
+          ethers.constants.AddressZero,
+          halfTransactionAmount,
+          serviceId,
+        )
 
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Payment')
         .withArgs(
           transactionId,
           PaymentType.Reimburse,
-          ethAddress,
+          ethers.constants.AddressZero,
           halfTransactionAmount,
           serviceId,
         )

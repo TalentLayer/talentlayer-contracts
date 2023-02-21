@@ -13,7 +13,14 @@ import {
   TalentLayerPlatformID,
   TalentLayerReview,
 } from '../../typechain-types'
-import { MintStatus } from '../utils/constant'
+import {
+  cid,
+  cid2,
+  metaEvidenceCid,
+  minTokenWhitelistTransactionAmount,
+  MintStatus,
+  proposalExpirationDate,
+} from '../utils/constant'
 
 const aliceTlId = 1
 const bobTlId = 2
@@ -21,14 +28,6 @@ const carolTlId = 3
 
 const alicePlatformId = 1
 const bobPlatformId = 2
-
-const now = Math.floor(Date.now() / 1000)
-const proposalExpirationDate = now + 60 * 60 * 24 * 15
-const minTokenWhitelistTransactionAmount = 10
-
-const cid = 'QmQLVYemsvvqk58y8UTrCEp8MrcQaMzzT2e2duDEmFG99Z'
-const cid2 = 'QmcbtH86xKGM4rNhpzcYMEjGF9qKMQ5Rdep8zfe3ndLtV1'
-const metaEvidenceCid = 'QmQ2hcACF6r2Gf8PDxG4NcBdurzRUopwcaYQHNhSah6a8v'
 
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
