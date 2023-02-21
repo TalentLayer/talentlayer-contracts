@@ -13,7 +13,7 @@ export type NetworkConfig = {
   allowedTokenList: {
     [key: string]: {
       address: `0x${string}`
-      mintransactionamount: string
+      minTransactionAmount: string
       decimals: number
     }
   }
@@ -27,7 +27,7 @@ const local: NetworkConfig = {
   allowedTokenList: {
     ETH: {
       address: ethers.constants.AddressZero,
-      mintransactionamount: '0.001',
+      minTransactionAmount: '0.001',
       decimals: 18,
     },
   },
@@ -44,12 +44,12 @@ const fuji: NetworkConfig = {
   allowedTokenList: {
     AVAX: {
       address: ethers.constants.AddressZero,
-      mintransactionamount: '0.1',
+      minTransactionAmount: '0.1',
       decimals: 18,
     },
     USDC: {
       address: '0xAF82969ECF299c1f1Bb5e1D12dDAcc9027431160',
-      mintransactionamount: '1',
+      minTransactionAmount: '1',
       decimals: 6,
     },
   },
@@ -66,12 +66,12 @@ const mumbai: NetworkConfig = {
   allowedTokenList: {
     MATIC: {
       address: ethers.constants.AddressZero,
-      mintransactionamount: '1',
+      minTransactionAmount: '1',
       decimals: 18,
     },
     USDC: {
       address: '0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747',
-      mintransactionamount: '1',
+      minTransactionAmount: '1',
       decimals: 6,
     },
   },
