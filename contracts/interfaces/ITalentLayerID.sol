@@ -19,6 +19,12 @@ interface ITalentLayerID {
 
     function isValid(uint256 _tokenId) external view;
 
+    function whitelistMint(
+        uint256 _platformId,
+        string calldata _handle,
+        bytes32[] calldata _proof
+    ) external returns (uint256);
+
     function setBaseURI(string memory _newBaseURI) external;
 
     function _afterMint(string memory _handle) external;

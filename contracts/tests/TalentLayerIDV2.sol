@@ -178,11 +178,11 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     function mint(
         uint256 _platformId,
         string calldata _handle
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
         require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
-        _afterMint(sender, _handle, _platformId, msg.value);
+        return _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
@@ -195,13 +195,13 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         uint256 _platformId,
         string calldata _handle,
         bytes32[] calldata _proof
-    ) public payable canPay canMint(_msgSender(), _handle, _platformId) {
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) return (uint256) {
         require(mintStatus == MintStatus.ONLY_WHITELIST, "Whitelist mint is not enabled");
         address sender = _msgSender();
         require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
 
         _safeMint(sender, nextProfileId.current());
-        _afterMint(sender, _handle, _platformId, msg.value);
+        return _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
@@ -268,9 +268,9 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         uint256 _platformId,
         address _userAddress,
         string calldata _handle
-    ) public canMint(_userAddress, _handle, _platformId) onlyOwner {
+    ) public canMint(_userAddress, _handle, _platformId) onlyOwner returns (uint256) {
         _safeMint(_userAddress, nextProfileId.current());
-        _afterMint(_userAddress, _handle, _platformId, 0);
+        return _afterMint(_userAddress, _handle, _platformId, 0);
     }
 
     /**
