@@ -43,8 +43,15 @@ task(
 
     console.log('------------------------')
     console.log('Add Token Addresses to Allowed Token List')
-    for (const [name, address] of Object.entries(networkConfig.allowedTokenList)) {
-      await run('update-token-address-to-whitelist', { action: 'add', address })
+    for (const [name, { address, minTransactionAmount, decimals }] of Object.entries(
+      networkConfig.allowedTokenList,
+    )) {
+      await run('update-token-address-to-whitelist', {
+        address,
+        action: 'add',
+        minTransactionAmount,
+        decimals: decimals.toString(),
+      })
     }
     console.log('------------------------')
 

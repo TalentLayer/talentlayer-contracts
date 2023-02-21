@@ -68,10 +68,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     /// @notice Whitelisted token information struct
     /// @param tokenAddress the token address
-    /// @param minimumTransactionFees the minimum transaction fees
+    /// @param minimumTransactionAmount the minimum transaction value
     struct AllowedToken {
         bool isWhitelisted;
-        uint256 minimumTransactionFees;
+        uint256 minimumTransactionAmount;
     }
 
     // =========================== Events ==============================
@@ -134,9 +134,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
      * @param _tokenAddress The address of the payment token
      * @param _status Whether the token is allowed or not
-     * @param _minimumTransactionFees The minimum transaction fees for the token
+     * @param _minimumTransactionAmount The minimum transaction fees for the token
      */
-    event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionFees);
+    event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionAmount);
 
     // =========================== Mappings & Variables ==============================
 
@@ -275,6 +275,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(allowedTokenList[_rateToken].isWhitelisted, "This token is not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
+        require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount is too low");
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service is not opened");
@@ -333,6 +334,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(proposal.ownerId == _profileId, "This proposal doesn't exist yet");
         require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
         require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
+        require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount is too low");
 
         proposal.rateToken = _rateToken;
         proposal.rateAmount = _rateAmount;
@@ -370,15 +372,15 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     function updateAllowedTokenList(
         address _tokenAddress,
         bool _status,
-        uint256 _minimumTransactionFees
+        uint256 _minimumTransactionAmount
     ) public onlyOwner {
         if (_tokenAddress == address(0) && _status == false) {
             revert("Owner can't remove Ox address");
         }
         allowedTokenList[_tokenAddress].isWhitelisted = _status;
-        allowedTokenList[_tokenAddress].minimumTransactionFees = _minimumTransactionFees;
+        allowedTokenList[_tokenAddress].minimumTransactionAmount = _minimumTransactionAmount;
 
-        emit AllowedTokenListUpdated(_tokenAddress, _status, _minimumTransactionFees);
+        emit AllowedTokenListUpdated(_tokenAddress, _status, _minimumTransactionAmount);
     }
 
     /**

@@ -8,6 +8,7 @@ const daveTlId = 4
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
+const minTokenWhitelistTransactionAmount = ethers.utils.parseUnits('0.0001', 18)
 
 /*
 In this script Bob, Carol and Dave will create proposals for Alice's services
@@ -38,8 +39,12 @@ async function main() {
     'SimpleERC20',
     getDeploymentProperty(network, DeploymentProperty.SimpleERC20),
   )
-  await talentLayerService.connect(alice).updateAllowedTokenList(ethers.constants.AddressZero, true)
-  await talentLayerService.connect(alice).updateAllowedTokenList(simpleERC20.address, true)
+  await talentLayerService
+    .connect(alice)
+    .updateAllowedTokenList(ethers.constants.AddressZero, true, minTokenWhitelistTransactionAmount)
+  await talentLayerService
+    .connect(alice)
+    .updateAllowedTokenList(simpleERC20.address, true, minTokenWhitelistTransactionAmount)
 
   // Get the first and second service id
   const nextServiceId = await talentLayerService.nextServiceId()

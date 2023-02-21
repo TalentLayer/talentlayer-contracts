@@ -380,7 +380,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== Owner functions ==============================
 
     /**
-     * @notice Updated the Protocol Fee
+     * @notice Updates the Protocol Fee
      * @dev Only the owner can call this function
      * @param _protocolEscrowFeeRate The new protocol fee
      */
@@ -390,7 +390,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Updated the Protocol wallet
+     * @notice Updates the Protocol wallet
      * @dev Only the owner can call this function
      * @param _protocolWallet The new wallet address
      */
@@ -425,7 +425,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             ? talentLayerPlatformIdContract.getPlatform(proposal.platformId)
             : originServiceCreationPlatform;
 
-        uint256 transactionAmount = _calculateTotalEscrowAmount(
+        uint256 transactionAmount = _calculateTotalWithFees(
             proposal.rateAmount,
             originServiceCreationPlatform.originServiceFeeRate,
             originProposalCreationPlatform.originValidatedProposalFeeRate
@@ -473,7 +473,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
         if (proposal.rateToken != address(0)) {
-            _deposit(sender, proposal.rateToken, transactionAmount);
+            require(
+                IERC20(proposal.rateToken).transferFrom(sender, address(this), transactionAmount),
+                "Transfer must not fail"
+            );
         }
 
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
@@ -493,16 +496,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         uint256 _amount
     ) external onlyOwnerOrDelegate(_profileId) {
-        require(_amount >= FEE_DIVIDER, "Amount too low");
-        require(transactions.length > _transactionId, "Not a valid transaction id");
+        _validatePayment(_transactionId, PaymentType.Release, _profileId, _amount);
+
         Transaction storage transaction = transactions[_transactionId];
-
-        require(transaction.sender == talentLayerIdContract.ownerOf(_profileId), "Access denied");
-        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed");
-        require(transaction.amount >= _amount, "Insufficient funds");
-
         transaction.amount -= _amount;
-        _release(transaction, _amount);
+
+        _release(_transactionId, _amount);
     }
 
     /**
@@ -517,16 +516,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         uint256 _amount
     ) external onlyOwnerOrDelegate(_profileId) {
-        require(_amount >= FEE_DIVIDER, "Amount too low");
-        require(transactions.length > _transactionId, "Not a valid transaction id");
+        _validatePayment(_transactionId, PaymentType.Reimburse, _profileId, _amount);
+
         Transaction storage transaction = transactions[_transactionId];
-
-        require(transaction.receiver == talentLayerIdContract.ownerOf(_profileId), "Access denied");
-        require(transaction.status == Status.NoDispute, "The transaction shouldn't be disputed");
-        require(transaction.amount >= _amount, "Insufficient funds");
-
         transaction.amount -= _amount;
-        _reimburse(transaction, _amount);
+
+        _reimburse(_transactionId, _amount);
     }
 
     /**
@@ -802,17 +797,17 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         // Send the funds to the winner and reimburse the arbitration fee.
         if (_ruling == SENDER_WINS) {
             sender.call{value: senderFee}("");
-            _reimburse(transaction, amount);
+            _reimburse(_transactionId, amount);
         } else if (_ruling == RECEIVER_WINS) {
             receiver.call{value: receiverFee}("");
-            _release(transaction, amount);
+            _release(_transactionId, amount);
         } else {
             // If no ruling is given split funds in half
             uint256 splitFeeAmount = senderFee / 2;
             uint256 splitTransactionAmount = amount / 2;
 
-            _reimburse(transaction, splitTransactionAmount);
-            _release(transaction, splitTransactionAmount);
+            _reimburse(_transactionId, splitTransactionAmount);
+            _release(_transactionId, splitTransactionAmount);
 
             sender.call{value: splitFeeAmount}("");
             receiver.call{value: splitFeeAmount}("");
@@ -864,93 +859,117 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Used to transfer ERC20 tokens balance from a wallet to the escrow contract's wallet.
-     * @param _sender The wallet to transfer the tokens from
-     * @param _token The token to transfer
-     * @param _amount The amount of tokens to transfer
+     * @notice Used to release part of the escrow payment to the receiver.
+     * @dev The release of an amount will also trigger the release of the fees to the platform's balances & the protocol fees.
+     * @param _transactionId The transaction to release the escrow value for
+     * @param _amount The amount to release
      */
-    function _deposit(address _sender, address _token, uint256 _amount) private {
-        require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
+    function _release(uint256 _transactionId, uint256 _amount) private {
+        _distributeFees(_transactionId, _amount);
+
+        Transaction storage transaction = transactions[_transactionId];
+        _safeTransferBalance(payable(transaction.receiver), transaction.token, _amount);
+
+        _afterPayment(_transactionId, PaymentType.Release, _amount);
     }
 
     /**
-     * @notice Used to release part of the escrow payment to the seller.
-     * @dev The release of an amount will also trigger the release of the fees to the platform's balances & the protocol fees.
-     * @param _transaction The transaction to release the escrow value for
-     * @param _releaseAmount The amount to release
+     * @notice Used to reimburse part of the escrow payment to the sender.
+     * @dev Fees linked to the amount reimbursed will be automatically calculated and send back to the sender in the same transfer
+     * @param _transactionId The transaction
+     * @param _amount The amount to reimburse without fees
      */
-    function _release(Transaction memory _transaction, uint256 _releaseAmount) private {
+    function _reimburse(uint256 _transactionId, uint256 _amount) private {
+        Transaction storage transaction = transactions[_transactionId];
+        uint256 totalReleaseAmount = _calculateTotalWithFees(
+            _amount,
+            transaction.originServiceFeeRate,
+            transaction.originValidatedProposalFeeRate
+        );
+        _safeTransferBalance(payable(transaction.sender), transaction.token, totalReleaseAmount);
+
+        _afterPayment(_transactionId, PaymentType.Reimburse, _amount);
+    }
+
+    /**
+     * @notice Distribute fees to the platform's balances & the protocol after a fund release
+     * @param _transactionId The transaction linked to the payment
+     * @param _releaseAmount The amount released
+     */
+    function _distributeFees(uint256 _transactionId, uint256 _releaseAmount) private {
+        Transaction storage transaction = transactions[_transactionId];
+
         uint256 originServiceCreationPlatformId = talentLayerServiceContract
-            .getService(_transaction.serviceId)
+            .getService(transaction.serviceId)
             .platformId;
         uint256 originValidatedProposalPlatformId = talentLayerServiceContract
-            .getProposal(_transaction.serviceId, _transaction.proposalId)
+            .getProposal(transaction.serviceId, transaction.proposalId)
             .platformId;
-        uint256 protocolEscrowFeeRateAmount = (_transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
-        uint256 originServiceFeeRate = (_transaction.originServiceFeeRate * _releaseAmount) / FEE_DIVIDER;
-        uint256 originValidatedProposalFeeRate = (_transaction.originValidatedProposalFeeRate * _releaseAmount) /
+
+        uint256 protocolEscrowFeeRateAmount = (transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
+        uint256 originServiceFeeRate = (transaction.originServiceFeeRate * _releaseAmount) / FEE_DIVIDER;
+        uint256 originValidatedProposalFeeRate = (transaction.originValidatedProposalFeeRate * _releaseAmount) /
             FEE_DIVIDER;
 
-        platformIdToTokenToBalance[PROTOCOL_INDEX][_transaction.token] += protocolEscrowFeeRateAmount;
-        platformIdToTokenToBalance[originServiceCreationPlatformId][_transaction.token] += originServiceFeeRate;
+        platformIdToTokenToBalance[PROTOCOL_INDEX][transaction.token] += protocolEscrowFeeRateAmount;
+        platformIdToTokenToBalance[originServiceCreationPlatformId][transaction.token] += originServiceFeeRate;
         platformIdToTokenToBalance[originValidatedProposalPlatformId][
-            _transaction.token
+            transaction.token
         ] += originValidatedProposalFeeRate;
-
-        _safeTransferBalance(payable(_transaction.receiver), _transaction.token, _releaseAmount);
 
         emit OriginServiceFeeRateReleased(
             originServiceCreationPlatformId,
-            _transaction.serviceId,
-            _transaction.token,
+            transaction.serviceId,
+            transaction.token,
             originServiceFeeRate
         );
         emit OriginValidatedProposalFeeRateReleased(
             originValidatedProposalPlatformId,
-            _transaction.serviceId,
-            _transaction.token,
+            transaction.serviceId,
+            transaction.token,
             originServiceFeeRate
         );
-        emit Payment(_transaction.id, PaymentType.Release, _transaction.token, _releaseAmount, _transaction.serviceId);
-
-        _distributeMessage(_transaction.serviceId, _transaction.amount);
     }
 
     /**
-     * @notice Used to reimburse part of the escrow payment to the buyer.
-     * @dev If token payment, need token approval for the transfer of _releaseAmount before executing this function.
-     *      The amount reimbursed must not include the fees, they will be automatically calculated and reimbursed to the buyer.
-     * @param _transaction The transaction
-     * @param _releaseAmount The amount to reimburse without fees
+     * @notice Used to validate a realease or a reimburse payment
+     * @param _transactionId The transaction linked to the payment
+     * @param _paymentType The type of payment to validate
+     * @param _profileId The profileId of the msgSender
+     * @param _amount The amount to release
      */
-    function _reimburse(Transaction memory _transaction, uint256 _releaseAmount) private {
-        uint256 totalReleaseAmount = _releaseAmount +
-            (((_transaction.protocolEscrowFeeRate +
-                _transaction.originValidatedProposalFeeRate +
-                _transaction.originServiceFeeRate) * _releaseAmount) / FEE_DIVIDER);
+    function _validatePayment(
+        uint256 _transactionId,
+        PaymentType _paymentType,
+        uint256 _profileId,
+        uint256 _amount
+    ) private view {
+        Transaction storage _transaction = transactions[_transactionId];
+        if (_paymentType == PaymentType.Release) {
+            require(_transaction.sender == talentLayerIdContract.ownerOf(_profileId), "Access denied");
+        } else if (_paymentType == PaymentType.Reimburse) {
+            require(_transaction.receiver == talentLayerIdContract.ownerOf(_profileId), "Access denied");
+        }
 
-        _safeTransferBalance(payable(_transaction.sender), _transaction.token, totalReleaseAmount);
-
-        emit Payment(
-            _transaction.id,
-            PaymentType.Reimburse,
-            _transaction.token,
-            _releaseAmount,
-            _transaction.serviceId
-        );
-
-        _distributeMessage(_transaction.serviceId, _transaction.amount);
+        require(transactions.length > _transaction.id, "Not a valid transaction id");
+        require(_transaction.status == Status.NoDispute, "The transaction shouldn't be disputed");
+        require(_transaction.amount >= _amount, "Insufficient funds");
+        require(_amount >= FEE_DIVIDER || (_amount < FEE_DIVIDER && _amount == _transaction.amount), "Amount too low");
     }
 
     /**
-     * @notice Used to trigger "afterFullPayment" function & emit "PaymentCompleted" event if applicable.
-     * @param _serviceId The id of the service
-     * @param _amount The amount of the transaction
+     * @notice Used to trigger events after a payment and to complete a service when the payment is full
+     * @param _transactionId The transaction linked to the payment
+     * @param _paymentType The type of the payment
+     * @param _releaseAmount The amount of the transaction
      */
-    function _distributeMessage(uint256 _serviceId, uint256 _amount) private {
-        if (_amount == 0) {
-            talentLayerServiceContract.afterFullPayment(_serviceId);
-            emit PaymentCompleted(_serviceId);
+    function _afterPayment(uint256 _transactionId, PaymentType _paymentType, uint256 _releaseAmount) private {
+        Transaction storage transaction = transactions[_transactionId];
+        emit Payment(transaction.id, _paymentType, transaction.token, _releaseAmount, transaction.serviceId);
+
+        if (transaction.amount == 0) {
+            talentLayerServiceContract.afterFullPayment(transaction.serviceId);
+            emit PaymentCompleted(transaction.serviceId);
         }
     }
 
@@ -975,7 +994,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
-    function _calculateTotalEscrowAmount(
+    function _calculateTotalWithFees(
         uint256 _amount,
         uint16 _originServiceFeeRate,
         uint16 _originValidatedProposalFeeRate
