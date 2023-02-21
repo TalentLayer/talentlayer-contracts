@@ -1575,13 +1575,13 @@ describe('TalentLayer protocol global testing', function () {
     it("Alice can't review Bob again for the same service", async function () {
       await expect(
         talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 4),
-      ).to.be.revertedWith('You already minted a review for this service')
+      ).to.be.revertedWith('You have already minted a review for this service')
     })
 
     it("Bob can't review Alice again for the same service", async function () {
       await expect(
         talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, 'cidReview', 4),
-      ).to.be.revertedWith('You already minted a review for this service')
+      ).to.be.revertedWith('You have already minted a review for this service')
     })
 
     it('Alice should not be able to transfer her review to carol', async function () {
