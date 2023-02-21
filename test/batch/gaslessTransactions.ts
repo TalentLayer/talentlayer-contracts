@@ -40,7 +40,7 @@ describe('Gasless Transactions', function () {
       value: 0,
       gas: 29022296,
       nonce: 0,
-      data: talentLayerID.interface.encodeFunctionData('mint', [1, 'bob']),
+      data: talentLayerID.interface.encodeFunctionData('mint', [1, 'bob__']),
       validUntilTime: 0,
     }
   })

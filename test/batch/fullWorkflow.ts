@@ -269,7 +269,16 @@ describe('TalentLayer protocol global testing', function () {
       ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
     })
 
-    it("Eve can't mint a talentLayer platform Id with handle length = 0", async function () {
+    it("Grace can't mint a talentLayer platform Id that start with a restricted character", async function () {
+      await expect(
+        talentLayerPlatformID.connect(grace).mint('_graceplat', { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleFirstCharInvalid')
+      await expect(
+        talentLayerPlatformID.connect(grace).mint('-graceplat', { value: mintFee }),
+      ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleFirstCharInvalid')
+    })
+
+    it("Eve can't mint a talentLayer platform Id with handle length < 5 characters", async function () {
       await expect(
         talentLayerPlatformID.connect(eve).mint('', { value: mintFee }),
       ).to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleLengthInvalid')

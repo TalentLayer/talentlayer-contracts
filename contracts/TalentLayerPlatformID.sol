@@ -15,6 +15,8 @@ import "./Arbitrator.sol";
  */
 contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
+
+    uint8 constant MIN_HANDLE_LENGTH = 5;
     uint8 constant MAX_HANDLE_LENGTH = 31;
 
     // =========================== Enum ==============================
@@ -124,6 +126,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @notice error thrown when input handle contains restricted characters.
      */
     error HandleContainsInvalidCharacters();
+
+    /**
+     * @notice error thrown when input handle has an invalid first character.
+     */
+    error HandleFirstCharInvalid();
 
     // =========================== Initializers ==============================
 
@@ -433,7 +440,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     function _validateHandle(string calldata handle) private pure {
         bytes memory byteHandle = bytes(handle);
         uint256 byteHandleLength = byteHandle.length;
-        if (byteHandleLength == 0 || byteHandleLength > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+        if (byteHandleLength < MIN_HANDLE_LENGTH || byteHandleLength > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+
+        bytes1 firstByte = bytes(handle)[0];
+        if (firstByte == "-" || firstByte == "_") revert HandleFirstCharInvalid();
 
         for (uint256 i = 0; i < byteHandleLength; ) {
             if (
