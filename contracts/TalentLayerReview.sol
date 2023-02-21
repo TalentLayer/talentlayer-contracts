@@ -63,11 +63,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     mapping(uint256 => bool) public hasSellerBeenReviewed;
 
     /**
-     * @notice Error thrown when caller already minted a review
-     */
-    error ReviewAlreadyMinted();
-
-    /**
      * @notice TalentLayer contract instance
      */
     ITalentLayerID private tlId;
