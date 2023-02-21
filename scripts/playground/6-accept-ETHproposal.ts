@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
+import { metaEvidenceCid } from './constants'
 
 /*
 In this script Alice will accept Carol's proposal with an ETH transaction
@@ -73,7 +74,7 @@ async function main() {
   await talentLayerEscrow.connect(alice).createTransaction(
     firstServiceId,
     3, //proposalId/talentLayerId of carol.
-    '_metaEvidence',
+    metaEvidenceCid,
     proposal.dataUri,
     { value: totalAmount },
   )

@@ -258,7 +258,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     function updateProfileData(uint256 _platformId, string memory _newCid) public {
         require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
-        require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_newCid).length == 46, "Invalid cid");
 
         platforms[_platformId].dataUri = _newCid;
 

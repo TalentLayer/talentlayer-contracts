@@ -2,6 +2,7 @@ import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import { waitConfirmations } from '../utils/waitConfirmations'
 import hre = require('hardhat')
+import { metaEvidenceCid } from './constants'
 
 /*
 In this script Alice will accept Dave's proposal with Token transaction
@@ -86,7 +87,7 @@ async function main() {
   await talentLayerEscrow.connect(alice).createTransaction(
     secondServiceId,
     4, //proposalId/talentLayerId of Dave.
-    '_metaEvidence',
+    metaEvidenceCid,
     proposal.dataUri,
   )
 }

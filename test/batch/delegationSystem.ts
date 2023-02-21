@@ -8,7 +8,13 @@ import {
   TalentLayerPlatformID,
   TalentLayerReview,
 } from '../../typechain-types'
-import { MintStatus } from '../utils/constant'
+import {
+  cid,
+  metaEvidenceCid,
+  minTokenWhitelistTransactionAmount,
+  MintStatus,
+  proposalExpirationDate,
+} from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
 const carolPlatformId = 1
@@ -18,10 +24,6 @@ const serviceId = 1
 const trasactionId = 0
 const transactionAmount = 100000
 const ethAddress = '0x0000000000000000000000000000000000000000'
-const minTokenWhitelistTransactionAmount = 10
-
-const now = Math.floor(Date.now() / 1000)
-const proposalExpirationDate = now + 60 * 60 * 24 * 15
 
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.
@@ -103,10 +105,10 @@ describe('Delegation System', function () {
 
     it('Dave can update Alice profile data', async function () {
       // Fails if caller is not the owner or delegate
-      const failTx = talentLayerID.connect(eve).updateProfileData(aliceTlId, 'newUri')
+      const failTx = talentLayerID.connect(eve).updateProfileData(aliceTlId, cid)
       await expect(failTx).to.be.revertedWith('Not owner or delegate')
 
-      const tx = await talentLayerID.connect(dave).updateProfileData(aliceTlId, 'newUri')
+      const tx = await talentLayerID.connect(dave).updateProfileData(aliceTlId, cid)
       await expect(tx).to.not.be.reverted
     })
   })
@@ -119,19 +121,17 @@ describe('Delegation System', function () {
 
     it('Dave can open a service on behalf of Alice', async function () {
       // Fails if caller is not the owner or delegate
-      const tx = talentLayerService.connect(eve).createService(aliceTlId, carolPlatformId, 'cid')
+      const tx = talentLayerService.connect(eve).createService(aliceTlId, carolPlatformId, cid)
       await expect(tx).to.be.revertedWith('Not owner or delegate')
 
-      await talentLayerService.connect(dave).createService(aliceTlId, carolPlatformId, 'cid')
+      await talentLayerService.connect(dave).createService(aliceTlId, carolPlatformId, cid)
       const serviceData = await talentLayerService.services(1)
 
       expect(serviceData.ownerId.toNumber()).to.be.equal(aliceTlId)
     })
 
     it('Dave can update service data on behalf of Alice', async function () {
-      const tx = await talentLayerService
-        .connect(dave)
-        .updateServiceData(aliceTlId, serviceId, 'newCid')
+      const tx = await talentLayerService.connect(dave).updateServiceData(aliceTlId, serviceId, cid)
       await expect(tx).to.not.be.reverted
     })
 
@@ -144,7 +144,7 @@ describe('Delegation System', function () {
           ethAddress,
           transactionAmount,
           carolPlatformId,
-          'uri',
+          cid,
           proposalExpirationDate,
         )
       const proposal = await talentLayerService.proposals(serviceId, bobTlId)
@@ -159,7 +159,7 @@ describe('Delegation System', function () {
           serviceId,
           ethAddress,
           transactionAmount,
-          'newUri',
+          cid,
           proposalExpirationDate,
         )
       await expect(tx).to.not.be.reverted
@@ -183,7 +183,7 @@ describe('Delegation System', function () {
       // Accept proposal through deposit
       await talentLayerEscrow
         .connect(alice)
-        .createTransaction(serviceId, bobTlId, '', proposal.dataUri, {
+        .createTransaction(serviceId, bobTlId, metaEvidenceCid, proposal.dataUri, {
           value: totalAmount,
         })
 
@@ -202,10 +202,10 @@ describe('Delegation System', function () {
 
     it('Dave can create a review on behalf of Alice', async function () {
       // Fails is caller is not the owner or delegate
-      const failTx = talentLayerReview.connect(eve).mint(aliceTlId, serviceId, 'uri', 5)
+      const failTx = talentLayerReview.connect(eve).mint(aliceTlId, serviceId, cid, 5)
       await expect(failTx).to.be.revertedWith('Not owner or delegate')
 
-      const tx = await talentLayerReview.connect(dave).mint(aliceTlId, serviceId, 'uri', 5)
+      const tx = await talentLayerReview.connect(dave).mint(aliceTlId, serviceId, cid, 5)
       await expect(tx).to.not.be.reverted
     })
   })
@@ -218,7 +218,7 @@ describe('Delegation System', function () {
     })
 
     it("Dave can't do actions on behalf of Alice anymore", async function () {
-      const tx = talentLayerService.connect(dave).createService(aliceTlId, carolPlatformId, 'cid')
+      const tx = talentLayerService.connect(dave).createService(aliceTlId, carolPlatformId, cid)
       await expect(tx).to.be.revertedWith('Not owner or delegate')
     })
   })
