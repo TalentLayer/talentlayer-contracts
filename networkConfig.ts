@@ -44,11 +44,11 @@ const fuji: NetworkConfig = {
   allowedTokenList: {
     AVAX: {
       address: ethers.constants.AddressZero,
-      mintransactionamount: '0.001',
+      mintransactionamount: '0.1',
       decimals: 18,
     },
     USDC: {
-      address: '0x_TODO_CREATE_USDC',
+      address: '0xAF82969ECF299c1f1Bb5e1D12dDAcc9027431160',
       mintransactionamount: '1',
       decimals: 6,
     },
