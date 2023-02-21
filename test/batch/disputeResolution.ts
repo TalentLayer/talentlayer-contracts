@@ -21,6 +21,7 @@ import {
   arbitrationFeeTimeout,
   feeDivider,
   metaEvidenceCid,
+  evidenceCid,
 } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
@@ -357,33 +358,30 @@ describe('Dispute Resolution, standard flow', function () {
 
   describe('Submission of Evidence', async function () {
     it('Fails if evidence is not submitted by either sender or receiver of the transaction', async function () {
-      const daveEvidence = "Dave's evidence"
       const tx = talentLayerEscrow
         .connect(dave)
-        .submitEvidence(daveTlId, transactionId, daveEvidence)
+        .submitEvidence(daveTlId, transactionId, evidenceCid)
       await expect(tx).to.be.revertedWith(
         'The caller must be the sender or the receiver or their delegates',
       )
     })
 
     it('The evidence event is emitted when the sender submits it', async function () {
-      const aliceEvidence = "Alice's evidence"
       const tx = await talentLayerEscrow
         .connect(alice)
-        .submitEvidence(aliceTlId, transactionId, aliceEvidence)
+        .submitEvidence(aliceTlId, transactionId, evidenceCid)
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Evidence')
-        .withArgs(talentLayerArbitrator.address, transactionId, alice.address, aliceEvidence)
+        .withArgs(talentLayerArbitrator.address, transactionId, alice.address, evidenceCid)
     })
 
     it('The evidence event is emitted when the receiver submits it', async function () {
-      const bobEvidence = "Bob's evidence"
       const tx = await talentLayerEscrow
         .connect(bob)
-        .submitEvidence(bobTlId, transactionId, bobEvidence)
+        .submitEvidence(bobTlId, transactionId, evidenceCid)
       await expect(tx)
         .to.emit(talentLayerEscrow, 'Evidence')
-        .withArgs(talentLayerArbitrator.address, transactionId, bob.address, bobEvidence)
+        .withArgs(talentLayerArbitrator.address, transactionId, bob.address, evidenceCid)
     })
   })
 
