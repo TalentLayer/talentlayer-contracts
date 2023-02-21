@@ -599,10 +599,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Pays receiver if sender fails to pay the arbitration fee.
+     * @notice Pays receiver if sender fails to pay the arbitration fee in time.
      * @param _transactionId Id of the transaction.
      */
-    function timeOutByReceiverOrSender(uint256 _transactionId) public {
+    function arbitrationFeeTimeout(uint256 _transactionId) public {
         Transaction storage transaction = transactions[_transactionId];
 
         require(
@@ -610,15 +610,19 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             "Timeout time has not passed yet"
         );
 
-        if (transaction.status == Status.WaitingSender && transaction.senderFee != 0) {
-            uint256 senderFee = transaction.senderFee;
-            transaction.senderFee = 0;
-            payable(transaction.sender).call{value: senderFee}("");
+        if (transaction.status == Status.WaitingSender) {
+            if (transaction.senderFee != 0) {
+                uint256 senderFee = transaction.senderFee;
+                transaction.senderFee = 0;
+                payable(transaction.sender).call{value: senderFee}("");
+            }
             _executeRuling(_transactionId, RECEIVER_WINS);
-        } else if (transaction.status == Status.WaitingReceiver && transaction.receiverFee != 0) {
-            uint256 receiverFee = transaction.receiverFee;
-            transaction.receiverFee = 0;
-            payable(transaction.receiver).call{value: receiverFee}("");
+        } else if (transaction.status == Status.WaitingReceiver) {
+            if (transaction.receiverFee != 0) {
+                uint256 receiverFee = transaction.receiverFee;
+                transaction.receiverFee = 0;
+                payable(transaction.receiver).call{value: receiverFee}("");
+            }
             _executeRuling(_transactionId, SENDER_WINS);
         }
     }
