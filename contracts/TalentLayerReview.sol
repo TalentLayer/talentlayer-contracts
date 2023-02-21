@@ -48,8 +48,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     CountersUpgradeable.Counter nextReviewId;
 
     /**
-     * @notice Review Id to Review struct
-     * @dev reviewId => Review
+     * @notice Review id to review
      */
     mapping(uint256 => Review) public reviews;
 
@@ -112,6 +111,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      * @param _reviewId The id of the review
      */
     function getReview(uint256 _reviewId) public view returns (Review memory) {
+        require(_reviewId < nextReviewId.current(), "Invalid review ID");
         return reviews[_reviewId];
     }
 
