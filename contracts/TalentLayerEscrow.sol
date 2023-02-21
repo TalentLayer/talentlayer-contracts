@@ -605,22 +605,18 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     function timeOutByReceiverOrSender(uint256 _transactionId) public {
         Transaction storage transaction = transactions[_transactionId];
         require(
-            transaction.status == Status.WaitingSender || transaction.status == Status.WaitingReceiver,
-            "The transaction is not waiting on the sender or the receiver"
-        );
-        require(
             block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
             "Timeout time has not passed yet"
         );
 
-        // Reimburse sender if has paid any fees.
-        // Reimburse receiver if has paid any fees
         if (transaction.senderFee != 0) {
+            require(_msgSender() == transaction.sender, "The caller must be the sender");
             uint256 senderFee = transaction.senderFee;
             transaction.senderFee = 0;
             payable(transaction.sender).call{value: senderFee}("");
             _executeRuling(_transactionId, RECEIVER_WINS);
         } else if (transaction.receiverFee != 0) {
+            require(_msgSender() == transaction.receiver, "The caller must be the receiver");
             uint256 receiverFee = transaction.receiverFee;
             transaction.receiverFee = 0;
             payable(transaction.receiver).call{value: receiverFee}("");
