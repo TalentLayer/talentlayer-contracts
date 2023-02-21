@@ -614,14 +614,13 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         );
 
         // Reimburse sender if has paid any fees.
+        // Reimburse receiver if has paid any fees
         if (transaction.senderFee != 0) {
             uint256 senderFee = transaction.senderFee;
             transaction.senderFee = 0;
             payable(transaction.sender).call{value: senderFee}("");
             _executeRuling(_transactionId, RECEIVER_WINS);
-        }
-        // Reimburse receiver if has paid any fees.
-        if (transaction.receiverFee != 0) {
+        } else if (transaction.receiverFee != 0) {
             uint256 receiverFee = transaction.receiverFee;
             transaction.receiverFee = 0;
             payable(transaction.receiver).call{value: receiverFee}("");
