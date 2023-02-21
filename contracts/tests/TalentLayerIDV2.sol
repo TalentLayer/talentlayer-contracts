@@ -195,7 +195,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         uint256 _platformId,
         string calldata _handle,
         bytes32[] calldata _proof
-    ) public payable canPay canMint(_msgSender(), _handle, _platformId) return (uint256) {
+    ) public payable canPay canMint(_msgSender(), _handle, _platformId) returns (uint256) {
         require(mintStatus == MintStatus.ONLY_WHITELIST, "Whitelist mint is not enabled");
         address sender = _msgSender();
         require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
