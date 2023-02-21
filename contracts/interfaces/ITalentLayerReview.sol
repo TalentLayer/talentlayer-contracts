@@ -6,17 +6,13 @@ pragma solidity ^0.8.0;
  * @author TalentLayer Team
  */
 interface ITalentLayerReview {
-    // Struct Review
     struct Review {
         uint256 id;
-        uint256 owner;
+        uint256 ownerId;
         string dataUri;
-        uint256 platformId;
         uint256 serviceId;
         uint256 rating;
     }
-
-    error ReviewAlreadyMinted();
 
     function getReview(uint256 _reviewId) external view returns (Review memory);
 
@@ -24,7 +20,6 @@ interface ITalentLayerReview {
         uint256 _tokenId,
         uint256 _serviceId,
         string calldata _reviewUri,
-        uint256 _rating,
-        uint256 _platformId
-    ) external;
+        uint256 _rating
+    ) external returns (uint256);
 }

@@ -37,7 +37,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         uint256 id;
         uint256 ownerId;
         string dataUri;
-        uint256 platformId;
         uint256 serviceId;
         uint256 rating;
     }
@@ -72,11 +71,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      */
     ITalentLayerService private talentLayerService;
 
-    /**
-     * @notice TalentLayer Platform ID registry
-     */
-    ITalentLayerPlatformID public talentLayerPlatformIdContract;
-
     // =========================== Initializers ==============================
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -84,17 +78,12 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         _disableInitializers();
     }
 
-    function initialize(
-        address _talentLayerIdAddress,
-        address _talentLayerServiceAddress,
-        address _talentLayerPlatformIdAddress
-    ) public initializer {
+    function initialize(address _talentLayerIdAddress, address _talentLayerServiceAddress) public initializer {
         __ERC721_init("TalentLayerReview", "TLR");
         __UUPSUpgradeable_init();
         __Ownable_init();
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerService = ITalentLayerService(_talentLayerServiceAddress);
-        talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         // Increment counter to start review ids at index 1
         nextReviewId.increment();
     }
@@ -126,14 +115,12 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      * @param _serviceId Service ID
      * @param _reviewUri The IPFS URI of the review
      * @param _rating The review rate
-     * @param _platformId The platform ID
      */
     function mint(
         uint256 _profileId,
         uint256 _serviceId,
         string calldata _reviewUri,
-        uint256 _rating,
-        uint256 _platformId
+        uint256 _rating
     ) public onlyOwnerOrDelegate(_profileId) returns (uint256) {
         ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
 
@@ -143,7 +130,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         );
         require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
         require(_rating <= 5 && _rating >= 0, "Invalid rating");
-        talentLayerPlatformIdContract.isValid(_platformId);
 
         uint256 toId;
         if (_profileId == service.ownerId) {
@@ -158,7 +144,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
 
         address sender = tlId.ownerOf(toId);
         _safeMint(sender, nextReviewId.current());
-        return _afterMint(_serviceId, toId, _rating, _reviewUri, _platformId);
+        return _afterMint(_serviceId, toId, _rating, _reviewUri);
     }
 
     // =========================== Private functions ===========================
@@ -169,15 +155,12 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      * @param _to The address of the recipient
      * @param _rating The review rate
      * @param _reviewUri The IPFS URI of the review
-     * @param _platformId The platform ID
-     * Emits a "Mint" event
      */
     function _afterMint(
         uint256 _serviceId,
         uint256 _to,
         uint256 _rating,
-        string calldata _reviewUri,
-        uint256 _platformId
+        string calldata _reviewUri
     ) internal virtual returns (uint256) {
         uint256 reviewId = nextReviewId.current();
         nextReviewId.increment();
@@ -186,12 +169,11 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
             id: reviewId,
             ownerId: _to,
             dataUri: _reviewUri,
-            platformId: _platformId,
             serviceId: _serviceId,
             rating: _rating
         });
 
-        emit Mint(_serviceId, _to, reviewId, _rating, _reviewUri, _platformId);
+        emit Mint(_serviceId, _to, reviewId, _rating, _reviewUri);
         return reviewId;
     }
 
@@ -273,14 +255,12 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      * @param _tokenId The ID of the review token
      * @param _rating The rating of the review
      * @param _reviewUri The IPFS URI of the review metadata
-     * @param _platformId The ID of the platform
      */
     event Mint(
         uint256 indexed _serviceId,
         uint256 indexed _toId,
         uint256 indexed _tokenId,
         uint256 _rating,
-        string _reviewUri,
-        uint256 _platformId
+        string _reviewUri
     );
 }

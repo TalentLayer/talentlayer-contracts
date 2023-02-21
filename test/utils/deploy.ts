@@ -70,10 +70,9 @@ export async function deploy(
 
   // Deploy TalentLayerReview
   const TalentLayerReview = await ethers.getContractFactory('TalentLayerReview')
-  const talentLayerReviewArgs: [string, string, string] = [
+  const talentLayerReviewArgs: [string, string] = [
     talentLayerID.address,
     talentLayerService.address,
-    talentLayerPlatformID.address,
   ]
   const talentLayerReview = await upgrades.deployProxy(TalentLayerReview, talentLayerReviewArgs)
 

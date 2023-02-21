@@ -1489,32 +1489,24 @@ describe('TalentLayer protocol global testing', function () {
 
     it("Alice can't write a review as the service is not finished", async function () {
       await expect(
-        talentLayerReview
-          .connect(alice)
-          .mint(aliceTlId, unfinishedServiceId, 'cidReview', 3, bobPlatformId),
+        talentLayerReview.connect(alice).mint(aliceTlId, unfinishedServiceId, 'cidReview', 3),
       ).to.be.revertedWith('The service is not finished yet')
     })
 
     it("Carol can't write a review as she's not an actor of the service", async function () {
       await expect(
-        talentLayerReview
-          .connect(carol)
-          .mint(carolTlId, finishedServiceId, 'cidReview', 5, bobPlatformId),
+        talentLayerReview.connect(carol).mint(carolTlId, finishedServiceId, 'cidReview', 5),
       ).to.be.revertedWith("You're not an actor of this service")
     })
 
     it('The rating needs to be between 0 and 5', async function () {
       await expect(
-        talentLayerReview
-          .connect(alice)
-          .mint(aliceTlId, finishedServiceId, 'cidReview', 6, bobPlatformId),
+        talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 6),
       ).to.be.revertedWith('Invalid rating')
     })
 
     it('Alice can review Bob for the service they had', async function () {
-      await talentLayerReview
-        .connect(alice)
-        .mint(aliceTlId, finishedServiceId, 'cidReview', 4, bobPlatformId)
+      await talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 4)
 
       const owner = await talentLayerReview.ownerOf(bobReviewId)
       expect(owner).to.be.equal(bob.address)
@@ -1528,16 +1520,13 @@ describe('TalentLayer protocol global testing', function () {
       expect(review.dataUri).to.be.equal('cidReview')
       expect(review.serviceId).to.be.equal(finishedServiceId)
       expect(review.rating).to.be.equal(4)
-      expect(review.platformId).to.be.equal(bobPlatformId)
 
       const hasSellerBeenReviewed = await talentLayerReview.hasSellerBeenReviewed(finishedServiceId)
       expect(hasSellerBeenReviewed).to.be.equal(true)
     })
 
     it('Bob can review Alice for the service they had', async function () {
-      await talentLayerReview
-        .connect(bob)
-        .mint(bobTlId, finishedServiceId, 'cidReview', 5, bobPlatformId)
+      await talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, 'cidReview', 5)
 
       const owner = await talentLayerReview.ownerOf(aliceReviewId)
       expect(owner).to.be.equal(alice.address)
@@ -1548,17 +1537,13 @@ describe('TalentLayer protocol global testing', function () {
 
     it("Alice can't review Bob again for the same service", async function () {
       await expect(
-        talentLayerReview
-          .connect(alice)
-          .mint(aliceTlId, finishedServiceId, 'cidReview', 4, bobPlatformId),
+        talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 4),
       ).to.be.revertedWith('You already minted a review for this service')
     })
 
     it("Bob can't review Alice again for the same service", async function () {
       await expect(
-        talentLayerReview
-          .connect(bob)
-          .mint(bobTlId, finishedServiceId, 'cidReview', 4, bobPlatformId),
+        talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, 'cidReview', 4),
       ).to.be.revertedWith('You already minted a review for this service')
     })
 
