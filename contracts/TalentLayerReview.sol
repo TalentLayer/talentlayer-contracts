@@ -161,7 +161,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         uint256 _to,
         uint256 _rating,
         string calldata _reviewUri
-    ) internal virtual returns (uint256) {
+    ) private returns (uint256) {
         uint256 reviewId = nextReviewId.current();
         nextReviewId.increment();
 
