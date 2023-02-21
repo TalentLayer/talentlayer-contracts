@@ -599,12 +599,15 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Reimburses sender if receiver fails to pay the arbitration fee.
+     * @notice Pays receiver if sender fails to pay the arbitration fee.
      * @param _transactionId Id of the transaction.
      */
-    function timeOutBySender(uint256 _transactionId) public {
+    function timeOutByReceiverOrSender(uint256 _transactionId) public {
         Transaction storage transaction = transactions[_transactionId];
-        require(transaction.status == Status.WaitingReceiver, "The transaction is not waiting on the receiver");
+        require(
+            transaction.status == Status.WaitingSender || transaction.status == Status.WaitingReceiver,
+            "The transaction is not waiting on the sender or the receiver"
+        );
         require(
             block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
             "Timeout time has not passed yet"
@@ -612,36 +615,19 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
         uint256 receiverFee;
 
-        // Reimburse receiver if has paid any fees.
-        if (transaction.receiverFee != 0) {
-            receiverFee = transaction.receiverFee;
-            transaction.receiverFee = 0;
-            payable(transaction.receiver).call{value: receiverFee}("");
-        }
-
-        _executeRuling(_transactionId, SENDER_WINS);
-    }
-
-    /**
-     * @notice Pays receiver if sender fails to pay the arbitration fee.
-     * @param _transactionId Id of the transaction.
-     */
-    function timeOutByReceiver(uint256 _transactionId) public {
-        Transaction storage transaction = transactions[_transactionId];
-        require(transaction.status == Status.WaitingSender, "The transaction is not waiting on the sender");
-        require(
-            block.timestamp - transaction.lastInteraction >= transaction.arbitrationFeeTimeout,
-            "Timeout time has not passed yet"
-        );
-
         // Reimburse sender if has paid any fees.
         if (transaction.senderFee != 0) {
             uint256 senderFee = transaction.senderFee;
             transaction.senderFee = 0;
             payable(transaction.sender).call{value: senderFee}("");
+            _executeRuling(_transactionId, RECEIVER_WINS);
         }
-
-        _executeRuling(_transactionId, RECEIVER_WINS);
+        // Reimburse receiver if has paid any fees.
+        transaction.receiverFee != 0;
+        receiverFee = transaction.receiverFee;
+        transaction.receiverFee = 0;
+        payable(transaction.receiver).call{value: receiverFee}("");
+        _executeRuling(_transactionId, SENDER_WINS);
     }
 
     /**

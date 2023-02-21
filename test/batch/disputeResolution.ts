@@ -272,7 +272,7 @@ describe('Dispute Resolution, standard flow', function () {
 
   describe('Attempt to end dispute before arbitration fee timeout has passed', async function () {
     it('Fails if is not called by the sender of the transaction', async function () {
-      const tx = talentLayerEscrow.connect(alice).timeOutBySender(transactionId)
+      const tx = talentLayerEscrow.connect(alice).timeOutByReceiverOrSender(transactionId)
       await expect(tx).to.be.revertedWith('Timeout time has not passed yet')
     })
   })
@@ -507,7 +507,7 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
     let tx: ContractTransaction
 
     before(async function () {
-      tx = await talentLayerEscrow.connect(alice).timeOutBySender(transactionId)
+      tx = await talentLayerEscrow.connect(alice).timeOutByReceiverOrSender(transactionId)
     })
 
     it('The sender wins the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
