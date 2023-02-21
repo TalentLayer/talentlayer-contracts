@@ -8,6 +8,7 @@ import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
+import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base64Upgradeable.sol";
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
@@ -214,6 +215,43 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      * @param _tokenId The ID of the token
      */
     function _burn(uint256 _tokenId) internal virtual override(ERC721Upgradeable) {}
+
+    /**
+     * @notice Implementation of the {IERC721Metadata-tokenURI} function.
+     */
+    function tokenURI(uint256) public view virtual override(ERC721Upgradeable) returns (string memory) {
+        return _buildTokenURI();
+    }
+
+    /**
+     * @notice Builds the token URI
+     */
+    function _buildTokenURI() internal pure returns (string memory) {
+        bytes memory image = abi.encodePacked(
+            "data:image/svg+xml;base64,",
+            Base64Upgradeable.encode(
+                bytes(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720"><rect width="100%" height="100%"/><svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" version="1.2" viewBox="-200 -50 1000 1000"><path fill="#FFFFFF" d="M264.5 190.5c0-13.8 11.2-25 25-25H568c13.8 0 25 11.2 25 25v490c0 13.8-11.2 25-25 25H289.5c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M265 624c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25v56.5c0 13.8-11.2 25-25 25H290c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M0 190.5c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25V247c0 13.8-11.2 25-25 25H25c-13.8 0-25-11.2-25-25z"/></svg><text x="30" y="670" style="font:60px sans-serif;fill:#fff">review</text></svg>'
+                )
+            )
+        );
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64Upgradeable.encode(
+                        bytes(
+                            abi.encodePacked(
+                                '{"name":"review"',
+                                ', "image":"',
+                                image,
+                                unicode'", "description": "TalentLayer Review"}'
+                            )
+                        )
+                    )
+                )
+            );
+    }
 
     function _msgSender()
         internal
