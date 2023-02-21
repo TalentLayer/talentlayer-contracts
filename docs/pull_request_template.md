@@ -12,4 +12,5 @@
 
 ## Typing
 
-- [ ] Check solhint feedbacks: `npm run solhint`
+- [ ] Check lint feedbacks: `npm run lint`
+- [ ] Check prettier format feedbacks: `npm run format`
