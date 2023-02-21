@@ -24,13 +24,14 @@ const transactionAmount = BigNumber.from(1000000)
 const ethAddress = '0x0000000000000000000000000000000000000000'
 const arbitrationCost = BigNumber.from(10)
 const disputeId = 0
-const metaEvidence = 'metaEvidence'
 const feeDivider = 10000
 const arbitrationFeeTimeout = 3600 * 24
 const minTokenWhitelistTransactionAmount = 10
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
+const cid = 'QmQLVYemsvvqk58y8UTrCEp8MrcQaMzzT2e2duDEmFG99Z'
+const metaEvidenceCid = 'QmQ2hcACF6r2Gf8PDxG4NcBdurzRUopwcaYQHNhSah6a8v'
 
 /**
  * Deploys contract and sets up the context for dispute resolution.
@@ -88,7 +89,7 @@ async function deployAndSetup(
   await talentLayerID.connect(dave).mint(carolPlatformId, 'dave')
 
   // Alice, the buyer, initiates a new open service
-  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, 'cid')
+  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, cid)
 
   // Bob, the seller, creates a proposal for the service
   await talentLayerService
@@ -99,7 +100,7 @@ async function deployAndSetup(
       tokenAddress,
       transactionAmount,
       carolPlatformId,
-      'cid',
+      cid,
       proposalExpirationDate,
     )
 
@@ -153,7 +154,7 @@ describe('Dispute Resolution, standard flow', function () {
 
       tx = await talentLayerEscrow
         .connect(alice)
-        .createTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
+        .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
           value: totalTransactionAmount,
         })
     })
@@ -168,7 +169,7 @@ describe('Dispute Resolution, standard flow', function () {
     it('MetaEvidence is submitted', async function () {
       await expect(tx)
         .to.emit(talentLayerEscrow, 'MetaEvidence')
-        .withArgs(transactionId, metaEvidence)
+        .withArgs(transactionId, metaEvidenceCid)
     })
 
     it('Transaction is created', async function () {
@@ -490,7 +491,7 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
 
     await talentLayerEscrow
       .connect(alice)
-      .createTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
+      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
         value: totalTransactionAmount,
       })
 
@@ -562,7 +563,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
 
     await talentLayerEscrow
       .connect(alice)
-      .createTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri, {
+      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
         value: totalTransactionAmount,
       })
 
@@ -694,7 +695,7 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
     // Create transaction
     await talentLayerEscrow
       .connect(alice)
-      .createTransaction(serviceId, proposalId, metaEvidence, proposal.dataUri)
+      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri)
 
     // Alice wants to raise a dispute and pays the arbitration fee
     await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
