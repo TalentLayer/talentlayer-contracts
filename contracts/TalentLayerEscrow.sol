@@ -306,7 +306,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner of the delegate of the given user
+     * @notice Check if the given address is either the owner or the delegate of the given user
      * @param _profileId The TalentLayer ID of the user
      */
     modifier onlyOwnerOrDelegate(uint256 _profileId) {
@@ -343,20 +343,19 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== View functions ==============================
 
     /**
-     * @dev Only the owner of the platform ID can execute this function
+     * @dev Only the owner of the platform ID or the owner can execute this function
      * @param _token Token address ("0" for ETH)
-     * @return balance The balance of the platform
+     * @return balance The balance of the platform or the protocol
      */
     function getClaimableFeeBalance(address _token) external view returns (uint256 balance) {
         address sender = _msgSender();
 
         if (owner() == sender) {
             return platformIdToTokenToBalance[PROTOCOL_INDEX][_token];
-        } else {
-            uint256 platformId = talentLayerPlatformIdContract.ids(sender);
-            talentLayerPlatformIdContract.isValid(platformId);
-            return platformIdToTokenToBalance[platformId][_token];
         }
+        uint256 platformId = talentLayerPlatformIdContract.ids(sender);
+        talentLayerPlatformIdContract.isValid(platformId);
+        return platformIdToTokenToBalance[platformId][_token];
     }
 
     /**
@@ -366,7 +365,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @return transaction The transaction details
      */
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory) {
-        require(transactions.length > _transactionId, "Not a valid transaction id");
+        require(transactions.length > _transactionId, "Invalid transaction id");
         Transaction memory transaction = transactions[_transactionId];
 
         address sender = _msgSender();
@@ -441,6 +440,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open");
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending");
+        require(bytes(_metaEvidence).length == 46, "Invalid cid");
         require(
             keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
             "Proposal dataUri has changed"
@@ -934,7 +934,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             require(_transaction.receiver == talentLayerIdContract.ownerOf(_profileId), "Access denied");
         }
 
-        require(transactions.length > _transaction.id, "Not a valid transaction id");
+        require(transactions.length > _transaction.id, "Invalid transaction id");
         require(_transaction.status == Status.NoDispute, "The transaction shouldn't be disputed");
         require(_transaction.amount >= _amount, "Insufficient funds");
         require(_amount >= FEE_DIVIDER || (_amount < FEE_DIVIDER && _amount == _transaction.amount), "Amount too low");

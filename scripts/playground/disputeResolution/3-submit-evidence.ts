@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 import postToIPFS from '../../utils/ipfs'
-import { transactionId } from './constants'
+import { transactionId } from '../constants'
 
 import hre = require('hardhat')
 

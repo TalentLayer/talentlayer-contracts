@@ -223,7 +223,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _newCid New IPFS URI
      */
     function updateProfileData(uint256 _profileId, string memory _newCid) public onlyOwnerOrDelegate(_profileId) {
-        require(bytes(_newCid).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_newCid).length == 46, "Invalid cid");
         profiles[_profileId].dataUri = _newCid;
 
         emit CidUpdated(_profileId, _newCid);

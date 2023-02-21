@@ -237,7 +237,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
         require(msg.value == servicePostingFee, "Non-matching funds");
-        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
 
         uint256 id = nextServiceId;
         nextServiceId++;
@@ -285,7 +285,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         );
 
         require(service.ownerId != _profileId, "You couldn't create proposal for your own service");
-        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
 
         proposals[_serviceId][_profileId] = Proposal({
             status: ProposalStatus.Pending,
@@ -332,7 +332,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Proposal storage proposal = proposals[_serviceId][_profileId];
         require(service.status == Status.Opened, "Service is not opened");
         require(proposal.ownerId == _profileId, "This proposal doesn't exist yet");
-        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
         require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
         require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount is too low");
 
@@ -406,7 +406,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Service storage service = services[_serviceId];
         require(service.ownerId == _profileId, "Only the owner can update the service");
         require(service.status == Status.Opened, "Service status should be opened");
-        require(bytes(_dataUri).length > 0, "Should provide a valid IPFS URI");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
 
         service.dataUri = _dataUri;
 
