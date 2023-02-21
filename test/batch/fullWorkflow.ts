@@ -1544,38 +1544,98 @@ describe('TalentLayer protocol global testing', function () {
   })
 
   describe('Talent Layer Review contract test', function () {
-    it("Bob can't write a review yet", async function () {
-      await expect(
-        talentLayerReview.connect(bob).addReview(bobTlId, 1, 'cidReview', 3, 1),
-      ).to.be.revertedWith("You're not an actor of this service")
-    })
+    const unfinishedServiceId = 1 // Service between Alice (buyer) and Carol (seller)
+    const finishedServiceId = 2 // Service between Alice (buyer) and Bob (seller)
+    const bobReviewId = 1 // Review received by Bob
+    const aliceReviewId = 2 // Review received by Alice
 
-    it("Carol can't write a review as she's not linked to this service", async function () {
+    it("Alice can't write a review as the service is not finished", async function () {
       await expect(
-        talentLayerReview.connect(carol).addReview(carolTlId, 1, 'cidReview', 5, 1),
-      ).to.be.revertedWith("You're not an actor of this service")
-    })
-
-    it("Alice and Bob can't write a review for the same Service", async function () {
-      await expect(
-        talentLayerReview.connect(alice).addReview(aliceTlId, 1, 'cidReview', 3, 1),
+        talentLayerReview.connect(alice).mint(aliceTlId, unfinishedServiceId, 'cidReview', 3),
       ).to.be.revertedWith('The service is not finished yet')
-      await expect(
-        talentLayerReview.connect(bob).addReview(bobTlId, 1, 'cidReview', 3, 1),
-      ).to.be.revertedWith(`You're not an actor of this service`)
     })
 
-    it('Alice and Bob can write a review now and we can get review data', async function () {
-      await talentLayerReview.connect(alice).addReview(aliceTlId, 2, 'cidReview1', 2, 1)
-      await talentLayerReview.connect(bob).addReview(bobTlId, 2, 'cidReview2', 4, 1)
+    it("Carol can't write a review as she's not an actor of the service", async function () {
+      await expect(
+        talentLayerReview.connect(carol).mint(carolTlId, finishedServiceId, 'cidReview', 5),
+      ).to.be.revertedWith("You're not an actor of this service")
+    })
 
-      const reviewData1 = await talentLayerReview.getReview(0)
-      const reviewData2 = await talentLayerReview.getReview(1)
+    it('The rating needs to be between 0 and 5', async function () {
+      await expect(
+        talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 6),
+      ).to.be.revertedWith('Invalid rating')
+    })
 
-      expect(reviewData1.dataUri).to.be.equal('cidReview1')
-      expect(reviewData2.dataUri).to.be.equal('cidReview2')
+    it('Alice can review Bob for the service they had', async function () {
+      await talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 4)
 
-      expect(await reviewData1.platformId).to.be.equal(1)
+      const owner = await talentLayerReview.ownerOf(bobReviewId)
+      expect(owner).to.be.equal(bob.address)
+
+      const balance = await talentLayerReview.balanceOf(bob.address)
+      expect(balance).to.be.equal(1)
+
+      const review = await talentLayerReview.getReview(bobReviewId)
+      expect(review.id).to.be.equal(bobReviewId)
+      expect(review.ownerId).to.be.equal(bobTlId)
+      expect(review.dataUri).to.be.equal('cidReview')
+      expect(review.serviceId).to.be.equal(finishedServiceId)
+      expect(review.rating).to.be.equal(4)
+
+      const hasSellerBeenReviewed = await talentLayerReview.hasSellerBeenReviewed(finishedServiceId)
+      expect(hasSellerBeenReviewed).to.be.equal(true)
+    })
+
+    it('Bob can review Alice for the service they had', async function () {
+      await talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, 'cidReview', 5)
+
+      const owner = await talentLayerReview.ownerOf(aliceReviewId)
+      expect(owner).to.be.equal(alice.address)
+
+      const hasBuyerBeenReviewed = await talentLayerReview.hasBuyerBeenReviewed(finishedServiceId)
+      expect(hasBuyerBeenReviewed).to.be.equal(true)
+    })
+
+    it("Alice can't review Bob again for the same service", async function () {
+      await expect(
+        talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, 'cidReview', 4),
+      ).to.be.revertedWith('You have already minted a review for this service')
+    })
+
+    it("Bob can't review Alice again for the same service", async function () {
+      await expect(
+        talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, 'cidReview', 4),
+      ).to.be.revertedWith('You have already minted a review for this service')
+    })
+
+    it('Alice should not be able to transfer her review to carol', async function () {
+      await expect(
+        talentLayerPlatformID
+          .connect(alice)
+          .transferFrom(alice.address, carol.address, aliceReviewId),
+      ).to.be.revertedWith('Token transfer is not allowed')
+
+      await expect(
+        talentLayerPlatformID
+          .connect(alice)
+          ['safeTransferFrom(address,address,uint256)'](
+            alice.address,
+            carol.address,
+            aliceReviewId,
+          ),
+      ).to.be.revertedWith('Token transfer is not allowed')
+
+      await expect(
+        talentLayerPlatformID
+          .connect(alice)
+          ['safeTransferFrom(address,address,uint256,bytes)'](
+            alice.address,
+            carol.address,
+            aliceReviewId,
+            [],
+          ),
+      ).to.be.revertedWith('Token transfer is not allowed')
     })
   })
 

@@ -202,14 +202,10 @@ describe('Delegation System', function () {
 
     it('Dave can create a review on behalf of Alice', async function () {
       // Fails is caller is not the owner or delegate
-      const failTx = talentLayerReview
-        .connect(eve)
-        .addReview(aliceTlId, serviceId, 'uri', 5, carolPlatformId)
+      const failTx = talentLayerReview.connect(eve).mint(aliceTlId, serviceId, 'uri', 5)
       await expect(failTx).to.be.revertedWith('Not owner or delegate')
 
-      const tx = await talentLayerReview
-        .connect(dave)
-        .addReview(aliceTlId, serviceId, 'uri', 5, carolPlatformId)
+      const tx = await talentLayerReview.connect(dave).mint(aliceTlId, serviceId, 'uri', 5)
       await expect(tx).to.not.be.reverted
     })
   })
