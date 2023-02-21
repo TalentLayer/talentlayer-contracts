@@ -135,11 +135,11 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         uint256 toId;
         if (_profileId == service.ownerId) {
             toId = service.acceptedProposalId;
-            require(!hasSellerBeenReviewed[_serviceId], "You already minted a review for this service");
+            require(!hasSellerBeenReviewed[_serviceId], "You have already minted a review for this service");
             hasSellerBeenReviewed[_serviceId] = true;
         } else {
             toId = service.ownerId;
-            require(!hasBuyerBeenReviewed[_serviceId], "You already minted a review for this service");
+            require(!hasBuyerBeenReviewed[_serviceId], "You have already minted a review for this service");
             hasBuyerBeenReviewed[_serviceId] = true;
         }
 
