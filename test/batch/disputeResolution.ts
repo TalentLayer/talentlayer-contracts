@@ -512,8 +512,6 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
       const transaction = await talentLayerEscrow
         .connect(alice)
         .getTransactionDetails(transactionId)
-      console.log('TITITITIT', transaction.status)
-      console.log('TOTOTOTOT', transaction.senderFee)
     })
 
     it('The sender wins the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
