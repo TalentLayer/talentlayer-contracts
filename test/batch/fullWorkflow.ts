@@ -13,6 +13,7 @@ import {
   TalentLayerPlatformID,
   TalentLayerReview,
 } from '../../typechain-types'
+import { MintStatus } from '../utils/constant'
 
 const aliceTlId = 1
 const bobTlId = 2
@@ -23,6 +24,7 @@ const bobPlatformId = 2
 
 const now = Math.floor(Date.now() / 1000)
 const proposalExpirationDate = now + 60 * 60 * 24 * 15
+const minTokenWhitelistTranscationFees = 100
 
 describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
@@ -100,8 +102,13 @@ describe('TalentLayer protocol global testing', function () {
 
     // Deployer whitelists a list of authorized tokens
     for (const tokenAddress of allowedTokenList) {
-      await talentLayerService.connect(deployer).updateAllowedTokenList(tokenAddress, true)
+      await talentLayerService
+        .connect(deployer)
+        .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTranscationFees)
     }
+
+    // Disable whitelist for reserved handles
+    await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
   })
 
   describe('Platform Id contract test', async function () {
@@ -207,9 +214,11 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('The deployer can update the minting status to PAUSE and trigger the event', async function () {
-      const transcation = await talentLayerPlatformID.connect(deployer).updateMintStatus(0)
+      const transcation = await talentLayerPlatformID
+        .connect(deployer)
+        .updateMintStatus(MintStatus.ON_PAUSE)
       const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
-      expect(mintingStatus).to.be.equal(0)
+      expect(mintingStatus).to.be.equal(MintStatus.ON_PAUSE)
       await expect(transcation).to.emit(talentLayerPlatformID, 'MintStatusUpdated').withArgs(0)
     })
 
@@ -220,9 +229,9 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('The deployer can update the minting status to PUBLIC', async function () {
-      await talentLayerPlatformID.connect(deployer).updateMintStatus(2)
+      await talentLayerPlatformID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
       const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
-      expect(mintingStatus).to.be.equal(2)
+      expect(mintingStatus).to.be.equal(MintStatus.PUBLIC)
     })
 
     it('Bob can mint a platform id with allowed characters & correct name length by paying the mint fee', async function () {
@@ -414,6 +423,24 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerID.connect(alice).mint('1', tooLongHandle),
       ).to.be.revertedWithCustomError(talentLayerID, 'HandleLengthInvalid')
+    })
+
+    it('The deployer can update the minting status to PAUSE and trigger the event', async function () {
+      const tx = await talentLayerID.connect(deployer).updateMintStatus(MintStatus.ON_PAUSE)
+      const mintingStatus = await talentLayerID.connect(deployer).mintStatus()
+      expect(mintingStatus).to.be.equal(MintStatus.ON_PAUSE)
+      await expect(tx).to.emit(talentLayerID, 'MintStatusUpdated').withArgs(0)
+    })
+
+    it('Bob cannot mint a platform id because the minting status is PAUSE', async function () {
+      const tx = talentLayerID.connect(carol).mint(alicePlatformId, 'carol')
+      await expect(tx).to.be.revertedWith('Public mint is not enabled')
+    })
+
+    it('The deployer can update the minting status to PUBLIC', async function () {
+      await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
+      const mintingStatus = await talentLayerID.connect(deployer).mintStatus()
+      expect(mintingStatus).to.be.equal(2)
     })
 
     it('Alice, Bob and Carol can mint a talentLayerId, including with "-" & "_" characters and correct handle length', async function () {
@@ -613,7 +640,9 @@ describe('TalentLayer protocol global testing', function () {
   describe('Service Registry & Proposal contract test', function () {
     it('Should revert if a user tries to whitelist a payment token without being the owner', async function () {
       await expect(
-        talentLayerService.connect(alice).updateAllowedTokenList(token.address, true),
+        talentLayerService
+          .connect(alice)
+          .updateAllowedTokenList(token.address, true, minTokenWhitelistTranscationFees),
       ).to.be.revertedWith('Ownable: caller is not the owner')
     })
 
@@ -621,17 +650,25 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(deployer)
-          .updateAllowedTokenList(ethers.constants.AddressZero, false),
+          .updateAllowedTokenList(
+            ethers.constants.AddressZero,
+            false,
+            minTokenWhitelistTranscationFees,
+          ),
       ).to.be.revertedWith("Owner can't remove Ox address")
     })
 
     it('Should update the token list accordingly if the owner updates it', async function () {
       const randomTokenAddress = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599'
 
-      await talentLayerService.connect(deployer).updateAllowedTokenList(randomTokenAddress, true)
+      await talentLayerService
+        .connect(deployer)
+        .updateAllowedTokenList(randomTokenAddress, true, minTokenWhitelistTranscationFees)
       expect(await talentLayerService.isTokenAllowed(randomTokenAddress)).to.be.true
 
-      await talentLayerService.connect(deployer).updateAllowedTokenList(randomTokenAddress, false)
+      await talentLayerService
+        .connect(deployer)
+        .updateAllowedTokenList(randomTokenAddress, false, minTokenWhitelistTranscationFees)
       expect(await talentLayerService.isTokenAllowed(randomTokenAddress)).to.be.false
     })
 

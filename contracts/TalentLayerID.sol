@@ -10,6 +10,7 @@ import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC72
 import {MerkleProofUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 
 /**
  * @title TalentLayer ID Contract
@@ -17,8 +18,20 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
  */
 contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
+    using MerkleProofUpgradeable for bytes32[];
 
     uint8 constant MAX_HANDLE_LENGTH = 31;
+
+    // =========================== Enums ==============================
+
+    /**
+     * @notice Enum for the mint status
+     */
+    enum MintStatus {
+        ON_PAUSE,
+        ONLY_WHITELIST,
+        PUBLIC
+    }
 
     // =========================== Structs ==============================
 
@@ -57,6 +70,12 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// TalentLayer ID to delegates
     mapping(uint256 => mapping(address => bool)) private delegates;
 
+    /// Merkle root of the whitelist for reserved handles
+    bytes32 private whitelistMerkleRoot;
+
+    /// The minting status
+    MintStatus public mintStatus;
+
     // =========================== Errors ==============================
 
     /**
@@ -87,6 +106,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         // Increment counter to start profile ids at index 1
         nextProfileId.increment();
+        mintStatus = MintStatus.ONLY_WHITELIST;
     }
 
     // =========================== View functions ==============================
@@ -141,6 +161,25 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         return ownerOf(_profileId) == _address || isDelegate(_profileId, _address);
     }
 
+    /**
+     * @notice Check whether an address has reserved a handle.
+     * @param _address Address to check
+     * @param _handle Handle to check
+     * @param _proof Merkle proof to prove the user has reserved the handle to be minted
+     */
+    function isWhitelisted(
+        address _address,
+        string memory _handle,
+        bytes32[] memory _proof
+    ) public view returns (bool) {
+        string memory concatenatedString = string.concat(
+            StringsUpgradeable.toHexString(uint256(uint160(_address)), 20),
+            ";",
+            _handle
+        );
+        return _proof.verify(whitelistMerkleRoot, keccak256(abi.encodePacked(concatenatedString)));
+    }
+
     // =========================== User functions ==============================
 
     /**
@@ -152,9 +191,29 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId,
         string calldata _handle
     ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
+        require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
         return _afterMint(sender, _handle, _platformId, msg.value);
+    }
+
+    /**
+     * @notice Allows users who reserved a handle to mint a new TalentLayerID.
+     * @param _handle Handle for the user
+     * @param _platformId Platform ID mint the id from
+     * @param _proof Merkle proof of the handle reservation whitelist
+     */
+    function whitelistMint(
+        uint256 _platformId,
+        string calldata _handle,
+        bytes32[] calldata _proof
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay {
+        require(mintStatus == MintStatus.ONLY_WHITELIST, "Whitelist mint is not enabled");
+        address sender = _msgSender();
+        require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
+
+        _safeMint(sender, nextProfileId.current());
+        _afterMint(sender, _handle, _platformId, msg.value);
     }
 
     /**
@@ -224,6 +283,23 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     ) public canMint(_userAddress, _handle, _platformId) onlyOwner returns (uint256) {
         _safeMint(_userAddress, nextProfileId.current());
         return _afterMint(_userAddress, _handle, _platformId, 0);
+    }
+
+    /**
+     * @notice Allows the owner to set the merkle root for the whitelist for reserved handles
+     * @param root The new merkle root
+     */
+    function setWhitelistMerkleRoot(bytes32 root) public onlyOwner {
+        whitelistMerkleRoot = root;
+    }
+
+    /**
+     * @notice Updates the mint status.
+     * @param _mintStatus The new mint status
+     */
+    function updateMintStatus(MintStatus _mintStatus) public onlyOwner {
+        mintStatus = _mintStatus;
+        emit MintStatusUpdated(_mintStatus);
     }
 
     // =========================== Private functions ==============================
@@ -445,4 +521,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _delegate Address of the delegate
      */
     event DelegateRemoved(uint256 _profileId, address _delegate);
+
+    /**
+     * Emit when the minting status is updated
+     * @param _mintStatus The new mint status
+     */
+    event MintStatusUpdated(MintStatus _mintStatus);
 }
