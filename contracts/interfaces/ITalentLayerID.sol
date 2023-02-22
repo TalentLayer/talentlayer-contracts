@@ -2,6 +2,11 @@
 pragma solidity ^0.8.9;
 
 interface ITalentLayerID {
+    enum MintStatus {
+        ON_PAUSE,
+        ONLY_WHITELIST,
+        PUBLIC
+    }
     struct Profile {
         uint256 id;
         string handle;
