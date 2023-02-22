@@ -2,6 +2,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { expect } from 'chai'
 import { BigNumber } from 'ethers'
 import { ethers, network } from 'hardhat'
+import keccak256 from 'keccak256'
 import { getConfig, Network, NetworkConfig } from '../../networkConfig'
 import { deploy } from '../utils/deploy'
 import {
@@ -176,7 +177,7 @@ describe('TalentLayer protocol global testing', function () {
       const aliceUserId = await talentLayerPlatformID.ids(alice.address)
       const alicePlatformData = await talentLayerPlatformID.platforms(aliceUserId)
       const name = alicePlatformData.name
-      const isNameTaken = await talentLayerPlatformID.takenNames(platformName)
+      const isNameTaken = await talentLayerPlatformID.takenNames(keccak256(platformName))
       const idOwner = await talentLayerPlatformID.ownerOf(platformId)
       expect(platformName).to.equal(name)
       expect(isNameTaken).to.equal(true)

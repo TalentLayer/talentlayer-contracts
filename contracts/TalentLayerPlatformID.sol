@@ -55,9 +55,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
-     * @notice Taken Platform name
+     * @notice Taken Platform name (using hash of the name as key)
      */
-    mapping(string => bool) public takenNames;
+    mapping(bytes32 => bool) public takenNames;
 
     /**
      * @notice Platform ID to Platform struct
@@ -422,8 +422,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         platform.name = _platformName;
         platform.id = platformId;
         platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
-        takenNames[_platformName] = true;
         ids[_platformAddress] = platformId;
+
+        bytes32 nameHash = keccak256(bytes(_platformName));
+        takenNames[nameHash] = true;
 
         emit Mint(_platformAddress, platformId, _platformName, mintFee, minArbitrationFeeTimeout);
 
@@ -555,7 +557,8 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         }
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
-        require(!takenNames[_platformName], "Name already taken");
+        bytes32 nameHash = keccak256(bytes(_platformName));
+        require(!takenNames[nameHash], "Name already taken");
 
         _validateHandle(_platformName);
         _;

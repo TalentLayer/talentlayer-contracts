@@ -52,8 +52,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// TalentLayer Platform ID registry
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
-    /// Taken handles
-    mapping(string => bool) public takenHandles;
+    /// Taken handles (using hash of the handle as key)
+    mapping(bytes32 => bool) public takenHandles;
 
     /// TalentLayer ID to Profile struct
     mapping(uint256 => Profile) public profiles;
@@ -321,8 +321,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         Profile storage profile = profiles[userProfileId];
         profile.platformId = _platformId;
         profile.handle = _handle;
-        takenHandles[_handle] = true;
         ids[_userAddress] = userProfileId;
+
+        bytes32 handleHash = keccak256(bytes(_handle));
+        takenHandles[handleHash] = true;
 
         emit Mint(_userAddress, userProfileId, _handle, _platformId, _fee);
         return userProfileId;
@@ -468,7 +470,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
-        require(!takenHandles[_handle], "Handle already taken");
+        bytes32 handleHash = keccak256(bytes(_handle));
+        require(!takenHandles[handleHash], "Handle already taken");
         talentLayerPlatformIdContract.isValid(_platformId);
         _validateHandle(_handle);
         _;
