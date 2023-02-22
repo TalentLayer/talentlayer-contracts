@@ -19,6 +19,7 @@ import {
   metaEvidenceCid,
   minTokenWhitelistTransactionAmount,
   MintStatus,
+  expiredProposalDate,
   proposalExpirationDate,
 } from '../utils/constant'
 
@@ -816,6 +817,28 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.ownerId).to.be.equal(bobTlId)
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
+    })
+
+    it('Eve can make proposal on Alice service n°1 with a short expiration date (expired)', async function () {
+      const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+      const eveTid = await talentLayerID.ids(eve.address)
+      console.log('eveTid', eveTid)
+
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformProposalPostingFee = platform.servicePostingFee
+
+      // Eve creates a proposal on Platform 1 for service 1
+      await talentLayerService
+        .connect(eve)
+        .createProposal(eveTid, 1, rateToken, 15, alicePlatformId, cid2, expiredProposalDate, {
+          value: alicePlatformProposalPostingFee,
+        })
+    })
+
+    it('Alice should note be able to validate the Eve proposal after the expiration date', async function () {
+      await expect(
+        talentLayerEscrow.connect(alice).createTransaction(1, 4, metaEvidenceCid, cid2),
+      ).to.be.revertedWith('Proposal expired')
     })
 
     it('Carol can create her first proposal', async function () {

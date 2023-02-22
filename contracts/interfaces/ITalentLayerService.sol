@@ -30,6 +30,7 @@ interface ITalentLayerService {
         uint256 rateAmount;
         uint16 platformId;
         string dataUri;
+        uint256 expirationDate;
     }
 
     function getService(uint256 _serviceId) external view returns (Service memory);
