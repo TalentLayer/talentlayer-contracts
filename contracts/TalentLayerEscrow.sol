@@ -379,7 +379,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== Owner functions ==============================
 
     /**
-     * @notice Updates the Protocol Fee
+     * @notice Updates the Protocol Fee rate
      * @dev Only the owner can call this function
      * @param _protocolEscrowFeeRate The new protocol fee
      */
@@ -389,7 +389,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     }
 
     /**
-     * @notice Updates the Protocol wallet
+     * @notice Updates the Protocol wallet that receive fees
      * @dev Only the owner can call this function
      * @param _protocolWallet The new wallet address
      */
@@ -633,6 +633,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _transactionId,
         string memory _evidence
     ) public onlyOwnerOrDelegate(_profileId) {
+        require(bytes(_evidence).length == 46, "Invalid cid");
         Transaction storage transaction = transactions[_transactionId];
 
         require(address(transaction.arbitrator) != address(0), "Arbitrator not set");
