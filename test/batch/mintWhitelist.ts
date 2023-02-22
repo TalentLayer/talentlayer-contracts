@@ -8,7 +8,7 @@ import { MintStatus } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 
 const platformId = 1
-const reservedHandles = ['alice', 'bob', 'carol']
+const reservedHandles = ['alice', 'bob__', 'carol']
 
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.
@@ -105,7 +105,7 @@ describe('Whitelist to mint reserved handles', function () {
   describe('Mint with whitelist enabled', async function () {
     it('Alice cannot mint the handle reserved by Bob', async function () {
       // Get proof for handle 'bob'
-      const handle = 'bob'
+      const handle = 'bob__'
       const [whitelistProof] = getWhitelistProof(bob.address, handle)
 
       // Alice (who is whitelisted) tries to mint the handle 'bob', reserved by Bob
@@ -116,7 +116,7 @@ describe('Whitelist to mint reserved handles', function () {
     it('Eve cannot mint a non-reserved handle', async function () {
       // Eve (who is not whitelisted) tries to mint a non-reserved handle
       const eve = nonWhitelistedUsers[0]
-      const handle = 'eve'
+      const handle = 'eve__'
       const [eveProof] = getWhitelistProof(eve.address, handle)
 
       const tx = talentLayerID.connect(eve).whitelistMint(platformId, handle, eveProof)
@@ -124,7 +124,7 @@ describe('Whitelist to mint reserved handles', function () {
 
       // Eve (who is not whitelisted) tries to mint a non-reserved handle, using the proof for a reserved handle
       const [carolProof] = getWhitelistProof(carol.address, 'carol')
-      const tx2 = talentLayerID.connect(eve).whitelistMint(platformId, 'eve', carolProof)
+      const tx2 = talentLayerID.connect(eve).whitelistMint(platformId, handle, carolProof)
       await expect(tx2).to.be.revertedWith("You're not whitelisted")
     })
 

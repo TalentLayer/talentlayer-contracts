@@ -20,6 +20,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using MerkleProofUpgradeable for bytes32[];
 
+    uint8 constant MIN_HANDLE_LENGTH = 5;
     uint8 constant MAX_HANDLE_LENGTH = 31;
 
     // =========================== Enums ==============================
@@ -89,6 +90,11 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @notice error thrown when input handle contains restricted characters.
      */
     error HandleContainsInvalidCharacters();
+
+    /**
+     * @notice error thrown when input handle has an invalid first character.
+     */
+    error HandleFirstCharInvalid();
 
     // =========================== Initializers ==============================
 
@@ -318,9 +324,12 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     function _validateHandle(string calldata handle) private pure {
         bytes memory byteHandle = bytes(handle);
-        if (byteHandle.length == 0 || byteHandle.length > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
-
         uint256 byteHandleLength = byteHandle.length;
+        if (byteHandleLength < MIN_HANDLE_LENGTH || byteHandleLength > MAX_HANDLE_LENGTH) revert HandleLengthInvalid();
+
+        bytes1 firstByte = bytes(handle)[0];
+        if (firstByte == "-" || firstByte == "_") revert HandleFirstCharInvalid();
+
         for (uint256 i = 0; i < byteHandleLength; ) {
             if (
                 (byteHandle[i] < "0" || byteHandle[i] > "z" || (byteHandle[i] > "9" && byteHandle[i] < "a")) &&

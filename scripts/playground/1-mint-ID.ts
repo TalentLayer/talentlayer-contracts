@@ -37,13 +37,13 @@ async function main() {
   await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPlatform, 'alice')
   console.log('alice registered')
 
-  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPlatform, 'bob')
+  await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPlatform, 'bob__')
   console.log('Bob registered')
 
   await talentLayerIdContract.connect(carol).mint(daveTalentLayerIdPlatform, 'carol')
   console.log('carol registered')
 
-  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPlatform, 'dave')
+  await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPlatform, 'dave_')
   console.log('dave registered')
 }
 

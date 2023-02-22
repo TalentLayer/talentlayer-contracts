@@ -88,8 +88,8 @@ async function deployAndSetup(
 
   // Mint TL Id for Alice, Bob and Dave
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
-  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob')
-  await talentLayerID.connect(dave).mint(carolPlatformId, 'dave')
+  await talentLayerID.connect(bob).mint(carolPlatformId, 'bob__')
+  await talentLayerID.connect(dave).mint(carolPlatformId, 'dave_')
 
   // Alice, the buyer, initiates a new open service
   await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, cid)
