@@ -438,6 +438,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
         require(_msgSender() == sender, "Access denied");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
+        require(proposal.expirationDate >= block.timestamp, "Proposal expired");
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open");
         require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending");
         require(bytes(_metaEvidence).length == 46, "Invalid cid");
