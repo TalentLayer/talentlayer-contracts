@@ -33,7 +33,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     // =========================== Variables ==============================
 
     /// @notice TalentLayer Platform information struct
-    /// @param platformId the TalentLayer Platform Id
+    /// @param id the TalentLayer Platform Id
     /// @param name the name of the platform
     /// @param dataUri the IPFS URI of the Platform metadata
     /// @param originServiceFeeRate the %fee (per ten thousands) asked by the platform for each service created on the platform

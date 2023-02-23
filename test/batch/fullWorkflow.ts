@@ -927,7 +927,7 @@ describe('TalentLayer protocol global testing', function () {
       const amountBob = 1000000
       const amountCarol = 20000
       const serviceId = 2
-      const transactionId = 0
+      const transactionId = 1
       let proposalIdBob = 0 //Will be set later
       let proposalIdCarol = 0 //Will be set later
       let totalAmount = 0 //Will be set later
@@ -1048,7 +1048,7 @@ describe('TalentLayer protocol global testing', function () {
       it('The deposit should also update the service with transactionId, proposalId, and status.', async function () {
         const service = await talentLayerService.getService(serviceId)
         await expect(service.status.toString()).to.be.equal('1')
-        await expect(service.transactionId.toString()).to.be.equal('0')
+        await expect(service.transactionId.toString()).to.be.equal('1')
         await expect(service.acceptedProposalId).to.be.equal(proposalIdBob)
       })
 
@@ -1259,7 +1259,7 @@ describe('TalentLayer protocol global testing', function () {
       const amountBob = 1000000
       const amountCarol = 200
       const serviceId = 3
-      const transactionId = 1
+      const transactionId = 2
       let proposalIdBob = 0 //Will be set later
       let proposalIdCarol = 0 //Will be set later
       let totalAmount = 0 //Will be set later

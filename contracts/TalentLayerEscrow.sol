@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 
 import "./interfaces/ITalentLayerService.sol";
 import "./interfaces/ITalentLayerID.sol";
@@ -13,6 +14,8 @@ import "./interfaces/IArbitrable.sol";
 import "./Arbitrator.sol";
 
 contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, IArbitrable {
+    using CountersUpgradeable for CountersUpgradeable.Counter;
+
     // =========================== Enum ==============================
 
     /**
@@ -230,9 +233,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
     // =========================== Declarations ==============================
 
     /**
-     * @notice Transactions stored in array with index = id
+     * @notice Mapping from transactionId to Transactions
      */
-    Transaction[] private transactions;
+    mapping(uint256 => Transaction) private transactions;
 
     /**
      * @notice Mapping from platformId to Token address to Token Balance
@@ -298,6 +301,11 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      */
     mapping(uint256 => uint256) public disputeIDtoTransactionID;
 
+    /**
+     * @notice Platform Id counter
+     */
+    CountersUpgradeable.Counter private nextTransactionId;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -336,6 +344,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
         protocolWallet = payable(_protocolWallet);
+        // Increment counter to start transaction ids at index 1
+        nextTransactionId.increment();
 
         updateProtocolEscrowFeeRate(100);
     }
@@ -365,8 +375,8 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @return transaction The transaction details
      */
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory) {
-        require(transactions.length > _transactionId, "Invalid transaction id");
         Transaction memory transaction = transactions[_transactionId];
+        require(transaction.id < nextTransactionId.current(), "Invalid transaction id");
 
         address sender = _msgSender();
         require(
@@ -447,29 +457,29 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             "Proposal dataUri has changed"
         );
 
-        uint256 transactionId = transactions.length;
-        transactions.push(
-            Transaction({
-                id: transactionId,
-                sender: sender,
-                receiver: receiver,
-                token: proposal.rateToken,
-                amount: proposal.rateAmount,
-                serviceId: _serviceId,
-                proposalId: _proposalId,
-                protocolEscrowFeeRate: protocolEscrowFeeRate,
-                originServiceFeeRate: originServiceCreationPlatform.originServiceFeeRate,
-                originValidatedProposalFeeRate: originProposalCreationPlatform.originValidatedProposalFeeRate,
-                disputeId: 0,
-                senderFee: 0,
-                receiverFee: 0,
-                lastInteraction: block.timestamp,
-                status: Status.NoDispute,
-                arbitrator: originServiceCreationPlatform.arbitrator,
-                arbitratorExtraData: originServiceCreationPlatform.arbitratorExtraData,
-                arbitrationFeeTimeout: originServiceCreationPlatform.arbitrationFeeTimeout
-            })
-        );
+        uint256 transactionId = nextTransactionId.current();
+        transactions[transactionId] = Transaction({
+            id: transactionId,
+            sender: sender,
+            receiver: receiver,
+            token: proposal.rateToken,
+            amount: proposal.rateAmount,
+            serviceId: _serviceId,
+            proposalId: _proposalId,
+            protocolEscrowFeeRate: protocolEscrowFeeRate,
+            originServiceFeeRate: originServiceCreationPlatform.originServiceFeeRate,
+            originValidatedProposalFeeRate: originProposalCreationPlatform.originValidatedProposalFeeRate,
+            disputeId: 0,
+            senderFee: 0,
+            receiverFee: 0,
+            lastInteraction: block.timestamp,
+            status: Status.NoDispute,
+            arbitrator: originServiceCreationPlatform.arbitrator,
+            arbitratorExtraData: originServiceCreationPlatform.arbitratorExtraData,
+            arbitrationFeeTimeout: originServiceCreationPlatform.arbitrationFeeTimeout
+        });
+
+        nextTransactionId.increment();
 
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
@@ -936,7 +946,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             require(_transaction.receiver == talentLayerIdContract.ownerOf(_profileId), "Access denied");
         }
 
-        require(transactions.length > _transaction.id, "Invalid transaction id");
+        require(_transaction.id < nextTransactionId.current(), "Invalid transaction id");
         require(_transaction.status == Status.NoDispute, "The transaction shouldn't be disputed");
         require(_transaction.amount >= _amount, "Insufficient funds");
         require(_amount >= FEE_DIVIDER || (_amount < FEE_DIVIDER && _amount == _transaction.amount), "Amount too low");
