@@ -31,7 +31,7 @@ const daveTlId = 3
 const carolPlatformId = 1
 const serviceId = 1
 const proposalId = bobTlId
-const transactionId = 0
+const transactionId = 1
 const transactionAmount = BigNumber.from(1000000)
 const arbitrationCost = BigNumber.from(10)
 const disputeId = 0
@@ -513,6 +513,7 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
       const transaction = await talentLayerEscrow
         .connect(alice)
         .getTransactionDetails(transactionId)
+      expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
     })
 
     it('The sender wins the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
@@ -590,7 +591,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
       halfAmount: BigNumber
 
     before(async function () {
-      tx = await talentLayerArbitrator.connect(carol).giveRuling(transactionId, 0)
+      tx = await talentLayerArbitrator.connect(carol).giveRuling(0, 0)
       halfTransactionAmount = transactionAmount.div(2)
       halfArbitrationCost = arbitrationCost.div(2)
       halfAmount = halfTransactionAmount.add(halfArbitrationCost)
