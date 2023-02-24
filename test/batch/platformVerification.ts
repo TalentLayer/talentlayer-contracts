@@ -79,6 +79,7 @@ describe('Platform verification', function () {
     bob: SignerWithAddress,
     carol: SignerWithAddress,
     dave: SignerWithAddress,
+    platformOneOwner: SignerWithAddress,
     talentLayerID: TalentLayerID,
     talentLayerIDV2: TalentLayerIDV2,
     talentLayerPlatformID: TalentLayerPlatformID,
@@ -90,6 +91,7 @@ describe('Platform verification', function () {
 
   before(async function () {
     ;[deployer, alice, bob, carol, dave] = await ethers.getSigners()
+    platformOneOwner = carol
     ;[
       talentLayerID,
       talentLayerPlatformID,
@@ -103,7 +105,7 @@ describe('Platform verification', function () {
 
   describe('TalentLayerService must handle platform verification', async function () {
     it('CreateService must validate the signature while a user create a service linked to certain platform', async function () {
-      const signature = await getSignatureForService(carol, aliceTlId, 0)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
 
       const tx = talentLayerService
         .connect(alice)
@@ -113,14 +115,14 @@ describe('Platform verification', function () {
     })
 
     it('CreateService must revert if Bob use the signature generate for Alice', async function () {
-      const signature = await getSignatureForService(carol, aliceTlId, 0)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
 
       // Try to use the same signature with a different cid
       const tx = talentLayerService
         .connect(bob)
         .createService(bobTlId, carolPlatformId, cid, signature)
 
-      await expect(tx).to.reverted
+      await expect(tx).to.revertedWith('invalid signature')
     })
 
     it('CreateService must revert if Bob generate the signature for carol platform', async function () {
@@ -131,22 +133,22 @@ describe('Platform verification', function () {
         .connect(bob)
         .createService(bobTlId, carolPlatformId, cid, signature)
 
-      await expect(tx).to.reverted
+      await expect(tx).to.revertedWith('invalid signature')
     })
 
     it('CreateService must be replay resistent with the nonce system so Alice can not use the same signature again', async function () {
-      const signature = await getSignatureForService(carol, aliceTlId, 0)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
 
       // Try to use the same signature with a different cid
       const tx = talentLayerService
         .connect(alice)
         .createService(aliceTlId, carolPlatformId, cid, signature)
 
-      await expect(tx).to.reverted
+      await expect(tx).to.revertedWith('invalid signature')
     })
 
     it('CreateService must work with nonce incrementation', async function () {
-      const signature = await getSignatureForService(carol, aliceTlId, 1)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 1)
 
       // Try to use the same signature with a different cid
       const tx = talentLayerService
@@ -158,7 +160,7 @@ describe('Platform verification', function () {
 
     it('CreateProposal must validate the signature while a user create a proposal linked to certain platform', async function () {
       const serviceId = 1
-      const signature = await getSignatureForProposal(carol, bobTlId, serviceId)
+      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, serviceId)
 
       const tx = talentLayerService
         .connect(bob)
