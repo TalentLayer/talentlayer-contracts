@@ -237,12 +237,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         string calldata _dataUri,
         bytes calldata _signature
     ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
-        uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
-        require(msg.value == servicePostingFee, "Non-matching funds");
-        require(bytes(_dataUri).length == 46, "Invalid cid");
-
-        bytes32 messageHash = keccak256(abi.encodePacked("createService", _dataUri, _profileId));
-        _validatePlatformSignature(_signature, messageHash, _platformId);
+        _validateService(_profileId, _platformId, _dataUri, _signature);
 
         uint256 id = nextServiceId;
         nextServiceId++;
@@ -444,6 +439,20 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     }
 
     // =========================== Private functions ==============================
+
+    function _validateService(
+        uint256 _profileId,
+        uint256 _platformId,
+        string calldata _dataUri,
+        bytes calldata _signature
+    ) private view {
+        uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
+        require(msg.value == servicePostingFee, "Non-matching funds");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
+
+        bytes32 messageHash = keccak256(abi.encodePacked("createService", _dataUri, _profileId));
+        _validatePlatformSignature(_signature, messageHash, _platformId);
+    }
 
     function _validateProposal(
         uint256 _profileId,
