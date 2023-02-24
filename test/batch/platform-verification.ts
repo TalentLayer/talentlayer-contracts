@@ -151,10 +151,12 @@ describe('Platform verification', function () {
     })
 
     it('CreateProposal must validate the signature while a user create a proposal linked to certain platform', async function () {
+      const serviceId = 1
+
       // Post a proposal from bob
       const messageHash = ethers.utils.solidityKeccak256(
-        ['string', 'string', 'uint256'],
-        ['createProposal', cid, bobTlId],
+        ['string', 'string', 'uint256', 'uint256'],
+        ['createProposal', cid, bobTlId, serviceId],
       )
 
       // Carol the owner of the platform signed the message with her private key
@@ -164,7 +166,7 @@ describe('Platform verification', function () {
         .connect(bob)
         .createProposal(
           bobTlId,
-          1,
+          serviceId,
           ethers.constants.AddressZero,
           1,
           carolPlatformId,
