@@ -16,6 +16,7 @@ import {
   proposalExpirationDate,
 } from '../utils/constant'
 import { deploy } from '../utils/deploy'
+import { getSignatureForProposal, getSignatureForService } from '../utils/signature'
 
 const carolPlatformId = 1
 const aliceTlId = 1
@@ -73,8 +74,10 @@ async function deployAndSetup(
 describe('Delegation System', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
+    carol: SignerWithAddress,
     dave: SignerWithAddress,
     eve: SignerWithAddress,
+    platformOneOwner: SignerWithAddress,
     talentLayerID: TalentLayerID,
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerService: TalentLayerService,
@@ -82,7 +85,8 @@ describe('Delegation System', function () {
     talentLayerReview: TalentLayerReview
 
   before(async function () {
-    ;[, alice, bob, , dave, eve] = await ethers.getSigners()
+    ;[, alice, bob, carol, dave, eve] = await ethers.getSigners()
+    platformOneOwner = carol
     ;[
       talentLayerID,
       talentLayerPlatformID,
@@ -121,10 +125,15 @@ describe('Delegation System', function () {
 
     it('Dave can open a service on behalf of Alice', async function () {
       // Fails if caller is not the owner or delegate
-      const tx = talentLayerService.connect(eve).createService(aliceTlId, carolPlatformId, cid)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
+      const tx = talentLayerService
+        .connect(eve)
+        .createService(aliceTlId, carolPlatformId, cid, signature)
       await expect(tx).to.be.revertedWith('Not owner or delegate')
 
-      await talentLayerService.connect(dave).createService(aliceTlId, carolPlatformId, cid)
+      await talentLayerService
+        .connect(dave)
+        .createService(aliceTlId, carolPlatformId, cid, signature)
       const serviceData = await talentLayerService.services(1)
 
       expect(serviceData.ownerId.toNumber()).to.be.equal(aliceTlId)
@@ -136,6 +145,7 @@ describe('Delegation System', function () {
     })
 
     it('Eve can create a proposal on behalf of Bob', async function () {
+      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, serviceId)
       await talentLayerService
         .connect(eve)
         .createProposal(
@@ -146,6 +156,7 @@ describe('Delegation System', function () {
           carolPlatformId,
           cid,
           proposalExpirationDate,
+          signature,
         )
       const proposal = await talentLayerService.proposals(serviceId, bobTlId)
       expect(proposal.ownerId).to.eq(bobTlId)
@@ -218,7 +229,10 @@ describe('Delegation System', function () {
     })
 
     it("Dave can't do actions on behalf of Alice anymore", async function () {
-      const tx = talentLayerService.connect(dave).createService(aliceTlId, carolPlatformId, cid)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 1)
+      const tx = talentLayerService
+        .connect(dave)
+        .createService(aliceTlId, carolPlatformId, cid, signature)
       await expect(tx).to.be.revertedWith('Not owner or delegate')
     })
   })
