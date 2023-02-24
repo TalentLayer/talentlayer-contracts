@@ -156,6 +156,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice proposals mappings index by service ID and seller TID
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
+    /// @notice TLUserId mappings to number of services created used as a nonce in createService signature
+    mapping(uint256 => uint256) public nonce;
+
     /// @notice Allowed payment tokens addresses
     mapping(address => AllowedToken) public allowedTokenList;
 
@@ -247,6 +250,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.ownerId = _profileId;
         service.dataUri = _dataUri;
         service.platformId = _platformId;
+        nonce[_profileId]++;
 
         emit ServiceCreated(id, _profileId, _platformId, _dataUri);
 
@@ -450,7 +454,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(msg.value == servicePostingFee, "Non-matching funds");
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
-        bytes32 messageHash = keccak256(abi.encodePacked("createService", _dataUri, _profileId));
+        bytes32 messageHash = keccak256(abi.encodePacked("createService", _dataUri, _profileId, nonce[_profileId]));
         _validatePlatformSignature(_signature, messageHash, _platformId);
     }
 

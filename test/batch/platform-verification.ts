@@ -112,10 +112,9 @@ describe('Platform verification', function () {
        */
 
       // Alice want to create a service with a new cid
-      // LIMIT: still possible for a user to do replay with the same cid, ideally we would need a "nonce" for each user corresponding to the number of service created
       const messageHash = ethers.utils.solidityKeccak256(
-        ['string', 'string', 'uint256'],
-        ['createService', cid, aliceTlId],
+        ['string', 'string', 'uint256', 'uint256'],
+        ['createService', cid, aliceTlId, 0],
       )
 
       // Carol the owner of the platform signed the message with her private key
@@ -128,10 +127,10 @@ describe('Platform verification', function () {
       await expect(tx).to.not.reverted
     })
 
-    it('CreateService must revert if the signature is invalid', async function () {
+    it('CreateService must revert if the signature is invalid, here the cid is different', async function () {
       const messageHash = ethers.utils.solidityKeccak256(
-        ['string', 'string', 'uint256'],
-        ['createService', cid, aliceTlId],
+        ['string', 'string', 'uint256', 'uint256'],
+        ['createService', cid, aliceTlId, 0],
       )
 
       // Carol the owner of the platform signed the message with her private key
@@ -148,6 +147,40 @@ describe('Platform verification', function () {
         )
 
       await expect(tx).to.reverted
+    })
+
+    it('CreateService must be replay resistent with the nonce system', async function () {
+      const messageHash = ethers.utils.solidityKeccak256(
+        ['string', 'string', 'uint256', 'uint256'],
+        ['createService', cid, aliceTlId, 0],
+      )
+
+      // Carol the owner of the platform signed the message with her private key
+      const signature = await carol.signMessage(ethers.utils.arrayify(messageHash))
+
+      // Try to use the same signature with a different cid
+      const tx = talentLayerService
+        .connect(alice)
+        .createService(aliceTlId, carolPlatformId, cid, signature)
+
+      await expect(tx).to.reverted
+    })
+
+    it('CreateService must work with nonce incrementation', async function () {
+      const messageHash = ethers.utils.solidityKeccak256(
+        ['string', 'string', 'uint256', 'uint256'],
+        ['createService', cid, aliceTlId, 1],
+      )
+
+      // Carol the owner of the platform signed the message with her private key
+      const signature = await carol.signMessage(ethers.utils.arrayify(messageHash))
+
+      // Try to use the same signature with a different cid
+      const tx = talentLayerService
+        .connect(alice)
+        .createService(aliceTlId, carolPlatformId, cid, signature)
+
+      await expect(tx).to.not.reverted
     })
 
     it('CreateProposal must validate the signature while a user create a proposal linked to certain platform', async function () {
