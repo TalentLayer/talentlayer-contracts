@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ECDSAUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
 /**
  * @title TalentLayerService Contract
@@ -155,6 +156,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice proposals mappings index by service ID and seller TID
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
+    /// @notice TLUserId mappings to number of services created used as a nonce in createService signature
+    mapping(uint256 => uint256) public nonce;
+
     /// @notice Allowed payment tokens addresses
     mapping(address => AllowedToken) public allowedTokenList;
 
@@ -233,11 +237,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     function createService(
         uint256 _profileId,
         uint256 _platformId,
-        string calldata _dataUri
+        string calldata _dataUri,
+        bytes calldata _signature
     ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
-        uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
-        require(msg.value == servicePostingFee, "Non-matching funds");
-        require(bytes(_dataUri).length == 46, "Invalid cid");
+        _validateService(_profileId, _platformId, _dataUri, _signature);
 
         uint256 id = nextServiceId;
         nextServiceId++;
@@ -247,6 +250,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.ownerId = _profileId;
         service.dataUri = _dataUri;
         service.platformId = _platformId;
+        nonce[_profileId]++;
 
         emit ServiceCreated(id, _profileId, _platformId, _dataUri);
 
@@ -270,22 +274,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 _rateAmount,
         uint16 _platformId,
         string calldata _dataUri,
-        uint256 _expirationDate
+        uint256 _expirationDate,
+        bytes calldata _signature
     ) public payable onlyOwnerOrDelegate(_profileId) {
-        require(allowedTokenList[_rateToken].isWhitelisted, "This token is not allowed");
-        uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
-        require(msg.value == proposalPostingFee, "Non-matching funds");
-        require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount is too low");
-
-        Service storage service = services[_serviceId];
-        require(service.status == Status.Opened, "Service is not opened");
-        require(
-            proposals[_serviceId][_profileId].ownerId != _profileId,
-            "You already created a proposal for this service"
-        );
-
-        require(service.ownerId != _profileId, "You couldn't create proposal for your own service");
-        require(bytes(_dataUri).length == 46, "Invalid cid");
+        _validateProposal(_profileId, _serviceId, _rateToken, _rateAmount, _platformId, _dataUri, _signature);
 
         proposals[_serviceId][_profileId] = Proposal({
             status: ProposalStatus.Pending,
@@ -448,6 +440,62 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         returns (bytes calldata)
     {
         return ERC2771RecipientUpgradeable._msgData();
+    }
+
+    // =========================== Private functions ==============================
+
+    function _validateService(
+        uint256 _profileId,
+        uint256 _platformId,
+        string calldata _dataUri,
+        bytes calldata _signature
+    ) private view {
+        uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
+        require(msg.value == servicePostingFee, "Non-matching funds");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
+
+        bytes32 messageHash = keccak256(
+            abi.encodePacked("createService", _profileId, ";", nonce[_profileId], _dataUri)
+        );
+        _validatePlatformSignature(_signature, messageHash, _platformId);
+    }
+
+    function _validateProposal(
+        uint256 _profileId,
+        uint256 _serviceId,
+        address _rateToken,
+        uint256 _rateAmount,
+        uint16 _platformId,
+        string calldata _dataUri,
+        bytes calldata _signature
+    ) private view {
+        require(allowedTokenList[_rateToken].isWhitelisted, "This token is not allowed");
+        uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
+        require(msg.value == proposalPostingFee, "Non-matching funds");
+        require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount is too low");
+
+        Service storage service = services[_serviceId];
+        require(service.status == Status.Opened, "Service is not opened");
+        require(
+            proposals[_serviceId][_profileId].ownerId != _profileId,
+            "You already created a proposal for this service"
+        );
+
+        require(service.ownerId != _profileId, "You couldn't create proposal for your own service");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
+
+        bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
+        _validatePlatformSignature(_signature, messageHash, _platformId);
+    }
+
+    function _validatePlatformSignature(
+        bytes calldata _signature,
+        bytes32 _messageHash,
+        uint256 _platformId
+    ) private view {
+        bytes32 ethMessageHash = ECDSAUpgradeable.toEthSignedMessageHash(_messageHash);
+        address signer = ECDSAUpgradeable.recover(ethMessageHash, _signature);
+        require(talentLayerPlatformIdContract.ids(signer) == _platformId, "invalid signature");
     }
 
     // =========================== Internal functions ==============================

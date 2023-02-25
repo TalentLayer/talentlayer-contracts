@@ -24,6 +24,7 @@ import {
   evidenceCid,
 } from '../utils/constant'
 import { deploy } from '../utils/deploy'
+import { getSignatureForProposal, getSignatureForService } from '../utils/signature'
 
 const aliceTlId = 1
 const bobTlId = 2
@@ -92,9 +93,11 @@ async function deployAndSetup(
   await talentLayerID.connect(dave).mint(carolPlatformId, 'dave_')
 
   // Alice, the buyer, initiates a new open service
-  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, cid)
+  const signature = await getSignatureForService(carol, aliceTlId, 0, cid)
+  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, cid, signature)
 
   // Bob, the seller, creates a proposal for the service
+  const signature2 = await getSignatureForProposal(carol, bobTlId, serviceId, cid)
   await talentLayerService
     .connect(bob)
     .createProposal(
@@ -105,6 +108,7 @@ async function deployAndSetup(
       carolPlatformId,
       cid,
       proposalExpirationDate,
+      signature2,
     )
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService]

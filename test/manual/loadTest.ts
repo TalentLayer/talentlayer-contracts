@@ -9,7 +9,9 @@ import {
   TalentLayerID,
   TalentLayerPlatformID,
 } from '../../typechain-types'
+import { cid, MintStatus, proposalExpirationDate } from '../utils/constant'
 import { deploy } from '../utils/deploy'
+import { getSignatureForProposal, getSignatureForService } from '../utils/signature'
 
 describe('Load test', function () {
   let deployer: SignerWithAddress,
@@ -34,7 +36,6 @@ describe('Load test', function () {
     AMOUNT_OF_SELLERS = 40,
     AMOUNT_OF_PROPOSALS: number = AMOUNT_OF_PROPOSALS_PER_SELLER * AMOUNT_OF_SELLERS,
     AMOUNT_OF_SIGNERS: number = AMOUNT_OF_BUYERS + AMOUNT_OF_SELLERS,
-    TOKEN = '0x0000000000000000000000000000000000000000',
     VALUE = 10,
     MOCK_DATA = 'mock_data'
 
@@ -55,9 +56,19 @@ describe('Load test', function () {
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, platform.address)
 
-    // platform mints a Platform Id
-    await talentLayerPlatformID.connect(platform).mint('somename')
+    // Deployer mints Platform Id for Carol
+    const platformName = 'hirevibes'
+    await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
+    await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, platform.address)
     platformId = await talentLayerPlatformID.connect(platform).ids(platform.address)
+
+    // Disable whitelist for reserved handles
+    await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
+
+    // Deployer whitelists a list of authorized tokens
+    await talentLayerService
+      .connect(deployer)
+      .updateAllowedTokenList(ethers.constants.AddressZero, true, 1)
   })
 
   describe('Creating ' + AMOUNT_OF_SIGNERS + ' TalentLayerIDs', async function () {
@@ -76,10 +87,11 @@ describe('Load test', function () {
           const talentLayerId = await talentLayerID
             .connect(signers[signerIndex])
             .ids(signers[signerIndex].address)
+          const signature = await getSignatureForService(platform, talentLayerId.toNumber(), i, cid)
           await expect(
             await talentLayerService
               .connect(signers[signerIndex])
-              .createService(talentLayerId, platformId, MOCK_DATA + '_' + i),
+              .createService(talentLayerId, platformId, cid, signature),
           ).to.emit(talentLayerService, 'ServiceCreated')
         }
       }
@@ -99,10 +111,25 @@ describe('Load test', function () {
           const talentLayerId = await talentLayerID
             .connect(signers[signerIndex])
             .ids(signers[signerIndex].address)
+          const signature = await getSignatureForProposal(
+            platform,
+            talentLayerId.toNumber(),
+            serviceId,
+            cid,
+          )
           await expect(
             await talentLayerService
               .connect(signers[signerIndex])
-              .createProposal(talentLayerId, serviceId, TOKEN, VALUE, platformId, MOCK_DATA),
+              .createProposal(
+                talentLayerId,
+                serviceId,
+                ethers.constants.AddressZero,
+                VALUE,
+                platformId,
+                cid,
+                proposalExpirationDate,
+                signature,
+              ),
           ).to.emit(talentLayerService, 'ProposalCreated')
         }
       }
