@@ -125,7 +125,7 @@ describe('Delegation System', function () {
 
     it('Dave can open a service on behalf of Alice', async function () {
       // Fails if caller is not the owner or delegate
-      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
       const tx = talentLayerService
         .connect(eve)
         .createService(aliceTlId, carolPlatformId, cid, signature)
@@ -145,7 +145,7 @@ describe('Delegation System', function () {
     })
 
     it('Eve can create a proposal on behalf of Bob', async function () {
-      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, serviceId)
+      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, serviceId, cid)
       await talentLayerService
         .connect(eve)
         .createProposal(
@@ -229,7 +229,7 @@ describe('Delegation System', function () {
     })
 
     it("Dave can't do actions on behalf of Alice anymore", async function () {
-      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 1)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 1, cid)
       const tx = talentLayerService
         .connect(dave)
         .createService(aliceTlId, carolPlatformId, cid, signature)

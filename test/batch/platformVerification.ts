@@ -105,7 +105,7 @@ describe('Platform verification', function () {
 
   describe('TalentLayerService must handle platform verification', async function () {
     it('CreateService must validate the signature while a user create a service linked to certain platform', async function () {
-      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
 
       const tx = talentLayerService
         .connect(alice)
@@ -115,7 +115,7 @@ describe('Platform verification', function () {
     })
 
     it('CreateService must revert if Bob use the signature generate for Alice', async function () {
-      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
 
       // Try to use the same signature with a different cid
       const tx = talentLayerService
@@ -126,7 +126,7 @@ describe('Platform verification', function () {
     })
 
     it('CreateService must revert if Bob generate the signature for carol platform', async function () {
-      const signature = await getSignatureForService(bob, bobTlId, 0)
+      const signature = await getSignatureForService(bob, bobTlId, 0, cid)
 
       // Try to use the same signature with a different cid
       const tx = talentLayerService
@@ -137,7 +137,7 @@ describe('Platform verification', function () {
     })
 
     it('CreateService must be replay resistent with the nonce system so Alice can not use the same signature again', async function () {
-      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
 
       // Try to use the same signature with a different cid
       const tx = talentLayerService
@@ -148,7 +148,7 @@ describe('Platform verification', function () {
     })
 
     it('CreateService must work with nonce incrementation', async function () {
-      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 1)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 1, cid)
 
       // Try to use the same signature with a different cid
       const tx = talentLayerService
@@ -160,7 +160,7 @@ describe('Platform verification', function () {
 
     it('CreateProposal must validate the signature while a user create a proposal linked to certain platform', async function () {
       const serviceId = 1
-      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, serviceId)
+      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, serviceId, cid)
 
       const tx = talentLayerService
         .connect(bob)

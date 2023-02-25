@@ -699,14 +699,14 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it("Dave, who doesn't have TalentLayerID, can't create a service", async function () {
-      const signature = await getSignatureForService(platformOneOwner, 0, 0)
+      const signature = await getSignatureForService(platformOneOwner, 0, 0, 'haveNotTlid')
       await expect(
         talentLayerService.connect(dave).createService(0, 1, 'haveNotTlid', signature),
       ).to.be.revertedWith('ERC721: invalid token ID')
     })
 
     it("Alice can't create a new service with a talentLayerPlatformId 0", async function () {
-      const signature = await getSignatureForService(platformOneOwner, 0, 0)
+      const signature = await getSignatureForService(platformOneOwner, 0, 0, cid)
       await expect(
         talentLayerService.connect(alice).createService(aliceTlId, 0, cid, signature),
       ).to.be.revertedWith('Invalid platform ID')
@@ -717,7 +717,7 @@ describe('TalentLayer protocol global testing', function () {
       const alicePlatformServicePostingFee = platform.servicePostingFee
 
       // Alice will create 4 Open services fo the whole unit test process
-      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
       await talentLayerService
         .connect(alice)
         .createService(aliceTlId, alicePlatformId, cid, signature, {
@@ -726,7 +726,7 @@ describe('TalentLayer protocol global testing', function () {
       const serviceData = await talentLayerService.services(1)
 
       // service 2
-      const signature2 = await getSignatureForService(platformOneOwner, aliceTlId, 1)
+      const signature2 = await getSignatureForService(platformOneOwner, aliceTlId, 1, cid)
       await talentLayerService
         .connect(alice)
         .createService(aliceTlId, alicePlatformId, cid, signature2, {
@@ -735,7 +735,7 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerService.services(2)
 
       // service 3
-      const signature3 = await getSignatureForService(platformOneOwner, aliceTlId, 2)
+      const signature3 = await getSignatureForService(platformOneOwner, aliceTlId, 2, cid)
       await talentLayerService
         .connect(alice)
         .createService(aliceTlId, alicePlatformId, cid, signature3, {
@@ -744,7 +744,7 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerService.services(3)
 
       // service 4
-      const signature4 = await getSignatureForService(platformOneOwner, aliceTlId, 3)
+      const signature4 = await getSignatureForService(platformOneOwner, aliceTlId, 3, cid)
       await talentLayerService
         .connect(alice)
         .createService(aliceTlId, alicePlatformId, cid, signature4, {
@@ -753,7 +753,7 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerService.services(4)
 
       // service 5 (will be cancelled)
-      const signature5 = await getSignatureForService(platformOneOwner, aliceTlId, 4)
+      const signature5 = await getSignatureForService(platformOneOwner, aliceTlId, 4, cid)
       await talentLayerService.connect(alice).createService(aliceTlId, 1, cid, signature5)
       await talentLayerService.services(5)
 
@@ -764,7 +764,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function () {
-      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5)
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
       await expect(
         talentLayerService.connect(alice).createService(aliceTlId, 5, 'wrongTlPid', signature),
       ).to.be.revertedWith('Invalid platform ID')
@@ -792,7 +792,7 @@ describe('TalentLayer protocol global testing', function () {
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
       await talentLayerService.getProposal(5, bobTlId)
 
-      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 5)
+      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 5, cid)
       expect(
         talentLayerService
           .connect(bob)
@@ -822,7 +822,7 @@ describe('TalentLayer protocol global testing', function () {
       const alicePlatformProposalPostingFee = platform.servicePostingFee
 
       // Bob creates a proposal on Platform 1
-      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 1)
+      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 1, cid)
       await expect(
         talentLayerService
           .connect(bob)
@@ -854,7 +854,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataBefore.ownerId.toString()).to.be.equal('0')
 
       // Bob creates a proposal on Platform 1
-      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 1)
+      const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 1, cid2)
       await talentLayerService
         .connect(bob)
         .createProposal(
@@ -896,7 +896,7 @@ describe('TalentLayer protocol global testing', function () {
       const alicePlatformProposalPostingFee = platform.servicePostingFee
 
       // Eve creates a proposal on Platform 1 for service 1
-      const signature = await getSignatureForProposal(platformOneOwner, eveTid.toNumber(), 1)
+      const signature = await getSignatureForProposal(platformOneOwner, eveTid.toNumber(), 1, cid2)
       await talentLayerService
         .connect(eve)
         .createProposal(
@@ -926,7 +926,7 @@ describe('TalentLayer protocol global testing', function () {
       const bobPlatformProposalPostingFee = platform.proposalPostingFee
 
       // Carol creates a proposal on Platform 2
-      const signature = await getSignatureForProposal(bob, carolTlId, 1)
+      const signature = await getSignatureForProposal(bob, carolTlId, 1, cid2)
       await talentLayerService
         .connect(carol)
         .createProposal(
@@ -952,7 +952,7 @@ describe('TalentLayer protocol global testing', function () {
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformProposalPostingFee = platform.proposalPostingFee
 
-      const signature = await getSignatureForProposal(platformOneOwner, carolTlId, 1)
+      const signature = await getSignatureForProposal(platformOneOwner, carolTlId, 1, cid2)
       await expect(
         talentLayerService
           .connect(carol)
@@ -1020,7 +1020,7 @@ describe('TalentLayer protocol global testing', function () {
         const bobPlatformProposalPostingFee = platform.proposalPostingFee
 
         proposalIdBob = (await talentLayerID.ids(bob.address)).toNumber()
-        const signature = await getSignatureForProposal(bob, bobTlId, serviceId)
+        const signature = await getSignatureForProposal(bob, bobTlId, serviceId, cid)
         await talentLayerService
           .connect(bob)
           .createProposal(
@@ -1042,7 +1042,7 @@ describe('TalentLayer protocol global testing', function () {
 
         proposalIdCarol = (await talentLayerID.ids(carol.address)).toNumber()
 
-        const signature = await getSignatureForProposal(bob, carolTlId, serviceId)
+        const signature = await getSignatureForProposal(bob, carolTlId, serviceId, cid)
         await talentLayerService
           .connect(carol)
           .createProposal(
@@ -1226,7 +1226,7 @@ describe('TalentLayer protocol global testing', function () {
         // Create the service
         const serviceId = 6
         const proposalIdBob = (await talentLayerID.ids(bob.address)).toNumber()
-        const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5)
+        const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
         await talentLayerService.connect(alice).createService(aliceTlId, 1, cid, signature)
         await talentLayerService.services(serviceId)
         // Create the proposal
@@ -1234,7 +1234,7 @@ describe('TalentLayer protocol global testing', function () {
         const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
         const alicePlatformProposalPostingFee = platform.proposalPostingFee
 
-        const signature2 = await getSignatureForProposal(alice, bobTlId, serviceId)
+        const signature2 = await getSignatureForProposal(alice, bobTlId, serviceId, cid)
         await talentLayerService
           .connect(bob)
           .createProposal(
@@ -1383,7 +1383,7 @@ describe('TalentLayer protocol global testing', function () {
 
         proposalIdBob = (await talentLayerID.ids(bob.address)).toNumber()
 
-        const signature = await getSignatureForProposal(bob, bobTlId, serviceId)
+        const signature = await getSignatureForProposal(bob, bobTlId, serviceId, cid)
         await talentLayerService
           .connect(bob)
           .createProposal(
@@ -1404,7 +1404,7 @@ describe('TalentLayer protocol global testing', function () {
         const bobPlatformProposalPostingFee = platform.proposalPostingFee
 
         proposalIdCarol = (await talentLayerID.ids(carol.address)).toNumber()
-        const signature = await getSignatureForProposal(bob, carolTlId, serviceId)
+        const signature = await getSignatureForProposal(bob, carolTlId, serviceId, cid)
         await talentLayerService
           .connect(carol)
           .createProposal(

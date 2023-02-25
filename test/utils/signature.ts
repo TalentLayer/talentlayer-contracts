@@ -14,10 +14,11 @@ export const getSignatureForService = async (
   signer: SignerWithAddress,
   profileId: number,
   nonce: number,
+  cid: string,
 ): Promise<string> => {
   const messageHash = ethers.utils.solidityKeccak256(
-    ['string', 'uint256', 'string', 'uint256'],
-    ['createService', profileId, ';', nonce],
+    ['string', 'uint256', 'string', 'uint256', 'string'],
+    ['createService', profileId, ';', nonce, cid],
   )
 
   // Carol the owner of the platform signed the message with her private key
@@ -30,11 +31,12 @@ export const getSignatureForProposal = async (
   signer: SignerWithAddress,
   profileId: number,
   serviceId: number,
+  cid: string,
 ): Promise<string> => {
   // Post a proposal from bob
   const messageHash = ethers.utils.solidityKeccak256(
-    ['string', 'uint256', 'string', 'uint256'],
-    ['createProposal', profileId, ';', serviceId],
+    ['string', 'uint256', 'string', 'uint256', 'string'],
+    ['createProposal', profileId, ';', serviceId, cid],
   )
 
   // Carol the owner of the platform signed the message with her private key

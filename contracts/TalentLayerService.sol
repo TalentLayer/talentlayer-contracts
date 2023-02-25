@@ -454,7 +454,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(msg.value == servicePostingFee, "Non-matching funds");
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
-        bytes32 messageHash = keccak256(abi.encodePacked("createService", _profileId, ";", nonce[_profileId]));
+        bytes32 messageHash = keccak256(
+            abi.encodePacked("createService", _profileId, ";", nonce[_profileId], _dataUri)
+        );
         _validatePlatformSignature(_signature, messageHash, _platformId);
     }
 
@@ -482,7 +484,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(service.ownerId != _profileId, "You couldn't create proposal for your own service");
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
-        bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId));
+        bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
         _validatePlatformSignature(_signature, messageHash, _platformId);
     }
 

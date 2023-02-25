@@ -87,7 +87,7 @@ describe('Load test', function () {
           const talentLayerId = await talentLayerID
             .connect(signers[signerIndex])
             .ids(signers[signerIndex].address)
-          const signature = await getSignatureForService(platform, talentLayerId.toNumber(), i)
+          const signature = await getSignatureForService(platform, talentLayerId.toNumber(), i, cid)
           await expect(
             await talentLayerService
               .connect(signers[signerIndex])
@@ -115,6 +115,7 @@ describe('Load test', function () {
             platform,
             talentLayerId.toNumber(),
             serviceId,
+            cid,
           )
           await expect(
             await talentLayerService

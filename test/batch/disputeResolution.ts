@@ -93,11 +93,11 @@ async function deployAndSetup(
   await talentLayerID.connect(dave).mint(carolPlatformId, 'dave_')
 
   // Alice, the buyer, initiates a new open service
-  const signature = await getSignatureForService(carol, aliceTlId, 0)
+  const signature = await getSignatureForService(carol, aliceTlId, 0, cid)
   await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, cid, signature)
 
   // Bob, the seller, creates a proposal for the service
-  const signature2 = await getSignatureForProposal(carol, bobTlId, serviceId)
+  const signature2 = await getSignatureForProposal(carol, bobTlId, serviceId, cid)
   await talentLayerService
     .connect(bob)
     .createProposal(
