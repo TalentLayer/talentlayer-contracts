@@ -22,7 +22,7 @@ const carolPlatformId = 1
 const aliceTlId = 1
 const bobTlId = 2
 const serviceId = 1
-const trasactionId = 0
+const trasactionId = 1
 const transactionAmount = 100000
 const ethAddress = '0x0000000000000000000000000000000000000000'
 
