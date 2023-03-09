@@ -22,6 +22,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     uint8 constant MIN_HANDLE_LENGTH = 5;
     uint8 constant MAX_HANDLE_LENGTH = 31;
+    uint8 constant PROTOCOL_ID = 0;
 
     // =========================== Enums ==============================
 
@@ -479,7 +480,9 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(!takenHandles[_handle], "Handle already taken");
-        talentLayerPlatformIdContract.isValid(_platformId);
+        if (_platformId != PROTOCOL_ID) {
+            talentLayerPlatformIdContract.isValid(_platformId);
+        }
         _validateHandle(_handle);
         _;
     }
