@@ -22,7 +22,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     uint8 constant MIN_HANDLE_LENGTH = 1;
     uint8 constant MAX_HANDLE_LENGTH = 31;
+
+    // Prize for the shortest handles
     uint8 constant MAX_HANDLE_PRIZE = 200;
+
+    // Max number of characters for a paid handle
     uint8 constant MAX_PAID_HANDLE_CHARACTERS = 4;
 
     // =========================== Enums ==============================
@@ -64,7 +68,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Address to TalentLayer id
     mapping(address => uint256) public ids;
 
-    /// Price to mint an id (in wei, upgradable)
+    /// Price to mint an id with a regular handle (in wei, upgradable)
     uint256 public mintFee;
 
     /// Profile Id counter
