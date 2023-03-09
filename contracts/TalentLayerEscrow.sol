@@ -57,7 +57,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     /**
      * @notice Transaction struct
-     * @param id Incremental idenfitifier
+     * @param id Incremental identifier
      * @param sender The party paying the escrow amount
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
