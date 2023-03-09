@@ -66,7 +66,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Address to TalentLayer id
     mapping(address => uint256) public ids;
 
-    /// Price to mint an id with a regular handle (in wei, upgradable)
+    /// Price to mint an id with a regular handle length (in wei, upgradable)
     uint256 public mintFee;
 
     /// Profile Id counter
