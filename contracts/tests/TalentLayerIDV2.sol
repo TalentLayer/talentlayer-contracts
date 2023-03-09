@@ -317,7 +317,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      */
     function updateShortHandlesMaxPrice(uint256 _shortHandlesMaxPrice) public onlyOwner {
         shortHandlesMaxPrice = _shortHandlesMaxPrice;
-        emit ShortHandleMaxPriceUpdated(_shortHandlesMaxPrice);
+        emit ShortHandlesMaxPriceUpdated(_shortHandlesMaxPrice);
     }
 
     // =========================== Private functions ==============================
@@ -554,5 +554,5 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * Emit when the max price for short handles is udpated
      * @param _price The new max price for short handles
      */
-    event ShortHandleMaxPriceUpdated(uint256 _price);
+    event ShortHandlesMaxPriceUpdated(uint256 _price);
 }
