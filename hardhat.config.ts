@@ -25,6 +25,7 @@ import './scripts/tasks/protocol/add-trusted-forwarder'
 import './scripts/tasks/protocol/remove-trusted-forwarder'
 import './scripts/tasks/protocol/set-profile-whitelist'
 import './scripts/tasks/protocol/update-profile-minting-status'
+import './scripts/tasks/protocol/update-short-handles-price'
 import { Network } from './networkConfig'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
