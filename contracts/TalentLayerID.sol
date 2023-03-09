@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
-
 import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base64Upgradeable.sol";
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
@@ -403,7 +402,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param id The ID of the token
      */
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
-        string memory username = profiles[id].handle;
+        string memory username = string.concat(profiles[id].handle, ".tl");
+        // if handle length is up to 20 characters, we reduce the font to 40 ortherwise it's 60
+        uint256 fontSize = bytes(profiles[id].handle).length <= 20 ? 60 : 40;
 
         bytes memory image = abi.encodePacked(
             "data:image/svg+xml;base64,",
