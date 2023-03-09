@@ -22,6 +22,8 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     uint8 constant MIN_HANDLE_LENGTH = 5;
     uint8 constant MAX_HANDLE_LENGTH = 31;
+    uint8 constant MAX_HANDLE_PRIZE = 200;
+    uint8 constant MAX_PAID_HANDLE_CHARACTERS = 4;
 
     // =========================== Enums ==============================
 
@@ -172,6 +174,18 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
             _handle
         );
         return _proof.verify(whitelistMerkleRoot, keccak256(abi.encodePacked(concatenatedString)));
+    }
+
+    /**
+     * @notice Returns the price to mint a TalentLayer ID with the given handle.
+     * @param _handle Handle to check
+     */
+    function getHandlePrice(string calldata _handle) public view returns (uint256) {
+        uint256 handleLength = bytes(_handle).length;
+        return
+            handleLength > MAX_PAID_HANDLE_CHARACTERS
+                ? mintFee
+                : (MAX_HANDLE_PRIZE / (2 ** (handleLength - 1))) * 1 ether;
     }
 
     // =========================== User functions ==============================
@@ -458,6 +472,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     }
 
     // =========================== Modifiers ==============================
+
     /**
      * @notice Check if _msgSender() can pay the mint fee.
      */
