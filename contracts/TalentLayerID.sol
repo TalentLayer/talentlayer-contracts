@@ -119,7 +119,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         // Increment counter to start profile ids at index 1
         nextProfileId.increment();
         mintStatus = MintStatus.ONLY_WHITELIST;
-        shortHandlesMaxPrice = 200 ether;
+        updateShortHandlesMaxPrice(200 ether);
     }
 
     // =========================== View functions ==============================
