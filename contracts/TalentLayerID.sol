@@ -23,9 +23,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     uint8 constant MIN_HANDLE_LENGTH = 1;
     uint8 constant MAX_HANDLE_LENGTH = 31;
 
-    // Prize for the shortest handles
-    uint8 constant MAX_HANDLE_PRIZE = 200;
-
     // Max number of characters for a paid handle
     uint8 constant MAX_PAID_HANDLE_CHARACTERS = 4;
 
@@ -83,6 +80,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// The minting status
     MintStatus public mintStatus;
 
+    /// Maximum price for a short handle (in wei, upgradable)
+    uint256 shortHandlesMaxPrice;
+
     // =========================== Errors ==============================
 
     /**
@@ -119,6 +119,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         // Increment counter to start profile ids at index 1
         nextProfileId.increment();
         mintStatus = MintStatus.ONLY_WHITELIST;
+        shortHandlesMaxPrice = 200 ether;
     }
 
     // =========================== View functions ==============================
@@ -198,10 +199,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function getHandlePrice(string calldata _handle) public view returns (uint256) {
         uint256 handleLength = bytes(_handle).length;
-        return
-            handleLength > MAX_PAID_HANDLE_CHARACTERS
-                ? mintFee
-                : (MAX_HANDLE_PRIZE / (2 ** (handleLength - 1))) * 1 ether;
+        return handleLength > MAX_PAID_HANDLE_CHARACTERS ? mintFee : shortHandlesMaxPrice / (2 ** (handleLength - 1));
     }
 
     // =========================== User functions ==============================
@@ -324,6 +322,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function updateMintStatus(MintStatus _mintStatus) public onlyOwner {
         mintStatus = _mintStatus;
         emit MintStatusUpdated(_mintStatus);
+    }
+
+    /**
+     * @notice Updates the max price for short handles.
+     * @param _shortHandlesMaxPrice The new max price for short handles
+     */
+    function updateShortHandlesMaxPrice(uint256 _shortHandlesMaxPrice) public onlyOwner {
+        shortHandlesMaxPrice = _shortHandlesMaxPrice;
+        emit ShortHandleMaxPriceUpdated(_shortHandlesMaxPrice);
     }
 
     // =========================== Private functions ==============================
@@ -555,4 +562,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _mintStatus The new mint status
      */
     event MintStatusUpdated(MintStatus _mintStatus);
+
+    /**
+     * Emit when the max price for short handles is udpated
+     * @param _price The new max price for short handles
+     */
+    event ShortHandleMaxPriceUpdated(uint256 _price);
 }

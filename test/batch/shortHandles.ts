@@ -48,7 +48,7 @@ describe('Mint short handles', function () {
   })
 
   it('The price for short handles is correct', async function () {
-    for (const [, handle] of handles.entries()) {
+    for (const handle of handles) {
       const price = await talentLayerID.getHandlePrice(handle.handle)
       expect(price).to.equal(ethers.utils.parseEther(handle.price.toString()))
     }
@@ -80,6 +80,17 @@ describe('Mint short handles', function () {
         [talentLayerID.address, user],
         [price, (-price).toString()],
       )
+    }
+  })
+
+  it('Owner can update the max price for a short handle', async function () {
+    const maxPrice = 10000
+    await talentLayerID.connect(deployer).updateShortHandlesMaxPrice(maxPrice)
+
+    for (const handle of handles) {
+      const price = await talentLayerID.getHandlePrice(handle.handle)
+      const expectedPrice = maxPrice / Math.pow(2, handle.handle.length - 1)
+      expect(price).to.equal(expectedPrice)
     }
   })
 })
