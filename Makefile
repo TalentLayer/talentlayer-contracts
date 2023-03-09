@@ -53,7 +53,7 @@ graph-copy-abis:
 	Copy "artifacts\contracts\TalentLayerArbitrator.sol\TalentLayerArbitrator.json" "$(SUBGRAPH_FOLDER)\abis\TalentLayerArbitrator.json"
 else
 graph-copy-abis:
-	cp artifacts\contracts\TalentLayerID.sol\TalentLayerID.json $(SUBGRAPH_FOLDER)\abis\TalentLayerID.json
+	cp artifacts/contracts/TalentLayerID.sol/TalentLayerID.json $(SUBGRAPH_FOLDER)/abis/TalentLayerID.json
 	cp artifacts/contracts/TalentLayerPlatformID.sol/TalentLayerPlatformID.json $(SUBGRAPH_FOLDER)/abis/TalentLayerPlatformID.json
 	cp artifacts/contracts/TalentLayerService.sol/TalentLayerService.json $(SUBGRAPH_FOLDER)/abis/TalentLayerService.json
 	cp artifacts/contracts/TalentLayerEscrow.sol/TalentLayerEscrow.json $(SUBGRAPH_FOLDER)/abis/TalentLayerEscrow.json
