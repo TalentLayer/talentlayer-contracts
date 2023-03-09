@@ -25,7 +25,7 @@ const handles = [
   },
 ]
 
-describe.only('Mint short handles', function () {
+describe('Mint short handles', function () {
   let talentLayerID: TalentLayerID,
     talentLayerPlatformID: TalentLayerPlatformID,
     deployer: SignerWithAddress,
