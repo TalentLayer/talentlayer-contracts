@@ -1,7 +1,9 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
+import { getSignatureForProposal } from '../../test/utils/signature'
 
+const aliceTlId = 1
 const bobTlId = 2
 const carolTlId = 3
 const daveTlId = 4
@@ -90,6 +92,9 @@ async function main() {
   /* ---------  Proposal creation --------- */
 
   // Bob create a proposal #2 for Alice's service #1 on Dave's platform #1 (id : 1-2 in GraphQL)
+
+  const signatureBobProposal = await getSignatureForProposal(dave, bobTlId, 1, bobUri)
+
   const rateTokenBob = simpleERC20.address
   const bobProposal = await talentLayerService
     .connect(bob)
@@ -101,6 +106,7 @@ async function main() {
       davePlatformId,
       bobUri,
       proposalExpirationDate,
+      signatureBobProposal,
     )
   console.log('Bob proposal created')
   await bobProposal.wait()
@@ -109,6 +115,9 @@ async function main() {
   console.log('Bob proposal', bobProposalData)
 
   // Carol make a proposal #3 for Alice's service #1 on Bob's platform #2 (id : 1-3 in GraphQL)
+
+  const signatureCarolProposal = await getSignatureForProposal(bob, carolTlId, 1, carolUri)
+
   const rateTokenCarol = '0x0000000000000000000000000000000000000000'
   const carolProposal = await talentLayerService
     .connect(carol)
@@ -120,6 +129,7 @@ async function main() {
       bobPlatformId,
       carolUri,
       proposalExpirationDate,
+      signatureCarolProposal,
     )
   console.log('Carol proposal created')
   await carolProposal.wait()
@@ -128,6 +138,9 @@ async function main() {
   console.log('Carol proposal', carolProposalData)
 
   // Dave create a proposal #4 for Alice's service #2 on Bob's platform #2 (id : 2-4 in GraphQL)
+
+  const signatureDaveProposal = await getSignatureForProposal(bob, daveTlId, 2, daveUri)
+
   const rateTokenDave = simpleERC20.address
   const daveProposal = await talentLayerService
     .connect(dave)
@@ -139,6 +152,7 @@ async function main() {
       bobPlatformId,
       daveUri,
       proposalExpirationDate,
+      signatureDaveProposal,
     )
   console.log('Dave proposal created')
   await daveProposal.wait()
