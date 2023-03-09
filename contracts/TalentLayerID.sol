@@ -20,7 +20,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using MerkleProofUpgradeable for bytes32[];
 
-    uint8 constant MIN_HANDLE_LENGTH = 5;
+    uint8 constant MIN_HANDLE_LENGTH = 1;
     uint8 constant MAX_HANDLE_LENGTH = 31;
     uint8 constant MAX_HANDLE_PRIZE = 200;
     uint8 constant MAX_PAID_HANDLE_CHARACTERS = 4;
@@ -210,7 +210,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function mint(
         uint256 _platformId,
         string calldata _handle
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
@@ -227,7 +227,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId,
         string calldata _handle,
         bytes32[] calldata _proof
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.ONLY_WHITELIST, "Whitelist mint is not enabled");
         address sender = _msgSender();
         require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
@@ -472,10 +472,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     // =========================== Modifiers ==============================
     /**
-     * @notice Check if _msgSender() can pay the mint fee.
+     * @notice Check if _msgSender() can pay the mint fee for a TalentLayer id with the given handle
+     * @param _handle Handle for the user
      */
-    modifier canPay() {
-        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
+    modifier canPay(string calldata _handle) {
+        require(msg.value == getHandlePrice(_handle), "Incorrect amount of ETH for mint fee");
         _;
     }
 
