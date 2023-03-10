@@ -20,8 +20,12 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using MerkleProofUpgradeable for bytes32[];
 
-    uint8 constant MIN_HANDLE_LENGTH = 5;
+    uint8 constant MIN_HANDLE_LENGTH = 1;
     uint8 constant MAX_HANDLE_LENGTH = 31;
+    uint8 constant PROTOCOL_ID = 0;
+
+    // Max number of characters for a paid handle
+    uint8 constant MAX_PAID_HANDLE_CHARACTERS = 4;
 
     // =========================== Enums ==============================
 
@@ -62,7 +66,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /// Address to TalentLayer id
     mapping(address => uint256) public ids;
 
-    /// Price to mint an id (in wei, upgradable)
+    /// Price to mint an id with a regular handle length (in wei, upgradable)
     uint256 public mintFee;
 
     /// Profile Id counter
@@ -76,6 +80,9 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     /// The minting status
     MintStatus public mintStatus;
+
+    /// Maximum price for a short handle (in wei, upgradable)
+    uint256 shortHandlesMaxPrice;
 
     uint256 testVariable;
 
@@ -174,6 +181,15 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         return _proof.verify(whitelistMerkleRoot, keccak256(abi.encodePacked(concatenatedString)));
     }
 
+    /**
+     * @notice Returns the price to mint a TalentLayer ID with the given handle.
+     * @param _handle Handle to check
+     */
+    function getHandlePrice(string calldata _handle) public view returns (uint256) {
+        uint256 handleLength = bytes(_handle).length;
+        return handleLength > MAX_PAID_HANDLE_CHARACTERS ? mintFee : shortHandlesMaxPrice / (2 ** (handleLength - 1));
+    }
+
     // =========================== User functions ==============================
 
     /**
@@ -184,7 +200,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     function mint(
         uint256 _platformId,
         string calldata _handle
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
@@ -201,7 +217,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         uint256 _platformId,
         string calldata _handle,
         bytes32[] calldata _proof
-    ) public payable canPay canMint(_msgSender(), _handle, _platformId) returns (uint256) {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.ONLY_WHITELIST, "Whitelist mint is not enabled");
         address sender = _msgSender();
         require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
@@ -296,6 +312,15 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         emit MintStatusUpdated(_mintStatus);
     }
 
+    /**
+     * @notice Updates the max price for short handles.
+     * @param _shortHandlesMaxPrice The new max price for short handles
+     */
+    function updateShortHandlesMaxPrice(uint256 _shortHandlesMaxPrice) public onlyOwner {
+        shortHandlesMaxPrice = _shortHandlesMaxPrice;
+        emit ShortHandlesMaxPriceUpdated(_shortHandlesMaxPrice);
+    }
+
     // =========================== Private functions ==============================
 
     /**
@@ -354,34 +379,21 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     /**
      * @dev Override to prevent token transfer.
      */
-    function transferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/
-    ) public virtual override(ERC721Upgradeable) {
+    function transferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
         revert("Token transfer is not allowed");
     }
 
     /**
      * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/
-    ) public virtual override(ERC721Upgradeable) {
+    function safeTransferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
         revert("Token transfer is not allowed");
     }
 
     /**
      * @dev Override to prevent token transfer.
      */
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*tokenId*/,
-        bytes memory /*data*/
-    ) public virtual override(ERC721Upgradeable) {
+    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override(ERC721Upgradeable) {
         revert("Token transfer is not allowed");
     }
 
@@ -459,10 +471,11 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
 
     // =========================== Modifiers ==============================
     /**
-     * @notice Check if _msgSender() can pay the mint fee.
+     * @notice Check if _msgSender() can pay the mint fee for a TalentLayer id with the given handle
+     * @param _handle Handle for the user
      */
-    modifier canPay() {
-        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
+    modifier canPay(string calldata _handle) {
+        require(msg.value == getHandlePrice(_handle), "Incorrect amount of ETH for mint fee");
         _;
     }
 
@@ -479,7 +492,9 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     ) {
         require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
         require(!takenHandles[_handle], "Handle already taken");
-        talentLayerPlatformIdContract.isValid(_platformId);
+        if (_platformId != PROTOCOL_ID) {
+            talentLayerPlatformIdContract.isValid(_platformId);
+        }
         _validateHandle(_handle);
         _;
     }
@@ -537,4 +552,10 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _mintStatus The new mint status
      */
     event MintStatusUpdated(MintStatus _mintStatus);
+
+    /**
+     * Emit when the max price for short handles is udpated
+     * @param _price The new max price for short handles
+     */
+    event ShortHandlesMaxPriceUpdated(uint256 _price);
 }

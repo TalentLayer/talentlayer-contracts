@@ -477,13 +477,21 @@ describe('TalentLayer protocol global testing', function () {
         talentLayerID,
         'HandleContainsInvalidCharacters',
       )
-      await talentLayerID.connect(carol).mint('1', 'carol')
       expect(await talentLayerID.ids(alice.address)).to.be.equal(aliceTlId)
       expect(await talentLayerID.ids(bob.address)).to.be.equal(bobTlId)
+
+      const aliceUserId = await talentLayerID.ids(alice.address)
+      const profileData = await talentLayerID.profiles(aliceUserId)
+      expect(profileData.platformId).to.be.equal('1')
+    })
+
+    it('Carol can mint a talentLayerId without a platform', async function () {
+      await talentLayerID.connect(carol).mint('0', 'carol')
       expect(await talentLayerID.ids(carol.address)).to.be.equal(carolTlId)
+
       const carolUserId = await talentLayerID.ids(carol.address)
       const profileData = await talentLayerID.profiles(carolUserId)
-      expect(profileData.platformId).to.be.equal('1')
+      expect(profileData.platformId).to.be.equal('0')
     })
 
     it('Alice should not be able to transfer her talentLayerId to Bob', async function () {

@@ -57,7 +57,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
     /**
      * @notice Transaction struct
-     * @param id Incremental idenfitifier
+     * @param id Incremental identifier
      * @param sender The party paying the escrow amount
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
@@ -484,10 +484,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
         if (proposal.rateToken != address(0)) {
-            require(
-                IERC20(proposal.rateToken).transferFrom(sender, address(this), transactionAmount),
-                "Transfer must not fail"
-            );
+            _safeTokenDeposit(proposal.rateToken, transactionAmount, sender);
         }
 
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
@@ -966,6 +963,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             talentLayerServiceContract.afterFullPayment(transaction.serviceId);
             emit PaymentCompleted(transaction.serviceId);
         }
+    }
+
+    function _safeTokenDeposit(address _token, uint256 _amount, address _sender) private {
+        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
+        require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
+        require(IERC20(_token).balanceOf(address(this)) == balanceBefore + _amount, "Invalid balance");
     }
 
     /**

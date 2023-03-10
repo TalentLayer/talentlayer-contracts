@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import postToIPFS from '../utils/ipfs'
+import { getSignatureForService } from '../../test/utils/signature'
 import hre = require('hardhat')
 
 const aliceTlId = 1
@@ -46,10 +47,16 @@ async function main() {
     }),
   )
   console.log('Alice First Job Data Uri', aliceCreateFirstJobData)
+  const signatureFirstJob = await getSignatureForService(
+    dave,
+    aliceTlId,
+    0,
+    aliceCreateFirstJobData,
+  )
 
   const createFirstOpenService = await talentLayerService
     .connect(alice)
-    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData)
+    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData, signatureFirstJob)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
@@ -70,9 +77,21 @@ async function main() {
   )
   console.log('Alice Second Job Data Uri', aliceCreateSecondJobData)
 
+  const signatureSecondJob = await getSignatureForService(
+    dave,
+    aliceTlId,
+    1,
+    aliceCreateSecondJobData,
+  )
+
   const createSecondOpenService = await talentLayerService
     .connect(alice)
-    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateSecondJobData)
+    .createService(
+      aliceTlId,
+      daveTalentLayerIdPlatform,
+      aliceCreateSecondJobData,
+      signatureSecondJob,
+    )
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
 
