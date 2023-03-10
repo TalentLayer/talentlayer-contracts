@@ -78,6 +78,7 @@ const mumbai: NetworkConfig = {
   platformList: {
     hirevibes: '0x96573C632c88996711de69389b501F4D9005Ff4e',
     workpod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
+    scalesecurity: '0xD0C5A5C281cE5f8A0016F310Bd428111b44159A0',
   },
 }
 
