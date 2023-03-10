@@ -429,7 +429,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
         string memory username = string.concat(profiles[id].handle, ".tl");
-        // if handle length is up to 20 characters, we reduce the font to 40 ortherwise it's 60
         uint256 fontSize = bytes(profiles[id].handle).length <= 20 ? 60 : 40;
         string memory fontSizeStr = uintToString(fontSize);
 
