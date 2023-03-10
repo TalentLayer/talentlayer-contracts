@@ -443,8 +443,8 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         platform.name = _platformName;
         platform.id = platformId;
         platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
-        takenNames[_platformName] = true;
         platform.signer = _platformAddress;
+        takenNames[_platformName] = true;
         ids[_platformAddress] = platformId;
 
         emit Mint(_platformAddress, platformId, _platformName, mintFee, minArbitrationFeeTimeout);
@@ -664,9 +664,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Emit when the signer address is updated for a platform
-     * @param _signatureAddress The new signer address
+     * @param _signer The new signer address
      */
-    event SignerUpdated(uint256 _platformId, address _signatureAddress);
+    event SignerUpdated(uint256 _platformId, address _signer);
 
     /**
      * @notice Emit when the minting status is updated
