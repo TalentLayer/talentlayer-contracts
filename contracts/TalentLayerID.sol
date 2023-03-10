@@ -20,9 +20,12 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using MerkleProofUpgradeable for bytes32[];
 
-    uint8 constant MIN_HANDLE_LENGTH = 5;
+    uint8 constant MIN_HANDLE_LENGTH = 1;
     uint8 constant MAX_HANDLE_LENGTH = 31;
     uint8 constant PROTOCOL_ID = 0;
+
+    // Max number of characters for a paid handle
+    uint8 constant MAX_PAID_HANDLE_CHARACTERS = 4;
 
     // =========================== Enums ==============================
 
@@ -63,7 +66,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Address to TalentLayer id
     mapping(address => uint256) public ids;
 
-    /// Price to mint an id (in wei, upgradable)
+    /// Price to mint an id with a regular handle length (in wei, upgradable)
     uint256 public mintFee;
 
     /// Profile Id counter
@@ -77,6 +80,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /// The minting status
     MintStatus public mintStatus;
+
+    /// Maximum price for a short handle (in wei, upgradable)
+    uint256 shortHandlesMaxPrice;
 
     // =========================== Errors ==============================
 
@@ -114,6 +120,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         // Increment counter to start profile ids at index 1
         nextProfileId.increment();
         mintStatus = MintStatus.ONLY_WHITELIST;
+        updateShortHandlesMaxPrice(200 ether);
     }
 
     // =========================== View functions ==============================
@@ -187,6 +194,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         return _proof.verify(whitelistMerkleRoot, keccak256(abi.encodePacked(concatenatedString)));
     }
 
+    /**
+     * @notice Returns the price to mint a TalentLayer ID with the given handle.
+     * @param _handle Handle to check
+     */
+    function getHandlePrice(string calldata _handle) public view returns (uint256) {
+        uint256 handleLength = bytes(_handle).length;
+        return handleLength > MAX_PAID_HANDLE_CHARACTERS ? mintFee : shortHandlesMaxPrice / (2 ** (handleLength - 1));
+    }
+
     // =========================== User functions ==============================
 
     /**
@@ -197,7 +213,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function mint(
         uint256 _platformId,
         string calldata _handle
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
@@ -214,7 +230,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId,
         string calldata _handle,
         bytes32[] calldata _proof
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay returns (uint256) {
+    ) public payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.ONLY_WHITELIST, "Whitelist mint is not enabled");
         address sender = _msgSender();
         require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
@@ -307,6 +323,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function updateMintStatus(MintStatus _mintStatus) public onlyOwner {
         mintStatus = _mintStatus;
         emit MintStatusUpdated(_mintStatus);
+    }
+
+    /**
+     * @notice Updates the max price for short handles.
+     * @param _shortHandlesMaxPrice The new max price for short handles
+     */
+    function updateShortHandlesMaxPrice(uint256 _shortHandlesMaxPrice) public onlyOwner {
+        shortHandlesMaxPrice = _shortHandlesMaxPrice;
+        emit ShortHandlesMaxPriceUpdated(_shortHandlesMaxPrice);
     }
 
     // =========================== Private functions ==============================
@@ -459,10 +484,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     // =========================== Modifiers ==============================
     /**
-     * @notice Check if _msgSender() can pay the mint fee.
+     * @notice Check if _msgSender() can pay the mint fee for a TalentLayer id with the given handle
+     * @param _handle Handle for the user
      */
-    modifier canPay() {
-        require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
+    modifier canPay(string calldata _handle) {
+        require(msg.value == getHandlePrice(_handle), "Incorrect amount of ETH for mint fee");
         _;
     }
 
@@ -539,4 +565,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _mintStatus The new mint status
      */
     event MintStatusUpdated(MintStatus _mintStatus);
+
+    /**
+     * Emit when the max price for short handles is udpated
+     * @param _price The new max price for short handles
+     */
+    event ShortHandlesMaxPriceUpdated(uint256 _price);
 }
