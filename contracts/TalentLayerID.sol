@@ -431,19 +431,23 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         string memory username = string.concat(profiles[id].handle, ".tl");
         // if handle length is up to 20 characters, we reduce the font to 40 ortherwise it's 60
         uint256 fontSize = bytes(profiles[id].handle).length <= 20 ? 60 : 40;
+        string memory fontSizeStr = uintToString(fontSize);
 
         bytes memory image = abi.encodePacked(
             "data:image/svg+xml;base64,",
             Base64Upgradeable.encode(
                 bytes(
                     abi.encodePacked(
-                        '<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720"><rect width="100%" height="100%"/><svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" version="1.2" viewBox="-200 -50 1000 1000"><path fill="#FFFFFF" d="M264.5 190.5c0-13.8 11.2-25 25-25H568c13.8 0 25 11.2 25 25v490c0 13.8-11.2 25-25 25H289.5c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M265 624c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25v56.5c0 13.8-11.2 25-25 25H290c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M0 190.5c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25V247c0 13.8-11.2 25-25 25H25c-13.8 0-25-11.2-25-25z"/></svg><text x="30" y="670" style="font:60px sans-serif;fill:#fff">',
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720"><rect width="100%" height="100%"/><svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" version="1.2" viewBox="-200 -50 1000 1000"><path fill="#FFFFFF" d="M264.5 190.5c0-13.8 11.2-25 25-25H568c13.8 0 25 11.2 25 25v490c0 13.8-11.2 25-25 25H289.5c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M265 624c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25v56.5c0 13.8-11.2 25-25 25H290c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M0 190.5c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25V247c0 13.8-11.2 25-25 25H25c-13.8 0-25-11.2-25-25z"/></svg><text x="30" y="670" style="font: ',
+                        fontSizeStr,
+                        'px sans-serif;fill:#fff">',
                         username,
                         "</text></svg>"
                     )
                 )
             )
         );
+
         return
             string(
                 abi.encodePacked(
@@ -461,6 +465,20 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
                     )
                 )
             );
+    }
+
+    function uintToString(uint fontSize) public pure returns (string memory) {
+        bytes memory buffer = new bytes(32);
+        uint i = 0;
+        while (fontSize > 0) {
+            buffer[i++] = bytes1(uint8(48 + (fontSize % 10)));
+            fontSize /= 10;
+        }
+        bytes memory res = new bytes(i);
+        for (uint j = 0; j < i; j++) {
+            res[j] = buffer[i - j - 1];
+        }
+        return string(res);
     }
 
     function _msgSender()
