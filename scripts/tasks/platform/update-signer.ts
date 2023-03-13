@@ -1,11 +1,6 @@
 import { task } from 'hardhat/config'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 
-const platformId = process.env.PLATFORM_ID
-if (!platformId) {
-  throw new Error('Please set your PLATFORM_ID in a .env file')
-}
-
 /**
  * @notice This task is used to update the signer address of a platform
  * @param {string} signer - The address of the signer
@@ -14,6 +9,11 @@ if (!platformId) {
 task('update-signer', 'Updates the signer address of a platform')
   .addParam('signer', 'The address of the signer')
   .setAction(async (taskArgs, { ethers, network }) => {
+    const platformId = process.env.PLATFORM_ID
+    if (!platformId) {
+      throw new Error('Please set your PLATFORM_ID in a .env file')
+    }
+
     const { signer } = taskArgs
     const [deployer] = await ethers.getSigners()
 
