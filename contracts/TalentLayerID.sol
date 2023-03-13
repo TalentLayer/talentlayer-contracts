@@ -429,8 +429,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
         string memory username = string.concat(profiles[id].handle, ".tl");
-        uint256 fontSize = bytes(profiles[id].handle).length <= 20 ? 60 : 40;
-        string memory fontSizeStr = uintToString(fontSize);
+        string memory fontSizeStr = bytes(profiles[id].handle).length <= 20 ? "60" : "40";
 
         bytes memory image = abi.encodePacked(
             "data:image/svg+xml;base64,",
@@ -464,20 +463,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
                     )
                 )
             );
-    }
-
-    function uintToString(uint fontSize) public pure returns (string memory) {
-        bytes memory buffer = new bytes(32);
-        uint i = 0;
-        while (fontSize > 0) {
-            buffer[i++] = bytes1(uint8(48 + (fontSize % 10)));
-            fontSize /= 10;
-        }
-        bytes memory res = new bytes(i);
-        for (uint j = 0; j < i; j++) {
-            res[j] = buffer[i - j - 1];
-        }
-        return string(res);
     }
 
     function _msgSender()

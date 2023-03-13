@@ -512,8 +512,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
         string memory platformName = string.concat(platforms[id].name, ".tl");
-        uint256 fontSize = bytes(platforms[id].name).length <= 20 ? 60 : 40;
-        string memory fontSizeStr = uintToString(fontSize);
+        string memory fontSizeStr = bytes(platforms[id].name).length <= 20 ? "60" : "40";
 
         bytes memory image = abi.encodePacked(
             "data:image/svg+xml;base64,",
@@ -546,20 +545,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
                     )
                 )
             );
-    }
-
-    function uintToString(uint fontSize) public pure returns (string memory) {
-        bytes memory buffer = new bytes(32);
-        uint i = 0;
-        while (fontSize > 0) {
-            buffer[i++] = bytes1(uint8(48 + (fontSize % 10)));
-            fontSize /= 10;
-        }
-        bytes memory res = new bytes(i);
-        for (uint j = 0; j < i; j++) {
-            res[j] = buffer[i - j - 1];
-        }
-        return string(res);
     }
 
     /**
