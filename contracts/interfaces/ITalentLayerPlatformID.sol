@@ -29,6 +29,8 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
 
     function getOriginValidatedProposalFeeRate(uint256 _platformId) external view returns (uint16);
 
+    function getSigner(uint256 _platformId) external view returns (address);
+
     function getPlatform(uint256 _platformId) external view returns (Platform memory);
 
     function mint(string memory _platformName) external returns (uint256);

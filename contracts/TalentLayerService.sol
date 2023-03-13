@@ -495,7 +495,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     ) private view {
         bytes32 ethMessageHash = ECDSAUpgradeable.toEthSignedMessageHash(_messageHash);
         address signer = ECDSAUpgradeable.recover(ethMessageHash, _signature);
-        address platformSigner = talentLayerPlatformIdContract.getPlatform(_platformId).signer;
+        address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
         require(platformSigner == signer, "invalid signature");
     }
 

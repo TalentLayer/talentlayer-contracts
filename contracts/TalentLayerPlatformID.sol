@@ -208,6 +208,16 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
+     * @notice Allows retrieval of the signer of a platform
+     * @param _platformId The Platform Id of the platform
+     * @return The signer of the platform
+     */
+    function getSigner(uint256 _platformId) external view returns (address) {
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        return platforms[_platformId].signer;
+    }
+
+    /**
      * @notice Allows retrieval of a Platform arbitrator
      * @param _platformId The Platform Id of the platform
      * @return Arbitrator The Platform arbitrator
