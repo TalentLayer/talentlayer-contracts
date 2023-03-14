@@ -141,10 +141,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionAmount);
 
     /**
-     * @notice Emitted when the contract owner updates the completion percentage for services
-     * @param _completionPercentage The new completion percentage
+     * @notice Emitted when the contract owner updates the minimum completion percentage for services
+     * @param _minCompletionPercentage The new minimum completion percentage
      */
-    event CompletionPercentageUpdated(uint256 _completionPercentage);
+    event MinCompletionPercentageUpdated(uint256 _minCompletionPercentage);
 
     // =========================== Mappings & Variables ==============================
 
@@ -169,8 +169,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Allowed payment tokens addresses
     mapping(address => AllowedToken) public allowedTokenList;
 
-    /// @notice Percentage of the proposal amount to be released for considering the service as completed
-    uint256 public completionPercentage;
+    /// @notice Minimum percentage of the proposal amount to be released for considering the service as completed
+    uint256 public minCompletionPercentage;
 
     /// @notice Role granting Contract Owner permission
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
@@ -209,7 +209,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         nextServiceId = 1;
-        updateCompletionPercentage(30);
+        updateMinCompletionPercentage(30);
     }
 
     // =========================== View functions ==============================
@@ -399,7 +399,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Proposal storage proposal = proposals[_serviceId][service.acceptedProposalId];
 
         uint256 releasedPercentage = (_releasedAmount * 100) / proposal.rateAmount;
-        if (releasedPercentage >= completionPercentage) {
+        if (releasedPercentage >= minCompletionPercentage) {
             service.status = Status.Finished;
         } else {
             service.status = Status.Uncompleted;
@@ -444,11 +444,15 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     // =========================== Owner functions ==============================
 
-    // Write me a setter for completion percetage please, callable only by owner
-    function updateCompletionPercentage(uint256 _completionPercentage) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        completionPercentage = _completionPercentage;
+    /**
+     * @notice Allows the contract owner to update the minimum completion percentage for services
+     * @param _minCompletionPercentage The new completion percentage
+     * @dev Only the contract owner can call this function
+     */
+    function updateMinCompletionPercentage(uint256 _minCompletionPercentage) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        minCompletionPercentage = _minCompletionPercentage;
 
-        emit CompletionPercentageUpdated(_completionPercentage);
+        emit MinCompletionPercentageUpdated(_minCompletionPercentage);
     }
 
     // =========================== Overrides ==============================

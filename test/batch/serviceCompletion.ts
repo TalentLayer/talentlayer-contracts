@@ -96,15 +96,15 @@ describe('Completion of service', function () {
 
   it('The owner can update the completion percentage', async function () {
     // Fails if caller is not the owner
-    const tx = talentLayerService.connect(alice).updateCompletionPercentage(50)
+    const tx = talentLayerService.connect(alice).updateMinCompletionPercentage(50)
     const adminRole = await talentLayerPlatformID.DEFAULT_ADMIN_ROLE()
     await expect(tx).to.be.revertedWith(
       `AccessControl: account ${alice.address.toLowerCase()} is missing role ${adminRole.toLowerCase()}`,
     )
 
     // Has success if caller is the owner
-    await talentLayerService.connect(deployer).updateCompletionPercentage(50)
-    expect(await talentLayerService.completionPercentage()).to.equal(50)
+    await talentLayerService.connect(deployer).updateMinCompletionPercentage(50)
+    expect(await talentLayerService.minCompletionPercentage()).to.equal(50)
   })
 
   for (const testCase of testCases) {
