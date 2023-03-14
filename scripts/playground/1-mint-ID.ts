@@ -36,6 +36,10 @@ async function main() {
 
   await talentLayerIdContract.connect(alice).mint(daveTalentLayerIdPlatform, 'alice')
   console.log('alice registered')
+  // we get the nft uri and check the display
+  const aliceTalentLayerId = await talentLayerIdContract.ids(alice.address)
+  const nftAliceURi = await talentLayerIdContract.tokenURI(aliceTalentLayerId)
+  console.log('nftAliceURi', nftAliceURi)
 
   await talentLayerIdContract.connect(bob).mint(daveTalentLayerIdPlatform, 'bob__')
   console.log('Bob registered')
