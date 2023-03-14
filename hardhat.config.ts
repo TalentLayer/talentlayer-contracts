@@ -1,7 +1,10 @@
-import { HardhatUserConfig } from 'hardhat/config'
-import { NetworkUserConfig } from 'hardhat/types'
 import { config as dotenvConfig } from 'dotenv'
 import { resolve } from 'path'
+
+dotenvConfig({ path: resolve(__dirname, './.env') })
+
+import { HardhatUserConfig } from 'hardhat/config'
+import { NetworkUserConfig } from 'hardhat/types'
 import 'solidity-coverage'
 import '@nomicfoundation/hardhat-toolbox'
 import '@openzeppelin/hardhat-upgrades'
@@ -27,9 +30,8 @@ import './scripts/tasks/protocol/remove-trusted-forwarder'
 import './scripts/tasks/protocol/set-profile-whitelist'
 import './scripts/tasks/protocol/update-profile-minting-status'
 import './scripts/tasks/protocol/update-short-handles-price'
+import './scripts/tasks/platform/update-signer'
 import { Network } from './networkConfig'
-
-dotenvConfig({ path: resolve(__dirname, './.env') })
 
 const mnemonic: string | undefined = process.env.MNEMONIC
 if (!mnemonic) {
