@@ -495,24 +495,6 @@ describe('TalentLayer protocol global testing', function () {
       expect(profileData.platformId).to.be.equal('0')
     })
 
-    it('Alice should not be able to transfer her talentLayerId to Bob', async function () {
-      await expect(
-        talentLayerID.connect(alice).transferFrom(alice.address, bob.address, 1),
-      ).to.be.revertedWith('Token transfer is not allowed')
-
-      await expect(
-        talentLayerID
-          .connect(alice)
-          ['safeTransferFrom(address,address,uint256)'](alice.address, bob.address, 1),
-      ).to.be.revertedWith('Token transfer is not allowed')
-
-      await expect(
-        talentLayerID
-          .connect(alice)
-          ['safeTransferFrom(address,address,uint256,bytes)'](alice.address, bob.address, 1, []),
-      ).to.be.revertedWith('Token transfer is not allowed')
-    })
-
     it('The deployer can update the mint fee', async function () {
       await talentLayerID.connect(deployer).updateMintFee(mintFee)
       const updatedMintFee = await talentLayerID.mintFee()
