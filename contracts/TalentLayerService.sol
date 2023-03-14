@@ -171,9 +171,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Minimum percentage of the proposal amount to be released for considering the service as completed
     uint256 public minCompletionPercentage;
 
-    /// @notice Role granting Contract Owner permission
-    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
-
     /// @notice Role granting Escrow permission
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
