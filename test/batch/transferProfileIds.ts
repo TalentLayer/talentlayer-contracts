@@ -64,9 +64,9 @@ describe('Transfer of TalentLayer IDs', function () {
     expect(tx).to.be.revertedWith('Receiver already has a TalentLayer ID')
   })
 
-  it("A TalentLayer ID can't be transferred anymore after it's marked as soulbound", async function () {
+  it("A TalentLayer ID can't be transferred anymore after it has done some activity in the protocol", async function () {
     const bobTlId = await talentLayerID.ids(bob.address)
-    await talentLayerID.connect(bob).setIsSoulBound(bobTlId, true)
+    await talentLayerID.connect(bob).setHasActivity(bobTlId)
 
     await expect(
       talentLayerID.connect(bob).transferFrom(bob.address, dave.address, bobTlId),

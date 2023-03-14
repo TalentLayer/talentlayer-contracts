@@ -83,8 +83,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Maximum price for a short handle (in wei, upgradable)
     uint256 shortHandlesMaxPrice;
 
-    /// Whether a TalentLayer ID has services or proposals associated with it
-    mapping(uint256 => bool) public isSoulBound;
+    /// Whether a TalentLayer ID has done some activity in the protocol (created a service or proposal)
+    mapping(uint256 => bool) public hasActivity;
 
     // =========================== Errors ==============================
 
@@ -277,12 +277,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Allows to set whether a TalentLayer ID is soulbound or not
+     * @notice Allows to set whether a TalentLayer ID has done some activity (created a service or proposal)
      * @param _profileId The TalentLayer ID of the user
-     * @param _isSoulBound Whether the TalentLayer ID is soulbound or not
      */
-    function setIsSoulBound(uint256 _profileId, bool _isSoulBound) external {
-        isSoulBound[_profileId] = _isSoulBound;
+    function setHasActivity(uint256 _profileId) external {
+        hasActivity[_profileId] = true;
     }
 
     // =========================== Owner functions ==============================
@@ -401,7 +400,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     // =========================== Overrides ==============================
 
     function _transfer(address from, address to, uint256 tokenId) internal virtual override(ERC721Upgradeable) {
-        require(!isSoulBound[tokenId], "Token transfer is not allowed");
+        require(!hasActivity[tokenId], "Token transfer is not allowed");
         require(balanceOf(to) == 0, "Receiver already has a TalentLayer ID");
         ids[from] = 0;
         ids[to] = tokenId;
