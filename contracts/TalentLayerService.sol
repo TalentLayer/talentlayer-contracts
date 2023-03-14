@@ -140,6 +140,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      */
     event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionAmount);
 
+    /**
+     * @notice Emitted when the contract owner updates the completion percentage for services
+     * @param _completionPercentage The new completion percentage
+     */
+    event CompletionPercentageUpdated(uint256 _completionPercentage);
+
     // =========================== Mappings & Variables ==============================
 
     /// @notice incremental service Id
@@ -166,7 +172,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Percentage of the proposal amount to be released for considering the service as completed
     uint256 public completionPercentage;
 
-    // @notice
+    /// @notice Role granting Contract Owner permission
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
+    /// @notice Role granting Escrow permission
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -200,7 +209,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         nextServiceId = 1;
-        completionPercentage = 30;
+        updateCompletionPercentage(30);
     }
 
     // =========================== View functions ==============================
@@ -431,6 +440,15 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.status = Status.Cancelled;
 
         emit ServiceCancelled(_serviceId);
+    }
+
+    // =========================== Owner functions ==============================
+
+    // Write me a setter for completion percetage please, callable only by owner
+    function updateCompletionPercentage(uint256 _completionPercentage) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        completionPercentage = _completionPercentage;
+
+        emit CompletionPercentageUpdated(_completionPercentage);
     }
 
     // =========================== Overrides ==============================
