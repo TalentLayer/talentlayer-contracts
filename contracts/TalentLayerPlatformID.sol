@@ -43,6 +43,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /// @param arbitrator address of the arbitrator used by the platform
     /// @param arbitratorExtraData extra information for the arbitrator
     /// @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
+    /// @param signer address used to sign operations which need platform authorization
     struct Platform {
         uint256 id;
         string name;
@@ -54,6 +55,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
+        address signer;
     }
 
     /**
@@ -206,6 +208,16 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
+     * @notice Allows retrieval of the signer of a platform
+     * @param _platformId The Platform Id of the platform
+     * @return The signer of the platform
+     */
+    function getSigner(uint256 _platformId) external view returns (address) {
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        return platforms[_platformId].signer;
+    }
+
+    /**
      * @notice Allows retrieval of a Platform arbitrator
      * @param _platformId The Platform Id of the platform
      * @return Arbitrator The Platform arbitrator
@@ -325,7 +337,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows a platform to update the service posting fee for the platform
-     * @param _platformId The The platform Id of the platform
+     * @param _platformId The platform Id of the platform
      * @param _servicePostingFee The new fee
      */
     function updateServicePostingFee(uint256 _platformId, uint256 _servicePostingFee) public {
@@ -337,7 +349,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows a platform to update the proposal posting fee for the platform
-     * @param _platformId The The platform Id of the platform
+     * @param _platformId The platform Id of the platform
      * @param _proposalPostingFee The new fee
      */
     function updateProposalPostingFee(uint256 _platformId, uint256 _proposalPostingFee) public {
@@ -345,6 +357,18 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
         platforms[_platformId].proposalPostingFee = _proposalPostingFee;
         emit ProposalPostingFeeUpdated(_platformId, _proposalPostingFee);
+    }
+
+    /**
+     * @notice Allows a platform to update its signer address
+     * @param _platformId The platform Id of the platform
+     * @param _signer The new signer address
+     */
+    function updateSigner(uint256 _platformId, address _signer) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].signer = _signer;
+        emit SignerUpdated(_platformId, _signer);
     }
 
     // =========================== Owner functions ==============================
@@ -429,6 +453,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         platform.name = _platformName;
         platform.id = platformId;
         platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
+        platform.signer = _platformAddress;
         takenNames[_platformName] = true;
         ids[_platformAddress] = platformId;
 
@@ -649,6 +674,12 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _proposalPostingFee The new fee
      */
     event ProposalPostingFeeUpdated(uint256 _platformId, uint256 _proposalPostingFee);
+
+    /**
+     * @notice Emit when the signer address is updated for a platform
+     * @param _signer The new signer address
+     */
+    event SignerUpdated(uint256 _platformId, address _signer);
 
     /**
      * @notice Emit when the minting status is updated

@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
-import { cid } from './constants'
+import { cid, cid2 } from './constants'
 
 /*
 in this script we will mint a new platform ID for HireVibes
@@ -44,7 +44,7 @@ async function main() {
     .updateOriginValidatedProposalFeeRate(daveTalentLayerIdPlatform, 2500)
 
   const bobTalentLayerIdPlatform = await platformIdContract.ids(bob.address)
-  await platformIdContract.connect(bob).updateProfileData(bobTalentLayerIdPlatform, cid)
+  await platformIdContract.connect(bob).updateProfileData(bobTalentLayerIdPlatform, cid2)
   await platformIdContract.connect(bob).updateOriginServiceFeeRate(bobTalentLayerIdPlatform, 1500)
   await platformIdContract
     .connect(bob)

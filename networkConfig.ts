@@ -34,6 +34,7 @@ const local: NetworkConfig = {
   platformList: {
     hirevibes: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
     workpod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
+    indie: '0x8d960334c2EF30f425b395C1506Ef7c5783789F3',
   },
 }
 
@@ -55,6 +56,7 @@ const fuji: NetworkConfig = {
   },
   platformList: {
     hirevibes: '0x96573C632c88996711de69389b501F4D9005Ff4e',
+    indie: '0x8d960334c2EF30f425b395C1506Ef7c5783789F3',
   },
 }
 
@@ -79,6 +81,7 @@ const mumbai: NetworkConfig = {
     hirevibes: '0x96573C632c88996711de69389b501F4D9005Ff4e',
     workpod: '0x4444F618BA8E99435E721abF3c611D5105A407e9',
     scalesecurity: '0xD0C5A5C281cE5f8A0016F310Bd428111b44159A0',
+    indie: '0x8d960334c2EF30f425b395C1506Ef7c5783789F3',
   },
 }
 
