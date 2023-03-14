@@ -73,7 +73,7 @@ const testCases = [
   },
 ]
 
-describe.only('Completion of service', function () {
+describe('Completion of service', function () {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -94,87 +94,97 @@ describe.only('Completion of service', function () {
       .updateAllowedTokenList(tokenAddress, true, minTokenWhitelistTransactionAmount)
   })
 
-  it('Service is marked as finished if released amount is over the completion percentage', async function () {
-    for (const testCase of testCases) {
-      const nonce = await talentLayerService.nonce(aliceTlId)
-      const serviceId = await talentLayerService.nextServiceId()
+  for (const testCase of testCases) {
+    describe('Service and review workflow', async function () {
+      let transactionId: number
+      let serviceId: number
+      let serviceStatus: ServiceStatus
 
-      // Alice, the buyer, initiates a new open service
-      const signatureService = await getSignatureForService(carol, aliceTlId, nonce.toNumber(), cid)
-      await talentLayerService
-        .connect(alice)
-        .createService(aliceTlId, carolPlatformId, cid, signatureService)
+      before(async function () {
+        const nonce = await talentLayerService.nonce(aliceTlId)
+        serviceId = (await talentLayerService.nextServiceId()).toNumber()
 
-      // Bob, the seller, creates a proposal for the service
-      const signatureProposal = await getSignatureForProposal(
-        carol,
-        bobTlId,
-        serviceId.toNumber(),
-        cid,
-      )
-      await talentLayerService
-        .connect(bob)
-        .createProposal(
-          bobTlId,
-          serviceId,
-          tokenAddress,
-          transactionAmount,
-          carolPlatformId,
+        // Alice, the buyer, initiates a new open service
+        const signatureService = await getSignatureForService(
+          carol,
+          aliceTlId,
+          nonce.toNumber(),
           cid,
-          proposalExpirationDate,
-          signatureProposal,
         )
+        await talentLayerService
+          .connect(alice)
+          .createService(aliceTlId, carolPlatformId, cid, signatureService)
 
-      // Validate the proposal by locking the funds in the escrow
-      const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-      const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-      const platform = await talentLayerPlatformID.platforms(carolPlatformId)
-      const originServiceFeeRate = platform.originServiceFeeRate
-      const originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
-      const totalTransactionAmount = transactionAmount.add(
-        transactionAmount
-          .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
-          .div(feeDivider),
-      )
-      const tx = await talentLayerEscrow
-        .connect(alice)
-        .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
-          value: totalTransactionAmount,
-        })
+        // Bob, the seller, creates a proposal for the service
+        const signatureProposal = await getSignatureForProposal(carol, bobTlId, serviceId, cid)
+        await talentLayerService
+          .connect(bob)
+          .createProposal(
+            bobTlId,
+            serviceId,
+            tokenAddress,
+            transactionAmount,
+            carolPlatformId,
+            cid,
+            proposalExpirationDate,
+            signatureProposal,
+          )
 
-      // Get transaction id
-      const receipt = await tx.wait()
-      const event = receipt.events?.find((e) => e.event === 'TransactionCreated')
-      const transactionId = event?.args?.[0]
+        // Validate the proposal by locking the funds in the escrow
+        const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+        const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
+        const platform = await talentLayerPlatformID.platforms(carolPlatformId)
+        const originServiceFeeRate = platform.originServiceFeeRate
+        const originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
+        const totalTransactionAmount = transactionAmount.add(
+          transactionAmount
+            .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
+            .div(feeDivider),
+        )
+        const tx = await talentLayerEscrow
+          .connect(alice)
+          .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
+            value: totalTransactionAmount,
+          })
 
-      // Release part of the payment to receiver
-      const releaseAmount = transactionAmount.mul(testCase.releasePercentage).div(100)
-      // const releaseAmount = ethers.utils.parseEther(testCase.releaseAmount.toString())
-      await talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, releaseAmount)
+        // Get transaction id
+        const receipt = await tx.wait()
+        const event = receipt.events?.find((e) => e.event === 'TransactionCreated')
+        transactionId = event?.args?.[0]
+      })
 
-      // Reimburse the rest to the seller
-      const reimburseAmount = transactionAmount.sub(releaseAmount)
-      await talentLayerEscrow.connect(bob).reimburse(bobTlId, transactionId, reimburseAmount)
+      it('Service status is set correctly after full payment', async function () {
+        // Release part of the payment to receiver
+        const releaseAmount = transactionAmount.mul(testCase.releasePercentage).div(100)
+        await talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, releaseAmount)
 
-      // Check service status
-      const service = await talentLayerService.services(serviceId)
-      expect(service.status).to.equal(testCase.status)
+        // Reimburse the rest to the seller
+        const reimburseAmount = transactionAmount.sub(releaseAmount)
+        await talentLayerEscrow.connect(bob).reimburse(bobTlId, transactionId, reimburseAmount)
 
-      if (service.status === ServiceStatus.Finished) {
-        // Can mint review if the service is finished
-        const tx = talentLayerReview.connect(alice).mint(aliceTlId, serviceId, cid, 5)
-        await expect(tx).to.not.be.reverted
+        // Check service status
+        const service = await talentLayerService.services(serviceId)
+        serviceStatus = service.status
+        expect(service.status).to.equal(testCase.status)
+      })
 
-        const tx2 = talentLayerReview.connect(bob).mint(bobTlId, serviceId, cid, 5)
-        await expect(tx2).to.not.be.reverted
-      } else {
-        // Can't mint review if the service is uncompleted
-        const tx = talentLayerReview.connect(alice).mint(aliceTlId, serviceId, cid, 5)
-        await expect(tx).to.be.revertedWith('The service is not finished yet')
+      it('Review can be minted only if service is completed', async function () {
+        if (serviceStatus === ServiceStatus.Finished) {
+          // Can mint review if the service is finished
+          const tx = talentLayerReview.connect(alice).mint(aliceTlId, serviceId, cid, 5)
+          await expect(tx).to.not.be.reverted
 
-        const tx2 = talentLayerReview.connect(bob).mint(bobTlId, serviceId, cid, 5)
-        await expect(tx2).to.be.revertedWith('The service is not finished yet')
-      }
-    }
-  })
+          const tx2 = talentLayerReview.connect(bob).mint(bobTlId, serviceId, cid, 5)
+          await expect(tx2).to.not.be.reverted
+        } else {
+          // Can't mint review if the service is uncompleted
+          const tx = talentLayerReview.connect(alice).mint(aliceTlId, serviceId, cid, 5)
+          await expect(tx).to.be.revertedWith('The service is not finished yet')
+
+          const tx2 = talentLayerReview.connect(bob).mint(bobTlId, serviceId, cid, 5)
+          await expect(tx2).to.be.revertedWith('The service is not finished yet')
+        }
+      })
+    })
+  }
 })
