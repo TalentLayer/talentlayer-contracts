@@ -33,3 +33,11 @@ export enum MintStatus {
   ONLY_WHITELIST,
   PUBLIC,
 }
+
+export enum ServiceStatus {
+  Opened,
+  Confirmed,
+  Finished,
+  Cancelled,
+  Uncompleted,
+}

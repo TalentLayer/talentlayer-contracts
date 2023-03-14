@@ -22,7 +22,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Opened,
         Confirmed,
         Finished,
-        Cancelled
+        Cancelled,
+        Uncompleted
     }
 
     /// @notice Enum service status
@@ -138,6 +139,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      */
     event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionAmount);
 
+    /**
+     * @notice Emitted when the contract owner updates the minimum completion percentage for services
+     * @param _minCompletionPercentage The new minimum completion percentage
+     */
+    event MinCompletionPercentageUpdated(uint256 _minCompletionPercentage);
+
     // =========================== Mappings & Variables ==============================
 
     /// @notice incremental service Id
@@ -161,7 +168,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @notice Allowed payment tokens addresses
     mapping(address => AllowedToken) public allowedTokenList;
 
-    // @notice
+    /// @notice Minimum percentage of the proposal amount to be released for considering the service as completed
+    uint256 public minCompletionPercentage;
+
+    /// @notice Role granting Escrow permission
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -195,6 +205,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         nextServiceId = 1;
+        updateMinCompletionPercentage(30);
     }
 
     // =========================== View functions ==============================
@@ -379,10 +390,18 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /**
      * @notice Allow the escrow contract to upgrade the Service state after the full payment has been received by the seller
      * @param _serviceId Service identifier
+     * @param _releasedAmount The total amount of the payment released to the seller
      */
-    function afterFullPayment(uint256 _serviceId) external onlyRole(ESCROW_ROLE) {
+    function afterFullPayment(uint256 _serviceId, uint256 _releasedAmount) external onlyRole(ESCROW_ROLE) {
         Service storage service = services[_serviceId];
-        service.status = Status.Finished;
+        Proposal storage proposal = proposals[_serviceId][service.acceptedProposalId];
+
+        uint256 releasedPercentage = (_releasedAmount * 100) / proposal.rateAmount;
+        if (releasedPercentage >= minCompletionPercentage) {
+            service.status = Status.Finished;
+        } else {
+            service.status = Status.Uncompleted;
+        }
     }
 
     /**
@@ -419,6 +438,19 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.status = Status.Cancelled;
 
         emit ServiceCancelled(_serviceId);
+    }
+
+    // =========================== Owner functions ==============================
+
+    /**
+     * @notice Allows the contract owner to update the minimum completion percentage for services
+     * @param _minCompletionPercentage The new completion percentage
+     * @dev Only the contract owner can call this function
+     */
+    function updateMinCompletionPercentage(uint256 _minCompletionPercentage) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        minCompletionPercentage = _minCompletionPercentage;
+
+        emit MinCompletionPercentageUpdated(_minCompletionPercentage);
     }
 
     // =========================== Overrides ==============================

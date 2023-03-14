@@ -6,7 +6,8 @@ interface ITalentLayerService {
         Opened,
         Confirmed,
         Finished,
-        Cancelled
+        Cancelled,
+        Uncompleted
     }
 
     enum ProposalStatus {
@@ -62,7 +63,7 @@ interface ITalentLayerService {
         string calldata _dataUri
     ) external;
 
-    function afterFullPayment(uint256 _serviceId) external;
+    function afterFullPayment(uint256 _serviceId, uint256 _releasedAmount) external;
 
     function updateServiceData(uint256 _serviceId, string calldata _dataUri) external;
 }
