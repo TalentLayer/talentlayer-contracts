@@ -38,7 +38,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param ownerId the talentLayerId of the buyer
     /// @param acceptedProposalId the accepted proposal ID
     /// @param dataUri token Id to IPFS URI mapping
-    /// @param proposals all proposals for this service
     /// @param transactionId the escrow transaction ID linked to the service
     /// @param platformId the platform ID on which the service was created
     struct Service {
@@ -233,6 +232,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _profileId The TalentLayer ID of the user
      * @param _platformId platform ID on which the Service token was minted
      * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
      */
     function createService(
         uint256 _profileId,
@@ -266,6 +266,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _dataUri token Id to IPFS URI mapping
      * @param _platformId platform ID
      * @param _expirationDate the time before the proposal is automatically validated
+     * @param _signature platform signature to allow the operation
      */
     function createProposal(
         uint256 _profileId,
@@ -325,7 +326,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(service.status == Status.Opened, "Service is not opened");
         require(proposal.ownerId == _profileId, "This proposal doesn't exist yet");
         require(bytes(_dataUri).length == 46, "Invalid cid");
-        require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
+        require(proposal.status != ProposalStatus.Validated, "This proposal is already validated");
         require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount is too low");
 
         proposal.rateToken = _rateToken;
@@ -444,6 +445,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     // =========================== Private functions ==============================
 
+    /**
+     * @notice Validate a new service
+     * @param _profileId The TalentLayer ID of the user
+     * @param _platformId platform ID on which the Service token was minted
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
+     */
     function _validateService(
         uint256 _profileId,
         uint256 _platformId,
@@ -460,6 +468,15 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         _validatePlatformSignature(_signature, messageHash, _platformId);
     }
 
+    /**
+     * @notice Validate a new proposal
+     * @param _profileId The TalentLayer ID of the user
+     * @param _serviceId The service linked to the new proposal
+     * @param _rateToken the token choose for the payment
+     * @param _rateAmount the amount of token chosen
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
+     */
     function _validateProposal(
         uint256 _profileId,
         uint256 _serviceId,
@@ -488,6 +505,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         _validatePlatformSignature(_signature, messageHash, _platformId);
     }
 
+    /**
+     * @notice Validate the platform ECDSA signature for a given message hash operation
+     * @param _signature platform signature to allow the operation
+     * @param _messageHash The hash of a generated message corresponding to the operation
+     * @param _platformId The id of the platform where the user want to post, the signature must come from the owner
+     */
     function _validatePlatformSignature(
         bytes calldata _signature,
         bytes32 _messageHash,
