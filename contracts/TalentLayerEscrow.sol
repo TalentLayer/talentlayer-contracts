@@ -62,6 +62,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
      * @param amount The amount of the transaction EXCLUDING FEES
+     * @param releasedAmount The amount of the transaction that has been released to the receiver EXCLUDING FEES
      * @param serviceId The ID of the associated service
      * @param proposalId The id of the validated proposal
      * @param protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
@@ -82,6 +83,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         address receiver;
         address token;
         uint256 amount;
+        uint256 releasedAmount;
         uint256 serviceId;
         uint256 proposalId;
         uint16 protocolEscrowFeeRate;
@@ -464,6 +466,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             receiver: receiver,
             token: proposal.rateToken,
             amount: proposal.rateAmount,
+            releasedAmount: 0,
             serviceId: _serviceId,
             proposalId: _proposalId,
             protocolEscrowFeeRate: protocolEscrowFeeRate,
@@ -508,6 +511,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
         Transaction storage transaction = transactions[_transactionId];
         transaction.amount -= _amount;
+        transaction.releasedAmount += _amount;
 
         _release(_transactionId, _amount);
     }
@@ -960,7 +964,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         emit Payment(transaction.id, _paymentType, transaction.token, _releaseAmount, transaction.serviceId);
 
         if (transaction.amount == 0) {
-            talentLayerServiceContract.afterFullPayment(transaction.serviceId);
+            talentLayerServiceContract.afterFullPayment(transaction.serviceId, transaction.releasedAmount);
             emit PaymentCompleted(transaction.serviceId);
         }
     }
