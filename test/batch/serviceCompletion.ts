@@ -1,7 +1,12 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { TalentLayerService, TalentLayerEscrow, TalentLayerPlatformID } from '../../typechain-types'
+import {
+  TalentLayerService,
+  TalentLayerEscrow,
+  TalentLayerPlatformID,
+  TalentLayerReview,
+} from '../../typechain-types'
 import {
   MintStatus,
   minTokenWhitelistTransactionAmount,
@@ -26,11 +31,17 @@ const tokenAddress = ethers.constants.AddressZero
  * @returns the deployed contracts
  */
 async function deployAndSetup(): Promise<
-  [TalentLayerEscrow, TalentLayerService, TalentLayerPlatformID]
+  [TalentLayerEscrow, TalentLayerService, TalentLayerPlatformID, TalentLayerReview]
 > {
   const [deployer, alice, bob, carol] = await ethers.getSigners()
-  const [talentLayerID, talentLayerPlatformID, talentLayerEscrow, , talentLayerService] =
-    await deploy(true)
+  const [
+    talentLayerID,
+    talentLayerPlatformID,
+    talentLayerEscrow,
+    ,
+    talentLayerService,
+    talentLayerReview,
+  ] = await deploy(true)
 
   // Grant Platform Id Mint role to Deployer and Bob
   const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -48,7 +59,7 @@ async function deployAndSetup(): Promise<
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob__')
 
-  return [talentLayerEscrow, talentLayerService, talentLayerPlatformID]
+  return [talentLayerEscrow, talentLayerService, talentLayerPlatformID, talentLayerReview]
 }
 
 const testCases = [
@@ -62,18 +73,20 @@ const testCases = [
   },
 ]
 
-describe('Completion of service', function () {
+describe.only('Completion of service', function () {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerService: TalentLayerService,
-    talentLayerPlatformID: TalentLayerPlatformID
+    talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerReview: TalentLayerReview
 
   before(async function () {
     ;[deployer, alice, bob, carol] = await ethers.getSigners()
-    ;[talentLayerEscrow, talentLayerService, talentLayerPlatformID] = await deployAndSetup()
+    ;[talentLayerEscrow, talentLayerService, talentLayerPlatformID, talentLayerReview] =
+      await deployAndSetup()
 
     // Deployer whitelists a list of authorized tokens
     await talentLayerService
@@ -146,6 +159,22 @@ describe('Completion of service', function () {
       // Check service status
       const service = await talentLayerService.services(serviceId)
       expect(service.status).to.equal(testCase.status)
+
+      if (service.status === ServiceStatus.Finished) {
+        // Can mint review if the service is finished
+        const tx = talentLayerReview.connect(alice).mint(aliceTlId, serviceId, cid, 5)
+        await expect(tx).to.not.be.reverted
+
+        const tx2 = talentLayerReview.connect(bob).mint(bobTlId, serviceId, cid, 5)
+        await expect(tx2).to.not.be.reverted
+      } else {
+        // Can't mint review if the service is uncompleted
+        const tx = talentLayerReview.connect(alice).mint(aliceTlId, serviceId, cid, 5)
+        await expect(tx).to.be.revertedWith('The service is not finished yet')
+
+        const tx2 = talentLayerReview.connect(bob).mint(bobTlId, serviceId, cid, 5)
+        await expect(tx2).to.be.revertedWith('The service is not finished yet')
+      }
     }
   })
 })
