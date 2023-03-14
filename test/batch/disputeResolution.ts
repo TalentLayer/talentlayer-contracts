@@ -22,6 +22,7 @@ import {
   feeDivider,
   metaEvidenceCid,
   evidenceCid,
+  ServiceStatus,
 } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 import { getSignatureForProposal, getSignatureForService } from '../utils/signature'
@@ -447,7 +448,7 @@ describe('Dispute Resolution, standard flow', function () {
 
       it('Sets the service as finished', async function () {
         const service = await talentLayerService.getService(serviceId)
-        expect(service.status).to.be.eq(2)
+        expect(service.status).to.be.eq(ServiceStatus.Finished)
       })
 
       it('Emits the Payment event', async function () {
