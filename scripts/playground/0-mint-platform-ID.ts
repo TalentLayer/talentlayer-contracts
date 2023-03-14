@@ -31,6 +31,11 @@ async function main() {
   const mint2 = await platformIdContract.connect(alice).mintForAddress('playground2', bob.address)
   await mint2.wait()
 
+  // we get the nft uri and check the display
+  const platformId = await platformIdContract.ids(dave.address)
+  const platformIdURi = await platformIdContract.tokenURI(platformId)
+  console.log('platformIdURi', platformIdURi)
+
   const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   await platformIdContract.connect(dave).updateProfileData(daveTalentLayerIdPlatform, cid)
   await platformIdContract.connect(dave).updateOriginServiceFeeRate(daveTalentLayerIdPlatform, 1000)
