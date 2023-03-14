@@ -8,7 +8,7 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
  */
 task(
   'update-min-service-completion-percentage',
-  'update the minimum timeout to pay the arbitration fee',
+  'update the minimum percentage of released amount to consider a service completed',
 )
   .addParam('percentage', 'The new minimum completion percentage')
   .setAction(async (taskArgs, { ethers, network }) => {
