@@ -9,11 +9,6 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
 task('update-signer', 'Updates the signer address of a platform')
   .addParam('signer', 'The address of the signer')
   .setAction(async (taskArgs, { ethers, network }) => {
-    const platformId = process.env.PLATFORM_ID
-    if (!platformId) {
-      throw new Error('Please set your PLATFORM_ID in a .env file')
-    }
-
     const { signer } = taskArgs
     const [deployer] = await ethers.getSigners()
 
@@ -24,6 +19,8 @@ task('update-signer', 'Updates the signer address of a platform')
       getDeploymentProperty(network.name, DeploymentProperty.TalentLayerPlatformID),
       deployer,
     )
+
+    const platformId = await platformIdContract.ids(deployer.address)
 
     const tx = await platformIdContract.connect(deployer).updateSigner(platformId, signer)
     await tx.wait()
