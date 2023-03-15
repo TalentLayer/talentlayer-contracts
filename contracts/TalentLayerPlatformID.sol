@@ -6,8 +6,7 @@ import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base6
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-
-import "./Arbitrator.sol";
+import {Arbitrator} from "./Arbitrator.sol";
 
 /**
  * @title Platform ID Contract

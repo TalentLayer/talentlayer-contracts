@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Arbitrator.sol";
-import "./interfaces/ITalentLayerPlatformID.sol";
+import {Arbitrator, Arbitrable} from "./Arbitrator.sol";
+import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /** @title TalentLayer Arbitrator
  *  @dev Fork from centralized arbitrator

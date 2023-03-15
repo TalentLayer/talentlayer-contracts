@@ -6,12 +6,12 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "./interfaces/ITalentLayerService.sol";
-import "./interfaces/ITalentLayerID.sol";
-import "./interfaces/ITalentLayerPlatformID.sol";
+import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
+import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
+import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "./libs/ERC2771RecipientUpgradeable.sol";
-import "./interfaces/IArbitrable.sol";
-import "./Arbitrator.sol";
+import {IArbitrable} from "./interfaces/IArbitrable.sol";
+import {Arbitrator} from "./Arbitrator.sol";
 
 contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, IArbitrable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
