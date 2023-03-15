@@ -1,5 +1,6 @@
 import { formatEther } from 'ethers/lib/utils'
 import { subtask, task } from 'hardhat/config'
+import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 import { getConfig, Network, NetworkConfig } from '../../../networkConfig'
 
 /**
@@ -58,6 +59,18 @@ task(
     console.log('------------------------')
     console.log('Set profile minting status to public')
     await run('update-profile-minting-status', { mintstatus: '2' })
+    console.log('------------------------')
+
+    console.log('------------------------')
+    console.log('Set service contract address on TalentLayerID')
+    const talentLayerServiceAddress = getDeploymentProperty(
+      network.name,
+      DeploymentProperty.TalentLayerService,
+    )
+    await run('set-is-service-contract', {
+      address: talentLayerServiceAddress,
+      isServiceContract: 'true',
+    })
     console.log('------------------------')
 
     console.log('Signer')

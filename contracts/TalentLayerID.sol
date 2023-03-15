@@ -86,6 +86,9 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Whether a TalentLayer ID has done some activity in the protocol (created a service or proposal)
     mapping(uint256 => bool) public hasActivity;
 
+    /// Whether a contract is a service contract, which is able to set if user has done some activity
+    mapping(address => bool) public isServiceContract;
+
     // =========================== Errors ==============================
 
     /**
@@ -281,6 +284,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _profileId The TalentLayer ID of the user
      */
     function setHasActivity(uint256 _profileId) external {
+        require(isServiceContract[_msgSender()] == true, "Only service contracts can set whether a user has activity");
         hasActivity[_profileId] = true;
     }
 
@@ -342,6 +346,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function updateShortHandlesMaxPrice(uint256 _shortHandlesMaxPrice) public onlyOwner {
         shortHandlesMaxPrice = _shortHandlesMaxPrice;
         emit ShortHandlesMaxPriceUpdated(_shortHandlesMaxPrice);
+    }
+
+    /**
+     * @notice Updates the service contract address.
+     * @param _address The address
+     * @param _isServiceContract Whether the address is a service contract
+     */
+    function setIsServiceContract(address _address, bool _isServiceContract) public onlyOwner {
+        isServiceContract[_address] = _isServiceContract;
     }
 
     // =========================== Private functions ==============================

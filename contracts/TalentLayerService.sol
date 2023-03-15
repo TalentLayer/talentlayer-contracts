@@ -263,6 +263,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.platformId = _platformId;
         nonce[_profileId]++;
 
+        // TODO: do call only if is the first service of the user?
+        tlId.setHasActivity(_profileId);
+
         emit ServiceCreated(id, _profileId, _platformId, _dataUri);
 
         return id;
@@ -300,6 +303,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             dataUri: _dataUri,
             expirationDate: _expirationDate
         });
+
+        // TODO: do call only if is the first service of the user?
+        tlId.setHasActivity(_profileId);
 
         emit ProposalCreated(
             _serviceId,

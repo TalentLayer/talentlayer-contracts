@@ -117,6 +117,9 @@ describe('TalentLayer protocol global testing', function () {
 
     // Disable whitelist for reserved handles
     await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
+
+    // Set service contract address on ID contract
+    await talentLayerID.connect(deployer).setIsServiceContract(talentLayerService.address, true)
   })
 
   describe('Platform Id contract test', async function () {
