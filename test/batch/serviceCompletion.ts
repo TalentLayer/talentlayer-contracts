@@ -117,7 +117,7 @@ describe('Completion of service', function () {
       let serviceStatus: ServiceStatus
 
       before(async function () {
-        const nonce = await talentLayerService.nonce(aliceTlId)
+        const nonce = await talentLayerService.serviceNonce(aliceTlId)
         serviceId = (await talentLayerService.nextServiceId()).toNumber()
 
         // Alice, the buyer, initiates a new open service

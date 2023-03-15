@@ -163,7 +163,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     /// @notice TLUserId mappings to number of services created used as a nonce in createService signature
-    mapping(uint256 => uint256) public nonce;
+    mapping(uint256 => uint256) public serviceNonce;
+
+    /// @notice TLUserId mappings to number of proposals created
+    mapping(uint256 => uint256) public proposalNonce;
 
     /// @notice Allowed payment tokens addresses
     mapping(address => AllowedToken) public allowedTokenList;
@@ -261,10 +264,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.ownerId = _profileId;
         service.dataUri = _dataUri;
         service.platformId = _platformId;
-        nonce[_profileId]++;
 
-        // TODO: do call only if is the first service of the user?
-        tlId.setHasActivity(_profileId);
+        if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
+            tlId.setHasActivity(_profileId);
+        }
+        serviceNonce[_profileId]++;
 
         emit ServiceCreated(id, _profileId, _platformId, _dataUri);
 
@@ -304,8 +308,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             expirationDate: _expirationDate
         });
 
-        // TODO: do call only if is the first service of the user?
-        tlId.setHasActivity(_profileId);
+        if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
+            tlId.setHasActivity(_profileId);
+        }
+        proposalNonce[_profileId]++;
 
         emit ProposalCreated(
             _serviceId,
@@ -501,7 +507,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
         bytes32 messageHash = keccak256(
-            abi.encodePacked("createService", _profileId, ";", nonce[_profileId], _dataUri)
+            abi.encodePacked("createService", _profileId, ";", serviceNonce[_profileId], _dataUri)
         );
         _validatePlatformSignature(_signature, messageHash, _platformId);
     }
