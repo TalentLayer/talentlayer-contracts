@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 import "./interfaces/ITalentLayerService.sol";
 import "./interfaces/ITalentLayerID.sol";
@@ -13,7 +14,13 @@ import "./libs/ERC2771RecipientUpgradeable.sol";
 import "./interfaces/IArbitrable.sol";
 import "./Arbitrator.sol";
 
-contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, IArbitrable {
+contract TalentLayerEscrow is
+    Initializable,
+    ERC2771RecipientUpgradeable,
+    PausableUpgradeable,
+    UUPSUpgradeable,
+    IArbitrable
+{
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // =========================== Enum ==============================
@@ -1003,5 +1010,27 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             (((_amount * protocolEscrowFeeRate) +
                 (_amount * _originServiceFeeRate) +
                 (_amount * _originValidatedProposalFeeRate)) / FEE_DIVIDER);
+    }
+
+    // =========================== Overrides ==============================
+
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (address)
+    {
+        return ERC2771RecipientUpgradeable._msgSender();
+    }
+
+    function _msgData()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (bytes calldata)
+    {
+        return ERC2771RecipientUpgradeable._msgData();
     }
 }
