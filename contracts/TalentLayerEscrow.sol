@@ -707,7 +707,7 @@ contract TalentLayerEscrow is
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
      * Emits a BalanceTransferred event
      */
-    function claim(uint256 _platformId, address _tokenAddress) external {
+    function claim(uint256 _platformId, address _tokenAddress) external whenNotPaused {
         address payable recipient;
 
         if (owner() == _msgSender()) {
@@ -730,7 +730,7 @@ contract TalentLayerEscrow is
      * @notice Allows the platform to claim all its tokens & / or ETH balances.
      * @param _platformId The ID of the platform claiming the balance.
      */
-    function claimAll(uint256 _platformId) external {
+    function claimAll(uint256 _platformId) external whenNotPaused {
         //TODO Copy Lugus (need to see how to handle approved token lists)
     }
 
