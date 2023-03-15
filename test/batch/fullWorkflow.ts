@@ -1717,13 +1717,11 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Alice should not be able to transfer her review to carol', async function () {
       await expect(
-        talentLayerPlatformID
-          .connect(alice)
-          .transferFrom(alice.address, carol.address, aliceReviewId),
+        talentLayerReview.connect(alice).transferFrom(alice.address, carol.address, aliceReviewId),
       ).to.be.revertedWith('Token transfer is not allowed')
 
       await expect(
-        talentLayerPlatformID
+        talentLayerReview
           .connect(alice)
           ['safeTransferFrom(address,address,uint256)'](
             alice.address,
@@ -1733,7 +1731,7 @@ describe('TalentLayer protocol global testing', function () {
       ).to.be.revertedWith('Token transfer is not allowed')
 
       await expect(
-        talentLayerPlatformID
+        talentLayerReview
           .connect(alice)
           ['safeTransferFrom(address,address,uint256,bytes)'](
             alice.address,
