@@ -14,5 +14,6 @@
   ],
   "rules": {
     "@typescript-eslint/ban-ts-comment": "off"
-  }
+  },
+  "ignorePatterns": ["coverage"]
 }
