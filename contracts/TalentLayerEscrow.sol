@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "./interfaces/ITalentLayerService.sol";
 import "./interfaces/ITalentLayerID.sol";
 import "./interfaces/ITalentLayerPlatformID.sol";
@@ -15,6 +15,7 @@ import "./Arbitrator.sol";
 
 contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, IArbitrable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // =========================== Enum ==============================
 
@@ -982,7 +983,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         if (address(0) == _tokenAddress) {
             _recipient.call{value: _amount}("");
         } else {
-            IERC20(_tokenAddress).transfer(_recipient, _amount);
+            IERC20Upgradeable(_tokenAddress).safeTransfer(_recipient, _amount);
         }
     }
 
