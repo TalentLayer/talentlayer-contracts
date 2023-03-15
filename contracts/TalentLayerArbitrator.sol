@@ -124,7 +124,9 @@ contract TalentLayerArbitrator is Arbitrator {
         dispute.ruling = _ruling;
         dispute.status = DisputeStatus.Solved;
 
-        payable(msg.sender).transfer(dispute.fee); // Avoid blocking.
+        (bool success, ) = payable(msg.sender).call{value: dispute.fee}("");
+        require(success, "Failed to transfer fee.");
+
         dispute.arbitrated.rule(_disputeID, _ruling);
     }
 
