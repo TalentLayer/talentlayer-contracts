@@ -156,4 +156,18 @@ describe('Transfer of TalentLayer IDs', function () {
         ),
     ).to.be.revertedWith('Token transfer is not allowed')
   })
+
+  it('Only service contracts can set whether a user has done an activity', async function () {
+    const carolTlId = await talentLayerID.ids(carol.address)
+
+    // Carol tries to set her activity status
+    await expect(talentLayerID.connect(carol).setHasActivity(carolTlId)).to.be.revertedWith(
+      'Only service contracts can set whether a user has activity',
+    )
+
+    // Dave tries to set Carol's activity status
+    await expect(talentLayerID.connect(dave).setHasActivity(carolTlId)).to.be.revertedWith(
+      'Only service contracts can set whether a user has activity',
+    )
+  })
 })
