@@ -416,6 +416,20 @@ contract TalentLayerEscrow is
         protocolWallet = _protocolWallet;
     }
 
+    /**
+     * @dev Pauses the creation of transaction, releases and reimbursements.
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @dev Unpauses the creation of transaction, releases and reimbursements.
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
     // =========================== User functions ==============================
 
     /**
@@ -430,7 +444,7 @@ contract TalentLayerEscrow is
         uint256 _proposalId,
         string memory _metaEvidence,
         string memory _originDataUri
-    ) external payable returns (uint256) {
+    ) external payable whenNotPaused returns (uint256) {
         ITalentLayerService.Service memory service = talentLayerServiceContract.getService(_serviceId);
         ITalentLayerService.Proposal memory proposal = talentLayerServiceContract.getProposal(_serviceId, _proposalId);
         address sender = talentLayerIdContract.ownerOf(service.ownerId);
@@ -516,7 +530,7 @@ contract TalentLayerEscrow is
         uint256 _profileId,
         uint256 _transactionId,
         uint256 _amount
-    ) external onlyOwnerOrDelegate(_profileId) {
+    ) external whenNotPaused onlyOwnerOrDelegate(_profileId) {
         _validatePayment(_transactionId, PaymentType.Release, _profileId, _amount);
 
         Transaction storage transaction = transactions[_transactionId];
@@ -537,7 +551,7 @@ contract TalentLayerEscrow is
         uint256 _profileId,
         uint256 _transactionId,
         uint256 _amount
-    ) external onlyOwnerOrDelegate(_profileId) {
+    ) external whenNotPaused onlyOwnerOrDelegate(_profileId) {
         _validatePayment(_transactionId, PaymentType.Reimburse, _profileId, _amount);
 
         Transaction storage transaction = transactions[_transactionId];
