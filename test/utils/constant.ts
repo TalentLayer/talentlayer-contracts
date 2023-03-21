@@ -8,6 +8,7 @@ export const proposalExpirationDate = now + 60 * 60 * 24 * 15
 export const expiredProposalDate = now - 60 * 60 * 24 * 30
 export const feeDivider = 10000
 export const arbitrationFeeTimeout = 3600 * 24
+export const ethAddress = '0x0000000000000000000000000000000000000000'
 
 export enum TransactionStatus {
   NoDispute,

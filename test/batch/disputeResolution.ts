@@ -23,6 +23,7 @@ import {
   metaEvidenceCid,
   evidenceCid,
   ServiceStatus,
+  ethAddress,
 } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 import { getSignatureForProposal, getSignatureForService } from '../utils/signature'
@@ -118,6 +119,61 @@ async function deployAndSetup(
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService]
 }
 
+async function getTransactionDetails(
+  talentLayerPlatformID: TalentLayerPlatformID,
+  talentLayerEscrow: TalentLayerEscrow,
+): Promise<[BigNumber, number, number, number]> {
+  const platform = await talentLayerPlatformID.platforms(carolPlatformId)
+  const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
+  const originServiceFeeRate = platform.originServiceFeeRate
+  const originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
+  const totalTransactionAmount = transactionAmount.add(
+    transactionAmount
+      .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
+      .div(feeDivider),
+  )
+
+  return [
+    totalTransactionAmount,
+    protocolEscrowFeeRate,
+    originServiceFeeRate,
+    originValidatedProposalFeeRate,
+  ]
+}
+
+async function createTransaction(
+  talentLayerPlatformID: TalentLayerPlatformID,
+  talentLayerEscrow: TalentLayerEscrow,
+  talentLayerService: TalentLayerService,
+  signer: SignerWithAddress,
+): Promise<[ContractTransaction, BigNumber, number, number, number]> {
+  // Create transaction
+  const [
+    totalTransactionAmount,
+    protocolEscrowFeeRate,
+    originServiceFeeRate,
+    originValidatedProposalFeeRate,
+  ] = await getTransactionDetails(talentLayerPlatformID, talentLayerEscrow)
+
+  // we need to retreive the Bob proposal dataUri
+  const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+  const value = proposal.rateToken === ethAddress ? totalTransactionAmount : 0
+
+  const tx = await talentLayerEscrow
+    .connect(signer)
+    .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
+      value,
+    })
+
+  return [
+    tx,
+    totalTransactionAmount,
+    protocolEscrowFeeRate,
+    originServiceFeeRate,
+    originValidatedProposalFeeRate,
+  ]
+}
+
 describe('Dispute Resolution, standard flow', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -155,21 +211,19 @@ describe('Dispute Resolution, standard flow', function () {
     let tx: ContractTransaction
 
     before(async function () {
-      // Calculate total transaction amount, including fees
-      totalTransactionAmount = transactionAmount.add(
-        transactionAmount
-          .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
-          .div(feeDivider),
+      // Create transaction
+      ;[
+        tx,
+        totalTransactionAmount,
+        protocolEscrowFeeRate,
+        originServiceFeeRate,
+        originValidatedProposalFeeRate,
+      ] = await createTransaction(
+        talentLayerPlatformID,
+        talentLayerEscrow,
+        talentLayerService,
+        alice,
       )
-
-      // we need to retreive the Bob proposal dataUri
-      const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-
-      tx = await talentLayerEscrow
-        .connect(alice)
-        .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
-          value: totalTransactionAmount,
-        })
     })
 
     it('Funds are sent from buyer (Alice) to the escrow', async function () {
@@ -496,8 +550,7 @@ describe('Dispute Resolution, with sender failing to pay arbitration fee on time
     bob: SignerWithAddress,
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerService: TalentLayerService,
-    talentLayerEscrow: TalentLayerEscrow,
-    totalTransactionAmount: BigNumber
+    talentLayerEscrow: TalentLayerEscrow
 
   before(async function () {
     ;[, alice, bob] = await ethers.getSigners()
@@ -507,24 +560,7 @@ describe('Dispute Resolution, with sender failing to pay arbitration fee on time
     )
 
     // Create transaction
-    const platform = await talentLayerPlatformID.platforms(carolPlatformId)
-    const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-    const originServiceFeeRate = platform.originServiceFeeRate
-    const originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
-    totalTransactionAmount = transactionAmount.add(
-      transactionAmount
-        .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
-        .div(feeDivider),
-    )
-
-    // we need to retreive the Bob proposal dataUri
-    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-
-    await talentLayerEscrow
-      .connect(alice)
-      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
-        value: totalTransactionAmount,
-      })
+    await createTransaction(talentLayerPlatformID, talentLayerEscrow, talentLayerService, alice)
 
     // Alice wants to raise a dispute and pays the arbitration fee
     await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
@@ -571,24 +607,12 @@ describe('Dispute Resolution, with receiver failing to pay arbitration fee on ti
     )
 
     // Create transaction
-    const platform = await talentLayerPlatformID.platforms(carolPlatformId)
-    const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-    const originServiceFeeRate = platform.originServiceFeeRate
-    const originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
-    totalTransactionAmount = transactionAmount.add(
-      transactionAmount
-        .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
-        .div(feeDivider),
+    ;[, totalTransactionAmount] = await createTransaction(
+      talentLayerPlatformID,
+      talentLayerEscrow,
+      talentLayerService,
+      alice,
     )
-
-    // we need to retreive the Bob proposal dataUri
-    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-
-    await talentLayerEscrow
-      .connect(alice)
-      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
-        value: totalTransactionAmount,
-      })
 
     // Alice wants to raise a dispute and pays the arbitration fee
     await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
@@ -638,7 +662,6 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
     talentLayerService: TalentLayerService,
-    totalTransactionAmount: BigNumber,
     protocolEscrowFeeRate: number,
     originServiceFeeRate: number,
     originValidatedProposalFeeRate: number
@@ -649,24 +672,8 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
       await deployAndSetup(arbitrationFeeTimeout, ethers.constants.AddressZero)
 
     // Create transaction
-    const platform = await talentLayerPlatformID.platforms(carolPlatformId)
-    protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-    originServiceFeeRate = platform.originServiceFeeRate
-    originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
-    totalTransactionAmount = transactionAmount.add(
-      transactionAmount
-        .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
-        .div(feeDivider),
-    )
-
-    // we need to retreive the Bob proposal dataUri
-    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-
-    await talentLayerEscrow
-      .connect(alice)
-      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
-        value: totalTransactionAmount,
-      })
+    ;[, , protocolEscrowFeeRate, originServiceFeeRate, originValidatedProposalFeeRate] =
+      await createTransaction(talentLayerPlatformID, talentLayerEscrow, talentLayerService, alice)
 
     // Alice wants to raise a dispute and pays the arbitration fee
     await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
@@ -759,10 +766,6 @@ describe('Dispute Resolution, receiver winning', function () {
     talentLayerEscrow: TalentLayerEscrow,
     talentLayerArbitrator: TalentLayerArbitrator,
     talentLayerService: TalentLayerService,
-    totalTransactionAmount: BigNumber,
-    protocolEscrowFeeRate: number,
-    originServiceFeeRate: number,
-    originValidatedProposalFeeRate: number,
     tx: ContractTransaction
 
   const newArbitrationCost = BigNumber.from(8)
@@ -774,24 +777,7 @@ describe('Dispute Resolution, receiver winning', function () {
       await deployAndSetup(arbitrationFeeTimeout, ethers.constants.AddressZero)
 
     // Create transaction
-    const platform = await talentLayerPlatformID.platforms(carolPlatformId)
-    protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-    originServiceFeeRate = platform.originServiceFeeRate
-    originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
-    totalTransactionAmount = transactionAmount.add(
-      transactionAmount
-        .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
-        .div(feeDivider),
-    )
-
-    // we need to retreive the Bob proposal dataUri
-    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-
-    await talentLayerEscrow
-      .connect(alice)
-      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
-        value: totalTransactionAmount,
-      })
+    await createTransaction(talentLayerPlatformID, talentLayerEscrow, talentLayerService, alice)
 
     // Bob wants to raise a dispute and pays the arbitration fee and a dispute is created
     await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
@@ -890,14 +876,9 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
         .updateAllowedTokenList(simpleERC20.address, true, minTokenWhitelistTransactionAmount)
     }
 
-    const platform = await talentLayerPlatformID.platforms(carolPlatformId)
-    const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
-    const originServiceFeeRate = platform.originServiceFeeRate
-    const originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
-    totalTransactionAmount = transactionAmount.add(
-      transactionAmount
-        .mul(protocolEscrowFeeRate + originServiceFeeRate + originValidatedProposalFeeRate)
-        .div(feeDivider),
+    ;[totalTransactionAmount] = await getTransactionDetails(
+      talentLayerPlatformID,
+      talentLayerEscrow,
     )
 
     // Transfer tokens to Alice
@@ -906,13 +887,8 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
     // Allow TalentLayerEscrow to transfer tokens on behalf of Alice
     await simpleERC20.connect(alice).approve(talentLayerEscrow.address, totalTransactionAmount)
 
-    // we need to retreive the Bob proposal dataUri
-    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-
     // Create transaction
-    await talentLayerEscrow
-      .connect(alice)
-      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri)
+    await createTransaction(talentLayerPlatformID, talentLayerEscrow, talentLayerService, alice)
 
     // Alice wants to raise a dispute and pays the arbitration fee
     await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
