@@ -488,10 +488,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
         if (proposal.rateToken != address(0)) {
-            require(
-                IERC20Upgradeable(proposal.rateToken).safeTransferFrom(sender, address(this), transactionAmount),
-                "Transfer must not fail"
-            );
+            IERC20Upgradeable(proposal.rateToken).safeTransferFrom(sender, address(this), transactionAmount);
         }
 
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
