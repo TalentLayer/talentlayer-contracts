@@ -489,7 +489,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
 
         if (proposal.rateToken != address(0)) {
             require(
-                IERC20(proposal.rateToken).transferFrom(sender, address(this), transactionAmount),
+                IERC20Upgradeable(proposal.rateToken).safeTransferFrom(sender, address(this), transactionAmount),
                 "Transfer must not fail"
             );
         }
@@ -983,7 +983,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         if (address(0) == _tokenAddress) {
             _recipient.call{value: _amount}("");
         } else {
-            IERC20Upgradeable(_tokenAddress).safeTransfer(_recipient, _amount);
+            IERC20(_tokenAddress).transfer(_recipient, _amount);
         }
     }
 
