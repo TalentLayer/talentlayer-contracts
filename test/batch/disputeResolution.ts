@@ -480,6 +480,15 @@ describe('Dispute Resolution, standard flow', function () {
       })
     })
   })
+
+  describe('Appealing a ruling', async function () {
+    it('Fails because cost is too high', async function () {
+      const tx = talentLayerEscrow.connect(bob).appeal(transactionId, {
+        value: ethers.utils.parseEther('100'),
+      })
+      await expect(tx).to.be.revertedWith('Not enough ETH to cover appeal costs.')
+    })
+  })
 })
 
 describe('Dispute Resolution, with party failing to pay arbitration fee on time', function () {
