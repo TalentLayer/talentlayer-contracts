@@ -136,6 +136,8 @@ describe('Dispute Resolution, standard flow', function () {
   const transactionReimbursedAmount = BigNumber.from(50000)
   let currentTransactionAmount = transactionAmount
   const rulingId = 1
+  const newArbitrationCost = BigNumber.from(8)
+  const arbitrationCostDifference = arbitrationCost.sub(newArbitrationCost)
 
   before(async function () {
     ;[, alice, bob, carol, dave] = await ethers.getSigners()
@@ -290,6 +292,13 @@ describe('Dispute Resolution, standard flow', function () {
   })
 
   describe('Payment of arbitration fee by second party (receiver in this case) and creation of dispute', async function () {
+    before(async function () {
+      // Carol decreases arbitration fee on arbitrator
+      await talentLayerArbitrator
+        .connect(carol)
+        .setArbitrationPrice(carolPlatformId, newArbitrationCost)
+    })
+
     it('Fails if is not called by the receiver of the transaction', async function () {
       const tx = talentLayerEscrow.connect(alice).payArbitrationFeeByReceiver(transactionId, {
         value: arbitrationCost,
@@ -299,7 +308,7 @@ describe('Dispute Resolution, standard flow', function () {
 
     it('Fails if the amount of ETH sent is less than the arbitration cost', async function () {
       const tx = talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
-        value: arbitrationCost.sub(1),
+        value: newArbitrationCost.sub(1),
       })
       await expect(tx).to.be.revertedWith('The receiver fee must be equal to the arbitration cost')
     })
@@ -309,22 +318,26 @@ describe('Dispute Resolution, standard flow', function () {
 
       before(async function () {
         tx = await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
-          value: arbitrationCost,
+          value: newArbitrationCost,
         })
       })
 
       it('The arbitration fee is sent to the arbitrator', async function () {
         await expect(tx).to.changeEtherBalances(
           [bob.address, talentLayerEscrow.address, talentLayerArbitrator.address],
-          [-arbitrationCost, 0, arbitrationCost],
+          [-newArbitrationCost, -arbitrationCostDifference, newArbitrationCost],
         )
+      })
+
+      it('First party is reimbursed for overpaying arbitration fee', async function () {
+        await expect(tx).to.changeEtherBalances([alice.address], [arbitrationCostDifference])
       })
 
       it('The fee amount paid by the receiver is stored in the transaction', async function () {
         const transaction = await talentLayerEscrow
           .connect(bob)
           .getTransactionDetails(transactionId)
-        expect(transaction.receiverFee).to.be.eq(arbitrationCost)
+        expect(transaction.receiverFee).to.be.eq(newArbitrationCost)
       })
 
       it('The transaction status becomes "DisputeCreated"', async function () {
@@ -337,7 +350,7 @@ describe('Dispute Resolution, standard flow', function () {
       it('A dispute is created, with the correct data', async function () {
         const dispute = await talentLayerArbitrator.disputes(disputeId)
         expect(dispute.arbitrated).to.be.eq(talentLayerEscrow.address)
-        expect(dispute.fee).to.be.eq(arbitrationCost)
+        expect(dispute.fee).to.be.eq(newArbitrationCost)
         expect(dispute.platformId).to.be.eq(carolPlatformId)
 
         const status = await talentLayerArbitrator.disputeStatus(disputeId)
@@ -420,7 +433,7 @@ describe('Dispute Resolution, standard flow', function () {
               .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
               .div(feeDivider),
           )
-          .add(arbitrationCost)
+          .add(newArbitrationCost)
 
         await expect(tx).to.changeEtherBalances(
           [alice.address, talentLayerEscrow.address],
@@ -431,7 +444,7 @@ describe('Dispute Resolution, standard flow', function () {
       it('The owner of the platform (Carol) receives the arbitration fee', async function () {
         await expect(tx).to.changeEtherBalances(
           [carol.address, talentLayerArbitrator.address],
-          [arbitrationCost, -arbitrationCost],
+          [newArbitrationCost, -newArbitrationCost],
         )
       })
 
@@ -675,7 +688,11 @@ describe('Dispute Resolution, receiver winning', function () {
     totalTransactionAmount: BigNumber,
     protocolEscrowFeeRate: number,
     originServiceFeeRate: number,
-    originValidatedProposalFeeRate: number
+    originValidatedProposalFeeRate: number,
+    tx: ContractTransaction
+
+  const newArbitrationCost = BigNumber.from(8)
+  const arbitrationCostDifference = arbitrationCost.sub(newArbitrationCost)
 
   before(async function () {
     ;[, alice, bob, carol] = await ethers.getSigners()
@@ -707,10 +724,22 @@ describe('Dispute Resolution, receiver winning', function () {
       value: arbitrationCost,
     })
 
+    // Carol decreases arbitration fee on arbitrator
+    await talentLayerArbitrator
+      .connect(carol)
+      .setArbitrationPrice(carolPlatformId, newArbitrationCost)
+
     // Alice pays the arbitration fee and the dispute is created
-    await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
-      value: arbitrationCost,
+    tx = await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+      value: newArbitrationCost,
     })
+  })
+
+  it('Receiver is reimbursed for overpaying arbitration fee', async function () {
+    await expect(tx).to.changeEtherBalances(
+      [bob.address, talentLayerEscrow.address],
+      [arbitrationCostDifference, -arbitrationCostDifference],
+    )
   })
 
   describe('Submission of a ruling', async function () {
@@ -724,7 +753,7 @@ describe('Dispute Resolution, receiver winning', function () {
 
     it('The winner of the dispute (Bob) receives escrow funds and gets arbitration fee reimbursed', async function () {
       // Calculate total sent amount, including fees and arbitration cost reimbursement
-      const totalAmountSent = transactionAmount.add(arbitrationCost)
+      const totalAmountSent = transactionAmount.add(newArbitrationCost)
 
       await expect(tx).to.changeEtherBalances(
         [bob.address, talentLayerEscrow.address],
@@ -735,7 +764,7 @@ describe('Dispute Resolution, receiver winning', function () {
     it('The owner of the platform (Carol) receives the arbitration fee', async function () {
       await expect(tx).to.changeEtherBalances(
         [carol.address, talentLayerArbitrator.address],
-        [arbitrationCost, -arbitrationCost],
+        [newArbitrationCost, -newArbitrationCost],
       )
     })
 
