@@ -491,7 +491,72 @@ describe('Dispute Resolution, standard flow', function () {
   })
 })
 
-describe('Dispute Resolution, with party failing to pay arbitration fee on time', function () {
+describe('Dispute Resolution, with sender failing to pay arbitration fee on time', function () {
+  let alice: SignerWithAddress,
+    bob: SignerWithAddress,
+    talentLayerPlatformID: TalentLayerPlatformID,
+    talentLayerService: TalentLayerService,
+    talentLayerEscrow: TalentLayerEscrow,
+    totalTransactionAmount: BigNumber
+
+  before(async function () {
+    ;[, alice, bob] = await ethers.getSigners()
+    ;[talentLayerPlatformID, talentLayerEscrow, , talentLayerService] = await deployAndSetup(
+      arbitrationFeeTimeout,
+      ethers.constants.AddressZero,
+    )
+
+    // Create transaction
+    const platform = await talentLayerPlatformID.platforms(carolPlatformId)
+    const protocolEscrowFeeRate = await talentLayerEscrow.protocolEscrowFeeRate()
+    const originServiceFeeRate = platform.originServiceFeeRate
+    const originValidatedProposalFeeRate = platform.originValidatedProposalFeeRate
+    totalTransactionAmount = transactionAmount.add(
+      transactionAmount
+        .mul(protocolEscrowFeeRate + originValidatedProposalFeeRate + originServiceFeeRate)
+        .div(feeDivider),
+    )
+
+    // we need to retreive the Bob proposal dataUri
+    const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+
+    await talentLayerEscrow
+      .connect(alice)
+      .createTransaction(serviceId, proposalId, metaEvidenceCid, proposal.dataUri, {
+        value: totalTransactionAmount,
+      })
+
+    // Alice wants to raise a dispute and pays the arbitration fee
+    await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
+      value: arbitrationCost,
+    })
+
+    // Simulate arbitration fee timeout expiration
+    await time.increase(arbitrationFeeTimeout)
+  })
+
+  describe('One party (in our case receiver) fails to pay arbitration fee on time', function () {
+    let tx: ContractTransaction
+
+    before(async function () {
+      tx = await talentLayerEscrow.connect(bob).arbitrationFeeTimeout(transactionId)
+      // we check the transaction status
+      const transaction = await talentLayerEscrow.connect(bob).getTransactionDetails(transactionId)
+      expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
+    })
+
+    it('The receiver (Bob) wins the dispute, receives escrow funds and gets arbitration fee reimbursed', async function () {
+      const sentAmount = transactionAmount.add(arbitrationCost)
+
+      await expect(tx).to.changeEtherBalances(
+        [bob.address, talentLayerEscrow.address],
+        [sentAmount, -sentAmount],
+      )
+    })
+  })
+})
+
+describe('Dispute Resolution, with receiver failing to pay arbitration fee on time', function () {
   let alice: SignerWithAddress,
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerService: TalentLayerService,
@@ -546,7 +611,7 @@ describe('Dispute Resolution, with party failing to pay arbitration fee on time'
       expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
     })
 
-    it('The sender wins the dispute (Alice) receives escrow funds and gets arbitration fee reimbursed', async function () {
+    it('The sender (Alice) wins the dispute, receives escrow funds and gets arbitration fee reimbursed', async function () {
       const sentAmount = totalTransactionAmount.add(arbitrationCost)
 
       await expect(tx).to.changeEtherBalances(
