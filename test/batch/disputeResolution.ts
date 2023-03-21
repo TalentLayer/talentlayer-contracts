@@ -548,23 +548,35 @@ describe('Dispute Resolution, standard flow', function () {
 describe('Dispute Resolution, with sender failing to pay arbitration fee on time', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
+    carol: SignerWithAddress,
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerService: TalentLayerService,
-    talentLayerEscrow: TalentLayerEscrow
+    talentLayerEscrow: TalentLayerEscrow,
+    talentLayerArbitrator: TalentLayerArbitrator
+
+  const newArbitrationCost = arbitrationCost.add(2)
 
   before(async function () {
-    ;[, alice, bob] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, , talentLayerService] = await deployAndSetup(
-      arbitrationFeeTimeout,
-      ethers.constants.AddressZero,
-    )
+    ;[, alice, bob, carol] = await ethers.getSigners()
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService] =
+      await deployAndSetup(arbitrationFeeTimeout, ethers.constants.AddressZero)
 
     // Create transaction
     await createTransaction(talentLayerPlatformID, talentLayerEscrow, talentLayerService, alice)
 
     // Alice wants to raise a dispute and pays the arbitration fee
-    await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
+    await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
       value: arbitrationCost,
+    })
+
+    // Carol increases arbitration fee on arbitrator
+    await talentLayerArbitrator
+      .connect(carol)
+      .setArbitrationPrice(carolPlatformId, newArbitrationCost)
+
+    // Bob pays the cost of the new arbitration fee
+    await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
+      value: newArbitrationCost,
     })
 
     // Simulate arbitration fee timeout expiration
@@ -581,30 +593,40 @@ describe('Dispute Resolution, with sender failing to pay arbitration fee on time
       expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
     })
 
-    it('The receiver (Bob) wins the dispute, receives escrow funds and gets arbitration fee reimbursed', async function () {
-      const sentAmount = transactionAmount.add(arbitrationCost)
+    it('The receiver (Bob) wins the dispute, receives escrow funds and parties get paid arbitration fee reimbursed', async function () {
+      const sentAmount = transactionAmount.add(newArbitrationCost)
 
       await expect(tx).to.changeEtherBalances(
-        [bob.address, talentLayerEscrow.address],
-        [sentAmount, -sentAmount],
+        [alice.address, bob.address, talentLayerEscrow.address],
+        [arbitrationCost, sentAmount, -sentAmount.add(arbitrationCost)],
       )
+    })
+
+    it('The status of the transaction becomes "Resolved"', async function () {
+      const transaction = await talentLayerEscrow
+        .connect(alice)
+        .getTransactionDetails(transactionId)
+      expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
     })
   })
 })
 
 describe('Dispute Resolution, with receiver failing to pay arbitration fee on time', function () {
   let alice: SignerWithAddress,
+    bob: SignerWithAddress,
+    carol: SignerWithAddress,
     talentLayerPlatformID: TalentLayerPlatformID,
     talentLayerService: TalentLayerService,
     talentLayerEscrow: TalentLayerEscrow,
+    talentLayerArbitrator: TalentLayerArbitrator,
     totalTransactionAmount: BigNumber
 
+  const newArbitrationCost = arbitrationCost.add(2)
+
   before(async function () {
-    ;[, alice] = await ethers.getSigners()
-    ;[talentLayerPlatformID, talentLayerEscrow, , talentLayerService] = await deployAndSetup(
-      arbitrationFeeTimeout,
-      ethers.constants.AddressZero,
-    )
+    ;[, alice, bob, carol] = await ethers.getSigners()
+    ;[talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService] =
+      await deployAndSetup(arbitrationFeeTimeout, ethers.constants.AddressZero)
 
     // Create transaction
     ;[, totalTransactionAmount] = await createTransaction(
@@ -614,9 +636,19 @@ describe('Dispute Resolution, with receiver failing to pay arbitration fee on ti
       alice,
     )
 
-    // Alice wants to raise a dispute and pays the arbitration fee
-    await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+    // Bob wants to raise a dispute and pays the arbitration fee
+    await talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
       value: arbitrationCost,
+    })
+
+    // Carol increases arbitration fee on arbitrator
+    await talentLayerArbitrator
+      .connect(carol)
+      .setArbitrationPrice(carolPlatformId, newArbitrationCost)
+
+    // Alice pays the cost of the new arbitration fee
+    await talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+      value: newArbitrationCost,
     })
 
     // Simulate arbitration fee timeout expiration
@@ -635,20 +667,13 @@ describe('Dispute Resolution, with receiver failing to pay arbitration fee on ti
       expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
     })
 
-    it('The sender (Alice) wins the dispute, receives escrow funds and gets arbitration fee reimbursed', async function () {
-      const sentAmount = totalTransactionAmount.add(arbitrationCost)
+    it('The sender (Alice) wins the dispute, receives escrow funds and parties get paid arbitration fee reimbursed', async function () {
+      const sentAmount = totalTransactionAmount.add(newArbitrationCost)
 
       await expect(tx).to.changeEtherBalances(
-        [alice.address, talentLayerEscrow.address],
-        [sentAmount, -sentAmount],
+        [alice.address, bob.address, talentLayerEscrow.address],
+        [sentAmount, arbitrationCost, -sentAmount.add(arbitrationCost)],
       )
-    })
-
-    it('The status of the transaction becomes "Resolved"', async function () {
-      const transaction = await talentLayerEscrow
-        .connect(alice)
-        .getTransactionDetails(transactionId)
-      expect(transaction.status).to.be.eq(TransactionStatus.Resolved)
     })
   })
 })
