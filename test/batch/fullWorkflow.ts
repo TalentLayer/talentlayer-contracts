@@ -911,7 +911,6 @@ describe('TalentLayer protocol global testing', function () {
     it('Eve can make proposal on Alice service n°1 with a short expiration date (expired)', async function () {
       const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
       const eveTid = await talentLayerID.ids(eve.address)
-      console.log('eveTid', eveTid)
 
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformProposalPostingFee = platform.servicePostingFee
