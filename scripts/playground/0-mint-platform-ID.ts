@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
-import { cid } from './constants'
+import { cid, cid2 } from './constants'
 
 /*
 in this script we will mint a new platform ID for HireVibes
@@ -31,6 +31,11 @@ async function main() {
   const mint2 = await platformIdContract.connect(alice).mintForAddress('playground2', bob.address)
   await mint2.wait()
 
+  // we get the nft uri and check the display
+  const platformId = await platformIdContract.ids(dave.address)
+  const platformIdURi = await platformIdContract.tokenURI(platformId)
+  console.log('platformIdURi', platformIdURi)
+
   const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   await platformIdContract.connect(dave).updateProfileData(daveTalentLayerIdPlatform, cid)
   await platformIdContract.connect(dave).updateOriginServiceFeeRate(daveTalentLayerIdPlatform, 1000)
@@ -39,7 +44,7 @@ async function main() {
     .updateOriginValidatedProposalFeeRate(daveTalentLayerIdPlatform, 2500)
 
   const bobTalentLayerIdPlatform = await platformIdContract.ids(bob.address)
-  await platformIdContract.connect(bob).updateProfileData(bobTalentLayerIdPlatform, cid)
+  await platformIdContract.connect(bob).updateProfileData(bobTalentLayerIdPlatform, cid2)
   await platformIdContract.connect(bob).updateOriginServiceFeeRate(bobTalentLayerIdPlatform, 1500)
   await platformIdContract
     .connect(bob)

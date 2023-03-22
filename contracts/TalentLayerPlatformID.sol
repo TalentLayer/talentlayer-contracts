@@ -43,6 +43,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /// @param arbitrator address of the arbitrator used by the platform
     /// @param arbitratorExtraData extra information for the arbitrator
     /// @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
+    /// @param signer address used to sign operations which need platform authorization
     struct Platform {
         uint256 id;
         string name;
@@ -54,6 +55,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
+        address signer;
     }
 
     /**
@@ -206,6 +208,16 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
+     * @notice Allows retrieval of the signer of a platform
+     * @param _platformId The Platform Id of the platform
+     * @return The signer of the platform
+     */
+    function getSigner(uint256 _platformId) external view returns (address) {
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        return platforms[_platformId].signer;
+    }
+
+    /**
      * @notice Allows retrieval of a Platform arbitrator
      * @param _platformId The Platform Id of the platform
      * @return Arbitrator The Platform arbitrator
@@ -325,7 +337,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows a platform to update the service posting fee for the platform
-     * @param _platformId The The platform Id of the platform
+     * @param _platformId The platform Id of the platform
      * @param _servicePostingFee The new fee
      */
     function updateServicePostingFee(uint256 _platformId, uint256 _servicePostingFee) public {
@@ -337,7 +349,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     /**
      * @notice Allows a platform to update the proposal posting fee for the platform
-     * @param _platformId The The platform Id of the platform
+     * @param _platformId The platform Id of the platform
      * @param _proposalPostingFee The new fee
      */
     function updateProposalPostingFee(uint256 _platformId, uint256 _proposalPostingFee) public {
@@ -345,6 +357,18 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
         platforms[_platformId].proposalPostingFee = _proposalPostingFee;
         emit ProposalPostingFeeUpdated(_platformId, _proposalPostingFee);
+    }
+
+    /**
+     * @notice Allows a platform to update its signer address
+     * @param _platformId The platform Id of the platform
+     * @param _signer The new signer address
+     */
+    function updateSigner(uint256 _platformId, address _signer) public {
+        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+
+        platforms[_platformId].signer = _signer;
+        emit SignerUpdated(_platformId, _signer);
     }
 
     // =========================== Owner functions ==============================
@@ -429,6 +453,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         platform.name = _platformName;
         platform.id = platformId;
         platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
+        platform.signer = _platformAddress;
         takenNames[_platformName] = true;
         ids[_platformAddress] = platformId;
 
@@ -480,21 +505,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     /**
      * @dev Override to prevent token transfer.
      */
-    function transferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
-        revert("Token transfer is not allowed");
-    }
-
-    /**
-     * @dev Override to prevent token transfer.
-     */
-    function safeTransferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
-        revert("Token transfer is not allowed");
-    }
-
-    /**
-     * @dev Override to prevent token transfer.
-     */
-    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override(ERC721Upgradeable) {
+    function _transfer(address, address, uint256) internal virtual override(ERC721Upgradeable) {
         revert("Token transfer is not allowed");
     }
 
@@ -511,14 +522,17 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param id The ID of the token
      */
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
-        string memory platformName = platforms[id].name;
+        string memory platformName = string.concat(platforms[id].name, ".tl");
+        string memory fontSizeStr = bytes(platforms[id].name).length <= 20 ? "60" : "40";
 
         bytes memory image = abi.encodePacked(
             "data:image/svg+xml;base64,",
             Base64Upgradeable.encode(
                 bytes(
                     abi.encodePacked(
-                        '<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720"><rect width="100%" height="100%"/><svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" version="1.2" viewBox="-200 -50 1000 1000"><path fill="#FFFFFF" d="M264.5 190.5c0-13.8 11.2-25 25-25H568c13.8 0 25 11.2 25 25v490c0 13.8-11.2 25-25 25H289.5c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M265 624c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25v56.5c0 13.8-11.2 25-25 25H290c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M0 190.5c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25V247c0 13.8-11.2 25-25 25H25c-13.8 0-25-11.2-25-25z"/></svg><text x="30" y="670" style="font:60px sans-serif;fill:#fff">',
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720"><rect width="100%" height="100%"/><svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" version="1.2" viewBox="-200 -50 1000 1000"><path fill="#FFFFFF" d="M264.5 190.5c0-13.8 11.2-25 25-25H568c13.8 0 25 11.2 25 25v490c0 13.8-11.2 25-25 25H289.5c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M265 624c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25v56.5c0 13.8-11.2 25-25 25H290c-13.8 0-25-11.2-25-25z"/><path fill="#FFFFFF" d="M0 190.5c0-13.8 11.2-25 25-25h543c13.8 0 25 11.2 25 25V247c0 13.8-11.2 25-25 25H25c-13.8 0-25-11.2-25-25z"/></svg><text x="30" y="670" style="font: ',
+                        fontSizeStr,
+                        'px sans-serif;fill:#fff">',
                         platformName,
                         "</text></svg>"
                     )
@@ -646,6 +660,12 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _proposalPostingFee The new fee
      */
     event ProposalPostingFeeUpdated(uint256 _platformId, uint256 _proposalPostingFee);
+
+    /**
+     * @notice Emit when the signer address is updated for a platform
+     * @param _signer The new signer address
+     */
+    event SignerUpdated(uint256 _platformId, address _signer);
 
     /**
      * @notice Emit when the minting status is updated

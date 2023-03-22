@@ -22,6 +22,7 @@ import {
   feeDivider,
   metaEvidenceCid,
   evidenceCid,
+  ServiceStatus,
 } from '../utils/constant'
 import { deploy } from '../utils/deploy'
 import { getSignatureForProposal, getSignatureForService } from '../utils/signature'
@@ -86,6 +87,9 @@ async function deployAndSetup(
 
   // Disable whitelist for reserved handles
   await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
+
+  // Set service contract address on ID contract
+  await talentLayerID.connect(deployer).setIsServiceContract(talentLayerService.address, true)
 
   // Mint TL Id for Alice, Bob and Dave
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
@@ -445,9 +449,9 @@ describe('Dispute Resolution, standard flow', function () {
         expect(ruling).to.be.eq(rulingId)
       })
 
-      it('Sets the service as finished', async function () {
+      it('Sets the service as uncompleted', async function () {
         const service = await talentLayerService.getService(serviceId)
-        expect(service.status).to.be.eq(2)
+        expect(service.status).to.be.eq(ServiceStatus.Uncompleted)
       })
 
       it('Emits the Payment event', async function () {

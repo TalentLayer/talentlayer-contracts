@@ -22,7 +22,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         Opened,
         Confirmed,
         Finished,
-        Cancelled
+        Cancelled,
+        Uncompleted
     }
 
     /// @notice Enum service status
@@ -38,7 +39,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /// @param ownerId the talentLayerId of the buyer
     /// @param acceptedProposalId the accepted proposal ID
     /// @param dataUri token Id to IPFS URI mapping
-    /// @param proposals all proposals for this service
     /// @param transactionId the escrow transaction ID linked to the service
     /// @param platformId the platform ID on which the service was created
     struct Service {
@@ -139,6 +139,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      */
     event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionAmount);
 
+    /**
+     * @notice Emitted when the contract owner updates the minimum completion percentage for services
+     * @param _minCompletionPercentage The new minimum completion percentage
+     */
+    event MinCompletionPercentageUpdated(uint256 _minCompletionPercentage);
+
     // =========================== Mappings & Variables ==============================
 
     /// @notice incremental service Id
@@ -157,12 +163,18 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     /// @notice TLUserId mappings to number of services created used as a nonce in createService signature
-    mapping(uint256 => uint256) public nonce;
+    mapping(uint256 => uint256) public serviceNonce;
+
+    /// @notice TLUserId mappings to number of proposals created
+    mapping(uint256 => uint256) public proposalNonce;
 
     /// @notice Allowed payment tokens addresses
     mapping(address => AllowedToken) public allowedTokenList;
 
-    // @notice
+    /// @notice Minimum percentage of the proposal amount to be released for considering the service as completed
+    uint256 public minCompletionPercentage;
+
+    /// @notice Role granting Escrow permission
     bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -196,6 +208,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         nextServiceId = 1;
+        updateMinCompletionPercentage(30);
     }
 
     // =========================== View functions ==============================
@@ -233,6 +246,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _profileId The TalentLayer ID of the user
      * @param _platformId platform ID on which the Service token was minted
      * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
      */
     function createService(
         uint256 _profileId,
@@ -250,7 +264,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.ownerId = _profileId;
         service.dataUri = _dataUri;
         service.platformId = _platformId;
-        nonce[_profileId]++;
+
+        if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
+            tlId.setHasActivity(_profileId);
+        }
+        serviceNonce[_profileId]++;
 
         emit ServiceCreated(id, _profileId, _platformId, _dataUri);
 
@@ -266,6 +284,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _dataUri token Id to IPFS URI mapping
      * @param _platformId platform ID
      * @param _expirationDate the time before the proposal is automatically validated
+     * @param _signature platform signature to allow the operation
      */
     function createProposal(
         uint256 _profileId,
@@ -288,6 +307,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             dataUri: _dataUri,
             expirationDate: _expirationDate
         });
+
+        if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
+            tlId.setHasActivity(_profileId);
+        }
+        proposalNonce[_profileId]++;
 
         emit ProposalCreated(
             _serviceId,
@@ -325,7 +349,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(service.status == Status.Opened, "Service is not opened");
         require(proposal.ownerId == _profileId, "This proposal doesn't exist yet");
         require(bytes(_dataUri).length == 46, "Invalid cid");
-        require(proposal.status != ProposalStatus.Validated, "This proposal is already updated");
+        require(proposal.status != ProposalStatus.Validated, "This proposal is already validated");
         require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount is too low");
 
         proposal.rateToken = _rateToken;
@@ -378,10 +402,18 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /**
      * @notice Allow the escrow contract to upgrade the Service state after the full payment has been received by the seller
      * @param _serviceId Service identifier
+     * @param _releasedAmount The total amount of the payment released to the seller
      */
-    function afterFullPayment(uint256 _serviceId) external onlyRole(ESCROW_ROLE) {
+    function afterFullPayment(uint256 _serviceId, uint256 _releasedAmount) external onlyRole(ESCROW_ROLE) {
         Service storage service = services[_serviceId];
-        service.status = Status.Finished;
+        Proposal storage proposal = proposals[_serviceId][service.acceptedProposalId];
+
+        uint256 releasedPercentage = (_releasedAmount * 100) / proposal.rateAmount;
+        if (releasedPercentage >= minCompletionPercentage) {
+            service.status = Status.Finished;
+        } else {
+            service.status = Status.Uncompleted;
+        }
     }
 
     /**
@@ -420,6 +452,19 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         emit ServiceCancelled(_serviceId);
     }
 
+    // =========================== Owner functions ==============================
+
+    /**
+     * @notice Allows the contract owner to update the minimum completion percentage for services
+     * @param _minCompletionPercentage The new completion percentage
+     * @dev Only the contract owner can call this function
+     */
+    function updateMinCompletionPercentage(uint256 _minCompletionPercentage) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        minCompletionPercentage = _minCompletionPercentage;
+
+        emit MinCompletionPercentageUpdated(_minCompletionPercentage);
+    }
+
     // =========================== Overrides ==============================
 
     function _msgSender()
@@ -444,6 +489,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
     // =========================== Private functions ==============================
 
+    /**
+     * @notice Validate a new service
+     * @param _profileId The TalentLayer ID of the user
+     * @param _platformId platform ID on which the Service token was minted
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
+     */
     function _validateService(
         uint256 _profileId,
         uint256 _platformId,
@@ -455,11 +507,20 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
         bytes32 messageHash = keccak256(
-            abi.encodePacked("createService", _profileId, ";", nonce[_profileId], _dataUri)
+            abi.encodePacked("createService", _profileId, ";", serviceNonce[_profileId], _dataUri)
         );
         _validatePlatformSignature(_signature, messageHash, _platformId);
     }
 
+    /**
+     * @notice Validate a new proposal
+     * @param _profileId The TalentLayer ID of the user
+     * @param _serviceId The service linked to the new proposal
+     * @param _rateToken the token choose for the payment
+     * @param _rateAmount the amount of token chosen
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
+     */
     function _validateProposal(
         uint256 _profileId,
         uint256 _serviceId,
@@ -488,6 +549,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         _validatePlatformSignature(_signature, messageHash, _platformId);
     }
 
+    /**
+     * @notice Validate the platform ECDSA signature for a given message hash operation
+     * @param _signature platform signature to allow the operation
+     * @param _messageHash The hash of a generated message corresponding to the operation
+     * @param _platformId The id of the platform where the user want to post, the signature must come from the owner
+     */
     function _validatePlatformSignature(
         bytes calldata _signature,
         bytes32 _messageHash,
@@ -495,7 +562,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     ) private view {
         bytes32 ethMessageHash = ECDSAUpgradeable.toEthSignedMessageHash(_messageHash);
         address signer = ECDSAUpgradeable.recover(ethMessageHash, _signature);
-        require(talentLayerPlatformIdContract.ids(signer) == _platformId, "invalid signature");
+        address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
+        require(platformSigner == signer, "invalid signature");
     }
 
     // =========================== Internal functions ==============================

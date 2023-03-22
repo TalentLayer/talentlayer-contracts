@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 import "./interfaces/ITalentLayerService.sol";
 import "./interfaces/ITalentLayerID.sol";
@@ -13,7 +14,13 @@ import "./libs/ERC2771RecipientUpgradeable.sol";
 import "./interfaces/IArbitrable.sol";
 import "./Arbitrator.sol";
 
-contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, IArbitrable {
+contract TalentLayerEscrow is
+    Initializable,
+    ERC2771RecipientUpgradeable,
+    PausableUpgradeable,
+    UUPSUpgradeable,
+    IArbitrable
+{
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // =========================== Enum ==============================
@@ -62,6 +69,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
      * @param amount The amount of the transaction EXCLUDING FEES
+     * @param releasedAmount The amount of the transaction that has been released to the receiver EXCLUDING FEES
      * @param serviceId The ID of the associated service
      * @param proposalId The id of the validated proposal
      * @param protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
@@ -82,6 +90,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         address receiver;
         address token;
         uint256 amount;
+        uint256 releasedAmount;
         uint256 serviceId;
         uint256 proposalId;
         uint16 protocolEscrowFeeRate;
@@ -407,6 +416,20 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         protocolWallet = _protocolWallet;
     }
 
+    /**
+     * @dev Pauses the creation of transaction, releases and reimbursements.
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @dev Unpauses the creation of transaction, releases and reimbursements.
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
     // =========================== User functions ==============================
 
     /**
@@ -421,7 +444,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _proposalId,
         string memory _metaEvidence,
         string memory _originDataUri
-    ) external payable returns (uint256) {
+    ) external payable whenNotPaused returns (uint256) {
         ITalentLayerService.Service memory service = talentLayerServiceContract.getService(_serviceId);
         ITalentLayerService.Proposal memory proposal = talentLayerServiceContract.getProposal(_serviceId, _proposalId);
         address sender = talentLayerIdContract.ownerOf(service.ownerId);
@@ -464,6 +487,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             receiver: receiver,
             token: proposal.rateToken,
             amount: proposal.rateAmount,
+            releasedAmount: 0,
             serviceId: _serviceId,
             proposalId: _proposalId,
             protocolEscrowFeeRate: protocolEscrowFeeRate,
@@ -484,7 +508,10 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
         if (proposal.rateToken != address(0)) {
-            _safeTokenDeposit(proposal.rateToken, transactionAmount, sender);
+            require(
+                IERC20(proposal.rateToken).transferFrom(sender, address(this), transactionAmount),
+                "Transfer must not fail"
+            );
         }
 
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
@@ -503,11 +530,12 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _profileId,
         uint256 _transactionId,
         uint256 _amount
-    ) external onlyOwnerOrDelegate(_profileId) {
+    ) external whenNotPaused onlyOwnerOrDelegate(_profileId) {
         _validatePayment(_transactionId, PaymentType.Release, _profileId, _amount);
 
         Transaction storage transaction = transactions[_transactionId];
         transaction.amount -= _amount;
+        transaction.releasedAmount += _amount;
 
         _release(_transactionId, _amount);
     }
@@ -523,7 +551,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         uint256 _profileId,
         uint256 _transactionId,
         uint256 _amount
-    ) external onlyOwnerOrDelegate(_profileId) {
+    ) external whenNotPaused onlyOwnerOrDelegate(_profileId) {
         _validatePayment(_transactionId, PaymentType.Reimburse, _profileId, _amount);
 
         Transaction storage transaction = transactions[_transactionId];
@@ -679,7 +707,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
      * Emits a BalanceTransferred event
      */
-    function claim(uint256 _platformId, address _tokenAddress) external {
+    function claim(uint256 _platformId, address _tokenAddress) external whenNotPaused {
         address payable recipient;
 
         if (owner() == _msgSender()) {
@@ -702,7 +730,7 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
      * @notice Allows the platform to claim all its tokens & / or ETH balances.
      * @param _platformId The ID of the platform claiming the balance.
      */
-    function claimAll(uint256 _platformId) external {
+    function claimAll(uint256 _platformId) external whenNotPaused {
         //TODO Copy Lugus (need to see how to handle approved token lists)
     }
 
@@ -960,15 +988,9 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
         emit Payment(transaction.id, _paymentType, transaction.token, _releaseAmount, transaction.serviceId);
 
         if (transaction.amount == 0) {
-            talentLayerServiceContract.afterFullPayment(transaction.serviceId);
+            talentLayerServiceContract.afterFullPayment(transaction.serviceId, transaction.releasedAmount);
             emit PaymentCompleted(transaction.serviceId);
         }
-    }
-
-    function _safeTokenDeposit(address _token, uint256 _amount, address _sender) private {
-        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        require(IERC20(_token).transferFrom(_sender, address(this), _amount), "Transfer must not fail");
-        require(IERC20(_token).balanceOf(address(this)) == balanceBefore + _amount, "Invalid balance");
     }
 
     /**
@@ -1002,5 +1024,27 @@ contract TalentLayerEscrow is Initializable, ERC2771RecipientUpgradeable, UUPSUp
             (((_amount * protocolEscrowFeeRate) +
                 (_amount * _originServiceFeeRate) +
                 (_amount * _originValidatedProposalFeeRate)) / FEE_DIVIDER);
+    }
+
+    // =========================== Overrides ==============================
+
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (address)
+    {
+        return ERC2771RecipientUpgradeable._msgSender();
+    }
+
+    function _msgData()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable, ERC2771RecipientUpgradeable)
+        returns (bytes calldata)
+    {
+        return ERC2771RecipientUpgradeable._msgData();
     }
 }
