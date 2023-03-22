@@ -141,6 +141,18 @@ describe('TalentLayer protocol global testing', function () {
       expect(alicePlatformData.dataUri).to.be.equal(cid2)
     })
 
+    it('Alice can update the service posting fee', async function () {
+      await talentLayerPlatformID.connect(alice).updateServicePostingFee(aliceTlId, 100)
+      const alicePlatformData = await talentLayerPlatformID.platforms(alicePlatformId)
+      expect(alicePlatformData.servicePostingFee).to.be.equal(100)
+    })
+
+    it('Alice can update the proposal posting fee', async function () {
+      await talentLayerPlatformID.connect(alice).updateProposalPostingFee(aliceTlId, 100)
+      const alicePlatformData = await talentLayerPlatformID.platforms(alicePlatformId)
+      expect(alicePlatformData.proposalPostingFee).to.be.equal(100)
+    })
+
     it('Alice should not be able to transfer her PlatformId Id to Bob', async function () {
       await expect(
         talentLayerPlatformID.connect(alice).transferFrom(alice.address, bob.address, 1),
@@ -498,6 +510,18 @@ describe('TalentLayer protocol global testing', function () {
       expect(profileData.platformId).to.be.equal('0')
     })
 
+    it("Alice can't mint a talentLayerId since she already has one", async function () {
+      await expect(talentLayerID.connect(alice).mint('1', 'alice')).to.be.revertedWith(
+        'You already have a TalentLayerID',
+      )
+    })
+
+    it("Eve can't mint a talentLayerId with an already taken handle", async function () {
+      await expect(talentLayerID.connect(eve).mint('1', 'ali-ce')).to.be.revertedWith(
+        'Handle already taken',
+      )
+    })
+
     it('The deployer can update the mint fee', async function () {
       await talentLayerID.connect(deployer).updateMintFee(mintFee)
       const updatedMintFee = await talentLayerID.mintFee()
@@ -747,7 +771,11 @@ describe('TalentLayer protocol global testing', function () {
 
       // service 5 (will be cancelled)
       const signature5 = await getSignatureForService(platformOneOwner, aliceTlId, 4, cid)
-      await talentLayerService.connect(alice).createService(aliceTlId, 1, cid, signature5)
+      await talentLayerService
+        .connect(alice)
+        .createService(aliceTlId, alicePlatformId, cid, signature5, {
+          value: alicePlatformServicePostingFee,
+        })
       await talentLayerService.services(5)
 
       expect(serviceData.status).to.be.equal(ServiceStatus.Opened)
@@ -1242,17 +1270,21 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('After a service has been cancelled, the owner cannot validate a proposal by depositing fund', async function () {
-        // Create the service
-        const serviceId = 6
-        const proposalIdBob = (await talentLayerID.ids(bob.address)).toNumber()
-        const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
-        await talentLayerService.connect(alice).createService(aliceTlId, 1, cid, signature)
-        await talentLayerService.services(serviceId)
-        // Create the proposal
-        const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
         const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+        const alicePlatformServicePostingFee = platform.servicePostingFee
         const alicePlatformProposalPostingFee = platform.proposalPostingFee
 
+        // Create the service
+        const serviceId = 6
+        const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
+        await talentLayerService.connect(alice).createService(aliceTlId, 1, cid, signature, {
+          value: alicePlatformServicePostingFee,
+        })
+        await talentLayerService.services(serviceId)
+
+        // Create the proposal
+        const proposalIdBob = (await talentLayerID.ids(bob.address)).toNumber()
+        const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
         const signature2 = await getSignatureForProposal(alice, bobTlId, serviceId, cid)
         await talentLayerService
           .connect(bob)
