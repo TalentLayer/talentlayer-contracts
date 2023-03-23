@@ -506,10 +506,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(msg.value == servicePostingFee, "Non-matching funds");
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
-        bytes32 messageHash = keccak256(
-            abi.encodePacked("createService", _profileId, ";", serviceNonce[_profileId], _dataUri)
-        );
-        _validatePlatformSignature(_signature, messageHash, _platformId);
+        address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
+        if (platformSigner != address(0)) {
+            bytes32 messageHash = keccak256(
+                abi.encodePacked("createService", _profileId, ";", serviceNonce[_profileId], _dataUri)
+            );
+            _validatePlatformSignature(_signature, messageHash, _platformId, platformSigner);
+        }
     }
 
     /**
@@ -545,8 +548,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(service.ownerId != _profileId, "You couldn't create proposal for your own service");
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
-        bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
-        _validatePlatformSignature(_signature, messageHash, _platformId);
+        address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
+        if (platformSigner != address(0)) {
+            bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
+            _validatePlatformSignature(_signature, messageHash, _platformId, platformSigner);
+        }
     }
 
     /**
@@ -558,12 +564,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     function _validatePlatformSignature(
         bytes calldata _signature,
         bytes32 _messageHash,
-        uint256 _platformId
+        uint256 _platformId,
+        address _platformSigner
     ) private view {
         bytes32 ethMessageHash = ECDSAUpgradeable.toEthSignedMessageHash(_messageHash);
         address signer = ECDSAUpgradeable.recover(ethMessageHash, _signature);
-        address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
-        require(platformSigner == signer, "invalid signature");
+        require(_platformSigner == signer, "invalid signature");
     }
 
     // =========================== Internal functions ==============================

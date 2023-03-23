@@ -5,14 +5,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-
-import "./interfaces/ITalentLayerService.sol";
-import "./interfaces/ITalentLayerID.sol";
-import "./interfaces/ITalentLayerPlatformID.sol";
+import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
+import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
+import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "./libs/ERC2771RecipientUpgradeable.sol";
-import "./interfaces/IArbitrable.sol";
-import "./Arbitrator.sol";
+import {IArbitrable} from "./interfaces/IArbitrable.sol";
+import {Arbitrator} from "./Arbitrator.sol";
 
 contract TalentLayerEscrow is
     Initializable,
@@ -22,6 +22,7 @@ contract TalentLayerEscrow is
     IArbitrable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // =========================== Enum ==============================
 
@@ -508,10 +509,7 @@ contract TalentLayerEscrow is
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
         if (proposal.rateToken != address(0)) {
-            require(
-                IERC20(proposal.rateToken).transferFrom(sender, address(this), transactionAmount),
-                "Transfer must not fail"
-            );
+            IERC20Upgradeable(proposal.rateToken).safeTransferFrom(sender, address(this), transactionAmount);
         }
 
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);

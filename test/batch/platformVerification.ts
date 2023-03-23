@@ -174,9 +174,53 @@ describe('Platform verification', function () {
       await expect(tx).to.not.reverted
     })
 
-    it('CreateProposal must validate the signature while a user create a proposal linked to certain platform', async function () {
+    it('CreateProposal must validate the signature while a user creates a proposal linked to certain platform', async function () {
       const serviceId = 1
       const signature = await getSignatureForProposal(platformOneSigner, bobTlId, serviceId, cid)
+
+      const tx = talentLayerService
+        .connect(bob)
+        .createProposal(
+          bobTlId,
+          serviceId,
+          ethers.constants.AddressZero,
+          1,
+          carolPlatformId,
+          cid,
+          proposalExpirationDate,
+          signature,
+        )
+
+      await expect(tx).to.not.reverted
+    })
+
+    it("Service creation should not require a signature if the platform's signer address is set to 0 address", async function () {
+      // Update signer address for Carol's platform to zero address
+      await talentLayerPlatformID
+        .connect(carol)
+        .updateSigner(carolPlatformId, ethers.constants.AddressZero)
+
+      expect(await talentLayerPlatformID.getSigner(carolPlatformId)).to.equal(
+        ethers.constants.AddressZero,
+      )
+
+      // Use a wrong signature to check if the service creation is not blocked by the signature validation
+      const signature = await getSignatureForService(platformOneSigner, aliceTlId, 0, cid)
+
+      const tx = await talentLayerService
+        .connect(alice)
+        .createService(aliceTlId, carolPlatformId, cid, signature)
+
+      await expect(tx).to.not.reverted
+    })
+
+    it("Proposal creation should not require a signature if the platform's signer address is set to 0 address", async function () {
+      const serviceId = 2
+      expect(await talentLayerPlatformID.getSigner(carolPlatformId)).to.equal(
+        ethers.constants.AddressZero,
+      )
+      // Use a wrong signature to check if the service creation is not blocked by the signature validation
+      const signature = await getSignatureForProposal(platformOneSigner, aliceTlId, serviceId, cid)
 
       const tx = talentLayerService
         .connect(bob)

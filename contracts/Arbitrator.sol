@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Arbitrable.sol";
+import {Arbitrable} from "./Arbitrable.sol";
 
 /** @title Arbitrator
  *  @author Clément Lesaege - <clement@lesaege.com>
