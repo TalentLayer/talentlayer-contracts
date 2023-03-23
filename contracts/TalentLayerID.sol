@@ -83,6 +83,12 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /// Maximum price for a short handle (in wei, upgradable)
     uint256 shortHandlesMaxPrice;
 
+    /// Whether a TalentLayer ID has done some activity in the protocol (created a service or proposal)
+    mapping(uint256 => bool) public hasActivity;
+
+    /// Whether a contract is a service contract, which is able to set if a user has done some activity
+    mapping(address => bool) public isServiceContract;
+
     // =========================== Errors ==============================
 
     /**
@@ -273,6 +279,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         emit DelegateRemoved(_profileId, _delegate);
     }
 
+    /**
+     * @notice Allows to set whether a TalentLayer ID has done some activity (created a service or proposal)
+     * @param _profileId The TalentLayer ID of the user
+     */
+    function setHasActivity(uint256 _profileId) external {
+        require(isServiceContract[_msgSender()] == true, "Only service contracts can set whether a user has activity");
+        hasActivity[_profileId] = true;
+    }
+
     // =========================== Owner functions ==============================
 
     /**
@@ -333,6 +348,15 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         emit ShortHandlesMaxPriceUpdated(_shortHandlesMaxPrice);
     }
 
+    /**
+     * @notice Updates the service contract address.
+     * @param _address The address
+     * @param _isServiceContract Whether the address is a service contract
+     */
+    function setIsServiceContract(address _address, bool _isServiceContract) public onlyOwner {
+        isServiceContract[_address] = _isServiceContract;
+    }
+
     // =========================== Private functions ==============================
 
     /**
@@ -388,32 +412,19 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     // =========================== Overrides ==============================
 
-    /**
-     * @dev Override to prevent token transfer.
-     */
-    function transferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
-        revert("Token transfer is not allowed");
-    }
-
-    /**
-     * @dev Override to prevent token transfer.
-     */
-    function safeTransferFrom(address, address, uint256) public virtual override(ERC721Upgradeable) {
-        revert("Token transfer is not allowed");
-    }
-
-    /**
-     * @dev Override to prevent token transfer.
-     */
-    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override(ERC721Upgradeable) {
-        revert("Token transfer is not allowed");
+    function _transfer(address from, address to, uint256 tokenId) internal virtual override(ERC721Upgradeable) {
+        require(!hasActivity[tokenId], "Token transfer is not allowed");
+        require(balanceOf(to) == 0, "Receiver already has a TalentLayer ID");
+        ids[from] = 0;
+        ids[to] = tokenId;
+        ERC721Upgradeable._transfer(from, to, tokenId);
     }
 
     /**
      * @dev Blocks the burn function
-     * @param _tokenId The ID of the token
+     * @param tokenId The ID of the token
      */
-    function _burn(uint256 _tokenId) internal virtual override(ERC721Upgradeable) {}
+    function _burn(uint256 tokenId) internal virtual override(ERC721Upgradeable) {}
 
     /**
      * @notice Implementation of the {IERC721Metadata-tokenURI} function.

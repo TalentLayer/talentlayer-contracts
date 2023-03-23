@@ -117,6 +117,9 @@ describe('TalentLayer protocol global testing', function () {
 
     // Disable whitelist for reserved handles
     await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
+
+    // Set service contract address on ID contract
+    await talentLayerID.connect(deployer).setIsServiceContract(talentLayerService.address, true)
   })
 
   describe('Platform Id contract test', async function () {
@@ -493,24 +496,6 @@ describe('TalentLayer protocol global testing', function () {
       const carolUserId = await talentLayerID.ids(carol.address)
       const profileData = await talentLayerID.profiles(carolUserId)
       expect(profileData.platformId).to.be.equal('0')
-    })
-
-    it('Alice should not be able to transfer her talentLayerId to Bob', async function () {
-      await expect(
-        talentLayerID.connect(alice).transferFrom(alice.address, bob.address, 1),
-      ).to.be.revertedWith('Token transfer is not allowed')
-
-      await expect(
-        talentLayerID
-          .connect(alice)
-          ['safeTransferFrom(address,address,uint256)'](alice.address, bob.address, 1),
-      ).to.be.revertedWith('Token transfer is not allowed')
-
-      await expect(
-        talentLayerID
-          .connect(alice)
-          ['safeTransferFrom(address,address,uint256,bytes)'](alice.address, bob.address, 1, []),
-      ).to.be.revertedWith('Token transfer is not allowed')
     })
 
     it('The deployer can update the mint fee', async function () {
@@ -1732,13 +1717,11 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Alice should not be able to transfer her review to carol', async function () {
       await expect(
-        talentLayerPlatformID
-          .connect(alice)
-          .transferFrom(alice.address, carol.address, aliceReviewId),
+        talentLayerReview.connect(alice).transferFrom(alice.address, carol.address, aliceReviewId),
       ).to.be.revertedWith('Token transfer is not allowed')
 
       await expect(
-        talentLayerPlatformID
+        talentLayerReview
           .connect(alice)
           ['safeTransferFrom(address,address,uint256)'](
             alice.address,
@@ -1748,7 +1731,7 @@ describe('TalentLayer protocol global testing', function () {
       ).to.be.revertedWith('Token transfer is not allowed')
 
       await expect(
-        talentLayerPlatformID
+        talentLayerReview
           .connect(alice)
           ['safeTransferFrom(address,address,uint256,bytes)'](
             alice.address,
