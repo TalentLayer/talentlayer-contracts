@@ -124,7 +124,7 @@ contract TalentLayerArbitrator is Arbitrator {
         dispute.ruling = _ruling;
         dispute.status = DisputeStatus.Solved;
 
-        (bool success, ) = payable(msg.sender).call{value: dispute.fee}("");
+        payable(msg.sender).call{value: dispute.fee}("");
 
         dispute.arbitrated.rule(_disputeID, _ruling);
     }
