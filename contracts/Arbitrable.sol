@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./interfaces/IArbitrable.sol";
+import {IArbitrable, Arbitrator} from "./interfaces/IArbitrable.sol";
 
 /** @title Arbitrable
  *  @author David Rivero
