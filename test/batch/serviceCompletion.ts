@@ -55,6 +55,9 @@ async function deployAndSetup(): Promise<
   // Disable whitelist for reserved handles
   await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
 
+  // Set service contract address on ID contract
+  await talentLayerID.connect(deployer).setIsServiceContract(talentLayerService.address, true)
+
   // Mint TL Id for Alice, Bob and Dave
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob__')
@@ -114,7 +117,7 @@ describe('Completion of service', function () {
       let serviceStatus: ServiceStatus
 
       before(async function () {
-        const nonce = await talentLayerService.nonce(aliceTlId)
+        const nonce = await talentLayerService.serviceNonce(aliceTlId)
         serviceId = (await talentLayerService.nextServiceId()).toNumber()
 
         // Alice, the buyer, initiates a new open service
