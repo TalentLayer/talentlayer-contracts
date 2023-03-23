@@ -134,10 +134,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /**
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
      * @param _tokenAddress The address of the payment token
-     * @param _status Whether the token is allowed or not
+     * @param _isWhitelisted Whether the token is allowed or not
      * @param _minimumTransactionAmount The minimum transaction fees for the token
      */
-    event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionAmount);
+    event AllowedTokenListUpdated(address _tokenAddress, bool _isWhitelisted, uint256 _minimumTransactionAmount);
 
     /**
      * @notice Emitted when the contract owner updates the minimum completion percentage for services
@@ -382,21 +382,21 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /**
      * @notice Allows the contract owner to add or remove a token from the allowed payment tokens list
      * @param _tokenAddress The address of the payment token
-     * @param _status Whether the token is allowed or not
+     * @param _isWhitelisted Whether the token is allowed or not
      * @dev Only the contract owner can call this function
      */
     function updateAllowedTokenList(
         address _tokenAddress,
-        bool _status,
+        bool _isWhitelisted,
         uint256 _minimumTransactionAmount
     ) public onlyOwner {
-        if (_tokenAddress == address(0) && _status == false) {
+        if (_tokenAddress == address(0) && !_isWhitelisted) {
             revert("Owner can't remove Ox address");
         }
-        allowedTokenList[_tokenAddress].isWhitelisted = _status;
+        allowedTokenList[_tokenAddress].isWhitelisted = _isWhitelisted;
         allowedTokenList[_tokenAddress].minimumTransactionAmount = _minimumTransactionAmount;
 
-        emit AllowedTokenListUpdated(_tokenAddress, _status, _minimumTransactionAmount);
+        emit AllowedTokenListUpdated(_tokenAddress, _isWhitelisted, _minimumTransactionAmount);
     }
 
     /**
