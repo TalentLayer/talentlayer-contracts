@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
 import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
