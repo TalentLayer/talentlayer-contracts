@@ -4,5 +4,6 @@
   "talentLayerServiceAddress": "0x158709ec607784892c3F5d87C04F7b9AeEf1726e",
   "talentLayerReviewAddress": "0x406d4b4626653CE5Cd391005FeF998372BcB078b",
   "talentLayerArbitratorAddress": "0x99fB17DAd684F1Ea3a5231BCafa8702e12481225",
-  "talentLayerEscrowAddress": "0x18297774Cc12ACe664E3915f4DD5d228bf999Ed8"
+  "talentLayerEscrowAddress": "0x18297774Cc12ACe664E3915f4DD5d228bf999Ed8",
+  "simpleERC20Address": "0x8F4818d2f2450A706c1a9C6bec1E1C784E9bb809"
 }
