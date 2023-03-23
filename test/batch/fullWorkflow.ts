@@ -70,7 +70,7 @@ describe('TalentLayer protocol global testing', function () {
       talentLayerService,
       talentLayerReview,
       token,
-    ] = await deploy(true)
+    ] = await deploy(false)
 
     // Grant Platform Id Mint role to Deployer and Bob
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -552,8 +552,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it("The deployer can withdraw the contract's balance", async function () {
-      const deployerBalanceBefore = await deployer.getBalance()
-      const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
+      const contractBalance = await ethers.provider.getBalance(talentLayerID.address)
 
       // Withdraw fails if the caller is not the owner
       await expect(talentLayerID.connect(alice).withdraw()).to.be.revertedWith(
@@ -562,37 +561,23 @@ describe('TalentLayer protocol global testing', function () {
 
       // Withdraw is successful if the caller is the owner
       const tx = await talentLayerID.connect(deployer).withdraw()
-      const receipt = await tx.wait()
-      const gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
-
-      const deployerBalanceAfter = await deployer.getBalance()
-      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerID.address)
-
-      // Deployer balance is increased by the contract balance (- gas fees)s
-      expect(deployerBalanceAfter).to.be.equal(
-        deployerBalanceBefore.add(contractBalanceBefore).sub(gasUsed),
+      await expect(tx).to.changeEtherBalances(
+        [deployer, talentLayerID],
+        [contractBalance, -contractBalance],
       )
+    })
 
-      // Contract balance is 0
-      expect(contractBalanceAfter).to.be.equal(0)
+    it('Withdraw', async function () {
+      // Withdraw is successful if the caller is the owner
+      const tx = await talentLayerID.connect(deployer).withdraw()
+      await tx.wait()
+
+      await expect(tx).to.not.be.reverted
     })
 
     it('Deployer can mint TalentLayerID', async function () {
-      const deployerBalanceBefore = await deployer.getBalance()
-      const graceBalanceBefore = await grace.getBalance()
-
       const tx = await talentLayerID.freeMint('1', grace.address, 'grace')
-      const receipt = await tx.wait()
-      const gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice)
-      const deployerBalanceAfter = await deployer.getBalance()
-      const graceBalanceAfter = await grace.getBalance()
-
-      expect(deployerBalanceAfter, 'Deployer only pays for gas costs when minting').to.be.equal(
-        deployerBalanceBefore.sub(gasUsed),
-      )
-      expect(graceBalanceAfter, 'Address minted for does not pay anything').to.be.equal(
-        graceBalanceBefore,
-      )
+      await expect(tx).to.changeEtherBalances([deployer, grace], [0, 0])
     })
 
     it('Alice can NOT mint TalentLayerIDs without paying the mint fee', async function () {
