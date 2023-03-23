@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Arbitrator.sol";
-import "./interfaces/IArbitrable.sol";
-import "./interfaces/ITalentLayerPlatformID.sol";
+import {Arbitrator, IArbitrable} from "./Arbitrator.sol";
+import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /** @title TalentLayer Arbitrator
  *  @dev Fork from centralized arbitrator
@@ -125,7 +124,8 @@ contract TalentLayerArbitrator is Arbitrator {
         dispute.ruling = _ruling;
         dispute.status = DisputeStatus.Solved;
 
-        payable(msg.sender).transfer(dispute.fee); // Avoid blocking.
+        payable(msg.sender).call{value: dispute.fee}("");
+
         dispute.arbitrated.rule(_disputeID, _ruling);
     }
 
