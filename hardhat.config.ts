@@ -31,6 +31,7 @@ import './scripts/tasks/protocol/set-profile-whitelist'
 import './scripts/tasks/protocol/update-profile-minting-status'
 import './scripts/tasks/protocol/update-short-handles-price'
 import './scripts/tasks/protocol/update-min-service-completion-percentage'
+import './scripts/tasks/protocol/set-is-service-contract'
 import './scripts/tasks/platform/update-signer'
 import { Network } from './networkConfig'
 

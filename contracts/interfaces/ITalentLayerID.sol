@@ -44,5 +44,7 @@ interface ITalentLayerID {
 
     function ids(address _user) external view returns (uint256);
 
+    function setHasActivity(uint256 _profileId) external;
+
     event Mint(address indexed _user, uint256 _tokenId, string _handle);
 }

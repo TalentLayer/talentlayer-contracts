@@ -59,6 +59,9 @@ async function deployAndSetup(): Promise<
   // Disable whitelist for reserved handles
   await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
 
+  // Set service contract address on ID contract
+  await talentLayerID.connect(deployer).setIsServiceContract(talentLayerService.address, true)
+
   // Mint TL Id for Alice and Bob
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob__')
