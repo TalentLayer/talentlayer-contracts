@@ -38,6 +38,11 @@ interface ITalentLayerService {
 
     function getProposal(uint256 _serviceId, uint256 _proposal) external view returns (Proposal memory);
 
+    function getServiceAndProposal(
+        uint256 _serviceId,
+        uint256 _proposal
+    ) external view returns (Service memory, Proposal memory);
+
     function createService(
         Status _status,
         uint256 _tokenId,

@@ -446,8 +446,10 @@ contract TalentLayerEscrow is
         string memory _metaEvidence,
         string memory _originDataUri
     ) external payable whenNotPaused returns (uint256) {
-        ITalentLayerService.Service memory service = talentLayerServiceContract.getService(_serviceId);
-        ITalentLayerService.Proposal memory proposal = talentLayerServiceContract.getProposal(_serviceId, _proposalId);
+        (
+            ITalentLayerService.Service memory service,
+            ITalentLayerService.Proposal memory proposal
+        ) = talentLayerServiceContract.getServiceAndProposal(_serviceId, _proposalId);
         address sender = talentLayerIdContract.ownerOf(service.ownerId);
         address receiver = talentLayerIdContract.ownerOf(proposal.ownerId);
 
@@ -916,13 +918,13 @@ contract TalentLayerEscrow is
      */
     function _distributeFees(uint256 _transactionId, uint256 _releaseAmount) private {
         Transaction storage transaction = transactions[_transactionId];
+        (
+            ITalentLayerService.Service memory service,
+            ITalentLayerService.Proposal memory proposal
+        ) = talentLayerServiceContract.getServiceAndProposal(transaction.serviceId, transaction.proposalId);
 
-        uint256 originServiceCreationPlatformId = talentLayerServiceContract
-            .getService(transaction.serviceId)
-            .platformId;
-        uint256 originValidatedProposalPlatformId = talentLayerServiceContract
-            .getProposal(transaction.serviceId, transaction.proposalId)
-            .platformId;
+        uint256 originServiceCreationPlatformId = service.platformId;
+        uint256 originValidatedProposalPlatformId = proposal.platformId;
 
         uint256 protocolEscrowFeeRateAmount = (transaction.protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
         uint256 originServiceFeeRate = (transaction.originServiceFeeRate * _releaseAmount) / FEE_DIVIDER;
