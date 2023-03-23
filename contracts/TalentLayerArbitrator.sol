@@ -8,7 +8,6 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  *  @dev Fork from centralized arbitrator
  */
 contract TalentLayerArbitrator is Arbitrator {
-    address public owner = msg.sender;
     uint256 constant NOT_PAYABLE_VALUE = (2 ** 256 - 2) / 2; // High value to be sure that the appeal is too expensive.
 
     /**
@@ -37,11 +36,6 @@ contract TalentLayerArbitrator is Arbitrator {
         uint256 ruling;
         uint256 platformId;
         DisputeStatus status;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Can only be called by the owner.");
-        _;
     }
 
     Dispute[] public disputes;
