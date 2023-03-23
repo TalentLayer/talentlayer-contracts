@@ -236,6 +236,11 @@ describe('TalentLayer protocol global testing', function () {
       expect(updatedMintFee).to.be.equal(mintFee)
     })
 
+    it("Frank cannot mint a platform id since he's not whitelisted", async function () {
+      const tx = talentLayerPlatformID.connect(frank).mint('frankplat', { value: mintFee })
+      await expect(tx).to.be.revertedWith('You are not whitelisted')
+    })
+
     it('The deployer can update the minting status to PAUSE and trigger the event', async function () {
       const transcation = await talentLayerPlatformID
         .connect(deployer)
@@ -255,6 +260,11 @@ describe('TalentLayer protocol global testing', function () {
       await talentLayerPlatformID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
       const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
       expect(mintingStatus).to.be.equal(MintStatus.PUBLIC)
+    })
+
+    it('Bob cannot mint a platform id with a taken name', async function () {
+      const tx = talentLayerPlatformID.connect(bob).mint('hirevibes', { value: mintFee })
+      await expect(tx).to.be.revertedWith('Name already taken')
     })
 
     it('Bob can mint a platform id with allowed characters & correct name length by paying the mint fee', async function () {
