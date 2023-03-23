@@ -20,7 +20,7 @@ tests:
 
 deploy-mumbai: 
 	make clean
-	npx hardhat deploy-full --network mumbai --verify
+	npx hardhat deploy-full --use-test-erc20 --network mumbai --verify
 	npx hardhat initial-setup --network mumbai
 
 deploy-fuji: 
@@ -76,7 +76,8 @@ frontend-copy-abis:
 	Copy "artifacts\contracts\TalentLayerEscrow.sol\TalentLayerEscrow.json" "..\indie-frontend\src\contracts\ABI\TalentLayerEscrow.json"
 	Copy "artifacts\contracts\TalentLayerReview.sol\TalentLayerReview.json" "..\indie-frontend\src\contracts\ABI\TalentLayerReview.json"
 	Copy "artifacts\contracts\TalentLayerArbitrator.sol\TalentLayerArbitrator.json" "..\indie-frontend\src\contracts\ABI\TalentLayerArbitrator.json"
-else:
+else
+frontend-copy-abis:
 	cp artifacts/contracts/TalentLayerID.sol/TalentLayerID.json ../indie-frontend/src/contracts/ABI/TalentLayerID.json
 	cp artifacts/contracts/TalentLayerPlatformID.sol/TalentLayerPlatformID.json ../indie-frontend/src/contracts/ABI/TalentLayerPlatformID.json
 	cp artifacts/contracts/TalentLayerService.sol/TalentLayerService.json ../indie-frontend/src/contracts/ABI/TalentLayerService.json
@@ -99,81 +100,47 @@ endif
 
 ifeq ($(OS),Windows_NT)
 setup-fakedata:
-	timeout $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 else
 setup-fakedata:
-	sleep $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
 endif
 
 ifeq ($(OS),Windows_NT)
 setup-allFakeData:
-	timeout $(w)
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/2-update-service.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/4-update-proposal.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/5-reject-proposal.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/6-accept-ETHproposal.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/6-accept-tokenProposal.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/7-payETH.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/7-payToken.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)
-	timeout $(w)
 	npx hardhat run scripts/playground/9-claim.ts --network $(DEPLOY_NETWORK)
 else
 setup-allFakeData:
-	sleep $(w)
-	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
-	npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
-	npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
-	npx hardhat run scripts/playground/2-update-service.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
+	# npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
+	# npx hardhat run scripts/playground/1-mint-ID.ts --network $(DEPLOY_NETWORK)
+	# npx hardhat run scripts/playground/2-create-service.ts --network $(DEPLOY_NETWORK)
+	# npx hardhat run scripts/playground/2-update-service.ts --network $(DEPLOY_NETWORK)
 	npx hardhat run scripts/playground/3-make-proposal.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/4-update-proposal.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/5-reject-proposal.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/6-accept-ETHproposal.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/6-accept-tokenProposal.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/7-payETH.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/7-payToken.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/8-reviews.ts --network $(DEPLOY_NETWORK)
-	sleep $(w)
 	npx hardhat run scripts/playground/9-claim.ts --network $(DEPLOY_NETWORK)
 endif
 
