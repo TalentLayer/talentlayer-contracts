@@ -452,7 +452,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         platform.name = _platformName;
         platform.id = platformId;
         platform.arbitrationFeeTimeout = minArbitrationFeeTimeout;
-        platform.signer = _platformAddress;
+        platform.signer = address(0);
         takenNames[_platformName] = true;
         ids[_platformAddress] = platformId;
 
