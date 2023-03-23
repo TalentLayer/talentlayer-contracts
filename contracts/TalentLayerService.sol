@@ -232,6 +232,20 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     }
 
     /**
+     * @notice Returns the specific service and the proposal linked to it
+     * @param _serviceId Service identifier
+     * @param _proposalId Proposal identifier
+     */
+    function getServiceAndProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) external view returns (Service memory, Proposal memory) {
+        Service memory service = services[_serviceId];
+        Proposal memory proposal = proposals[_serviceId][_proposalId];
+        return (service, proposal);
+    }
+
+    /**
      * @notice Indicates whether the token in parameter is allowed for payment
      * @param _tokenAddress Token address
      */
