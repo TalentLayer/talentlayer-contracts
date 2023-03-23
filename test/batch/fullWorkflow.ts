@@ -1325,6 +1325,11 @@ describe('TalentLayer protocol global testing', function () {
         ).to.be.revertedWith('Access denied')
       })
 
+      it("Alice can't release a too low amount from the escrow.", async function () {
+        const tx = talentLayerEscrow.connect(alice).release(aliceTlId, transactionId, 1)
+        await expect(tx).to.be.revertedWith('Amount too low')
+      })
+
       it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
         const transactionDetailsBefore = await talentLayerEscrow
           .connect(alice)
@@ -1549,12 +1554,16 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('The protocol owner can claim his token balance.', async function () {
+        // Fails if platform id is not protocol index
+        const tx = talentLayerEscrow.connect(deployer).claim(1, token.address)
+        await expect(tx).to.be.revertedWith('Access denied')
+
         const protocolOwnerBalance = await talentLayerEscrow
           .connect(deployer)
           .getClaimableFeeBalance(token.address)
         // await talentLayerEscrow.updateProtocolWallet(alice.address);
-        const transaction = await talentLayerEscrow.connect(deployer).claim(0, token.address)
-        await expect(transaction).to.changeTokenBalances(
+        const tx2 = await talentLayerEscrow.connect(deployer).claim(0, token.address)
+        await expect(tx2).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, dave.address],
           [-protocolOwnerBalance, protocolOwnerBalance],
