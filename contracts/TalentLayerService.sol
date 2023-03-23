@@ -507,7 +507,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
         address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
-        if(platformSigner != address(0)){
+        if (platformSigner != address(0)) {
             bytes32 messageHash = keccak256(
                 abi.encodePacked("createService", _profileId, ";", serviceNonce[_profileId], _dataUri)
             );
@@ -549,7 +549,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
         address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
-        if(platformSigner != address(0)){
+        if (platformSigner != address(0)) {
             bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
             _validatePlatformSignature(_signature, messageHash, _platformId, platformSigner);
         }
