@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "./Arbitrator.sol";
+import "./interfaces/IArbitrable.sol";
 import "./interfaces/ITalentLayerPlatformID.sol";
 
 /** @title TalentLayer Arbitrator
@@ -31,7 +32,7 @@ contract TalentLayerArbitrator is Arbitrator {
      * @param status Status of the dispute.
      */
     struct Dispute {
-        Arbitrable arbitrated;
+        IArbitrable arbitrated;
         uint256 choices;
         uint256 fee;
         uint256 ruling;
@@ -100,7 +101,7 @@ contract TalentLayerArbitrator is Arbitrator {
 
         disputes.push(
             Dispute({
-                arbitrated: Arbitrable(msg.sender),
+                arbitrated: IArbitrable(msg.sender),
                 choices: _choices,
                 fee: msg.value,
                 ruling: 0,
@@ -109,7 +110,7 @@ contract TalentLayerArbitrator is Arbitrator {
             })
         );
         disputeID = disputes.length - 1; // Create the dispute and return its number.
-        emit DisputeCreation(disputeID, Arbitrable(msg.sender));
+        emit DisputeCreation(disputeID, IArbitrable(msg.sender));
     }
 
     /** @dev Give a ruling. UNTRUSTED.
