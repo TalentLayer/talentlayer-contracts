@@ -471,6 +471,11 @@ describe('Dispute Resolution, standard flow', function () {
       await expect(tx).to.be.revertedWith("You're not the owner of the platform")
     })
 
+    it('Fails if ruling id is invalid', async function () {
+      const tx = talentLayerArbitrator.connect(carol).giveRuling(disputeId, 4)
+      await expect(tx).to.be.revertedWith('Invalid ruling.')
+    })
+
     describe('Successful submission of a ruling', async function () {
       let tx: ContractTransaction
 
@@ -531,6 +536,11 @@ describe('Dispute Resolution, standard flow', function () {
             currentTransactionAmount,
             serviceId,
           )
+      })
+
+      it('Submission of ruling fails if the dispute is already solved', async function () {
+        const tx = talentLayerArbitrator.connect(carol).giveRuling(disputeId, rulingId)
+        await expect(tx).to.be.revertedWith('The dispute must not be solved already.')
       })
     })
   })
