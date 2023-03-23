@@ -292,6 +292,13 @@ describe('Dispute Resolution, standard flow', function () {
   })
 
   describe('Payment of arbitration fee by first party (sender in this case)', async function () {
+    it('Fails if the transaction does not have an arbitrator set', async function () {
+      const tx = talentLayerEscrow.connect(alice).payArbitrationFeeBySender(0, {
+        value: arbitrationCost,
+      })
+      await expect(tx).to.be.revertedWith('Arbitrator not set')
+    })
+
     it('Fails if is not called by the sender of the transaction', async function () {
       const tx = talentLayerEscrow.connect(bob).payArbitrationFeeBySender(transactionId, {
         value: arbitrationCost,
@@ -353,9 +360,16 @@ describe('Dispute Resolution, standard flow', function () {
         .setArbitrationPrice(carolPlatformId, newArbitrationCost)
     })
 
+    it('Fails if the transaction does not have an arbitrator set', async function () {
+      const tx = talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(0, {
+        value: newArbitrationCost,
+      })
+      await expect(tx).to.be.revertedWith('Arbitrator not set')
+    })
+
     it('Fails if is not called by the receiver of the transaction', async function () {
       const tx = talentLayerEscrow.connect(alice).payArbitrationFeeByReceiver(transactionId, {
-        value: arbitrationCost,
+        value: newArbitrationCost,
       })
       await expect(tx).to.be.revertedWith('The caller must be the receiver')
     })
@@ -432,6 +446,16 @@ describe('Dispute Resolution, standard flow', function () {
   })
 
   describe('Submission of Evidence', async function () {
+    it('Fails if the transaction does not have an arbitrator set', async function () {
+      const tx = talentLayerEscrow.connect(alice).submitEvidence(aliceTlId, 0, evidenceCid)
+      await expect(tx).to.be.revertedWith('Arbitrator not set')
+    })
+
+    it('Fails if the cid is invalid', async function () {
+      const tx = talentLayerEscrow.connect(alice).submitEvidence(aliceTlId, transactionId, '')
+      await expect(tx).to.be.revertedWith('Invalid cid')
+    })
+
     it('Fails if evidence is not submitted by either sender or receiver of the transaction', async function () {
       const tx = talentLayerEscrow
         .connect(dave)
@@ -546,11 +570,43 @@ describe('Dispute Resolution, standard flow', function () {
   })
 
   describe('Appealing a ruling', async function () {
+    it('Fails if the transaction does not have an arbitrator set', async function () {
+      const tx = talentLayerEscrow.connect(alice).appeal(0)
+      await expect(tx).to.be.revertedWith('Arbitrator not set')
+    })
+
     it('Fails because cost is too high', async function () {
       const tx = talentLayerEscrow.connect(bob).appeal(transactionId, {
         value: ethers.utils.parseEther('100'),
       })
       await expect(tx).to.be.revertedWith('Not enough ETH to cover appeal costs.')
+    })
+  })
+
+  describe("Can't do actions on a resolved dispute", async function () {
+    it('Fails to pay arbitration fee by sender on resolved dispute', async function () {
+      const tx = talentLayerEscrow.connect(alice).payArbitrationFeeBySender(transactionId, {
+        value: arbitrationCost,
+      })
+      await expect(tx).to.be.revertedWith(
+        'Dispute has already been created or because the transaction has been executed',
+      )
+    })
+
+    it('Fails to pay arbitration fee by receiver on resolved dispute', async function () {
+      const tx = talentLayerEscrow.connect(bob).payArbitrationFeeByReceiver(transactionId, {
+        value: arbitrationCost,
+      })
+      await expect(tx).to.be.revertedWith(
+        'Dispute has already been created or because the transaction has been executed',
+      )
+    })
+
+    it('Fails to submit evidence on resolved dispute', async function () {
+      const tx = talentLayerEscrow
+        .connect(alice)
+        .submitEvidence(aliceTlId, transactionId, evidenceCid)
+      await expect(tx).to.be.revertedWith('Must not send evidence if the dispute is resolved')
     })
   })
 })

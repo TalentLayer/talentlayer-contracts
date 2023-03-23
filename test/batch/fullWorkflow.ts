@@ -1109,19 +1109,32 @@ describe('TalentLayer protocol global testing', function () {
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
 
-        // we need to retreive the Bob proposal dataUri
         const proposal = await talentLayerService.proposals(serviceId, bobTlId)
+        // Fails if the value sent is not 0
+        const tx = talentLayerEscrow
+          .connect(alice)
+          .createTransaction(serviceId, proposalIdBob, metaEvidenceCid, proposal.dataUri, {
+            value: 100,
+          })
+        await expect(tx).to.be.revertedWith('Non-matching funds')
 
-        const transaction = await talentLayerEscrow
+        // Fails if the sender is not the owner of the service
+        const tx3 = talentLayerEscrow
+          .connect(bob)
+          .createTransaction(serviceId, proposalIdBob, metaEvidenceCid, proposal.dataUri)
+        await expect(tx3).to.be.revertedWith('Access denied')
+
+        // we need to retreive the Bob proposal dataUri
+        const tx2 = await talentLayerEscrow
           .connect(alice)
           .createTransaction(serviceId, proposalIdBob, metaEvidenceCid, proposal.dataUri)
-        await expect(transaction).to.changeTokenBalances(
+        await expect(tx2).to.changeTokenBalances(
           token,
           [talentLayerEscrow.address, alice, bob],
           [totalAmount, -totalAmount, 0],
         )
 
-        await expect(transaction).to.emit(talentLayerEscrow, 'TransactionCreated')
+        await expect(tx2).to.emit(talentLayerEscrow, 'TransactionCreated')
       })
 
       it('The deposit should also validate the proposal.', async function () {
@@ -1489,17 +1502,27 @@ describe('TalentLayer protocol global testing', function () {
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
         const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-        const transaction = await talentLayerEscrow
+
+        // Fails if value sent is not the total amount
+        const tx = talentLayerEscrow
+          .connect(alice)
+          .createTransaction(serviceId, proposalIdBob, metaEvidenceCid, proposal.dataUri, {
+            value: totalAmount - 1,
+          })
+        await expect(tx).to.be.revertedWith('Non-matching funds')
+
+        // Success if the value sent is the total amount
+        const tx2 = await talentLayerEscrow
           .connect(alice)
           .createTransaction(serviceId, proposalIdBob, metaEvidenceCid, proposal.dataUri, {
             value: totalAmount,
           })
-        await expect(transaction).to.changeEtherBalances(
+        await expect(tx2).to.changeEtherBalances(
           [talentLayerEscrow.address, alice, bob],
           [totalAmount, -totalAmount, 0],
         )
 
-        await expect(transaction).to.emit(talentLayerEscrow, 'TransactionCreated')
+        await expect(tx2).to.emit(talentLayerEscrow, 'TransactionCreated')
       })
 
       it('The deposit should also validate the proposal.', async function () {
