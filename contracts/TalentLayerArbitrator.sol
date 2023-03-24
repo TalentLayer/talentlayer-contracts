@@ -110,8 +110,14 @@ contract TalentLayerArbitrator is Arbitrator {
      *  @param _disputeID ID of the dispute to rule.
      *  @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
      */
-    function _giveRuling(uint256 _disputeID, uint256 _ruling) internal {
+    function giveRuling(uint256 _disputeID, uint256 _ruling) public {
         Dispute storage dispute = disputes[_disputeID];
+
+        require(
+            msg.sender == talentLayerPlatformIdContract.ownerOf(dispute.platformId),
+            "You're not the owner of the platform"
+        );
+
         require(_ruling <= dispute.choices, "Invalid ruling.");
         require(dispute.status != DisputeStatus.Solved, "The dispute must not be solved already.");
 
@@ -121,20 +127,6 @@ contract TalentLayerArbitrator is Arbitrator {
         payable(msg.sender).call{value: dispute.fee}("");
 
         dispute.arbitrated.rule(_disputeID, _ruling);
-    }
-
-    /** @dev Give a ruling. UNTRUSTED.
-     *  @param _disputeID ID of the dispute to rule.
-     *  @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
-     */
-    function giveRuling(uint256 _disputeID, uint256 _ruling) public {
-        Dispute storage dispute = disputes[_disputeID];
-
-        require(
-            msg.sender == talentLayerPlatformIdContract.ownerOf(dispute.platformId),
-            "You're not the owner of the platform"
-        );
-        return _giveRuling(_disputeID, _ruling);
     }
 
     /** @dev Return the status of a dispute.
