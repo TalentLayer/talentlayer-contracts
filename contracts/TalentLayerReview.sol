@@ -129,7 +129,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
             "You're not an actor of this service"
         );
         require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
-        require(_rating <= 5 && _rating >= 0, "Invalid rating");
+        require(_rating <= 5, "Invalid rating");
 
         uint256 toId;
         if (_profileId == service.ownerId) {

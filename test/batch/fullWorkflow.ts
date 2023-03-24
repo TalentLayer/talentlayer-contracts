@@ -428,7 +428,7 @@ describe('TalentLayer protocol global testing', function () {
       const tx = talentLayerPlatformID
         .connect(bob)
         .updateArbitrator(1, talentLayerArbitrator.address, [])
-      await expect(tx).to.be.revertedWith("You're not the owner of this platform")
+      await expect(tx).to.be.revertedWith('Not the owner')
     })
 
     it('The deployer can remove an available arbitrator', async function () {
