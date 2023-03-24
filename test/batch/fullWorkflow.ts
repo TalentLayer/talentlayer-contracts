@@ -282,6 +282,12 @@ describe('TalentLayer protocol global testing', function () {
       const bobPlatformId = await talentLayerPlatformID.ids(bob.address)
       expect(bobPlatformId).to.be.equal('2')
 
+      const totalSupply = await talentLayerPlatformID.totalSupply()
+      expect(totalSupply).to.be.equal(2)
+
+      const tokenURI = await talentLayerPlatformID.tokenURI(2)
+      expect(tokenURI).to.be.not.null
+
       // Bob balance is decreased by the mint fee (+ gas fees)
       const bobBalanceAfter = await bob.getBalance()
       expect(bobBalanceAfter).to.be.lte(bobBalanceBefore.sub(mintFee))
@@ -510,6 +516,12 @@ describe('TalentLayer protocol global testing', function () {
       const aliceUserId = await talentLayerID.ids(alice.address)
       const profileData = await talentLayerID.profiles(aliceUserId)
       expect(profileData.platformId).to.be.equal('1')
+
+      const totalSupply = await talentLayerID.totalSupply()
+      expect(totalSupply).to.be.equal(2)
+
+      const tokenURI = await talentLayerID.tokenURI(2)
+      expect(tokenURI).to.be.not.null
     })
 
     it('Carol can mint a talentLayerId without a platform', async function () {
@@ -1899,6 +1911,12 @@ describe('TalentLayer protocol global testing', function () {
 
       const hasSellerBeenReviewed = await talentLayerReview.hasSellerBeenReviewed(finishedServiceId)
       expect(hasSellerBeenReviewed).to.be.equal(true)
+
+      const totalSupply = await talentLayerReview.totalSupply()
+      expect(totalSupply).to.be.equal(1)
+
+      const tokenURI = await talentLayerReview.tokenURI(1)
+      expect(tokenURI).to.be.not.null
     })
 
     it('Bob can review Alice for the service they had', async function () {
