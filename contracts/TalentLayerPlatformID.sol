@@ -580,7 +580,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     modifier canMint(string calldata _platformName, address _platformAddress) {
         require(mintStatus == MintStatus.ONLY_WHITELIST || mintStatus == MintStatus.PUBLIC, "Mint status is not valid");
         if (mintStatus == MintStatus.ONLY_WHITELIST) {
-            require(whitelist[_msgSender()], "You are not whitelisted");
+            require(whitelist[msg.sender], "You are not whitelisted");
         }
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
         require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");

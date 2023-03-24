@@ -559,7 +559,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             "You already created a proposal for this service"
         );
 
-        require(service.ownerId != _profileId, "You couldn't create proposal for your own service");
+        require(service.ownerId != _profileId, "You can't create proposal for your own service");
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
         address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);

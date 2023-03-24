@@ -75,11 +75,15 @@ describe('Gasless Transactions', function () {
   })
 
   it('Deployer can remove a trusted forwarder for meta-transactions', async function () {
+    // Fails if is not the owner
+    const tx = talentLayerID.connect(alice).removeTrustedForwarder(mockForwarder.address)
+    await expect(tx).to.be.revertedWith('Ownable: caller is not the owner')
+
     await talentLayerID.connect(deployer).removeTrustedForwarder(mockForwarder.address)
     expect(await talentLayerID.isTrustedForwarder(mockForwarder.address)).to.be.false
 
     // Meta-transactions with the removed forwarder won't work anymore
-    const tx = mockForwarder.connect(relayer).execute({
+    const tx2 = mockForwarder.connect(relayer).execute({
       from: carol.address,
       to: talentLayerID.address,
       value: 0,
@@ -89,6 +93,6 @@ describe('Gasless Transactions', function () {
       validUntilTime: 0,
     })
 
-    await expect(tx).to.be.revertedWith('ERC721: transfer to non ERC721Receiver implementer')
+    await expect(tx2).to.be.revertedWith('ERC721: transfer to non ERC721Receiver implementer')
   })
 })
