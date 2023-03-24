@@ -8,7 +8,6 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
  *  @dev Fork from centralized arbitrator
  */
 contract TalentLayerArbitrator is Arbitrator {
-    address public owner = msg.sender;
     uint256 constant NOT_PAYABLE_VALUE = (2 ** 256 - 2) / 2; // High value to be sure that the appeal is too expensive.
 
     /**
@@ -39,11 +38,6 @@ contract TalentLayerArbitrator is Arbitrator {
         DisputeStatus status;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Can only be called by the owner.");
-        _;
-    }
-
     Dispute[] public disputes;
 
     /** @dev Constructor. Set the initial arbitration price.
@@ -54,7 +48,7 @@ contract TalentLayerArbitrator is Arbitrator {
     }
 
     /** @dev Set the arbitration price. Only callable by the owner.
-     * @param _platformId Id of the platform to set the arbitration price for.
+     *  @param _platformId Id of the platform to set the arbitration price for.
      *  @param _arbitrationPrice Amount to be paid for arbitration.
      */
     function setArbitrationPrice(uint256 _platformId, uint256 _arbitrationPrice) public {
@@ -116,8 +110,14 @@ contract TalentLayerArbitrator is Arbitrator {
      *  @param _disputeID ID of the dispute to rule.
      *  @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
      */
-    function _giveRuling(uint256 _disputeID, uint256 _ruling) internal {
+    function giveRuling(uint256 _disputeID, uint256 _ruling) public {
         Dispute storage dispute = disputes[_disputeID];
+
+        require(
+            msg.sender == talentLayerPlatformIdContract.ownerOf(dispute.platformId),
+            "You're not the owner of the platform"
+        );
+
         require(_ruling <= dispute.choices, "Invalid ruling.");
         require(dispute.status != DisputeStatus.Solved, "The dispute must not be solved already.");
 
@@ -127,20 +127,6 @@ contract TalentLayerArbitrator is Arbitrator {
         payable(msg.sender).call{value: dispute.fee}("");
 
         dispute.arbitrated.rule(_disputeID, _ruling);
-    }
-
-    /** @dev Give a ruling. UNTRUSTED.
-     *  @param _disputeID ID of the dispute to rule.
-     *  @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
-     */
-    function giveRuling(uint256 _disputeID, uint256 _ruling) public {
-        Dispute storage dispute = disputes[_disputeID];
-
-        require(
-            msg.sender == talentLayerPlatformIdContract.ownerOf(dispute.platformId),
-            "You're not the owner of the platform"
-        );
-        return _giveRuling(_disputeID, _ruling);
     }
 
     /** @dev Return the status of a dispute.

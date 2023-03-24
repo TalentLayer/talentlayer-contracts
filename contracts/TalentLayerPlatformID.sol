@@ -267,8 +267,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId The Platform Id of the platform
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(uint256 _platformId, string memory _newCid) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+    function updateProfileData(uint256 _platformId, string memory _newCid) public onlyPlatformOwner(_platformId) {
         require(bytes(_newCid).length == 46, "Invalid cid");
 
         platforms[_platformId].dataUri = _newCid;
@@ -280,9 +279,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @notice Allows a platform to update his fee
      * @param _originServiceFeeRate Platform fee to update
      */
-    function updateOriginServiceFeeRate(uint256 _platformId, uint16 _originServiceFeeRate) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
-
+    function updateOriginServiceFeeRate(
+        uint256 _platformId,
+        uint16 _originServiceFeeRate
+    ) public onlyPlatformOwner(_platformId) {
         platforms[_platformId].originServiceFeeRate = _originServiceFeeRate;
         emit OriginServiceFeeRateUpdated(_platformId, _originServiceFeeRate);
     }
@@ -291,9 +291,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @notice Allows a platform to update his fee
      * @param _originValidatedProposalFeeRate Platform fee to update
      */
-    function updateOriginValidatedProposalFeeRate(uint256 _platformId, uint16 _originValidatedProposalFeeRate) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
-
+    function updateOriginValidatedProposalFeeRate(
+        uint256 _platformId,
+        uint16 _originValidatedProposalFeeRate
+    ) public onlyPlatformOwner(_platformId) {
         platforms[_platformId].originValidatedProposalFeeRate = _originValidatedProposalFeeRate;
         emit OriginValidatedProposalFeeRateUpdated(_platformId, _originValidatedProposalFeeRate);
     }
@@ -304,8 +305,11 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _extraData the extra data for arbitrator (this is only used for external arbitrators, for
      *                   internal arbitrators it should be empty)
      */
-    function updateArbitrator(uint256 _platformId, Arbitrator _arbitrator, bytes memory _extraData) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+    function updateArbitrator(
+        uint256 _platformId,
+        Arbitrator _arbitrator,
+        bytes memory _extraData
+    ) public onlyPlatformOwner(_platformId) {
         require(validArbitrators[address(_arbitrator)], "The address must be of a valid arbitrator");
 
         platforms[_platformId].arbitrator = _arbitrator;
@@ -323,8 +327,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @notice Allows a platform to update the timeout for paying the arbitration fee
      * @param _arbitrationFeeTimeout The new timeout
      */
-    function updateArbitrationFeeTimeout(uint256 _platformId, uint256 _arbitrationFeeTimeout) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
+    function updateArbitrationFeeTimeout(
+        uint256 _platformId,
+        uint256 _arbitrationFeeTimeout
+    ) public onlyPlatformOwner(_platformId) {
         require(
             _arbitrationFeeTimeout >= minArbitrationFeeTimeout,
             "The timeout must be greater than the minimum timeout"
@@ -339,9 +345,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId The platform Id of the platform
      * @param _servicePostingFee The new fee
      */
-    function updateServicePostingFee(uint256 _platformId, uint256 _servicePostingFee) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
-
+    function updateServicePostingFee(
+        uint256 _platformId,
+        uint256 _servicePostingFee
+    ) public onlyPlatformOwner(_platformId) {
         platforms[_platformId].servicePostingFee = _servicePostingFee;
         emit ServicePostingFeeUpdated(_platformId, _servicePostingFee);
     }
@@ -351,9 +358,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId The platform Id of the platform
      * @param _proposalPostingFee The new fee
      */
-    function updateProposalPostingFee(uint256 _platformId, uint256 _proposalPostingFee) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
-
+    function updateProposalPostingFee(
+        uint256 _platformId,
+        uint256 _proposalPostingFee
+    ) public onlyPlatformOwner(_platformId) {
         platforms[_platformId].proposalPostingFee = _proposalPostingFee;
         emit ProposalPostingFeeUpdated(_platformId, _proposalPostingFee);
     }
@@ -363,9 +371,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformId The platform Id of the platform
      * @param _signer The new signer address
      */
-    function updateSigner(uint256 _platformId, address _signer) public {
-        require(ownerOf(_platformId) == msg.sender, "You're not the owner of this platform");
-
+    function updateSigner(uint256 _platformId, address _signer) public onlyPlatformOwner(_platformId) {
         platforms[_platformId].signer = _signer;
         emit SignerUpdated(_platformId, _signer);
     }
@@ -581,6 +587,15 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         require(!takenNames[_platformName], "Name already taken");
 
         _validateHandle(_platformName);
+        _;
+    }
+
+    /**
+     * @notice Check if msg sender is the owner of a platform
+     * @param _platformId the ID of the platform
+     */
+    modifier onlyPlatformOwner(uint256 _platformId) {
+        require(ownerOf(_platformId) == msg.sender, "Not the owner");
         _;
     }
 

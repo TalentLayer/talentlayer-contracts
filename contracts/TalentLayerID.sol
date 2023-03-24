@@ -180,6 +180,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         return ownerOf(_profileId) == _address || isDelegate(_profileId, _address);
     }
 
+    function ownersOf(uint256 _tokenId1, uint256 _tokenId2) external view returns (address, address) {
+        return (ownerOf(_tokenId1), ownerOf(_tokenId2));
+    }
+
     /**
      * @notice Check whether an address has reserved a handle.
      * @param _address Address to check

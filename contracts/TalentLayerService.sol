@@ -134,10 +134,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /**
      * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
      * @param _tokenAddress The address of the payment token
-     * @param _status Whether the token is allowed or not
+     * @param _isWhitelisted Whether the token is allowed or not
      * @param _minimumTransactionAmount The minimum transaction fees for the token
      */
-    event AllowedTokenListUpdated(address _tokenAddress, bool _status, uint256 _minimumTransactionAmount);
+    event AllowedTokenListUpdated(address _tokenAddress, bool _isWhitelisted, uint256 _minimumTransactionAmount);
 
     /**
      * @notice Emitted when the contract owner updates the minimum completion percentage for services
@@ -229,6 +229,20 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      */
     function getProposal(uint256 _serviceId, uint256 _proposalId) external view returns (Proposal memory) {
         return proposals[_serviceId][_proposalId];
+    }
+
+    /**
+     * @notice Returns the specific service and the proposal linked to it
+     * @param _serviceId Service identifier
+     * @param _proposalId Proposal identifier
+     */
+    function getServiceAndProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) external view returns (Service memory, Proposal memory) {
+        Service memory service = services[_serviceId];
+        Proposal memory proposal = proposals[_serviceId][_proposalId];
+        return (service, proposal);
     }
 
     /**
@@ -382,21 +396,21 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     /**
      * @notice Allows the contract owner to add or remove a token from the allowed payment tokens list
      * @param _tokenAddress The address of the payment token
-     * @param _status Whether the token is allowed or not
+     * @param _isWhitelisted Whether the token is allowed or not
      * @dev Only the contract owner can call this function
      */
     function updateAllowedTokenList(
         address _tokenAddress,
-        bool _status,
+        bool _isWhitelisted,
         uint256 _minimumTransactionAmount
     ) public onlyOwner {
-        if (_tokenAddress == address(0) && _status == false) {
+        if (_tokenAddress == address(0) && !_isWhitelisted) {
             revert("Owner can't remove Ox address");
         }
-        allowedTokenList[_tokenAddress].isWhitelisted = _status;
+        allowedTokenList[_tokenAddress].isWhitelisted = _isWhitelisted;
         allowedTokenList[_tokenAddress].minimumTransactionAmount = _minimumTransactionAmount;
 
-        emit AllowedTokenListUpdated(_tokenAddress, _status, _minimumTransactionAmount);
+        emit AllowedTokenListUpdated(_tokenAddress, _isWhitelisted, _minimumTransactionAmount);
     }
 
     /**
@@ -511,7 +525,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             bytes32 messageHash = keccak256(
                 abi.encodePacked("createService", _profileId, ";", serviceNonce[_profileId], _dataUri)
             );
-            _validatePlatformSignature(_signature, messageHash, _platformId, platformSigner);
+            _validatePlatformSignature(_signature, messageHash, platformSigner);
         }
     }
 
@@ -551,7 +565,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
         if (platformSigner != address(0)) {
             bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
-            _validatePlatformSignature(_signature, messageHash, _platformId, platformSigner);
+            _validatePlatformSignature(_signature, messageHash, platformSigner);
         }
     }
 
@@ -559,12 +573,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Validate the platform ECDSA signature for a given message hash operation
      * @param _signature platform signature to allow the operation
      * @param _messageHash The hash of a generated message corresponding to the operation
-     * @param _platformId The id of the platform where the user want to post, the signature must come from the owner
+     * @param _platformSigner The address defined by the platform as signer
      */
     function _validatePlatformSignature(
         bytes calldata _signature,
         bytes32 _messageHash,
-        uint256 _platformId,
         address _platformSigner
     ) private view {
         bytes32 ethMessageHash = ECDSAUpgradeable.toEthSignedMessageHash(_messageHash);
