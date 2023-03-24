@@ -525,7 +525,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             bytes32 messageHash = keccak256(
                 abi.encodePacked("createService", _profileId, ";", serviceNonce[_profileId], _dataUri)
             );
-            _validatePlatformSignature(_signature, messageHash, _platformId, platformSigner);
+            _validatePlatformSignature(_signature, messageHash, platformSigner);
         }
     }
 
@@ -565,7 +565,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
         if (platformSigner != address(0)) {
             bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
-            _validatePlatformSignature(_signature, messageHash, _platformId, platformSigner);
+            _validatePlatformSignature(_signature, messageHash, platformSigner);
         }
     }
 
@@ -573,12 +573,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Validate the platform ECDSA signature for a given message hash operation
      * @param _signature platform signature to allow the operation
      * @param _messageHash The hash of a generated message corresponding to the operation
-     * @param _platformId The id of the platform where the user want to post, the signature must come from the owner
+     * @param _platformSigner The address defined by the platform as signer
      */
     function _validatePlatformSignature(
         bytes calldata _signature,
         bytes32 _messageHash,
-        uint256 _platformId,
         address _platformSigner
     ) private view {
         bytes32 ethMessageHash = ECDSAUpgradeable.toEthSignedMessageHash(_messageHash);
