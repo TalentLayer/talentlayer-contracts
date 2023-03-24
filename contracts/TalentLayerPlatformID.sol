@@ -527,7 +527,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param id The ID of the token
      */
     function _buildTokenURI(uint256 id) internal view returns (string memory) {
-        string memory platformName = string.concat(platforms[id].name, ".tl");
+        string memory platformName = string.concat(platforms[id].name, ".tlp");
         string memory fontSizeStr = bytes(platforms[id].name).length <= 20 ? "60" : "40";
 
         bytes memory image = abi.encodePacked(
