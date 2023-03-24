@@ -6,7 +6,8 @@
   "scripts": {
     "test": "npx hardhat test --typecheck",
     "format": "npx prettier --write .",
-    "lint": "eslint --fix --quiet ."
+    "lint": "eslint --fix --quiet .",
+    "coverage": "npx hardhat coverage"
   },
   "repository": {
     "type": "git",
