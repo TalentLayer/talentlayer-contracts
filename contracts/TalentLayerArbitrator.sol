@@ -48,7 +48,7 @@ contract TalentLayerArbitrator is Arbitrator {
     }
 
     /** @dev Set the arbitration price. Only callable by the owner.
-     * @param _platformId Id of the platform to set the arbitration price for.
+     *  @param _platformId Id of the platform to set the arbitration price for.
      *  @param _arbitrationPrice Amount to be paid for arbitration.
      */
     function setArbitrationPrice(uint256 _platformId, uint256 _arbitrationPrice) public {
