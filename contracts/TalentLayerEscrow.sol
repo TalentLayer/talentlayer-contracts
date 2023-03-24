@@ -450,8 +450,7 @@ contract TalentLayerEscrow is
             ITalentLayerService.Service memory service,
             ITalentLayerService.Proposal memory proposal
         ) = talentLayerServiceContract.getServiceAndProposal(_serviceId, _proposalId);
-        address sender = talentLayerIdContract.ownerOf(service.ownerId);
-        address receiver = talentLayerIdContract.ownerOf(proposal.ownerId);
+        (address sender, address receiver) = talentLayerIdContract.ownersOf(service.ownerId, proposal.ownerId);
 
         ITalentLayerPlatformID.Platform memory originServiceCreationPlatform = talentLayerPlatformIdContract
             .getPlatform(service.platformId);
