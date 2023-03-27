@@ -29,9 +29,12 @@ task('mint-for-address', 'Mints a new TalentLayer ID for a given address')
 
     const platformId = await platformIdContract.ids(deployer.address)
 
+    const price = await talentLayerIdContract.getHandlePrice(handle)
     const tx = await talentLayerIdContract
       .connect(deployer)
-      .mintForAddress(address, platformId, handle)
+      .mintForAddress(address, platformId, handle, {
+        value: price,
+      })
     await tx.wait()
 
     console.log(`Minted TalentLayer ID with handle ${handle} for address ${address}`)
