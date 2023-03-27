@@ -270,7 +270,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _delegate Address of the delegate to add
      */
     function addDelegate(uint256 _profileId, address _delegate) external {
-        require(ownerOf(_profileId) == _msgSender(), "Only owner can add delegates");
+        require(ownerOf(_profileId) == _msgSender(), "Not the owner");
         delegates[_profileId][_delegate] = true;
         emit DelegateAdded(_profileId, _delegate);
     }
@@ -281,7 +281,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _delegate Address of the delegate to remove
      */
     function removeDelegate(uint256 _profileId, address _delegate) external {
-        require(ownerOf(_profileId) == _msgSender(), "Only owner can remove delegates");
+        require(ownerOf(_profileId) == _msgSender(), "Not the owner");
         delegates[_profileId][_delegate] = false;
         emit DelegateRemoved(_profileId, _delegate);
     }

@@ -19,11 +19,20 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using MerkleProofUpgradeable for bytes32[];
 
+    /**
+     * @notice min and max length for a handle
+     */
     uint8 constant MIN_HANDLE_LENGTH = 1;
     uint8 constant MAX_HANDLE_LENGTH = 31;
+
+    /**
+     * @notice platform id for the protocol
+     */
     uint8 constant PROTOCOL_ID = 0;
 
-    // Max number of characters for a paid handle
+    /**
+     * @notice Max number of characters for the handle where the dynamic priced is applied
+     */
     uint8 constant MAX_PAID_HANDLE_CHARACTERS = 4;
 
     // =========================== Enums ==============================
@@ -39,11 +48,13 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     // =========================== Structs ==============================
 
-    /// @notice TalentLayer Profile information struct
-    /// @param id the talentLayerId of the profile
-    /// @param handle the handle of the profile
-    /// @param platformId the TalentLayer Platform Id linked to the profile
-    /// @param dataUri the IPFS URI of the profile metadata
+    /**
+     * @notice TalentLayer Profile information struct
+     * @param id the talentLayerId of the profile
+     * @param handle the handle of the profile
+     * @param platformId the TalentLayer Platform Id linked to the profile
+     * @param dataUri the IPFS URI of the profile metadata
+     */
     struct Profile {
         uint256 id;
         string handle;
@@ -53,40 +64,64 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     // =========================== Mappings & Variables ==============================
 
-    /// TalentLayer Platform ID registry
+    /**
+     * @notice TalentLayer Platform ID registry
+     */
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
-    /// Taken handles
+    /**
+     * @notice Already taken handles
+     */
     mapping(string => bool) public takenHandles;
 
-    /// TalentLayer ID to Profile struct
+    /**
+     * @notice TalentLayer ID to Profile struct
+     */
     mapping(uint256 => Profile) public profiles;
 
-    /// Address to TalentLayer id
+    /**
+     * @notice Address to TalentLayer id
+     */
     mapping(address => uint256) public ids;
 
-    /// Price to mint an id with a regular handle length (in wei, upgradable)
+    /**
+     * @notice Price to mint an id with a regular handle length > MAX_PAID_HANDLE_CHARACTERS (in wei, upgradable)
+     */
     uint256 public mintFee;
 
-    /// Profile Id counter
+    /**
+     * @notice Profile Id counter
+     */
     CountersUpgradeable.Counter nextProfileId;
 
-    /// TalentLayer ID to delegates
+    /**
+     * @notice TalentLayer ID to delegates
+     */
     mapping(uint256 => mapping(address => bool)) private delegates;
 
-    /// Merkle root of the whitelist for reserved handles
+    /**
+     * @notice Merkle root of the whitelist for reserved handles
+     */
     bytes32 private whitelistMerkleRoot;
 
-    /// The minting status
+    /**
+     * @notice The minting status
+     */
     MintStatus public mintStatus;
 
-    /// Maximum price for a short handle (in wei, upgradable)
+    /**
+     * @notice Maximum price for a short handle (in wei, upgradable)
+     */
     uint256 shortHandlesMaxPrice;
 
-    /// Whether a TalentLayer ID has done some activity in the protocol (created a service or proposal)
+    /**
+     * @notice Whether a TalentLayer ID has done some activity in the protocol (created a service or proposal)
+     */
     mapping(uint256 => bool) public hasActivity;
 
-    /// Whether a contract is a service contract, which is able to set if a user has done some activity
+    /**
+     * @notice Whether a contract is a service contract, which is able to set if a user has done some activity
+     */
     mapping(address => bool) public isServiceContract;
 
     // =========================== Errors ==============================
@@ -180,6 +215,11 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         return ownerOf(_profileId) == _address || isDelegate(_profileId, _address);
     }
 
+    /**
+     * @notice get the owner of two different tokens
+     * @param _tokenId1 The TalentLayer ID of the user 1
+     * @param _tokenId2 The TalentLayer ID of the user 2
+     */
     function ownersOf(uint256 _tokenId1, uint256 _tokenId2) external view returns (address, address) {
         return (ownerOf(_tokenId1), ownerOf(_tokenId2));
     }
@@ -216,8 +256,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * @notice Allows a user to mint a new TalentLayerID.
-     * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
+     * @param _handle Handle for the user
      */
     function mint(
         uint256 _platformId,
@@ -232,8 +272,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /**
      * @notice Allows a user to mint a new TalentLayerID for another address, paying the fee.
      * @param _address Address to mint the TalentLayer ID for
-     * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
+     * @param _handle Handle for the user
      */
     function mintForAddress(
         address _address,
@@ -247,8 +287,8 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * @notice Allows users who reserved a handle to mint a new TalentLayerID.
-     * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
+     * @param _handle Handle for the user
      * @param _proof Merkle proof of the handle reservation whitelist
      */
     function whitelistMint(
@@ -283,7 +323,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _delegate Address of the delegate to add
      */
     function addDelegate(uint256 _profileId, address _delegate) external {
-        require(ownerOf(_profileId) == _msgSender(), "Only owner can add delegates");
+        require(ownerOf(_profileId) == _msgSender(), "Not the owner");
         delegates[_profileId][_delegate] = true;
         emit DelegateAdded(_profileId, _delegate);
     }
@@ -294,7 +334,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _delegate Address of the delegate to remove
      */
     function removeDelegate(uint256 _profileId, address _delegate) external {
-        require(ownerOf(_profileId) == _msgSender(), "Only owner can remove delegates");
+        require(ownerOf(_profileId) == _msgSender(), "Not the owner");
         delegates[_profileId][_delegate] = false;
         emit DelegateRemoved(_profileId, _delegate);
     }
@@ -382,8 +422,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /**
      * @notice Update handle address mapping and emit event after mint.
      * @dev Increments the nextProfileId counter.
+     * @param _userAddress address of the user that will receive the NFT
      * @param _handle Handle for the user
      * @param _platformId Platform ID from which UserId was minted
+     * @param _fee fee paid for minting
      */
     function _afterMint(
         address _userAddress,
@@ -403,6 +445,10 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         return userProfileId;
     }
 
+    /**
+     * @notice Validate characters used in the handle, only alphanumeric, only lowercase characters, - and _ are allowed
+     * @param handle Handle to validate
+     */
     function _validateHandle(string calldata handle) private pure {
         bytes memory byteHandle = bytes(handle);
         uint256 byteHandleLength = byteHandle.length;
@@ -432,6 +478,12 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     // =========================== Overrides ==============================
 
+    /**
+     * @notice Transfer the token from one address to another only if the NFT has no actiity linked to it.
+     * @param from address of the sender
+     * @param to address of the receiver
+     * @param tokenId id of the token to transfer
+     */
     function _transfer(address from, address to, uint256 tokenId) internal virtual override(ERC721Upgradeable) {
         require(!hasActivity[tokenId], "Token transfer is not allowed");
         require(balanceOf(to) == 0, "Receiver already has a TalentLayer ID");
@@ -517,6 +569,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     // =========================== Modifiers ==============================
+
     /**
      * @notice Check if _msgSender() can pay the mint fee for a TalentLayer id with the given handle
      * @param _handle Handle for the user
@@ -559,50 +612,50 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
 
     /**
      * Emit when new TalentLayerID is minted.
-     * @param _user Address of the owner of the TalentLayerID
-     * @param _profileId The TalentLayer ID of the user
-     * @param _handle Handle for the user
-     * @param _platformId Platform ID from which UserId was minted
-     * @param _fee Fee paid to mint the TalentLayerID
+     * @param user Address of the owner of the TalentLayerID
+     * @param profileId The TalentLayer ID of the user
+     * @param handle Handle for the user
+     * @param platformId Platform ID from which UserId was minted
+     * @param fee Fee paid to mint the TalentLayerID
      */
-    event Mint(address indexed _user, uint256 _profileId, string _handle, uint256 _platformId, uint256 _fee);
+    event Mint(address indexed user, uint256 profileId, string handle, uint256 platformId, uint256 fee);
 
     /**
      * Emit when Cid is updated for a user.
-     * @param _profileId The TalentLayer ID of the user
-     * @param _newCid Content ID
+     * @param profileId The TalentLayer ID of the user
+     * @param newCid Content ID
      */
-    event CidUpdated(uint256 indexed _profileId, string _newCid);
+    event CidUpdated(uint256 indexed profileId, string newCid);
 
     /**
      * Emit when mint fee is updated
-     * @param _mintFee The new mint fee
+     * @param mintFee The new mint fee
      */
-    event MintFeeUpdated(uint256 _mintFee);
+    event MintFeeUpdated(uint256 mintFee);
 
     /**
      * Emit when a delegate is added for a user.
-     * @param _profileId The TalentLayer ID of the user
-     * @param _delegate Address of the delegate
+     * @param profileId The TalentLayer ID of the user
+     * @param delegate Address of the delegate
      */
-    event DelegateAdded(uint256 _profileId, address _delegate);
+    event DelegateAdded(uint256 profileId, address delegate);
 
     /**
      * Emit when a delegate is removed for a user.
-     * @param _profileId The TalentLayer ID of the user
-     * @param _delegate Address of the delegate
+     * @param profileId The TalentLayer ID of the user
+     * @param delegate Address of the delegate
      */
-    event DelegateRemoved(uint256 _profileId, address _delegate);
+    event DelegateRemoved(uint256 profileId, address delegate);
 
     /**
      * Emit when the minting status is updated
-     * @param _mintStatus The new mint status
+     * @param mintStatus The new mint status
      */
-    event MintStatusUpdated(MintStatus _mintStatus);
+    event MintStatusUpdated(MintStatus mintStatus);
 
     /**
      * Emit when the max price for short handles is udpated
-     * @param _price The new max price for short handles
+     * @param price The new max price for short handles
      */
-    event ShortHandlesMaxPriceUpdated(uint256 _price);
+    event ShortHandlesMaxPriceUpdated(uint256 price);
 }
