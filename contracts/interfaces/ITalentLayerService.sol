@@ -29,7 +29,7 @@ interface ITalentLayerService {
         uint256 ownerId;
         address rateToken;
         uint256 rateAmount;
-        uint16 platformId;
+        uint256 platformId;
         string dataUri;
         uint256 expirationDate;
     }
