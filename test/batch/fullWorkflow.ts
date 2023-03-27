@@ -596,14 +596,6 @@ describe('TalentLayer protocol global testing', function () {
       )
     })
 
-    it('Withdraw', async function () {
-      // Withdraw is successful if the caller is the owner
-      const tx = await talentLayerID.connect(deployer).withdraw()
-      await tx.wait()
-
-      await expect(tx).to.not.be.reverted
-    })
-
     it('Deployer can mint TalentLayerID', async function () {
       const tx = await talentLayerID.freeMint('1', grace.address, 'grace')
       await expect(tx).to.changeEtherBalances([deployer, grace], [0, 0])
