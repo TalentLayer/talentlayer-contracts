@@ -230,6 +230,22 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
+     * @notice Allows a user to mint a new TalentLayerID for another address, paying the fee.
+     * @param _address Address to mint the TalentLayer ID for
+     * @param _handle Handle for the user
+     * @param _platformId Platform ID mint the id from
+     */
+    function mintForAddress(
+        address _address,
+        uint256 _platformId,
+        string calldata _handle
+    ) public payable canMint(_address, _handle, _platformId) canPay(_handle) returns (uint256) {
+        require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
+        _safeMint(_address, nextProfileId.current());
+        return _afterMint(_address, _handle, _platformId, msg.value);
+    }
+
+    /**
      * @notice Allows users who reserved a handle to mint a new TalentLayerID.
      * @param _handle Handle for the user
      * @param _platformId Platform ID mint the id from
