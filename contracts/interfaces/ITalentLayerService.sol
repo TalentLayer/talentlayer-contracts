@@ -55,7 +55,7 @@ interface ITalentLayerService {
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
-        uint16 _platformId,
+        uint256 _platformId,
         string calldata _dataUri
     ) external;
 
