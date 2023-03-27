@@ -553,25 +553,31 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Eve can mint a talentLayerId by paying the mint fee', async function () {
-      const eveBalanceBefore = await eve.getBalance()
-      const contractBalanceBefore = await ethers.provider.getBalance(talentLayerID.address)
-
       // Mint fails if not enough ETH is sent
       await expect(talentLayerID.connect(eve).mint('1', 'eve__')).to.be.revertedWith(
         'Incorrect amount of ETH for mint fee',
       )
 
       // Mint is successful if the correct amount of ETH for mint fee is sent
-      await talentLayerID.connect(eve).mint('1', 'eve__', { value: mintFee })
+      const tx = await talentLayerID.connect(eve).mint('1', 'eve__', { value: mintFee })
       expect(await talentLayerID.ids(eve.address)).to.be.equal('4')
 
-      // Eve balance is decreased by the mint fee (+ gas fees)
-      const eveBalanceAfter = await eve.getBalance()
-      expect(eveBalanceAfter).to.be.lte(eveBalanceBefore.sub(mintFee))
+      await expect(tx).to.changeEtherBalances([eve, talentLayerID], [-mintFee, mintFee])
+    })
 
-      // TalentLayer id contract balance is increased by the mint fee
-      const contractBalanceAfter = await ethers.provider.getBalance(talentLayerID.address)
-      expect(contractBalanceAfter).to.be.equal(contractBalanceBefore.add(mintFee))
+    it('Alice can mint a talentLayerId for Frank by paying the mint fee', async function () {
+      // Mint fails if not enough ETH is sent
+      await expect(
+        talentLayerID.connect(alice).mintForAddress(frank.address, '1', 'frank'),
+      ).to.be.revertedWith('Incorrect amount of ETH for mint fee')
+
+      // Mint is successful if the correct amount of ETH for mint fee is sent
+      const tx = await talentLayerID
+        .connect(alice)
+        .mintForAddress(frank.address, '1', 'frank', { value: mintFee })
+
+      expect(await talentLayerID.ids(frank.address)).to.be.equal('5')
+      await expect(tx).to.changeEtherBalances([alice, talentLayerID], [-mintFee, mintFee])
     })
 
     it("The deployer can withdraw the contract's balance", async function () {
@@ -588,14 +594,6 @@ describe('TalentLayer protocol global testing', function () {
         [deployer, talentLayerID],
         [contractBalance, -contractBalance],
       )
-    })
-
-    it('Withdraw', async function () {
-      // Withdraw is successful if the caller is the owner
-      const tx = await talentLayerID.connect(deployer).withdraw()
-      await tx.wait()
-
-      await expect(tx).to.not.be.reverted
     })
 
     it('Deployer can mint TalentLayerID', async function () {

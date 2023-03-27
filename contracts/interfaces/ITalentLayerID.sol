@@ -18,6 +18,12 @@ interface ITalentLayerID {
 
     function mint(string memory _handle) external returns (uint256);
 
+    function mintForAddress(
+        address _address,
+        uint256 _platformId,
+        string calldata _handle
+    ) external payable returns (uint256);
+
     function updateProfileData(uint256 _tokenId, string memory _newCid) external;
 
     function freeMint(uint256 _platformId, address _userAddress, string calldata _handle) external returns (uint256);

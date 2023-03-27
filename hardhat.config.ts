@@ -33,6 +33,7 @@ import './scripts/tasks/protocol/update-short-handles-price'
 import './scripts/tasks/protocol/update-min-service-completion-percentage'
 import './scripts/tasks/protocol/set-is-service-contract'
 import './scripts/tasks/platform/update-signer'
+import './scripts/tasks/platform/mint-for-address'
 import { Network } from './networkConfig'
 
 const mnemonic: string | undefined = process.env.MNEMONIC

@@ -407,6 +407,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         proposal.rateToken = _rateToken;
         proposal.rateAmount = _rateAmount;
         proposal.dataUri = _dataUri;
+        proposal.expirationDate = _expirationDate;
 
         emit ProposalUpdated(_serviceId, _profileId, _dataUri, _rateToken, _rateAmount, _expirationDate);
     }
