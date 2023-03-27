@@ -827,7 +827,7 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Alice can cancel only a service that is open', async function () {
       expect(talentLayerService.connect(alice).cancelService(aliceTlId, 5)).to.be.revertedWith(
-        'Only services with the open status can be cancelled',
+        'status must be opened',
       )
     })
 
@@ -852,7 +852,7 @@ describe('TalentLayer protocol global testing', function () {
           },
         )
 
-      await expect(tx).to.be.revertedWith("You can't create proposal for your own service")
+      await expect(tx).to.be.revertedWith("can't create for your own service")
     })
 
     it('After a service has been cancelled, nobody can post a proposal', async function () {
@@ -872,7 +872,7 @@ describe('TalentLayer protocol global testing', function () {
             proposalExpirationDate,
             signature,
           ),
-      ).to.be.revertedWith('Service is not opened')
+      ).to.be.revertedWith('Service not opened')
     })
 
     it("Bob cannot cancel Alice's service", async function () {
@@ -886,7 +886,7 @@ describe('TalentLayer protocol global testing', function () {
         .connect(bob)
         .updateProposal(bobTlId, 1, rateToken, 18, cid, proposalExpirationDate)
 
-      await expect(tx).to.be.revertedWith("This proposal doesn't exist yet")
+      await expect(tx).to.be.revertedWith('Not the owner')
     })
 
     it('Bob can t create a proposal with an amount under the transcation limit amount ', async function () {
@@ -913,7 +913,7 @@ describe('TalentLayer protocol global testing', function () {
               value: alicePlatformProposalPostingFee,
             },
           ),
-      ).to.be.revertedWith('Amount is too low')
+      ).to.be.revertedWith('Amount too low')
     })
 
     it("Bob can't create a proposal without paying the proposal posting fee", async function () {
@@ -1007,7 +1007,7 @@ describe('TalentLayer protocol global testing', function () {
           },
         )
 
-      await expect(tx).to.be.revertedWith('You already created a proposal for this service')
+      await expect(tx).to.be.revertedWith('proposal already exist')
     })
 
     it('Eve can make proposal on Alice service n°1 with a short expiration date (expired)', async function () {
@@ -1087,7 +1087,7 @@ describe('TalentLayer protocol global testing', function () {
             signature,
             { value: alicePlatformProposalPostingFee },
           ),
-      ).to.be.revertedWith('This token is not allowed')
+      ).to.be.revertedWith('Token not allowed')
     })
 
     it('Bob can update his first proposal ', async function () {
@@ -1119,7 +1119,7 @@ describe('TalentLayer protocol global testing', function () {
           proposalExpirationDate,
         )
 
-      await expect(tx).to.be.revertedWith('Amount is too low')
+      await expect(tx).to.be.revertedWith('Amount too low')
     })
 
     it('Should revert if Bob updates his proposal with a non-whitelisted payment token ', async function () {
@@ -1127,7 +1127,7 @@ describe('TalentLayer protocol global testing', function () {
         talentLayerService
           .connect(bob)
           .updateProposal(bobTlId, 1, nonListedRateToken, 2, cid2, proposalExpirationDate),
-      ).to.be.revertedWith('This token is not allowed')
+      ).to.be.revertedWith('Token not allowed')
     })
   })
 
@@ -1269,7 +1269,7 @@ describe('TalentLayer protocol global testing', function () {
 
       it('Alice cannot update her service data after it is confirmed', async function () {
         const tx = talentLayerService.connect(alice).updateServiceData(aliceTlId, serviceId, cid2)
-        await expect(tx).to.be.revertedWith('Service status should be opened')
+        await expect(tx).to.be.revertedWith('status must be opened')
       })
 
       it("Carol can't create a proposal since the service is not opened", async function () {
@@ -1299,7 +1299,7 @@ describe('TalentLayer protocol global testing', function () {
             },
           )
 
-        await expect(tx).to.be.revertedWith('Service is not opened')
+        await expect(tx).to.be.revertedWith('Service not opened')
       })
 
       it('Bob cannot update his proposal after the service is confirmed', async function () {
@@ -1307,7 +1307,7 @@ describe('TalentLayer protocol global testing', function () {
           .connect(bob)
           .updateProposal(bobTlId, serviceId, rateToken, 18, cid, proposalExpirationDate)
 
-        await expect(tx).to.be.revertedWith('Service is not opened')
+        await expect(tx).to.be.revertedWith('Service not opened')
       })
 
       it('The deposit should also validate the proposal.', async function () {
