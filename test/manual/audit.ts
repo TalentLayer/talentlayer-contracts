@@ -12,7 +12,9 @@ import {
   TalentLayerReview,
   TalentLayerService,
 } from '../../typechain-types'
+import { cid, MintStatus, proposalExpirationDate } from '../utils/constant'
 import { deploy } from '../utils/deploy'
+import { getSignatureForService, getSignatureForProposal } from '../utils/signature'
 
 const carolPlatformId = 1
 
@@ -47,9 +49,17 @@ async function deployAndSetup(): Promise<
   await talentLayerPlatformID.connect(deployer).whitelistUser(deployer.address)
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
+  await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
+  await talentLayerService
+    .connect(deployer)
+    .updateAllowedTokenList(ethers.constants.AddressZero, true, 1)
+
   // Mint TL Id for Alice and Bob
   await talentLayerID.connect(alice).mint(carolPlatformId, 'alice')
   await talentLayerID.connect(bob).mint(carolPlatformId, 'bob__')
+
+  // Set service contract address on ID contract
+  await talentLayerID.connect(deployer).setIsServiceContract(talentLayerService.address, true)
 
   return [
     talentLayerID,
@@ -100,6 +110,32 @@ describe('Audit test', function () {
 
       const tx = talentLayerEscrow.connect(alice).claim('1', simpleERC20.address)
       await expect(tx).to.revertedWith('nothing to claim')
+    })
+
+    it.only('must prevent to create a proposal on a non existent Service', async function () {
+      const aliceTlId = await talentLayerID.connect(alice).ids(alice.address)
+      const signature = await getSignatureForService(carol, aliceTlId.toNumber(), 0, cid)
+      await talentLayerService
+        .connect(alice)
+        .createService(aliceTlId, carolPlatformId, cid, signature, {
+          value: 0,
+        })
+
+      const bobTlId = await talentLayerID.connect(bob).ids(bob.address)
+      const signature2 = await getSignatureForProposal(carol, bobTlId.toNumber(), 0, cid)
+      const tx = talentLayerService
+        .connect(bob)
+        .createProposal(
+          bobTlId,
+          99,
+          ethers.constants.AddressZero,
+          1000,
+          carolPlatformId,
+          cid,
+          proposalExpirationDate,
+          signature2,
+        )
+      await expect(tx).to.revertedWith('Service not exist')
     })
   })
 })
