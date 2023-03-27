@@ -595,6 +595,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
         Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service not opened");
+        require(service.ownerId != 0, "Service not exist");
         require(proposals[_serviceId][_profileId].ownerId != _profileId, "proposal already exist");
 
         require(service.ownerId != _profileId, "can't create for your own service");

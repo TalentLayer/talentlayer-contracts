@@ -1193,6 +1193,24 @@ describe('TalentLayer protocol global testing', function () {
           )
       })
 
+      it('must prevent to create a proposal on a non existent service', async function () {
+        const carolTlId = await talentLayerID.connect(carol).ids(carol.address)
+        const signature2 = await getSignatureForProposal(bob, carolTlId.toNumber(), 0, cid)
+        const tx = talentLayerService
+          .connect(carol)
+          .createProposal(
+            carolTlId,
+            99,
+            ethers.constants.AddressZero,
+            1000,
+            bobPlatformId,
+            cid,
+            proposalExpirationDate,
+            signature2,
+          )
+        await expect(tx).to.revertedWith('Service not exist')
+      })
+
       it('Alice cannot update protocolEscrowFeeRate or protocolWallet', async function () {
         await expect(
           talentLayerEscrow.connect(alice).updateProtocolEscrowFeeRate(4000),
