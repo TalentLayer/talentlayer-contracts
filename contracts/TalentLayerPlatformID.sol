@@ -153,7 +153,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         _setupRole(OWNER_ROLE, msg.sender);
         mintFee = 0;
         validArbitrators[address(0)] = true; // The zero address means no arbitrator.
-        updateMinArbitrationFeeTimeout(1 days); // TODO: update this value
+        updateMinArbitrationFeeTimeout(10 days);
         // Increment counter to start platform ids at index 1
         nextPlatformId.increment();
         mintStatus = MintStatus.ONLY_WHITELIST;
