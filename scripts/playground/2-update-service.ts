@@ -26,7 +26,7 @@ async function main() {
   )
 
   const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
-  console.log('Dave Talent Layer Id', daveTalentLayerIdPlatform)
+  console.log('Dave TalentLayer Id', daveTalentLayerIdPlatform)
 
   /* ----------- Alice Update her Service -------------- */
 

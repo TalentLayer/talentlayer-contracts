@@ -443,7 +443,7 @@ describe('TalentLayer protocol global testing', function () {
     })
   })
 
-  describe('Talent Layer ID contract test', function () {
+  describe('TalentLayer ID contract test', function () {
     it("Alice can't mint a talentLayerId with caps characters", async function () {
       await expect(talentLayerID.connect(alice).mint('1', 'Alice')).to.be.revertedWithCustomError(
         talentLayerID,
@@ -1885,7 +1885,7 @@ describe('TalentLayer protocol global testing', function () {
     })
   })
 
-  describe('Talent Layer Review contract test', function () {
+  describe('TalentLayer Review contract test', function () {
     const unfinishedServiceId = 1 // Service between Alice (buyer) and Carol (seller)
     const finishedServiceId = 2 // Service between Alice (buyer) and Bob (seller)
     const bobReviewId = 1 // Review received by Bob
@@ -1985,7 +1985,7 @@ describe('TalentLayer protocol global testing', function () {
     })
   })
 
-  describe('Talent Layer Arbitrator contract test', function () {
+  describe('TalentLayer Arbitrator contract test', function () {
     it('the owner of the platform can update the arbitration price', async function () {
       const newArbitrationPrice = 1000
       const platformId = 1
