@@ -14,6 +14,10 @@ import "./libs/ERC2771RecipientUpgradeable.sol";
 import {IArbitrable} from "./interfaces/IArbitrable.sol";
 import {Arbitrator} from "./Arbitrator.sol";
 
+/**
+ * @title TalentLayer Escrow Contract
+ * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
+ */
 contract TalentLayerEscrow is
     Initializable,
     ERC2771RecipientUpgradeable,
@@ -723,14 +727,6 @@ contract TalentLayerEscrow is
         _safeTransferBalance(recipient, _tokenAddress, amount);
 
         emit FeesClaimed(_platformId, _tokenAddress, amount);
-    }
-
-    /**
-     * @notice Allows the platform to claim all its tokens & / or ETH balances.
-     * @param _platformId The ID of the platform claiming the balance.
-     */
-    function claimAll(uint256 _platformId) external whenNotPaused {
-        //TODO Copy Lugus (need to see how to handle approved token lists)
     }
 
     // =========================== Arbitrator functions ==============================

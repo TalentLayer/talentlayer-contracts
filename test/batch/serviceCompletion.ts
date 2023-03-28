@@ -195,10 +195,10 @@ describe('Completion of service', function () {
         } else {
           // Can't mint review if the service is uncompleted
           const tx = talentLayerReview.connect(alice).mint(aliceTlId, serviceId, cid, 5)
-          await expect(tx).to.be.revertedWith('The service is not finished yet')
+          await expect(tx).to.be.revertedWith('Service not finished yet')
 
           const tx2 = talentLayerReview.connect(bob).mint(bobTlId, serviceId, cid, 5)
-          await expect(tx2).to.be.revertedWith('The service is not finished yet')
+          await expect(tx2).to.be.revertedWith('Service not finished yet')
         }
       })
     })

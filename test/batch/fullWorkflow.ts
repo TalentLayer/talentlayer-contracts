@@ -130,8 +130,8 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can check the number of id minted', async function () {
-      await talentLayerPlatformID.connect(alice).numberMinted(alice.address)
-      expect(await talentLayerPlatformID.numberMinted(alice.address)).to.be.equal('1')
+      await talentLayerPlatformID.connect(alice).balanceOf(alice.address)
+      expect(await talentLayerPlatformID.balanceOf(alice.address)).to.be.equal('1')
     })
 
     it('Alice can update the platform Data', async function () {
@@ -443,7 +443,7 @@ describe('TalentLayer protocol global testing', function () {
     })
   })
 
-  describe('Talent Layer ID contract test', function () {
+  describe('TalentLayer ID contract test', function () {
     it("Alice can't mint a talentLayerId with caps characters", async function () {
       await expect(talentLayerID.connect(alice).mint('1', 'Alice')).to.be.revertedWithCustomError(
         talentLayerID,
@@ -1885,7 +1885,7 @@ describe('TalentLayer protocol global testing', function () {
     })
   })
 
-  describe('Talent Layer Review contract test', function () {
+  describe('TalentLayer Review contract test', function () {
     const unfinishedServiceId = 1 // Service between Alice (buyer) and Carol (seller)
     const finishedServiceId = 2 // Service between Alice (buyer) and Bob (seller)
     const bobReviewId = 1 // Review received by Bob
@@ -1894,13 +1894,13 @@ describe('TalentLayer protocol global testing', function () {
     it("Alice can't write a review as the service is not finished", async function () {
       await expect(
         talentLayerReview.connect(alice).mint(aliceTlId, unfinishedServiceId, cid, 3),
-      ).to.be.revertedWith('The service is not finished yet')
+      ).to.be.revertedWith('Service not finished yet')
     })
 
     it("Carol can't write a review as she's not an actor of the service", async function () {
       await expect(
         talentLayerReview.connect(carol).mint(carolTlId, finishedServiceId, cid, 5),
-      ).to.be.revertedWith("You're not an actor of this service")
+      ).to.be.revertedWith('Not an actor of this service')
     })
 
     it('The rating needs to be between 0 and 5', async function () {
@@ -1948,13 +1948,13 @@ describe('TalentLayer protocol global testing', function () {
     it("Alice can't review Bob again for the same service", async function () {
       await expect(
         talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, cid, 4),
-      ).to.be.revertedWith('You have already minted a review for this service')
+      ).to.be.revertedWith('Already minted')
     })
 
     it("Bob can't review Alice again for the same service", async function () {
       await expect(
         talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, cid, 4),
-      ).to.be.revertedWith('You have already minted a review for this service')
+      ).to.be.revertedWith('Already minted')
     })
 
     it('Alice should not be able to transfer her review to carol', async function () {
@@ -1985,7 +1985,7 @@ describe('TalentLayer protocol global testing', function () {
     })
   })
 
-  describe('Talent Layer Arbitrator contract test', function () {
+  describe('TalentLayer Arbitrator contract test', function () {
     it('the owner of the platform can update the arbitration price', async function () {
       const newArbitrationPrice = 1000
       const platformId = 1

@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.7.0) (token/ERC721/ERC721.sol)
-
 pragma solidity ^0.8.9;
 
 import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
@@ -20,19 +18,21 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 /**
  * @title TalentLayer Review Contract
- * @author TalentLayer Team
+ * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
-    /// @notice Review information struct
-    /// @param id the id of the review
-    /// @param ownerId the talentLayerId of the user who received the review
-    /// @param dataUri the IPFS URI of the review metadata
-    /// @param serviceId the id of the service of the review
-    /// @param rating the rating of the review
+    /**
+     * @notice Review information struct
+     * @param id the id of the review
+     * @param ownerId the talentLayerId of the user who received the review
+     * @param dataUri the IPFS URI of the review metadata
+     * @param serviceId the id of the service of the review
+     * @param rating the rating of the review
+     */
     struct Review {
         uint256 id;
         uint256 ownerId;
@@ -126,19 +126,19 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
 
         require(
             _profileId == service.ownerId || _profileId == service.acceptedProposalId,
-            "You're not an actor of this service"
+            "Not an actor of this service"
         );
-        require(service.status == ITalentLayerService.Status.Finished, "The service is not finished yet");
+        require(service.status == ITalentLayerService.Status.Finished, "Service not finished yet");
         require(_rating <= 5, "Invalid rating");
 
         uint256 toId;
         if (_profileId == service.ownerId) {
             toId = service.acceptedProposalId;
-            require(!hasSellerBeenReviewed[_serviceId], "You have already minted a review for this service");
+            require(!hasSellerBeenReviewed[_serviceId], "Already minted");
             hasSellerBeenReviewed[_serviceId] = true;
         } else {
             toId = service.ownerId;
-            require(!hasBuyerBeenReviewed[_serviceId], "You have already minted a review for this service");
+            require(!hasBuyerBeenReviewed[_serviceId], "Already minted");
             hasBuyerBeenReviewed[_serviceId] = true;
         }
 
@@ -150,7 +150,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
     // =========================== Private functions ===========================
 
     /**
-     * @dev Mints a review token
+     * @dev After the mint of a review
      * @param _serviceId The ID of the service linked to the review
      * @param _to The address of the recipient
      * @param _rating The review rate
@@ -266,17 +266,17 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
 
     /**
      * @dev Emitted after a review token is minted
-     * @param _serviceId The ID of the service
-     * @param _toId The TalentLayer Id of the recipient
-     * @param _tokenId The ID of the review token
-     * @param _rating The rating of the review
-     * @param _reviewUri The IPFS URI of the review metadata
+     * @param serviceId The ID of the service
+     * @param toId The TalentLayer Id of the recipient
+     * @param tokenId The ID of the review token
+     * @param rating The rating of the review
+     * @param reviewUri The IPFS URI of the review metadata
      */
     event Mint(
-        uint256 indexed _serviceId,
-        uint256 indexed _toId,
-        uint256 indexed _tokenId,
-        uint256 _rating,
-        string _reviewUri
+        uint256 indexed serviceId,
+        uint256 indexed toId,
+        uint256 indexed tokenId,
+        uint256 rating,
+        string reviewUri
     );
 }

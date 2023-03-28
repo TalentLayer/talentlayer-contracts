@@ -103,7 +103,7 @@ describe('Delegation System', function () {
     it('Alice can add Dave to her delegates', async function () {
       // Fails if the caller is not the owner of the TL Id
       const tx = talentLayerID.connect(bob).addDelegate(aliceTlId, dave.address)
-      await expect(tx).to.be.revertedWith('Only owner can add delegates')
+      await expect(tx).to.be.revertedWith('Not the owner')
 
       await talentLayerID.connect(alice).addDelegate(aliceTlId, dave.address)
       const isDelegate = await talentLayerID.isDelegate(aliceTlId, dave.address)
@@ -228,7 +228,7 @@ describe('Delegation System', function () {
     it('Alice can remove Dave from her delegates', async function () {
       // Fails if the caller is not the owner of the TL Id
       const tx = talentLayerID.connect(bob).removeDelegate(aliceTlId, dave.address)
-      await expect(tx).to.be.revertedWith('Only owner can remove delegates')
+      await expect(tx).to.be.revertedWith('Not the owner')
 
       await talentLayerID.connect(alice).removeDelegate(aliceTlId, dave.address)
       const isDelegate = await talentLayerID.isDelegate(alice.address, dave.address)

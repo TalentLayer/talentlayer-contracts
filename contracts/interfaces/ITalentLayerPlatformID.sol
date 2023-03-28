@@ -6,7 +6,7 @@ import "../Arbitrator.sol";
 
 /**
  * @title Platform ID Interface
- * @author TalentLayer Team
+ * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 interface ITalentLayerPlatformID is IERC721Upgradeable {
     struct Platform {
@@ -23,7 +23,7 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
         address signer;
     }
 
-    function numberMinted(address _platformAddress) external view returns (uint256);
+    function balanceOf(address _platformAddress) external view returns (uint256);
 
     function getOriginServiceFeeRate(uint256 _platformId) external view returns (uint16);
 
