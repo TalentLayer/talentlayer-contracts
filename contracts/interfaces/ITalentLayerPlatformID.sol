@@ -6,7 +6,7 @@ import "../Arbitrator.sol";
 
 /**
  * @title Platform ID Interface
- * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
+ * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 interface ITalentLayerPlatformID is IERC721Upgradeable {
     struct Platform {

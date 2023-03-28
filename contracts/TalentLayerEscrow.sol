@@ -16,7 +16,7 @@ import {Arbitrator} from "./Arbitrator.sol";
 
 /**
  * @title TalentLayer Escrow Contract
- * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
+ * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 contract TalentLayerEscrow is
     Initializable,

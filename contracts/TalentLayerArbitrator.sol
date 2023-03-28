@@ -6,7 +6,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
 /**
  * @title TalentLayer Arbitrator
- * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer <hi@talentlayer.org> | Website: https://talentlayer.com | Twitter: @talentlayer
+ * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer <labs@talentlayer.org> | Website: https://talentlayer.com | Twitter: @talentlayer
  */
 contract TalentLayerArbitrator is Arbitrator {
     uint256 constant NOT_PAYABLE_VALUE = (2 ** 256 - 2) / 2; // High value to be sure that the appeal is too expensive.

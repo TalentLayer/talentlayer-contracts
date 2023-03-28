@@ -10,7 +10,7 @@ import {Arbitrator} from "./Arbitrator.sol";
 
 /**
  * @title Platform ID Contract
- * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
+ * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -31,18 +31,20 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
 
     // =========================== Variables ==============================
 
-    /// @notice TalentLayer Platform information struct
-    /// @param id the TalentLayer Platform Id
-    /// @param name the name of the platform
-    /// @param dataUri the IPFS URI of the Platform metadata
-    /// @param originServiceFeeRate the %fee (per ten thousands) asked by the platform for each service created on the platform
-    /// @param originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
-    /// @param servicePostingFee the fee (flat) asked by the platform to post a service on the platform
-    /// @param proposalPostingFee the fee (flat) asked by the platform to post a proposal on the platform
-    /// @param arbitrator address of the arbitrator used by the platform
-    /// @param arbitratorExtraData extra information for the arbitrator
-    /// @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
-    /// @param signer address used to sign operations which need platform authorization
+    /**
+     * @notice TalentLayer Platform information struct
+     * @param id the TalentLayer Platform Id
+     * @param name the name of the platform
+     * @param dataUri the IPFS URI of the Platform metadata
+     * @param originServiceFeeRate the %fee (per ten thousands) asked by the platform for each service created on the platform
+     * @param originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
+     * @param servicePostingFee the fee (flat) asked by the platform to post a service on the platform
+     * @param proposalPostingFee the fee (flat) asked by the platform to post a proposal on the platform
+     * @param arbitrator address of the arbitrator used by the platform
+     * @param arbitratorExtraData extra information for the arbitrator
+     * @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
+     * @param signer address used to sign operations which need platform authorization
+     */
     struct Platform {
         uint256 id;
         string name;
@@ -88,7 +90,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      */
     mapping(address => uint256) public ids;
 
-    /// Price to mint a platform id (in wei, upgradable)
+    /**
+     * @notice Price to mint a platform id (in wei, upgradable)
+     */
     uint256 public mintFee;
 
     /**

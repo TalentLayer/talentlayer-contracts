@@ -13,7 +13,7 @@ import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Stri
 
 /**
  * @title TalentLayer ID Contract
- * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
+ * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
