@@ -228,6 +228,15 @@ describe('TalentLayer protocol global testing', function () {
 
       expect(newAlicePlatformData.originServiceFeeRate).to.be.equal(6)
       expect(newAlicePlatformData.originValidatedProposalFeeRate).to.be.equal(10)
+
+      const originServiceFeeRate = await talentLayerPlatformID.getOriginServiceFeeRate(
+        alicePlatformId,
+      )
+      expect(originServiceFeeRate).to.equal(6)
+
+      const originValidatedProposalFeeRate =
+        await talentLayerPlatformID.getOriginValidatedProposalFeeRate(alicePlatformId)
+      expect(originValidatedProposalFeeRate).to.equal(10)
     })
 
     it('The deployer can update the mint fee', async function () {
@@ -506,7 +515,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(
         await talentLayerID.connect(alice).mint('1', 'ali-ce'),
       ).not.to.be.revertedWithCustomError(talentLayerID, 'HandleContainsInvalidCharacters')
-      expect(await talentLayerID.connect(bob).mint('1', 'bob__')).not.to.be.revertedWithCustomError(
+      expect(await talentLayerID.connect(bob).mint('0', 'bob__')).not.to.be.revertedWithCustomError(
         talentLayerID,
         'HandleContainsInvalidCharacters',
       )
@@ -522,6 +531,14 @@ describe('TalentLayer protocol global testing', function () {
 
       const tokenURI = await talentLayerID.tokenURI(2)
       expect(tokenURI).to.be.not.null
+
+      const aliceOriginPlatform = await talentLayerID.getOriginatorPlatformIdByAddress(
+        alice.address,
+      )
+      expect(aliceOriginPlatform).to.be.equal('1')
+
+      const bobOriginPlatform = await talentLayerID.getOriginatorPlatformIdByAddress(bob.address)
+      expect(bobOriginPlatform).to.be.equal('0')
     })
 
     it('Carol can mint a talentLayerId without a platform', async function () {
@@ -2003,6 +2020,14 @@ describe('TalentLayer protocol global testing', function () {
       const extraData = ethers.utils.hexZeroPad(ethers.utils.hexlify(platformId), 32)
       const updatedArbitrationPrice = await talentLayerArbitrator.arbitrationCost(extraData)
       expect(updatedArbitrationPrice).to.be.equal(newArbitrationPrice)
+    })
+  })
+
+  describe('Check interfaces support by contracts', function () {
+    it('Every contracts should define a function supportsInterface', async function () {
+      expect(await talentLayerPlatformID.supportsInterface('0x01ffc9a7')).to.be.equal(true)
+      expect(await talentLayerReview.supportsInterface('0x01ffc9a7')).to.be.equal(true)
+      expect(await talentLayerID.supportsInterface('0x01ffc9a7')).to.be.equal(true)
     })
   })
 })
