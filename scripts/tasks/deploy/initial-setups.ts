@@ -57,11 +57,6 @@ task(
     console.log('------------------------')
 
     console.log('------------------------')
-    console.log('Set profile minting status to public')
-    await run('update-profile-minting-status', { mintstatus: '2' })
-    console.log('------------------------')
-
-    console.log('------------------------')
     console.log('Set service contract address on TalentLayerID')
     const talentLayerServiceAddress = getDeploymentProperty(
       network.name,
