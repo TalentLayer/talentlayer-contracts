@@ -1894,13 +1894,13 @@ describe('TalentLayer protocol global testing', function () {
     it("Alice can't write a review as the service is not finished", async function () {
       await expect(
         talentLayerReview.connect(alice).mint(aliceTlId, unfinishedServiceId, cid, 3),
-      ).to.be.revertedWith('The service is not finished yet')
+      ).to.be.revertedWith('Service not finished yet')
     })
 
     it("Carol can't write a review as she's not an actor of the service", async function () {
       await expect(
         talentLayerReview.connect(carol).mint(carolTlId, finishedServiceId, cid, 5),
-      ).to.be.revertedWith("You're not an actor of this service")
+      ).to.be.revertedWith('Not an actor of this service')
     })
 
     it('The rating needs to be between 0 and 5', async function () {
@@ -1948,13 +1948,13 @@ describe('TalentLayer protocol global testing', function () {
     it("Alice can't review Bob again for the same service", async function () {
       await expect(
         talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, cid, 4),
-      ).to.be.revertedWith('You have already minted a review for this service')
+      ).to.be.revertedWith('Already minted')
     })
 
     it("Bob can't review Alice again for the same service", async function () {
       await expect(
         talentLayerReview.connect(bob).mint(bobTlId, finishedServiceId, cid, 4),
-      ).to.be.revertedWith('You have already minted a review for this service')
+      ).to.be.revertedWith('Already minted')
     })
 
     it('Alice should not be able to transfer her review to carol', async function () {
