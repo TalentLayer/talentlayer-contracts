@@ -729,14 +729,6 @@ contract TalentLayerEscrow is
         emit FeesClaimed(_platformId, _tokenAddress, amount);
     }
 
-    /**
-     * @notice Allows the platform to claim all its tokens & / or ETH balances.
-     * @param _platformId The ID of the platform claiming the balance.
-     */
-    function claimAll(uint256 _platformId) external whenNotPaused {
-        //TODO Copy Lugus (need to see how to handle approved token lists)
-    }
-
     // =========================== Arbitrator functions ==============================
 
     /**
