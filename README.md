@@ -18,7 +18,6 @@ Understand the protocol and how we tackle our main problems:
 
 ## Deployment addresses:
 
-- [Fuji](./.deployment/fuji.json)
 - [Mumbai](./.deployment/mumbai.json)
 
 ## Setup locally
@@ -28,6 +27,16 @@ Understand the protocol and how we tackle our main problems:
 - Install dependencies: `npm install`
 - Launch your local node: `npx hardhat node`
 - Deploy contract: `npx hardhat deploy-full --use-test-erc20 --network localhost`
+
+## Tests 
+
+### Coverage
+
+<img width="648" alt="image" src="https://user-images.githubusercontent.com/747152/228285991-de2efaac-f078-4942-8785-1dba88d76984.png">
+
+### Run
+
+- `npx hardhat test`
 
 ## Scripts
 
