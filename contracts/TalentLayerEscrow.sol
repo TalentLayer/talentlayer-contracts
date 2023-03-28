@@ -14,6 +14,10 @@ import "./libs/ERC2771RecipientUpgradeable.sol";
 import {IArbitrable} from "./interfaces/IArbitrable.sol";
 import {Arbitrator} from "./Arbitrator.sol";
 
+/**
+ * @title TalentLayer Escrow Contract
+ * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
+ */
 contract TalentLayerEscrow is
     Initializable,
     ERC2771RecipientUpgradeable,

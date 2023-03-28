@@ -4,8 +4,9 @@ pragma solidity ^0.8.9;
 import {Arbitrator, IArbitrable} from "./Arbitrator.sol";
 import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 
-/** @title TalentLayer Arbitrator
- *  @dev Fork from centralized arbitrator
+/**
+ * @title TalentLayer Arbitrator
+ * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer <hi@talentlayer.org> | Website: https://talentlayer.com | Twitter: @talentlayer
  */
 contract TalentLayerArbitrator is Arbitrator {
     uint256 constant NOT_PAYABLE_VALUE = (2 ** 256 - 2) / 2; // High value to be sure that the appeal is too expensive.
@@ -40,16 +41,18 @@ contract TalentLayerArbitrator is Arbitrator {
 
     Dispute[] public disputes;
 
-    /** @dev Constructor. Set the initial arbitration price.
-     *  @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
+    /**
+     * @dev Constructor. Set the initial arbitration price.
+     * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
      */
     constructor(address _talentLayerPlatformIDAddress) {
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
     }
 
-    /** @dev Set the arbitration price. Only callable by the owner.
-     *  @param _platformId Id of the platform to set the arbitration price for.
-     *  @param _arbitrationPrice Amount to be paid for arbitration.
+    /**
+     * @dev Set the arbitration price. Only callable by the owner.
+     * @param _platformId Id of the platform to set the arbitration price for.
+     * @param _arbitrationPrice Amount to be paid for arbitration.
      */
     function setArbitrationPrice(uint256 _platformId, uint256 _arbitrationPrice) public {
         require(
@@ -60,17 +63,19 @@ contract TalentLayerArbitrator is Arbitrator {
         arbitrationPrice[_platformId] = _arbitrationPrice;
     }
 
-    /** @dev Cost of arbitration. Accessor to arbitrationPrice.
-     *  @param _extraData Should be the id of the platform.
-     *  @return fee Amount to be paid.
+    /**
+     * @dev Cost of arbitration. Accessor to arbitrationPrice.
+     * @param _extraData Should be the id of the platform.
+     * @return fee Amount to be paid.
      */
     function arbitrationCost(bytes memory _extraData) public view override returns (uint256 fee) {
         uint256 platformId = bytesToUint(_extraData);
         return arbitrationPrice[platformId];
     }
 
-    /** @dev Cost of appeal. Since it is not possible, it's a high value which can never be paid.
-     *  @return fee Amount to be paid.
+    /**
+     * @dev Cost of appeal. Since it is not possible, it's a high value which can never be paid.
+     * @return fee Amount to be paid.
      */
     function appealCost(
         uint256 /*_disputeID*/,
@@ -79,11 +84,12 @@ contract TalentLayerArbitrator is Arbitrator {
         return NOT_PAYABLE_VALUE;
     }
 
-    /** @dev Create a dispute. Must be called by the arbitrable contract.
-     *  Must be paid at least arbitrationCost().
-     *  @param _choices Amount of choices the arbitrator can make in this dispute. When ruling ruling<=choices.
-     *  @param _extraData Should be the id of the platform where the dispute is arising.
-     *  @return disputeID ID of the dispute created.
+    /**
+     * @dev Create a dispute. Must be called by the arbitrable contract.
+     * Must be paid at least arbitrationCost().
+     * @param _choices Amount of choices the arbitrator can make in this dispute. When ruling ruling<=choices.
+     * @param _extraData Should be the id of the platform where the dispute is arising.
+     * @return disputeID ID of the dispute created.
      */
     function createDispute(
         uint256 _choices,
@@ -106,9 +112,10 @@ contract TalentLayerArbitrator is Arbitrator {
         emit DisputeCreation(disputeID, IArbitrable(msg.sender));
     }
 
-    /** @dev Give a ruling. UNTRUSTED.
-     *  @param _disputeID ID of the dispute to rule.
-     *  @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
+    /**
+     * @dev Give a ruling. UNTRUSTED.
+     * @param _disputeID ID of the dispute to rule.
+     * @param _ruling Ruling given by the arbitrator. Note that 0 means "Not able/wanting to make a decision".
      */
     function giveRuling(uint256 _disputeID, uint256 _ruling) public {
         Dispute storage dispute = disputes[_disputeID];
@@ -129,17 +136,19 @@ contract TalentLayerArbitrator is Arbitrator {
         dispute.arbitrated.rule(_disputeID, _ruling);
     }
 
-    /** @dev Return the status of a dispute.
-     *  @param _disputeID ID of the dispute to rule.
-     *  @return status The status of the dispute.
+    /**
+     * @dev Return the status of a dispute.
+     * @param _disputeID ID of the dispute to rule.
+     * @return status The status of the dispute.
      */
     function disputeStatus(uint256 _disputeID) public view override returns (DisputeStatus status) {
         return disputes[_disputeID].status;
     }
 
-    /** @dev Return the ruling of a dispute.
-     *  @param _disputeID ID of the dispute to rule.
-     *  @return ruling The ruling which would or has been given.
+    /**
+     * @dev Return the ruling of a dispute.
+     * @param _disputeID ID of the dispute to rule.
+     * @return ruling The ruling which would or has been given.
      */
     function currentRuling(uint256 _disputeID) public view override returns (uint256 ruling) {
         return disputes[_disputeID].ruling;

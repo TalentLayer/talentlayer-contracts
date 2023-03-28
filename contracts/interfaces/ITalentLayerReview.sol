@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /**
  * @title TalentLayer Review Contract
- * @author TalentLayer Team
+ * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 interface ITalentLayerReview {
     struct Review {

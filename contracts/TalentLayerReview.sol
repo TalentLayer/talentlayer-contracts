@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.7.0) (token/ERC721/ERC721.sol)
-
 pragma solidity ^0.8.9;
 
 import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
@@ -20,7 +18,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 /**
  * @title TalentLayer Review Contract
- * @author TalentLayer Team
+ * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using AddressUpgradeable for address;

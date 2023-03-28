@@ -10,7 +10,7 @@ import {Arbitrator} from "./Arbitrator.sol";
 
 /**
  * @title Platform ID Contract
- * @author TalentLayer Team
+ * @author TalentLayer Team <hi@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
