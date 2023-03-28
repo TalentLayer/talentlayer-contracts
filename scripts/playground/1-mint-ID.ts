@@ -30,6 +30,9 @@ async function main() {
     getDeploymentProperty(network, DeploymentProperty.TalentLayerPlatformID),
   )
 
+  // Active public mint
+  await talentLayerIdContract.updateMintStatus(2)
+
   // Dave is a TalentLayer Platform and a TalentLayer User
   const daveTalentLayerIdPlatform = await platformIdContract.ids(dave.address)
   console.log('Dave talentLayerIdPlatform', daveTalentLayerIdPlatform)
