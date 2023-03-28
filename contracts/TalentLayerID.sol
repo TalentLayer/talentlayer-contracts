@@ -253,7 +253,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     function mint(
         uint256 _platformId,
         string calldata _handle
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
+    ) external payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         address sender = _msgSender();
         _safeMint(sender, nextProfileId.current());
@@ -270,7 +270,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         address _address,
         uint256 _platformId,
         string calldata _handle
-    ) public payable canMint(_address, _handle, _platformId) canPay(_handle) returns (uint256) {
+    ) external payable canMint(_address, _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.PUBLIC, "Public mint is not enabled");
         _safeMint(_address, nextProfileId.current());
         return _afterMint(_address, _handle, _platformId, msg.value);
@@ -286,7 +286,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId,
         string calldata _handle,
         bytes32[] calldata _proof
-    ) public payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
+    ) external payable canMint(_msgSender(), _handle, _platformId) canPay(_handle) returns (uint256) {
         require(mintStatus == MintStatus.ONLY_WHITELIST, "Whitelist mint is not enabled");
         address sender = _msgSender();
         require(isWhitelisted(sender, _handle, _proof), "You're not whitelisted");
@@ -301,7 +301,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _profileId The TalentLayer ID of the user
      * @param _newCid New IPFS URI
      */
-    function updateProfileData(uint256 _profileId, string memory _newCid) public onlyOwnerOrDelegate(_profileId) {
+    function updateProfileData(uint256 _profileId, string memory _newCid) external onlyOwnerOrDelegate(_profileId) {
         require(bytes(_newCid).length == 46, "Invalid cid");
         profiles[_profileId].dataUri = _newCid;
 
@@ -345,7 +345,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @notice Updates the mint fee.
      * @param _mintFee The new mint fee
      */
-    function updateMintFee(uint256 _mintFee) public onlyOwner {
+    function updateMintFee(uint256 _mintFee) external onlyOwner {
         mintFee = _mintFee;
         emit MintFeeUpdated(_mintFee);
     }
@@ -353,7 +353,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     /**
      * @notice Withdraws the contract balance to the owner.
      */
-    function withdraw() public onlyOwner {
+    function withdraw() external onlyOwner {
         (bool sent, ) = payable(_msgSender()).call{value: address(this).balance}("");
         require(sent, "Failed to withdraw Ether");
     }
@@ -368,7 +368,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         uint256 _platformId,
         address _userAddress,
         string calldata _handle
-    ) public canMint(_userAddress, _handle, _platformId) onlyOwner returns (uint256) {
+    ) external canMint(_userAddress, _handle, _platformId) onlyOwner returns (uint256) {
         _safeMint(_userAddress, nextProfileId.current());
         return _afterMint(_userAddress, _handle, _platformId, 0);
     }
@@ -377,7 +377,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @notice Allows the owner to set the merkle root for the whitelist for reserved handles
      * @param root The new merkle root
      */
-    function setWhitelistMerkleRoot(bytes32 root) public onlyOwner {
+    function setWhitelistMerkleRoot(bytes32 root) external onlyOwner {
         whitelistMerkleRoot = root;
     }
 
@@ -385,7 +385,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @notice Updates the mint status.
      * @param _mintStatus The new mint status
      */
-    function updateMintStatus(MintStatus _mintStatus) public onlyOwner {
+    function updateMintStatus(MintStatus _mintStatus) external onlyOwner {
         mintStatus = _mintStatus;
         emit MintStatusUpdated(_mintStatus);
     }
@@ -404,7 +404,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _address The address
      * @param _isServiceContract Whether the address is a service contract
      */
-    function setIsServiceContract(address _address, bool _isServiceContract) public onlyOwner {
+    function setIsServiceContract(address _address, bool _isServiceContract) external onlyOwner {
         isServiceContract[_address] = _isServiceContract;
     }
 
