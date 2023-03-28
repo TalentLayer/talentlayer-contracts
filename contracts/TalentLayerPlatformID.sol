@@ -162,12 +162,20 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     // =========================== View functions ==============================
 
     /**
+     * @notice Check whether the TalentLayer Platform Id is valid.
+     * @param _platformId The Platform Id of the platform.
+     */
+    function isValid(uint256 _platformId) public view {
+        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+    }
+
+    /**
      * @notice Allows retrieval of a Platform fee
      * @param _platformId The Platform Id of the platform
      * @return The Platform fee
      */
     function getOriginServiceFeeRate(uint256 _platformId) external view returns (uint16) {
-        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        isValid(_platformId);
         return platforms[_platformId].originServiceFeeRate;
     }
 
@@ -177,7 +185,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @return The Platform fee
      */
     function getOriginValidatedProposalFeeRate(uint256 _platformId) external view returns (uint16) {
-        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        isValid(_platformId);
         return platforms[_platformId].originValidatedProposalFeeRate;
     }
 
@@ -187,7 +195,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @return The Service posting fee
      */
     function getServicePostingFee(uint256 _platformId) external view returns (uint256) {
-        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        isValid(_platformId);
         return platforms[_platformId].servicePostingFee;
     }
 
@@ -197,7 +205,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @return The Proposal posting fee
      */
     function getProposalPostingFee(uint256 _platformId) external view returns (uint256) {
-        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        isValid(_platformId);
         return platforms[_platformId].proposalPostingFee;
     }
 
@@ -207,7 +215,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @return The signer of the platform
      */
     function getSigner(uint256 _platformId) external view returns (address) {
-        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        isValid(_platformId);
         return platforms[_platformId].signer;
     }
 
@@ -217,7 +225,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @return Arbitrator The Platform arbitrator
      */
     function getPlatform(uint256 _platformId) external view returns (Platform memory) {
-        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
+        isValid(_platformId);
         return platforms[_platformId];
     }
 
@@ -478,16 +486,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
             ) revert HandleContainsInvalidCharacters();
             ++i;
         }
-    }
-
-    // =========================== External functions ==============================
-
-    /**
-     * @notice Check whether the TalentLayer Platform Id is valid.
-     * @param _platformId The Platform Id of the platform.
-     */
-    function isValid(uint256 _platformId) external view {
-        require(_platformId > 0 && _platformId < nextPlatformId.current(), "Invalid platform ID");
     }
 
     // =========================== Overrides ==============================
