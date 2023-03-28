@@ -9,7 +9,7 @@ export enum Network {
 }
 
 export type NetworkConfig = {
-  multisigAddressList: { deployer?: `0x${string}`; fee: `0x${string}` }
+  multisigAddressList: { admin?: `0x${string}`; fee: `0x${string}` }
   allowedTokenList: {
     [key: string]: {
       address: `0x${string}`
@@ -62,8 +62,8 @@ const fuji: NetworkConfig = {
 
 const mumbai: NetworkConfig = {
   multisigAddressList: {
-    fee: '0x3Fba71369E5E2E947AE2320274b1677de7D28120',
-    deployer: '0x99f117069F9ED15476003502AD8D96107A180648',
+    fee: '0xfBF3D68b1750032BDDa47D555D68143CfBB43EbC',
+    admin: '0x99f117069F9ED15476003502AD8D96107A180648',
   },
   allowedTokenList: {
     MATIC: {
