@@ -16,7 +16,7 @@ interface ITalentLayerID {
 
     function balanceOf(address _user) external view returns (uint256);
 
-    function mint(string memory _handle) external returns (uint256);
+    function mint(uint256 _platformId, string calldata _handle) external payable returns (uint256);
 
     function mintForAddress(
         address _address,
@@ -34,11 +34,7 @@ interface ITalentLayerID {
         uint256 _platformId,
         string calldata _handle,
         bytes32[] calldata _proof
-    ) external returns (uint256);
-
-    function setBaseURI(string memory _newBaseURI) external;
-
-    function _afterMint(string memory _handle) external;
+    ) external payable returns (uint256);
 
     function ownerOf(uint256 _tokenId) external view returns (address);
 
