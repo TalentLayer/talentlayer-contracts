@@ -166,15 +166,6 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     // =========================== View functions ==============================
 
     /**
-     * @notice Allows retrieval of number of minted TalentLayerIDs for a user.
-     * @param _user Address of the owner of the TalentLayerID
-     * @return the number of tokens minted by the user
-     */
-    function numberMinted(address _user) public view returns (uint256) {
-        return balanceOf(_user);
-    }
-
-    /**
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
@@ -194,7 +185,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      * @param _profileId The TalentLayer ID to check
      */
     function isValid(uint256 _profileId) external view {
-        require(_profileId > 0 && _profileId < nextProfileId.current(), "Your ID is not a valid TalentLayer ID");
+        require(_profileId > 0 && _profileId < nextProfileId.current(), "not valid");
     }
 
     /**
@@ -446,7 +437,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     }
 
     /**
-     * @notice Validate characters used in the handle, only alphanumeric, only lowercase characters, - and _ are allowed
+     * @notice Validate characters used in the handle, only alphanumeric, only lowercase characters, - and _ are allowed but as first one
      * @param handle Handle to validate
      */
     function _validateHandle(string calldata handle) private pure {
@@ -590,7 +581,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
         string calldata _handle,
         uint256 _platformId
     ) {
-        require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
+        require(balanceOf(_userAddress) == 0, "You already have a TalentLayerID");
         require(!takenHandles[_handle], "Handle already taken");
         if (_platformId != PROTOCOL_ID) {
             talentLayerPlatformIdContract.isValid(_platformId);

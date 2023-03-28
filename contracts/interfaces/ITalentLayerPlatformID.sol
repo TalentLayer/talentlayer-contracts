@@ -23,7 +23,7 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
         address signer;
     }
 
-    function numberMinted(address _platformAddress) external view returns (uint256);
+    function balanceOf(address _platformAddress) external view returns (uint256);
 
     function getOriginServiceFeeRate(uint256 _platformId) external view returns (uint16);
 

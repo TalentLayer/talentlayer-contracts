@@ -130,8 +130,8 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can check the number of id minted', async function () {
-      await talentLayerPlatformID.connect(alice).numberMinted(alice.address)
-      expect(await talentLayerPlatformID.numberMinted(alice.address)).to.be.equal('1')
+      await talentLayerPlatformID.connect(alice).balanceOf(alice.address)
+      expect(await talentLayerPlatformID.balanceOf(alice.address)).to.be.equal('1')
     })
 
     it('Alice can update the platform Data', async function () {

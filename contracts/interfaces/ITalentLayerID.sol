@@ -14,7 +14,7 @@ interface ITalentLayerID {
         string dataUri;
     }
 
-    function numberMinted(address _user) external view returns (uint256);
+    function balanceOf(address _user) external view returns (uint256);
 
     function mint(string memory _handle) external returns (uint256);
 

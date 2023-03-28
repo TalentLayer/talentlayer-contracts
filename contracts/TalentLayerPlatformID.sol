@@ -158,15 +158,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     // =========================== View functions ==============================
 
     /**
-     * @notice Allows retrieval of number of minted Platform IDs for a platform.
-     * @param _platformAddress Address of the owner of the Platform ID
-     * @return the number of tokens minted by the platform
-     */
-    function numberMinted(address _platformAddress) public view returns (uint256) {
-        return balanceOf(_platformAddress);
-    }
-
-    /**
      * @notice Allows retrieval of a Platform fee
      * @param _platformId The Platform Id of the platform
      * @return The Platform fee
@@ -583,7 +574,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
             require(whitelist[msg.sender], "You are not whitelisted");
         }
         require(msg.value == mintFee, "Incorrect amount of ETH for mint fee");
-        require(numberMinted(_platformAddress) == 0, "Platform already has a Platform ID");
+        require(balanceOf(_platformAddress) == 0, "Platform already has a Platform ID");
         require(!takenNames[_platformName], "Name already taken");
 
         _validateHandle(_platformName);

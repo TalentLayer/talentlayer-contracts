@@ -118,15 +118,6 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
     // =========================== View functions ==============================
 
     /**
-     * @notice Allows retrieval of number of minted TalentLayerIDs for a user.
-     * @param _user Address of the owner of the TalentLayerID
-     * @return the number of tokens minted by the user
-     */
-    function numberMinted(address _user) public view returns (uint256) {
-        return balanceOf(_user);
-    }
-
-    /**
      * @dev Returns the total number of tokens in existence.
      */
     function totalSupply() public view returns (uint256) {
@@ -146,7 +137,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
      * @param _profileId The TalentLayer ID to check
      */
     function isValid(uint256 _profileId) external view {
-        require(_profileId > 0 && _profileId < nextProfileId.current(), "Your ID is not a valid TalentLayer ID");
+        require(_profileId > 0 && _profileId < nextProfileId.current(), "not valid");
     }
 
     /**
@@ -524,7 +515,7 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         string calldata _handle,
         uint256 _platformId
     ) {
-        require(numberMinted(_userAddress) == 0, "You already have a TalentLayerID");
+        require(balanceOf(_userAddress) == 0, "You already have a TalentLayerID");
         require(!takenHandles[_handle], "Handle already taken");
         if (_platformId != PROTOCOL_ID) {
             talentLayerPlatformIdContract.isValid(_platformId);
