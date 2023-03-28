@@ -145,7 +145,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     function initialize() public initializer {
-        __ERC721_init("TalentLayerPlatformID", "TPID");
+        __ERC721_init("TalentLayerPlatformID", "TLPID");
         __AccessControl_init();
         __UUPSUpgradeable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);

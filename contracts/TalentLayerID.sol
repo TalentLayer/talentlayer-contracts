@@ -154,7 +154,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
      */
     function initialize(address _talentLayerPlatformIdAddress) public initializer {
         __Ownable_init();
-        __ERC721_init("TalentLayerID", "TID");
+        __ERC721_init("TalentLayerID", "TLID");
         __UUPSUpgradeable_init();
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIdAddress);
         // Increment counter to start profile ids at index 1
