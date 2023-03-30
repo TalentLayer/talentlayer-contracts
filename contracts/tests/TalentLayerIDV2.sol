@@ -468,6 +468,8 @@ contract TalentLayerIDV2 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPS
         ids[from] = 0;
         ids[to] = tokenId;
         ERC721Upgradeable._transfer(from, to, tokenId);
+
+        emit Transfer(from, to, tokenId);
     }
 
     /**
