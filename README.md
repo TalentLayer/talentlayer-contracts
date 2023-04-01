@@ -20,6 +20,13 @@ Understand the protocol and how we tackle our main problems:
 
 - [Mumbai](./.deployment/mumbai.json)
 
+## Audits 
+
+- Internal: https://talentlayer.notion.site/TLIP-0002-Security-Assessment-782ab9e80d774749811adfc61cbb7622
+- Externals: 
+  - Bios42: https://github.com/bios42eth/talenlayer-id-report
+  - Ahmet: https://github.com/ahmedovv123/audits/blob/main/audits/TalentLayer.md
+
 ## Setup locally
 
 - Create your env file config: `mv .env.example .env`
