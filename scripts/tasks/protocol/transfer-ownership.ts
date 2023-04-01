@@ -2,10 +2,10 @@ import { task } from 'hardhat/config'
 import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/deploymentManager'
 
 /**
- * @notice This task is used to transfer ownership of one proxy
- * @usage npx hardhat transfer-proxy-ownership --contract-name "TalentLayerService" --address 0x99f117069F9ED15476003502AD8D96107A180648 --network mumbai
+ * @notice This task is used to transfer ownership on a upgradeable contract
+ * @usage npx hardhat transfer-ownership --contract-name "TalentLayerService" --address 0x99f117069F9ED15476003502AD8D96107A180648 --network mumbai
  */
-task('transfer-proxy-ownership', 'Transfer ownership of proxy admin to a new address')
+task('transfer-ownership', 'Transfer ownership of the contract to a new address')
   .addParam('contractName', 'The name of the contract')
   .addParam('address', 'The address of the new owner')
   .setAction(async (args, { ethers, network }) => {
@@ -36,5 +36,5 @@ task('transfer-proxy-ownership', 'Transfer ownership of proxy admin to a new add
     const proxyContract = await ProxyContract.attach(proxyAddress)
     const tx = await proxyContract.transferOwnership(address)
 
-    console.log('Transferred ownership of ProxyAdmin to:', address, 'tx:', tx.hash)
+    console.log('Transferred ownership to:', address, 'tx:', tx.hash)
   })
