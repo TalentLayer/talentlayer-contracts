@@ -45,16 +45,14 @@ describe('Gasless Transactions', function () {
     }
   })
 
-  it('Bob cannot mint a TalentLayer ID with a meta-transaction if the forwarder is not trusted', async function () {
+  it('If the forwarder is not trusted the tl ID will be received by the forwarder rather than bob', async function () {
     // Relayer sends the meta-transaction to the forwarder
-    const tx = mockForwarder.connect(relayer).execute(req)
+    await mockForwarder.connect(relayer).execute(req)
 
-    // If the forwarder is not trusted, the recipient contract will see the transaction as coming from the forwarder.
-    // So, the recipient contract will revert in the mint function, since the forwarder is not a valid ERC721Receiver.
-    await expect(tx).to.be.revertedWith('ERC721: transfer to non ERC721Receiver implementer')
-
+    // If the forwarder is not trusted, the recipient contract will see the transaction as coming from the forwarder. So the ID will be minted for the forwarder
     // The TalentLayer ID has not been minted for Bob
     expect(await talentLayerID.ids(bob.address)).to.be.equal('0')
+    expect(await talentLayerID.ids(mockForwarder.address)).to.be.equal('1')
   })
 
   it('Deployer can add a trusted forwarder for meta-transactions', async function () {
@@ -67,11 +65,12 @@ describe('Gasless Transactions', function () {
   })
 
   it('Bob can mint a TalentLayer ID with a meta-transaction if the forwarder is trusted', async function () {
+    req.data = talentLayerID.interface.encodeFunctionData('mint', [1, 'bob__2'])
     // Relayer sends the meta-transaction to the forwarder
     const tx = mockForwarder.connect(relayer).execute(req)
     await expect(tx).to.not.be.reverted
 
-    expect(await talentLayerID.ids(bob.address)).to.be.equal('1')
+    expect(await talentLayerID.ids(bob.address)).to.be.equal('2')
   })
 
   it('Deployer can remove a trusted forwarder for meta-transactions', async function () {
@@ -93,6 +92,6 @@ describe('Gasless Transactions', function () {
       validUntilTime: 0,
     })
 
-    await expect(tx2).to.be.revertedWith('ERC721: transfer to non ERC721Receiver implementer')
+    await expect(tx2).to.be.revertedWith('You already have a TalentLayerID')
   })
 })

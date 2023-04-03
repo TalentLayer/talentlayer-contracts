@@ -237,7 +237,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param _platformName Platform name
      */
     function mint(string calldata _platformName) public payable canMint(_platformName, msg.sender) returns (uint256) {
-        _safeMint(msg.sender, nextPlatformId.current());
+        _mint(msg.sender, nextPlatformId.current());
         return _afterMint(_platformName, msg.sender);
     }
 
@@ -251,7 +251,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         string calldata _platformName,
         address _platformAddress
     ) public payable canMint(_platformName, _platformAddress) onlyRole(MINT_ROLE) returns (uint256) {
-        _safeMint(_platformAddress, nextPlatformId.current());
+        _mint(_platformAddress, nextPlatformId.current());
         return _afterMint(_platformName, _platformAddress);
     }
 
