@@ -36,7 +36,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         TalentLayerPlatformID,
         {
           timeout: 0,
-          pollingInterval: 10000,
+          pollingInterval: 20000,
         },
       )
 
@@ -67,6 +67,10 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       const talentLayerID = await (upgrades as HardhatUpgrades).deployProxy(
         TalentLayerID,
         talentLayerIDArgs,
+        {
+          timeout: 0,
+          pollingInterval: 20000,
+        },
       )
       if (verify) {
         await verifyAddress(talentLayerID.address)
@@ -93,7 +97,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         talentLayerServiceArgs,
         {
           timeout: 0,
-          pollingInterval: 10000,
+          pollingInterval: 20000,
         },
       )
 
@@ -125,7 +129,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         talentLayerReviewArgs,
         {
           timeout: 0,
-          pollingInterval: 10000,
+          pollingInterval: 20000,
         },
       )
       if (verify) {
@@ -177,7 +181,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         talentLayerEscrowArgs,
         {
           timeout: 0,
-          pollingInterval: 10000,
+          pollingInterval: 20000,
         },
       )
       if (verify) {
