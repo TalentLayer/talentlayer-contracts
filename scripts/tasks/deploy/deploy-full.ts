@@ -141,7 +141,7 @@ task('deploy-full', 'Deploy all the contracts on their first version')
 
       setDeploymentProperty(
         network.name,
-        DeploymentProperty.Reviewscontract,
+        DeploymentProperty.TalentLayerReview,
         talentLayerReview.address,
       )
 
