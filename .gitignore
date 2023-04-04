@@ -18,3 +18,5 @@ build
 
 # Editor's folders
 .idea/
+
+whitelist*
