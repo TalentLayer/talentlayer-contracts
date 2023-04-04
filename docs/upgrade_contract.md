@@ -11,7 +11,7 @@ _Useful for official testnet and mainnet_
 - First, make sure that:
   - the deployer multi-sig address is added to the `multisigAddressList` in the [networkConfig.ts](../networkConfig.ts) file
   - and the multi-sig got the ownership of the proxy contract: `npx hardhat transfer-proxy-ownership --contract-name "TalentLayerService" --address 0x99f117069F9ED15476003502AD8D96107A180648 --network mumbai`
-- Then launch the proposal command: `npx hardhat propose-upgrade --contract-name "TalentLayerServiceV2" --proxy-name "TalentLayerService" --network mumbai`
+- Then launch the proposal command: `npx hardhat prepare-upgrade --contract-name "TalentLayerServiceV2" --proxy-name "TalentLayerService" --network mumbai`
 - How it works:
   - It uses hardhat task `prepare-upgrade` in [prepare-upgrade.ts](../scripts/tasks/deploy/prepare-upgrade.ts) :
   - `--contract-name "TalentLayerServiceV2"`: Define the new contract name
