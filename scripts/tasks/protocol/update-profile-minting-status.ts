@@ -4,7 +4,7 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
 /**
  * @notice This task is used to disable the whitelist period for minting reserved handles
  * @param {uint256} mintstatus - The platform id minting status (0 = ON_PAUSE, 1 = ONLY_WHITELIST, 2 = PUBLIC)
- * @dev Example of script use: "npx hardhat update-profile-minting-status --mintStatus 0 --network mumbai"
+ * @dev Example of script use: "npx hardhat update-profile-minting-status --mintstatus 0 --network mumbai"
  */
 task('update-profile-minting-status', 'Updates the minting status for minting TalentLayer IDs')
   .addParam('mintstatus', 'The platform id minting status')
