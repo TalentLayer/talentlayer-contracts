@@ -19,6 +19,7 @@ Understand the protocol and how we tackle our main problems:
 ## Deployment addresses:
 
 - [Mumbai](./.deployment/mumbai.json)
+- [Polygon](./.deployment/polygon.json)
 
 ## Audits 
 
@@ -41,7 +42,7 @@ Understand the protocol and how we tackle our main problems:
 
 <img width="648" alt="image" src="https://user-images.githubusercontent.com/747152/228285991-de2efaac-f078-4942-8785-1dba88d76984.png">
 
-- [Searching for something else ? Congrats you've found an easter egg!](https://claim.talentlayer.org/images/ee/DW8lwIQyDr.jpg)
+- [Searching for something else? Congrats you've found an easter egg!](https://claim.talentlayer.org/images/ee/DW8lwIQyDr.jpg)
 
 ### Run
 
