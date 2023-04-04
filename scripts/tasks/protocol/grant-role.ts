@@ -5,7 +5,7 @@ import { DeploymentProperty, getDeploymentProperty } from '../../../.deployment/
  * @notice This task is used to grant a role on a upgradeable contract
  * @usage npx hardhat grant-role --contract-name "TalentLayerPlatformID" --address 0x99f117069F9ED15476003502AD8D96107A180648 --network mumbai
  */
-task('grant-role', 'Transfer role to a new address')
+task('grant-role', 'Grant admin and mint roles to a new address')
   .addParam('contractName', 'The name of the contract')
   .addParam('address', 'The address of the new owner')
   .setAction(async (args, { ethers, network }) => {
@@ -30,5 +30,10 @@ task('grant-role', 'Transfer role to a new address')
     const role = await proxyContract.DEFAULT_ADMIN_ROLE()
     const tx = await proxyContract.grantRole(role, address)
 
-    console.log('Transferred role to:', address, 'tx:', tx.hash)
+    console.log('Transferred DEFAULT_ADMIN_ROLE role to:', address, 'tx:', tx.hash)
+
+    const role2 = await proxyContract.MINT_ROLE()
+    const tx2 = await proxyContract.grantRole(role2, address)
+
+    console.log('Transferred MINT_ROLE role to:', address, 'tx:', tx2.hash)
   })
