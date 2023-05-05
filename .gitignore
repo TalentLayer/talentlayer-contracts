@@ -7,6 +7,10 @@ typechain-types
 .deployment/localhost.json
 .openzeppelin/unknown-1337.json
 
+# Foundry
+lib
+out
+
 # Hardhat files
 cache
 artifacts

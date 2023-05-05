@@ -20,11 +20,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -60,11 +60,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -103,11 +103,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -143,11 +143,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -189,11 +189,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -254,11 +254,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -320,11 +320,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -383,11 +383,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -450,11 +450,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -514,11 +514,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -557,11 +557,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -597,11 +597,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -637,11 +637,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -682,11 +682,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -722,11 +722,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -762,11 +762,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -806,11 +806,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -852,11 +852,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -898,11 +898,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -943,11 +943,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1002,18 +1002,18 @@
       }
     },
     "lib/forge-std/lib/ds-test/src/test.sol": {
-      "lastModificationDate": 1682656645620,
-      "contentHash": "2df678a5b2611e0d7bc9ef6745d19157",
+      "lastModificationDate": 1683303590748,
+      "contentHash": "9febff9d09f18af5306669dc276c4c43",
       "sourceName": "lib/forge-std/lib/ds-test/src/test.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1042,18 +1042,18 @@
       }
     },
     "lib/forge-std/src/Base.sol": {
-      "lastModificationDate": 1682656644447,
-      "contentHash": "2a76a316dab98751b739247982ac8576",
+      "lastModificationDate": 1683303590832,
+      "contentHash": "8f04bbbb2c16f79e14fdc321695a8ec2",
       "sourceName": "lib/forge-std/src/Base.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1091,18 +1091,18 @@
       }
     },
     "lib/forge-std/src/StdAssertions.sol": {
-      "lastModificationDate": 1682656644448,
-      "contentHash": "d136ed3be15b16e8875196a38f225c2f",
+      "lastModificationDate": 1683303590910,
+      "contentHash": "6cc2858240bcd443debbbf075490e325",
       "sourceName": "lib/forge-std/src/StdAssertions.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1134,18 +1134,18 @@
       }
     },
     "lib/forge-std/src/StdChains.sol": {
-      "lastModificationDate": 1682656644449,
-      "contentHash": "6d666533d12a911129e70c92105a449b",
+      "lastModificationDate": 1683303590947,
+      "contentHash": "94ba68ea5c34509e1355d69df27597ce",
       "sourceName": "lib/forge-std/src/StdChains.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1176,18 +1176,18 @@
       }
     },
     "lib/forge-std/src/StdCheats.sol": {
-      "lastModificationDate": 1682656644449,
-      "contentHash": "27f7037d3ce568cac654c20032ed71e3",
+      "lastModificationDate": 1683303590984,
+      "contentHash": "1f7c1fe2f20a051b847336e1630e4bb5",
       "sourceName": "lib/forge-std/src/StdCheats.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1222,18 +1222,18 @@
       }
     },
     "lib/forge-std/src/StdError.sol": {
-      "lastModificationDate": 1682656644450,
-      "contentHash": "8c35ad419c5b8748575080db5fd58cae",
+      "lastModificationDate": 1683303591024,
+      "contentHash": "64c896e1276a291776e5ea5aecb3870a",
       "sourceName": "lib/forge-std/src/StdError.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1262,18 +1262,18 @@
       }
     },
     "lib/forge-std/src/StdInvariant.sol": {
-      "lastModificationDate": 1682656644451,
-      "contentHash": "3525c75dbb49f9af908a943d9ea635cf",
+      "lastModificationDate": 1683303591069,
+      "contentHash": "12c06010ec43ce935ed209d5aca30828",
       "sourceName": "lib/forge-std/src/StdInvariant.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1302,18 +1302,18 @@
       }
     },
     "lib/forge-std/src/StdJson.sol": {
-      "lastModificationDate": 1682656644451,
-      "contentHash": "71c2c9083583f2adbe0d07a725689def",
+      "lastModificationDate": 1683303591105,
+      "contentHash": "2e1d13674e152408867795362d833c24",
       "sourceName": "lib/forge-std/src/StdJson.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1344,18 +1344,18 @@
       }
     },
     "lib/forge-std/src/StdMath.sol": {
-      "lastModificationDate": 1682656644452,
-      "contentHash": "fc64b149e462e64dea89f50e9cc0318f",
+      "lastModificationDate": 1683303591139,
+      "contentHash": "9da8f453eba6bb98f3d75bc6822bfb29",
       "sourceName": "lib/forge-std/src/StdMath.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1384,18 +1384,18 @@
       }
     },
     "lib/forge-std/src/StdStorage.sol": {
-      "lastModificationDate": 1682656644452,
-      "contentHash": "956a40f1cecbf085f687f818356dc22a",
+      "lastModificationDate": 1683303591176,
+      "contentHash": "3cb9868082df39a53927db09dbc21f23",
       "sourceName": "lib/forge-std/src/StdStorage.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1429,18 +1429,18 @@
       }
     },
     "lib/forge-std/src/StdStyle.sol": {
-      "lastModificationDate": 1682656644453,
-      "contentHash": "bc32c9e9afd157bb02836b279d2223c5",
+      "lastModificationDate": 1683303591213,
+      "contentHash": "820e6f6b7704f0c980fae604b1e34b18",
       "sourceName": "lib/forge-std/src/StdStyle.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1471,18 +1471,18 @@
       }
     },
     "lib/forge-std/src/StdUtils.sol": {
-      "lastModificationDate": 1682656644453,
-      "contentHash": "553f06f0f2180ca2d5ebcfaf268a6ccb",
+      "lastModificationDate": 1683303591251,
+      "contentHash": "d5ff36b0cdb1b976dd77ae53fe96d0c6",
       "sourceName": "lib/forge-std/src/StdUtils.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1514,18 +1514,18 @@
       }
     },
     "lib/forge-std/src/Test.sol": {
-      "lastModificationDate": 1682656644454,
-      "contentHash": "53342ae9785fc6ae53971b57c6ab41d3",
+      "lastModificationDate": 1683303591287,
+      "contentHash": "bc9d74a0c612e1c2b66cca2973bcc803",
       "sourceName": "lib/forge-std/src/Test.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1571,18 +1571,18 @@
       }
     },
     "lib/forge-std/src/Vm.sol": {
-      "lastModificationDate": 1682656644454,
-      "contentHash": "c230eff2f9101f9cd321f489234e1b83",
+      "lastModificationDate": 1683303591325,
+      "contentHash": "68cca88e2df06231acff7abb1f6bdea6",
       "sourceName": "lib/forge-std/src/Vm.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1614,18 +1614,18 @@
       }
     },
     "lib/forge-std/src/console.sol": {
-      "lastModificationDate": 1682656644455,
-      "contentHash": "c8cf989d04bc2e3069e3d91facf3b69c",
+      "lastModificationDate": 1683303591368,
+      "contentHash": "100b8a33b917da1147740d7ab8b0ded3",
       "sourceName": "lib/forge-std/src/console.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1654,18 +1654,18 @@
       }
     },
     "lib/forge-std/src/console2.sol": {
-      "lastModificationDate": 1682656644456,
-      "contentHash": "f0634a1969c1d0ebfc2ea47dafeafb02",
+      "lastModificationDate": 1683303591409,
+      "contentHash": "2096b4e5f252c5df9909cccbe3d2da2e",
       "sourceName": "lib/forge-std/src/console2.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1694,18 +1694,18 @@
       }
     },
     "lib/forge-std/src/interfaces/IMulticall3.sol": {
-      "lastModificationDate": 1682656644458,
-      "contentHash": "5de707a0d82c8f56049fbd3ba28944ed",
+      "lastModificationDate": 1683303591639,
+      "contentHash": "7b131ca1ca32ef6378b7b9ad5488b901",
       "sourceName": "lib/forge-std/src/interfaces/IMulticall3.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1741,11 +1741,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1781,11 +1781,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1823,11 +1823,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1867,11 +1867,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1907,11 +1907,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1949,11 +1949,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -1989,11 +1989,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2031,11 +2031,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2074,11 +2074,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2116,11 +2116,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2156,11 +2156,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2196,11 +2196,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2245,11 +2245,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2285,11 +2285,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2329,11 +2329,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2369,11 +2369,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2415,11 +2415,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2455,11 +2455,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2497,11 +2497,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2544,11 +2544,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2588,11 +2588,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2628,11 +2628,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2668,11 +2668,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2712,11 +2712,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2763,11 +2763,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2803,11 +2803,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2845,11 +2845,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2888,11 +2888,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2928,11 +2928,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -2968,11 +2968,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3011,11 +3011,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3051,11 +3051,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3091,11 +3091,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3133,11 +3133,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3176,11 +3176,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3216,11 +3216,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3260,11 +3260,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3300,11 +3300,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
@@ -3340,11 +3340,11 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 10000
           },
           "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
+            "bytecodeHash": "none",
+            "appendCBOR": false
           },
           "outputSelection": {
             "*": {
