@@ -151,6 +151,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         // Increment counter to start platform ids at index 1
         nextPlatformId.increment();
         mintStatus = MintStatus.ONLY_WHITELIST;
+        emit ArbitratorAdded(address(0), false);
     }
 
     // =========================== View functions ==============================
@@ -419,6 +420,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     function addArbitrator(address _arbitrator, bool _isInternal) public onlyRole(DEFAULT_ADMIN_ROLE) {
         validArbitrators[address(_arbitrator)] = true;
         internalArbitrators[address(_arbitrator)] = _isInternal;
+        emit ArbitratorAdded(_arbitrator, _isInternal);
     }
 
     /**
@@ -429,6 +431,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     function removeArbitrator(address _arbitrator) public onlyRole(DEFAULT_ADMIN_ROLE) {
         validArbitrators[address(_arbitrator)] = false;
         internalArbitrators[address(_arbitrator)] = false;
+        emit ArbitratorRemoved(_arbitrator);
     }
 
     /**
@@ -637,6 +640,19 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param originValidatedProposalFeeRate The new fee
      */
     event OriginValidatedProposalFeeRateUpdated(uint256 platformId, uint16 originValidatedProposalFeeRate);
+
+    /**
+     * @notice Emit after the arbitrator is added
+     * @param arbitrator The address of the new arbitrator
+     * @param isInternal Boolean denoting if the arbitrator is internal (is part of TalentLayer) or not
+     */
+    event ArbitratorAdded(address arbitrator, bool isInternal);
+
+    /**
+     * @notice Emit after the arbitrator is removed
+     * @param arbitrator The address of the arbitrator
+     */
+    event ArbitratorRemoved(address arbitrator);
 
     /**
      * @notice Emit after the arbitrator is updated for a platform

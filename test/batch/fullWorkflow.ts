@@ -377,9 +377,13 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('The deployer can add a new available arbitrator', async function () {
-      await talentLayerPlatformID
-        .connect(deployer)
-        .addArbitrator(talentLayerArbitrator.address, true)
+      expect(
+        await talentLayerPlatformID
+          .connect(deployer)
+          .addArbitrator(talentLayerArbitrator.address, true),
+      )
+        .to.emit(talentLayerPlatformID, 'ArbitratorAdded')
+        .withArgs(talentLayerArbitrator.address, true)
       const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
       expect(isValid).to.be.true
 
@@ -441,7 +445,13 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('The deployer can remove an available arbitrator', async function () {
-      await talentLayerPlatformID.connect(deployer).removeArbitrator(talentLayerArbitrator.address)
+      expect(
+        await talentLayerPlatformID
+          .connect(deployer)
+          .removeArbitrator(talentLayerArbitrator.address),
+      )
+        .to.emit(talentLayerPlatformID, 'ArbitratorRemoved')
+        .withArgs(talentLayerArbitrator.address)
       const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
       expect(isValid).to.be.false
 
