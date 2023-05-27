@@ -73,7 +73,13 @@ async function deployAndSetup(
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Add arbitrator to platform available arbitrators
-  await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address, true)
+  expect(
+    await talentLayerPlatformID
+      .connect(deployer)
+      .addArbitrator(talentLayerArbitrator.address, true),
+  )
+    .to.emit(talentLayerPlatformID, 'ArbitratorAdded')
+    .withArgs(talentLayerArbitrator.address, true)
 
   // Update platform arbitrator, and fee timeout
   await talentLayerPlatformID
