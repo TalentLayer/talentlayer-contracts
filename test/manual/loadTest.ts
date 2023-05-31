@@ -50,7 +50,7 @@ describe('Load test', function () {
       talentLayerEscrow,
       talentLayerArbitrator,
       talentLayerService,
-    ] = await deploy(false)
+    ] = await deploy(true)
 
     // Grant Platform Id Mint role to Alice
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
