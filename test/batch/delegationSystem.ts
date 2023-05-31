@@ -75,7 +75,7 @@ async function deployAndSetup(
   ]
 }
 
-describe.only('Delegation System', function () {
+describe('Delegation System', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
