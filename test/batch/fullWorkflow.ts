@@ -32,7 +32,7 @@ const carolTlId = 3
 const alicePlatformId = 1
 const bobPlatformId = 2
 
-describe.only('TalentLayer protocol global testing', function () {
+describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
@@ -58,7 +58,6 @@ describe.only('TalentLayer protocol global testing', function () {
     chainId: number
 
   const nonListedRateToken = '0x6b175474e89094c44da98b954eedeac495271d0f'
-  // const rateToken = ethers.constants.AddressZero
   const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
 
   before(async function () {
@@ -1162,7 +1161,6 @@ describe.only('TalentLayer protocol global testing', function () {
       })
 
       it("Alice can deposit funds for Bob's proposal, which will emit an event.", async function () {
-        const service = await talentLayerService.services(serviceId)
         await talentLayerPlatformID.connect(alice).updateOriginServiceFeeRate(alicePlatformId, 1100)
         await talentLayerPlatformID
           .connect(bob)
