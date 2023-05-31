@@ -42,7 +42,7 @@ async function deployAndSetup(): Promise<
     talentLayerService,
     talentLayerReview,
     simpleERC20,
-  ] = await deploy(false)
+  ] = await deploy(true)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'hirevibes'
