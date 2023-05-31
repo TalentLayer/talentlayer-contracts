@@ -26,6 +26,8 @@ interface ITalentLayerService {
         string dataUri;
         uint256 transactionId;
         uint256 platformId;
+        address token;
+        uint256 referralAmount;
     }
 
     struct Proposal {

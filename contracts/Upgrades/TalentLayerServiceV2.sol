@@ -154,6 +154,26 @@ contract TalentLayerServiceV2 is Initializable, ERC2771RecipientUpgradeable, UUP
     );
 
     /**
+     * @notice Emitted after a new proposal is created
+     * @param serviceId The service id
+     * @param ownerId The talentLayerId of the seller who made the proposal
+     * @param dataUri token Id to IPFS URI mapping
+     * @param status proposal status
+     * @param rateAmount the amount of token chosen
+     * @param platformId the platform ID on which the proposal was created
+     * @param expirationDate the timeout for the proposal
+     */
+    event ProposalCreatedWithoutToken(
+        uint256 serviceId,
+        uint256 ownerId,
+        string dataUri,
+        ProposalStatus status,
+        uint256 rateAmount,
+        uint256 platformId,
+        uint256 expirationDate
+    );
+
+    /**
      * @notice Emitted after an existing proposal has been updated
      * @param serviceId The service id
      * @param ownerId The talentLayerId of the seller who made the proposal
@@ -167,6 +187,22 @@ contract TalentLayerServiceV2 is Initializable, ERC2771RecipientUpgradeable, UUP
         uint256 ownerId,
         string dataUri,
         address rateToken,
+        uint256 rateAmount,
+        uint256 expirationDate
+    );
+
+    /**
+     * @notice Emitted after an existing proposal has been updated
+     * @param serviceId The service id
+     * @param ownerId The talentLayerId of the seller who made the proposal
+     * @param dataUri token Id to IPFS URI mapping
+     * @param rateAmount the amount of token chosen
+     * @param expirationDate the timeout for the proposal
+     */
+    event ProposalUpdatedWithoutToken(
+        uint256 serviceId,
+        uint256 ownerId,
+        string dataUri,
         uint256 rateAmount,
         uint256 expirationDate
     );

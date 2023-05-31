@@ -469,7 +469,7 @@ contract TalentLayerEscrowV2 is
             originProposalCreationPlatform.originValidatedProposalFeeRate
         );
 
-        if (proposal.rateToken == address(0)) {
+        if (service.token == address(0)) {
             require(msg.value == transactionAmount, "Non-matching funds");
         } else {
             require(msg.value == 0, "Non-matching funds");
@@ -513,8 +513,8 @@ contract TalentLayerEscrowV2 is
 
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
-        if (proposal.rateToken != address(0)) {
-            IERC20Upgradeable(proposal.rateToken).safeTransferFrom(sender, address(this), transactionAmount);
+        if (service.token != address(0)) {
+            IERC20Upgradeable(service.token).safeTransferFrom(sender, address(this), transactionAmount);
         }
 
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
