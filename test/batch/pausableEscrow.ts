@@ -68,7 +68,9 @@ async function deployAndSetup(): Promise<
 
   // Alice, the buyer, initiates a new open service
   const signature = await getSignatureForService(carol, aliceTlId, 0, cid)
-  await talentLayerService.connect(alice).createService(aliceTlId, carolPlatformId, cid, signature)
+  await talentLayerService
+    .connect(alice)
+    .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero)
 
   // Bob, the seller, creates a proposal for the service
   const signature2 = await getSignatureForProposal(carol, bobTlId, serviceId, cid)
@@ -77,7 +79,6 @@ async function deployAndSetup(): Promise<
     .createProposal(
       bobTlId,
       serviceId,
-      tokenAddress,
       transactionAmount,
       carolPlatformId,
       cid,
