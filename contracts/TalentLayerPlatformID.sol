@@ -101,7 +101,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     bytes32 public constant MINT_ROLE = keccak256("MINT_ROLE");
 
     /**
-     * @notice Minimum timeout to pay arbitration fee in seconds
+     * @notice Minimum timeout to pay arbitration fee
      */
     uint256 public minArbitrationFeeTimeout;
 
@@ -214,9 +214,9 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
-     * @notice Allows retrieval of a Platform
+     * @notice Allows retrieval of a Platform arbitrator
      * @param _platformId The Platform Id
-     * @return Platform The Platform
+     * @return Arbitrator The Platform arbitrator
      */
     function getPlatform(uint256 _platformId) external view returns (Platform memory) {
         isValid(_platformId);
