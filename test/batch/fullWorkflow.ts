@@ -58,7 +58,7 @@ describe('TalentLayer protocol global testing', function () {
     chainId: number
 
   const nonListedRateToken = '0x6b175474e89094c44da98b954eedeac495271d0f'
-  const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
+  const referralAmount = 2
 
   before(async function () {
     // Get the Signers
@@ -849,9 +849,19 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can update her service data', async function () {
-      await talentLayerService.connect(alice).updateServiceData(aliceTlId, 1, cid2)
+      await talentLayerService
+        .connect(alice)
+        .updateService(aliceTlId, 1, referralAmount, token.address, cid2)
       const serviceData = await talentLayerService.services(1)
       expect(serviceData.dataUri).to.be.equal(cid2)
+    })
+
+    it('Alice cannot update her service with a non-whitelisted token', async function () {
+      await expect(
+        talentLayerService
+          .connect(alice)
+          .updateService(aliceTlId, 1, referralAmount, nonListedRateToken, cid2),
+      ).to.be.revertedWith('Token not allowed')
     })
 
     it('Alice can cancel her own service', async function () {
@@ -1048,13 +1058,6 @@ describe('TalentLayer protocol global testing', function () {
 
       await expect(tx).to.be.revertedWith('Amount too low')
     })
-
-    //TODO do same with service
-    //   it('Should revert if Bob updates his proposal with a non-whitelisted payment token ', async function () {
-    //     await expect(
-    //       talentLayerService.connect(bob).updateProposal(bobTlId, 1, 2, cid2, proposalExpirationDate),
-    //     ).to.be.revertedWith('Token not allowed')
-    //   })
   })
 
   describe('Escrow Contract test.', function () {
@@ -1209,7 +1212,9 @@ describe('TalentLayer protocol global testing', function () {
       })
 
       it('Alice cannot update her service data after it is confirmed', async function () {
-        const tx = talentLayerService.connect(alice).updateServiceData(aliceTlId, serviceId, cid2)
+        const tx = talentLayerService
+          .connect(alice)
+          .updateService(aliceTlId, serviceId, referralAmount, token.address, cid2)
         await expect(tx).to.be.revertedWith('status must be opened')
       })
 
