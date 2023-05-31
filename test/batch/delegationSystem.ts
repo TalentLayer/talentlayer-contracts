@@ -25,6 +25,7 @@ const serviceId = 1
 const trasactionId = 1
 const transactionAmount = 100000
 const ethAddress = '0x0000000000000000000000000000000000000000'
+const referralAmount = 0
 
 /**
  * Deploys contracts and sets up the context for TalentLayerId contract.
@@ -43,7 +44,7 @@ async function deployAndSetup(
     ,
     talentLayerService,
     talentLayerReview,
-  ] = await deploy(false)
+  ] = await deploy(true)
 
   // Deployer whitelists a list of authorized tokens
   await talentLayerService
@@ -74,7 +75,7 @@ async function deployAndSetup(
   ]
 }
 
-describe('Delegation System', function () {
+describe.only('Delegation System', function () {
   let alice: SignerWithAddress,
     bob: SignerWithAddress,
     carol: SignerWithAddress,
@@ -131,19 +132,21 @@ describe('Delegation System', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
       const tx = talentLayerService
         .connect(eve)
-        .createService(aliceTlId, carolPlatformId, cid, signature)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero)
       await expect(tx).to.be.revertedWith('Not owner or delegate')
 
       await talentLayerService
         .connect(dave)
-        .createService(aliceTlId, carolPlatformId, cid, signature)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero)
       const serviceData = await talentLayerService.services(1)
 
       expect(serviceData.ownerId.toNumber()).to.be.equal(aliceTlId)
     })
 
     it('Dave can update service data on behalf of Alice', async function () {
-      const tx = await talentLayerService.connect(dave).updateServiceData(aliceTlId, serviceId, cid)
+      const tx = await talentLayerService
+        .connect(dave)
+        .updateService(aliceTlId, serviceId, referralAmount, ethers.constants.AddressZero, cid)
       await expect(tx).to.not.be.reverted
     })
 
@@ -154,7 +157,6 @@ describe('Delegation System', function () {
         .createProposal(
           bobTlId,
           serviceId,
-          ethAddress,
           transactionAmount,
           carolPlatformId,
           cid,
@@ -168,14 +170,7 @@ describe('Delegation System', function () {
     it('Eve can update a proposal on behalf of Bob', async function () {
       const tx = await talentLayerService
         .connect(eve)
-        .updateProposal(
-          bobTlId,
-          serviceId,
-          ethAddress,
-          transactionAmount,
-          cid,
-          proposalExpirationDate,
-        )
+        .updateProposal(bobTlId, serviceId, transactionAmount, cid, proposalExpirationDate)
       await expect(tx).to.not.be.reverted
     })
 
@@ -239,7 +234,7 @@ describe('Delegation System', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 1, cid)
       const tx = talentLayerService
         .connect(dave)
-        .createService(aliceTlId, carolPlatformId, cid, signature)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero)
       await expect(tx).to.be.revertedWith('Not owner or delegate')
     })
   })
