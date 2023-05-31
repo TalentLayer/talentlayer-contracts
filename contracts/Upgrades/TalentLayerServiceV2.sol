@@ -567,19 +567,26 @@ contract TalentLayerServiceV2 is Initializable, ERC2771RecipientUpgradeable, UUP
      * @notice Update Service URI data
      * @param _profileId The TalentLayer ID of the user, owner of the service
      * @param _serviceId, Service ID to update
+     * @param _referralAmount, New referral amount
+     * @param _token, New token address
      * @param _dataUri New IPFS URI
      */
-    function updateServiceData(
+    function updateService(
         uint256 _profileId,
         uint256 _serviceId,
+        uint256 _referralAmount,
+        address _token,
         string calldata _dataUri
     ) public onlyOwnerOrDelegate(_profileId) {
         Service storage service = services[_serviceId];
         require(service.ownerId == _profileId, "Not the owner");
         require(service.status == Status.Opened, "status must be opened");
+        require(allowedTokenList[_token].isWhitelisted, "Token not allowed");
         require(bytes(_dataUri).length == 46, "Invalid cid");
 
         service.dataUri = _dataUri;
+        service.referralAmount = _referralAmount;
+        service.token = _token;
 
         emit ServiceDetailedUpdated(_serviceId, _dataUri);
     }
