@@ -129,7 +129,7 @@ describe('Completion of service', function () {
         )
         await talentLayerService
           .connect(alice)
-          .createService(aliceTlId, carolPlatformId, cid, signatureService)
+          .createService(aliceTlId, carolPlatformId, cid, signatureService, tokenAddress)
 
         // Bob, the seller, creates a proposal for the service
         const signatureProposal = await getSignatureForProposal(carol, bobTlId, serviceId, cid)
@@ -138,7 +138,6 @@ describe('Completion of service', function () {
           .createProposal(
             bobTlId,
             serviceId,
-            tokenAddress,
             transactionAmount,
             carolPlatformId,
             cid,
