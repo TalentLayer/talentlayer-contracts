@@ -58,7 +58,7 @@ describe('TalentLayer protocol global testing', function () {
     chainId: number
 
   const nonListedRateToken = '0x6b175474e89094c44da98b954eedeac495271d0f'
-  const referralAmount = 2
+  const referralAmount = 20000
 
   before(async function () {
     // Get the Signers
@@ -837,6 +837,34 @@ describe('TalentLayer protocol global testing', function () {
       expect(service1Data.ownerId).to.be.equal(aliceTlId)
       expect(service1Data.dataUri).to.be.equal(cid)
       expect(service1Data.platformId).to.be.equal(1)
+      expect(service1Data.referralAmount).to.be.equal(0)
+    })
+
+    it('Alice the buyer can create a service with referral', async function () {
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformServicePostingFee = platform.servicePostingFee
+
+      const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
+      await talentLayerService
+        .connect(alice)
+        .createServiceWithReferral(
+          aliceTlId,
+          alicePlatformId,
+          cid,
+          signature,
+          token.address,
+          referralAmount,
+          {
+            value: alicePlatformServicePostingFee,
+          },
+        )
+      const service6Data = await talentLayerService.services(6)
+
+      expect(service6Data.status).to.be.equal(ServiceStatus.Opened)
+      expect(service6Data.ownerId).to.be.equal(aliceTlId)
+      expect(service6Data.dataUri).to.be.equal(cid)
+      expect(service6Data.platformId).to.be.equal(1)
+      expect(service6Data.referralAmount).to.be.equal(referralAmount)
     })
 
     it("Alice can't create a new open service with wrong TalentLayer Platform ID", async function () {
@@ -854,6 +882,13 @@ describe('TalentLayer protocol global testing', function () {
         .updateService(aliceTlId, 1, referralAmount, token.address, cid2)
       const serviceData = await talentLayerService.services(1)
       expect(serviceData.dataUri).to.be.equal(cid2)
+
+      const newReferralAmount = 40000
+      await talentLayerService
+        .connect(alice)
+        .updateService(aliceTlId, 6, newReferralAmount, token.address, cid2)
+      const service6Data = await talentLayerService.services(6)
+      expect(service6Data.referralAmount).to.be.equal(newReferralAmount)
     })
 
     it('Alice cannot update her service with a non-whitelisted token', async function () {
