@@ -64,8 +64,8 @@ contract TalentLayerServiceV2 is Initializable, ERC2771RecipientUpgradeable, UUP
      * @notice Proposal information struct
      * @param status the current status of a service
      * @param ownerId the talentLayerId of the seller
-     * @param rateToken the token choose for the payment
-     * @param DEPRECATED - rateAmount the amount of token chosen
+     * @param DEPRECATED - rateToken the token choose for the payment
+     * @param rateAmount the amount of token chosen
      * @param dataUri token Id to IPFS URI mapping
      * @param expirationDate the timeout for the proposal
      */
