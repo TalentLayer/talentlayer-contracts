@@ -1003,7 +1003,7 @@ describe('TalentLayer protocol global testing', function () {
 
       // Bob creates a proposal on Platform 1
       const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 1, cid2)
-      await talentLayerService
+      const tx = await talentLayerService
         .connect(bob)
         .createProposal(bobTlId, 1, 15, alicePlatformId, cid2, proposalExpirationDate, signature, {
           value: alicePlatformProposalPostingFee,
@@ -1021,8 +1021,13 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.rateToken).to.be.equal(ethers.constants.AddressZero)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('15')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
+      expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
+      expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
       expect(proposalDataAfter.ownerId).to.be.equal(bobTlId)
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
+      expect(tx)
+        .to.emit(talentLayerService, 'ProposalCreatedWithoutToken')
+        .withArgs(1, bobTlId, cid2, 'Pending', 15, alicePlatformId, proposalExpirationDate)
     })
 
     it("Bob can't create another proposal for the same service", async function () {
@@ -1082,12 +1087,18 @@ describe('TalentLayer protocol global testing', function () {
       const proposalDataBefore = await talentLayerService.getProposal(1, bobTlId)
       expect(proposalDataBefore.rateAmount.toString()).to.be.equal('15')
 
-      await talentLayerService
+      const tx = await talentLayerService
         .connect(bob)
         .updateProposal(bobTlId, 1, 18, cid, proposalExpirationDate)
 
       const proposalDataAfter = await talentLayerService.getProposal(1, bobTlId)
+      expect(tx)
+        .to.emit(talentLayerService, 'ProposalUpdatedWithoutToken')
+        .withArgs(1, bobTlId, cid, 18, proposalExpirationDate)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('18')
+      expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
+      // @dev: This field is deprecated and should always be zero address
+      expect(proposalDataAfter.rateToken.toString()).to.be.equal(ethers.constants.AddressZero)
       expect(proposalDataAfter.dataUri).to.be.equal(cid)
     })
 
