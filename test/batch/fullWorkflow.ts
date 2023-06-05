@@ -886,9 +886,10 @@ describe('TalentLayer protocol global testing', function () {
       const newReferralAmount = 40000
       await talentLayerService
         .connect(alice)
-        .updateService(aliceTlId, 6, newReferralAmount, token.address, cid2)
+        .updateService(aliceTlId, 6, newReferralAmount, ethers.constants.AddressZero, cid2)
       const service6Data = await talentLayerService.services(6)
       expect(service6Data.referralAmount).to.be.equal(newReferralAmount)
+      expect(service6Data.token).to.be.equal(ethers.constants.AddressZero)
     })
 
     it('Alice cannot update her service with a non-whitelisted token', async function () {
@@ -1430,7 +1431,7 @@ describe('TalentLayer protocol global testing', function () {
         const alicePlatformProposalPostingFee = platform.proposalPostingFee
 
         // Create the service
-        const serviceId = 6
+        const serviceId = 7
         const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
         await talentLayerService
           .connect(alice)

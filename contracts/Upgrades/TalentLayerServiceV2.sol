@@ -132,6 +132,15 @@ contract TalentLayerServiceV2 is Initializable, ERC2771RecipientUpgradeable, UUP
     event ServiceDetailedUpdated(uint256 indexed id, string dataUri);
 
     /**
+     * @notice Emit when data is updated for a Service
+     * @param id The service ID
+     * @param dataUri New service Data URI
+     * @param referralAmount New referral amount
+     * @param token New service token
+     */
+    event ServiceUpdated(uint256 indexed id, string dataUri, uint256 referralAmount, address token);
+
+    /**
      * @notice Emitted after a new proposal is created
      * @param serviceId The service id
      * @param ownerId The talentLayerId of the seller who made the proposal
@@ -588,7 +597,7 @@ contract TalentLayerServiceV2 is Initializable, ERC2771RecipientUpgradeable, UUP
         service.referralAmount = _referralAmount;
         service.token = _token;
 
-        emit ServiceDetailedUpdated(_serviceId, _dataUri);
+        emit ServiceUpdated(_serviceId, _dataUri, _referralAmount, _token);
     }
 
     /**
