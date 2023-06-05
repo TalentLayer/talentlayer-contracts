@@ -845,7 +845,7 @@ describe('TalentLayer protocol global testing', function () {
       const alicePlatformServicePostingFee = platform.servicePostingFee
 
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
-      await talentLayerService
+      const tx = await talentLayerService
         .connect(alice)
         .createServiceWithReferral(
           aliceTlId,
@@ -859,6 +859,10 @@ describe('TalentLayer protocol global testing', function () {
           },
         )
       const service6Data = await talentLayerService.services(6)
+
+      expect(tx)
+        .to.emit(talentLayerService, 'ServiceCreatedWithReferral')
+        .withArgs(5, aliceTlId, alicePlatformId, cid, token.address, referralAmount)
 
       expect(service6Data.status).to.be.equal(ServiceStatus.Opened)
       expect(service6Data.ownerId).to.be.equal(aliceTlId)
@@ -884,10 +888,14 @@ describe('TalentLayer protocol global testing', function () {
       expect(serviceData.dataUri).to.be.equal(cid2)
 
       const newReferralAmount = 40000
-      await talentLayerService
+      const tx = await talentLayerService
         .connect(alice)
         .updateService(aliceTlId, 6, newReferralAmount, ethers.constants.AddressZero, cid2)
       const service6Data = await talentLayerService.services(6)
+
+      expect(tx)
+        .to.emit(talentLayerService, 'ServiceUpdated')
+        .withArgs(6, cid2, newReferralAmount, ethers.constants.AddressZero)
       expect(service6Data.referralAmount).to.be.equal(newReferralAmount)
       expect(service6Data.token).to.be.equal(ethers.constants.AddressZero)
     })
