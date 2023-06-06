@@ -110,7 +110,7 @@ contract TalentLayerServiceV2 is Initializable, ERC2771RecipientUpgradeable, UUP
      * @param referralAmount the amount which the referrer will receive if a proposal is validated by un user which was referred
      */
     event ServiceCreatedWithReferral(
-        uint256 id,
+        uint256 indexed id,
         uint256 ownerId,
         uint256 platformId,
         string dataUri,
