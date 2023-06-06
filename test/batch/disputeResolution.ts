@@ -56,7 +56,7 @@ async function deployAndSetup(
     talentLayerEscrow,
     talentLayerArbitrator,
     talentLayerService,
-  ] = await deploy(true)
+  ] = await deploy(false)
 
   // Deployer whitelists a list of authorized tokens
   await talentLayerService
@@ -1011,7 +1011,7 @@ describe('Dispute Resolution, with ERC20 token transaction', function () {
       talentLayerEscrow,
       talentLayerService,
       alice,
-      simpleERC20,
+      simpleERC20.address,
     )
 
     // Alice wants to raise a dispute and pays the arbitration fee

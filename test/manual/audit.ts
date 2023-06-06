@@ -42,7 +42,7 @@ async function deployAndSetup(): Promise<
     talentLayerService,
     talentLayerReview,
     simpleERC20,
-  ] = await deploy(true)
+  ] = await deploy(false)
 
   // Deployer mints Platform Id for Carol
   const platformName = 'hirevibes'
@@ -117,7 +117,7 @@ describe('Audit test', function () {
       const signature = await getSignatureForService(carol, aliceTlId.toNumber(), 0, cid)
       await talentLayerService
         .connect(alice)
-        .createService(aliceTlId, carolPlatformId, cid, signature, {
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, {
           value: 0,
         })
 
@@ -125,16 +125,7 @@ describe('Audit test', function () {
       const signature2 = await getSignatureForProposal(carol, bobTlId.toNumber(), 0, cid)
       const tx = talentLayerService
         .connect(bob)
-        .createProposal(
-          bobTlId,
-          99,
-          ethers.constants.AddressZero,
-          1000,
-          carolPlatformId,
-          cid,
-          proposalExpirationDate,
-          signature2,
-        )
+        .createProposal(bobTlId, 99, 1000, carolPlatformId, cid, proposalExpirationDate, signature2)
       await expect(tx).to.revertedWith('Service not exist')
     })
   })

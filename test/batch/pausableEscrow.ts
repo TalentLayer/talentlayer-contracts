@@ -40,7 +40,7 @@ async function deployAndSetup(): Promise<
     ,
     talentLayerService,
     talentLayerReview,
-  ] = await deploy(true)
+  ] = await deploy(false)
 
   // Grant Platform Id Mint role to Deployer and Bob
   const mintRole = await talentLayerPlatformID.MINT_ROLE()

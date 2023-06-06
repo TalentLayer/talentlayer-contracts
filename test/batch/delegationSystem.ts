@@ -44,7 +44,7 @@ async function deployAndSetup(
     ,
     talentLayerService,
     talentLayerReview,
-  ] = await deploy(true)
+  ] = await deploy(false)
 
   // Deployer whitelists a list of authorized tokens
   await talentLayerService
