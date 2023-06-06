@@ -18,7 +18,7 @@ import {Arbitrator} from "../Arbitrator.sol";
  * @title TalentLayer Escrow Contract
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
-contract TalentLayerEscrowV2 is
+contract TalentLayerEscrowV1 is
     Initializable,
     ERC2771RecipientUpgradeable,
     PausableUpgradeable,
@@ -469,7 +469,7 @@ contract TalentLayerEscrowV2 is
             originProposalCreationPlatform.originValidatedProposalFeeRate
         );
 
-        if (service.token == address(0)) {
+        if (proposal.rateToken == address(0)) {
             require(msg.value == transactionAmount, "Non-matching funds");
         } else {
             require(msg.value == 0, "Non-matching funds");
@@ -491,7 +491,7 @@ contract TalentLayerEscrowV2 is
             id: transactionId,
             sender: sender,
             receiver: receiver,
-            token: service.token,
+            token: proposal.rateToken,
             amount: proposal.rateAmount,
             releasedAmount: 0,
             serviceId: _serviceId,
@@ -513,8 +513,8 @@ contract TalentLayerEscrowV2 is
 
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
-        if (service.token != address(0)) {
-            IERC20Upgradeable(service.token).safeTransferFrom(sender, address(this), transactionAmount);
+        if (proposal.rateToken != address(0)) {
+            IERC20Upgradeable(proposal.rateToken).safeTransferFrom(sender, address(this), transactionAmount);
         }
 
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
@@ -844,7 +844,7 @@ contract TalentLayerEscrowV2 is
      * @notice Emits the events related to the creation of a transaction.
      * @param _senderId The TL ID of the sender
      * @param _receiverId The TL ID of the receiver
-     * @param _transactionId The ID of the transaction
+     * @param _transactionId The ID of the transavtion
      * @param _metaEvidence The meta evidence of the transaction
      */
     function _afterCreateTransaction(
@@ -947,7 +947,7 @@ contract TalentLayerEscrowV2 is
     }
 
     /**
-     * @notice Used to validate a release or a reimburse payment
+     * @notice Used to validate a realease or a reimburse payment
      * @param _transactionId The transaction linked to the payment
      * @param _paymentType The type of payment to validate
      * @param _profileId The profileId of the msgSender
