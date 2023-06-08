@@ -954,14 +954,13 @@ describe('TalentLayer protocol global testing', function () {
     it('Bob cannot update his proposal since it does not exist yet', async function () {
       const tx = talentLayerService
         .connect(bob)
-        .updateProposal(bobTlId, 1, 18, cid, proposalExpirationDate)
+        .updateProposal(bobTlId, 1, 18, cid, proposalExpirationDate, aliceTlId)
 
       await expect(tx).to.be.revertedWith('Not the owner')
     })
 
     it('Bob can t create a proposal with an amount under the transcation limit amount ', async function () {
       // Proposal on the Open service n 1
-      const rateToken = '0xC01FcDfDE3B2ABA1eab76731493C617FfAED2F10'
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformProposalPostingFee = platform.servicePostingFee
 
@@ -1089,7 +1088,7 @@ describe('TalentLayer protocol global testing', function () {
 
       const tx = await talentLayerService
         .connect(bob)
-        .updateProposal(bobTlId, 1, 18, cid, proposalExpirationDate)
+        .updateProposal(bobTlId, 1, 18, cid, proposalExpirationDate, aliceTlId)
 
       const proposalDataAfter = await talentLayerService.getProposal(1, bobTlId)
       expect(tx)
@@ -1109,7 +1108,14 @@ describe('TalentLayer protocol global testing', function () {
 
       const tx = talentLayerService
         .connect(bob)
-        .updateProposal(bobTlId, 1, minTransactionAmount.sub(1), cid, proposalExpirationDate)
+        .updateProposal(
+          bobTlId,
+          1,
+          minTransactionAmount.sub(1),
+          cid,
+          proposalExpirationDate,
+          aliceTlId,
+        )
 
       await expect(tx).to.be.revertedWith('Amount too low')
     })
@@ -1305,7 +1311,7 @@ describe('TalentLayer protocol global testing', function () {
       it('Bob cannot update his proposal after the service is confirmed', async function () {
         const tx = talentLayerService
           .connect(bob)
-          .updateProposal(bobTlId, serviceId, 18, cid, proposalExpirationDate)
+          .updateProposal(bobTlId, serviceId, 18, cid, proposalExpirationDate, aliceTlId)
 
         await expect(tx).to.be.revertedWith('Service not opened')
       })
@@ -1669,7 +1675,7 @@ describe('TalentLayer protocol global testing', function () {
       it('Bob will try to front run the proposal validation by changing the proposal dataUri.', async function () {
         await talentLayerService
           .connect(bob)
-          .updateProposal(bobTlId, serviceId, amountBob, cid2, proposalExpirationDate)
+          .updateProposal(bobTlId, serviceId, amountBob, cid2, proposalExpirationDate, aliceTlId)
 
         await expect(
           talentLayerEscrow

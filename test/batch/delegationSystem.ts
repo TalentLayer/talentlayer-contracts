@@ -170,7 +170,14 @@ describe('Delegation System', function () {
     it('Eve can update a proposal on behalf of Bob', async function () {
       const tx = await talentLayerService
         .connect(eve)
-        .updateProposal(bobTlId, serviceId, transactionAmount, cid, proposalExpirationDate)
+        .updateProposal(
+          bobTlId,
+          serviceId,
+          transactionAmount,
+          cid,
+          proposalExpirationDate,
+          aliceTlId,
+        )
       await expect(tx).to.not.be.reverted
     })
 
