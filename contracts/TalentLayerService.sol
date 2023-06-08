@@ -68,7 +68,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param rateAmount the amount of token chosen
      * @param dataUri token Id to IPFS URI mapping
      * @param expirationDate the timeout for the proposal
-     * @param referrer the id of the referrer (Zero if no referrer)
+     * @param referrerId the id of the referrer (Zero if no referrer)
      */
     struct Proposal {
         ProposalStatus status;
@@ -78,7 +78,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 platformId;
         string dataUri;
         uint256 expirationDate;
-        uint256 referrer;
+        uint256 referrerId;
     }
 
     /**
@@ -472,7 +472,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             platformId: _platformId,
             dataUri: _dataUri,
             expirationDate: _expirationDate,
-            referrer: 0
+            referrerId: 0
         });
 
         if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
@@ -523,7 +523,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             platformId: _platformId,
             dataUri: _dataUri,
             expirationDate: _expirationDate,
-            referrer: _referrerId
+            referrerId: _referrerId
         });
 
         if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
@@ -571,7 +571,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         proposal.rateAmount = _rateAmount;
         proposal.dataUri = _dataUri;
         proposal.expirationDate = _expirationDate;
-        proposal.referrer = _referrerId;
+        proposal.referrerId = _referrerId;
 
         emit ProposalUpdatedWithoutToken(_serviceId, _profileId, _dataUri, _rateAmount, _expirationDate, _referrerId);
     }

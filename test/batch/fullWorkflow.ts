@@ -959,7 +959,7 @@ describe('TalentLayer protocol global testing', function () {
       await expect(tx).to.be.revertedWith('Not the owner')
     })
 
-    it('Bob can t create a proposal with an amount under the transcation limit amount ', async function () {
+    it('Bob can t create a proposal with an amount under the transaction limit amount ', async function () {
       // Proposal on the Open service n 1
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformProposalPostingFee = platform.servicePostingFee
@@ -1024,9 +1024,10 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
       expect(proposalDataAfter.ownerId).to.be.equal(bobTlId)
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
+      expect(proposalDataAfter.referrerId).to.be.equal(0)
       expect(tx)
         .to.emit(talentLayerService, 'ProposalCreatedWithoutToken')
-        .withArgs(1, bobTlId, cid2, 'Pending', 15, alicePlatformId, proposalExpirationDate)
+        .withArgs(1, bobTlId, cid2, 'Pending', 15, alicePlatformId, proposalExpirationDate, 0)
     })
 
     it("Bob can't create another proposal for the same service", async function () {
@@ -1099,6 +1100,7 @@ describe('TalentLayer protocol global testing', function () {
       // @dev: This field is deprecated and should always be zero address
       expect(proposalDataAfter.rateToken.toString()).to.be.equal(ethers.constants.AddressZero)
       expect(proposalDataAfter.dataUri).to.be.equal(cid)
+      expect(proposalDataAfter.referrerId).to.be.equal(aliceTlId)
     })
 
     it("Bob can't update his proposal with an amount which is too low", async function () {
