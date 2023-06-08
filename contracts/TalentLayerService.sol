@@ -244,7 +244,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     uint256 public nextServiceId;
 
     /**
-     * @notice TalentLayerId address
+     * @notice TalentLayerId contract
      */
     ITalentLayerID private tlId;
 
@@ -462,7 +462,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 _expirationDate,
         bytes calldata _signature
     ) public payable onlyOwnerOrDelegate(_profileId) {
-        _validateProposal(_profileId, _serviceId, _rateAmount, _platformId, _dataUri, _signature);
+        _validateProposal(_profileId, _serviceId, _rateAmount, _platformId, _dataUri, _signature, 0);
 
         proposals[_serviceId][_profileId] = Proposal({
             status: ProposalStatus.Pending,
@@ -513,7 +513,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         bytes calldata _signature,
         uint256 _referrerId
     ) public payable onlyOwnerOrDelegate(_profileId) {
-        _validateProposal(_profileId, _serviceId, _rateAmount, _platformId, _dataUri, _signature);
+        _validateProposal(_profileId, _serviceId, _rateAmount, _platformId, _dataUri, _signature, _referrerId);
 
         proposals[_serviceId][_profileId] = Proposal({
             status: ProposalStatus.Pending,
@@ -567,6 +567,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(bytes(_dataUri).length == 46, "Invalid cid");
         require(proposal.status != ProposalStatus.Validated, "Already validated");
         require(_rateAmount >= allowedTokenList[service.token].minimumTransactionAmount, "Amount too low");
+
+        if (_referrerId != 0) {
+            tlId.isValid(_referrerId);
+        }
 
         proposal.rateAmount = _rateAmount;
         proposal.dataUri = _dataUri;
@@ -757,7 +761,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 _rateAmount,
         uint256 _platformId,
         string calldata _dataUri,
-        bytes calldata _signature
+        bytes calldata _signature,
+        uint256 _referrerId
     ) private view {
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
@@ -775,6 +780,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         if (platformSigner != address(0)) {
             bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
             _validatePlatformSignature(_signature, messageHash, platformSigner);
+        }
+
+        if (_referrerId != 0) {
+            tlId.isValid(_referrerId);
         }
     }
 
