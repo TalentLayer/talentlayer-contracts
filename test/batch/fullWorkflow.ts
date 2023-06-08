@@ -1030,6 +1030,30 @@ describe('TalentLayer protocol global testing', function () {
         .withArgs(1, bobTlId, cid2, 'Pending', 15, alicePlatformId, proposalExpirationDate, 0)
     })
 
+    it("Carol can't create a proposal with a non existing referrer id", async function () {
+      // Proposal on the Open service n 4
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformProposalPostingFee = platform.servicePostingFee
+
+      const signature = await getSignatureForProposal(platformOneOwner, carolTlId, 4, cid2)
+      const tx = talentLayerService
+        .connect(carol)
+        .createProposalWithReferrer(
+          carolTlId,
+          4,
+          15,
+          alicePlatformId,
+          cid2,
+          proposalExpirationDate,
+          signature,
+          99,
+          {
+            value: alicePlatformProposalPostingFee,
+          },
+        )
+      await expect(tx).to.be.revertedWith('not valid')
+    })
+
     it('Carol can create a proposal with a referrer', async function () {
       // Proposal on the Open service n 4
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
@@ -1178,6 +1202,18 @@ describe('TalentLayer protocol global testing', function () {
         )
 
       await expect(tx).to.be.revertedWith('Amount too low')
+    })
+
+    it("Bob can't update his proposal with a non-existing referrer id", async function () {
+      const minTransactionAmount = await (
+        await talentLayerService.allowedTokenList(token.address)
+      ).minimumTransactionAmount
+
+      const tx = talentLayerService
+        .connect(bob)
+        .updateProposal(bobTlId, 1, minTransactionAmount, cid, proposalExpirationDate, 99)
+
+      await expect(tx).to.be.revertedWith('not valid')
     })
   })
 
