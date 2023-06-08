@@ -784,7 +784,7 @@ describe('TalentLayer protocol global testing', function () {
       await expect(tx).to.be.revertedWith('Token not allowed')
     })
 
-    it('Alice the buyer can create a few Open service', async function () {
+    it('Alice the buyer can create a few Open services', async function () {
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformServicePostingFee = platform.servicePostingFee
 
@@ -1028,6 +1028,64 @@ describe('TalentLayer protocol global testing', function () {
       expect(tx)
         .to.emit(talentLayerService, 'ProposalCreatedWithoutToken')
         .withArgs(1, bobTlId, cid2, 'Pending', 15, alicePlatformId, proposalExpirationDate, 0)
+    })
+
+    it('Carol can create a proposal with a referrer', async function () {
+      // Proposal on the Open service n 4
+      const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
+      const alicePlatformProposalPostingFee = platform.servicePostingFee
+
+      // Proposal data check before the proposal
+      const proposalDataBefore = await talentLayerService.getProposal(4, carolTlId)
+      expect(proposalDataBefore.ownerId.toString()).to.be.equal('0')
+
+      // Carol creates a proposal on Platform 1
+      const signature = await getSignatureForProposal(platformOneOwner, carolTlId, 4, cid2)
+      const tx = await talentLayerService
+        .connect(carol)
+        .createProposalWithReferrer(
+          carolTlId,
+          4,
+          15,
+          alicePlatformId,
+          cid2,
+          proposalExpirationDate,
+          signature,
+          carolTlId,
+          {
+            value: alicePlatformProposalPostingFee,
+          },
+        )
+
+      const serviceData = await talentLayerService.services(4)
+      const proposalDataAfter = await talentLayerService.getProposal(4, carolTlId)
+
+      // Service data check
+      expect(serviceData.status).to.be.equal(ServiceStatus.Opened)
+      expect(serviceData.ownerId).to.be.equal(aliceTlId)
+
+      // Proposal data check after the proposal
+      // @dev: rateToken field not used any more
+      expect(proposalDataAfter.rateToken).to.be.equal(ethers.constants.AddressZero)
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('15')
+      expect(proposalDataAfter.dataUri).to.be.equal(cid2)
+      expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
+      expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
+      expect(proposalDataAfter.ownerId).to.be.equal(carolTlId)
+      expect(proposalDataAfter.status.toString()).to.be.equal('0')
+      expect(proposalDataAfter.referrerId.toString()).to.be.equal(carolTlId.toString())
+      expect(tx)
+        .to.emit(talentLayerService, 'ProposalCreatedWithoutToken')
+        .withArgs(
+          1,
+          bobTlId,
+          cid2,
+          'Pending',
+          15,
+          alicePlatformId,
+          proposalExpirationDate,
+          carolTlId,
+        )
     })
 
     it("Bob can't create another proposal for the same service", async function () {
