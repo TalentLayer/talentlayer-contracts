@@ -13,6 +13,7 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "./libs/ERC2771RecipientUpgradeable.sol";
 import {IArbitrable} from "./interfaces/IArbitrable.sol";
 import {Arbitrator} from "./Arbitrator.sol";
+import "hardhat/console.sol";
 
 /**
  * @title TalentLayer Escrow Contract
@@ -474,6 +475,11 @@ contract TalentLayerEscrow is
             proposal.platformId
             ? talentLayerPlatformIdContract.getPlatform(proposal.platformId)
             : originServiceCreationPlatform;
+
+        //        uint256 referralAmount = service.referralAmount;
+        //        if (transaction.referrer == address(0)) {
+        //            referralAmount = 0;
+        //        }
 
         uint256 transactionAmount = _calculateTotalWithFees(
             proposal.rateAmount,
@@ -937,6 +943,7 @@ contract TalentLayerEscrow is
      */
     function _distributeFees(uint256 _transactionId, uint256 _releaseAmount) private {
         Transaction storage transaction = transactions[_transactionId];
+        console.log("HARDHAT - transaction.amt %s, _transactionId %s", transaction.amount, _transactionId);
         (
             ITalentLayerService.Service memory service,
             ITalentLayerService.Proposal memory proposal
@@ -958,11 +965,16 @@ contract TalentLayerEscrow is
 
         uint256 releasedReferralAmount = 0;
 
-        if (transaction.referrerId != 0 && transaction.amount != 0) {
-            releasedReferralAmount = (_releaseAmount / transaction.amount) * transaction.referralAmount;
-            //TODO risk of smart contract hack here
-            //            _safeTransferBalance(payable(transaction.referrer), transaction.token, releasedReferralAmount);
-            platformIdToTokenToBalance[transaction.referrerId][transaction.token] += releasedReferralAmount;
+        //TODO ca amount be 0? Not as long as min amount in service contract
+        if (transaction.referrerId != 0) {
+            releasedReferralAmount =
+                (_releaseAmount * transaction.referralAmount) /
+                (transaction.amount + transaction.releasedAmount);
+            _safeTransferBalance(
+                payable(talentLayerIdContract.ownerOf(transaction.referrerId)),
+                transaction.token,
+                releasedReferralAmount
+            );
         }
 
         emit OriginServiceFeeRateReleased(
