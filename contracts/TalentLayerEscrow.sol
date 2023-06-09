@@ -182,6 +182,14 @@ contract TalentLayerEscrow is
     );
 
     /**
+     * @notice Emitted after part of a referral amount is released
+     * @param _referrerId The id of the referrer.
+     * @param _token The address of the token used for the payment.
+     * @param _amount The amount released.
+     */
+    event ReferralAmountReleased(uint256 indexed _referrerId, address indexed _token, uint256 _amount);
+
+    /**
      * @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
      * @param _transactionId The id of the transaction.
      * @param _party The party who has to pay.
@@ -946,18 +954,30 @@ contract TalentLayerEscrow is
             transaction.token
         ] += originValidatedProposalFeeRate;
 
+        uint256 releasedReferralAmount = 0;
+
+        if (transaction.referrerId != 0 && transaction.amount != 0) {
+            releasedReferralAmount = (_releaseAmount / transaction.amount) * transaction.referralAmount;
+            //TODO risk of smart contract hack here
+            //            _safeTransferBalance(payable(transaction.referrer), transaction.token, releasedReferralAmount);
+            platformIdToTokenToBalance[transaction.referrerId][transaction.token] += releasedReferralAmount;
+        }
+
         emit OriginServiceFeeRateReleased(
             originServiceCreationPlatformId,
             transaction.serviceId,
             transaction.token,
             originServiceFeeRate
         );
+
         emit OriginValidatedProposalFeeRateReleased(
             originValidatedProposalPlatformId,
             transaction.serviceId,
             transaction.token,
             originServiceFeeRate
         );
+
+        emit ReferralAmountReleased(transaction.referrerId, transaction.token, releasedReferralAmount);
     }
 
     /**
