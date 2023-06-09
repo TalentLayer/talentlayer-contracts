@@ -88,6 +88,8 @@ contract TalentLayerEscrow is
      * @param lastInteraction Last interaction for the dispute procedure.
      * @param arbitratorExtraData Extra data to set up the arbitration.
      * @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
+     * @param referrerId the id of the optional referrer
+     * @param referralAmount the optional lump sum optional fee to be sent to the referrer
      */
     struct Transaction {
         uint256 id;
@@ -109,6 +111,8 @@ contract TalentLayerEscrow is
         uint256 lastInteraction;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
+        uint256 referrerId;
+        uint256 referralAmount;
     }
 
     // =========================== Events ==============================
