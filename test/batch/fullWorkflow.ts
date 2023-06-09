@@ -34,7 +34,7 @@ const bobPlatformId = 2
 
 const FEE_DIVIDER = 10000
 
-describe.only('TalentLayer protocol global testing', function () {
+describe('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
