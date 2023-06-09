@@ -2115,7 +2115,7 @@ describe('TalentLayer protocol global testing', function () {
           .to.emit(talentLayerEscrow, 'MetaEvidence')
       })
 
-      it('Alice can release 50% of the escrow to Carol for service 6 which includes a referral amount, and fees are correctly split, including referral amount.', async function () {
+      it('Alice can release 50% of the escrow to Carol for service 6 which includes a referral amount, and fees are correctly split.', async function () {
         const transactionDetails = await talentLayerEscrow.connect(alice).getTransactionDetails(4)
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
         const originServiceFeeRate = transactionDetails.originServiceFeeRate
