@@ -913,8 +913,10 @@ contract TalentLayerEscrow is
         Transaction storage transaction = transactions[_transactionId];
         uint256 releasedReferralAmount = 0;
 
-        if (transaction.referrerId != 0 && transaction.amount != 0) {
-            releasedReferralAmount = (_amount / transaction.amount) * transaction.referralAmount;
+        if (transaction.referrerId != 0) {
+            releasedReferralAmount =
+                (_amount * transaction.referralAmount) /
+                (transaction.amount + transaction.releasedAmount);
         }
 
         uint256 totalReleaseAmount = _calculateTotalWithFees(
