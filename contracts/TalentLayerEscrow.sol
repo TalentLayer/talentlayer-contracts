@@ -470,7 +470,8 @@ contract TalentLayerEscrow is
         uint256 transactionAmount = _calculateTotalWithFees(
             proposal.rateAmount,
             originServiceCreationPlatform.originServiceFeeRate,
-            originProposalCreationPlatform.originValidatedProposalFeeRate
+            originProposalCreationPlatform.originValidatedProposalFeeRate,
+            service.referralAmount
         );
 
         if (service.token == address(0)) {
@@ -510,7 +511,9 @@ contract TalentLayerEscrow is
             status: Status.NoDispute,
             arbitrator: originServiceCreationPlatform.arbitrator,
             arbitratorExtraData: originServiceCreationPlatform.arbitratorExtraData,
-            arbitrationFeeTimeout: originServiceCreationPlatform.arbitrationFeeTimeout
+            arbitrationFeeTimeout: originServiceCreationPlatform.arbitrationFeeTimeout,
+            referrerId: proposal.referrerId,
+            referralAmount: service.referralAmount
         });
 
         nextTransactionId.increment();
@@ -900,10 +903,17 @@ contract TalentLayerEscrow is
      */
     function _reimburse(uint256 _transactionId, uint256 _amount) private {
         Transaction storage transaction = transactions[_transactionId];
+        uint256 releasedReferralAmount = 0;
+
+        if (transaction.referrerId != 0 && transaction.amount != 0) {
+            releasedReferralAmount = (_amount / transaction.amount) * transaction.referralAmount;
+        }
+
         uint256 totalReleaseAmount = _calculateTotalWithFees(
             _amount,
             transaction.originServiceFeeRate,
-            transaction.originValidatedProposalFeeRate
+            transaction.originValidatedProposalFeeRate,
+            releasedReferralAmount
         );
         _safeTransferBalance(payable(transaction.sender), transaction.token, totalReleaseAmount);
 
@@ -1011,18 +1021,21 @@ contract TalentLayerEscrow is
      * @param _amount The core escrow amount
      * @param _originServiceFeeRate the %fee (per ten thousands) asked by the platform for each service created on the platform
      * @param _originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
+     * @param _referralAmount the lump sum optional fee to be sent to the referrer, if any
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
     function _calculateTotalWithFees(
         uint256 _amount,
         uint16 _originServiceFeeRate,
-        uint16 _originValidatedProposalFeeRate
+        uint16 _originValidatedProposalFeeRate,
+        uint256 _referralAmount
     ) private view returns (uint256 totalEscrowAmount) {
         return
             _amount +
             (((_amount * protocolEscrowFeeRate) +
                 (_amount * _originServiceFeeRate) +
-                (_amount * _originValidatedProposalFeeRate)) / FEE_DIVIDER);
+                (_amount * _originValidatedProposalFeeRate)) / FEE_DIVIDER) +
+            _referralAmount;
     }
 
     // =========================== Overrides ==============================
