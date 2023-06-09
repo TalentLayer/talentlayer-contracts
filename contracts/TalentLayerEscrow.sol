@@ -74,7 +74,8 @@ contract TalentLayerEscrow is
      * @param sender The party paying the escrow amount
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
-     * @param amount The amount of the transaction EXCLUDING FEES
+     * @param amount The amount of the transaction EXCLUDING FEES (will not vary)
+     * @param amount The amount of the transaction EXCLUDING FEES (will diminish after each release payment)
      * @param releasedAmount The amount of the transaction that has been released to the receiver EXCLUDING FEES
      * @param serviceId The ID of the associated service
      * @param proposalId The id of the validated proposal
@@ -97,6 +98,7 @@ contract TalentLayerEscrow is
         address sender;
         address receiver;
         address token;
+        uint256 totalAmount;
         uint256 amount;
         uint256 releasedAmount;
         uint256 serviceId;
@@ -511,6 +513,7 @@ contract TalentLayerEscrow is
             sender: sender,
             receiver: receiver,
             token: service.token,
+            totalAmount: proposal.rateAmount,
             amount: proposal.rateAmount,
             releasedAmount: 0,
             serviceId: _serviceId,
@@ -917,21 +920,18 @@ contract TalentLayerEscrow is
      */
     function _reimburse(uint256 _transactionId, uint256 _amount) private {
         Transaction storage transaction = transactions[_transactionId];
-        uint256 releasedReferralAmount = 0;
+        uint256 reimbursedReferralAmount = 0;
 
         if (transaction.referrerId != 0) {
-            releasedReferralAmount =
-                (_amount * transaction.referralAmount) /
-                (transaction.amount + transaction.releasedAmount);
+            reimbursedReferralAmount = (_amount * transaction.referralAmount) / (transaction.totalAmount);
         }
-
-        uint256 totalReleaseAmount = _calculateTotalWithFees(
+        uint256 totalReimburseAmount = _calculateTotalWithFees(
             _amount,
             transaction.originServiceFeeRate,
             transaction.originValidatedProposalFeeRate,
-            releasedReferralAmount
+            reimbursedReferralAmount
         );
-        _safeTransferBalance(payable(transaction.sender), transaction.token, totalReleaseAmount);
+        _safeTransferBalance(payable(transaction.sender), transaction.token, totalReimburseAmount);
 
         _afterPayment(_transactionId, PaymentType.Reimburse, _amount);
     }
@@ -943,7 +943,6 @@ contract TalentLayerEscrow is
      */
     function _distributeFees(uint256 _transactionId, uint256 _releaseAmount) private {
         Transaction storage transaction = transactions[_transactionId];
-        console.log("HARDHAT - transaction.amt %s, _transactionId %s", transaction.amount, _transactionId);
         (
             ITalentLayerService.Service memory service,
             ITalentLayerService.Proposal memory proposal
@@ -965,11 +964,9 @@ contract TalentLayerEscrow is
 
         uint256 releasedReferralAmount = 0;
 
-        //TODO ca amount be 0? Not as long as min amount in service contract
+        //TODO can amount be 0? Not as long as min amount in service contract
         if (transaction.referrerId != 0) {
-            releasedReferralAmount =
-                (_releaseAmount * transaction.referralAmount) /
-                (transaction.amount + transaction.releasedAmount);
+            releasedReferralAmount = (_releaseAmount * transaction.referralAmount) / (transaction.totalAmount);
             _safeTransferBalance(
                 payable(talentLayerIdContract.ownerOf(transaction.referrerId)),
                 transaction.token,

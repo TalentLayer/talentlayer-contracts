@@ -34,7 +34,7 @@ const bobPlatformId = 2
 
 const FEE_DIVIDER = 10000
 
-describe('TalentLayer protocol global testing', function () {
+describe.only('TalentLayer protocol global testing', function () {
   // we define the types of the variables we will use
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
@@ -1104,7 +1104,7 @@ describe('TalentLayer protocol global testing', function () {
         .createProposalWithReferrer(
           carolTlId,
           6,
-          20000,
+          2000000,
           alicePlatformId,
           cid2,
           proposalExpirationDate,
@@ -1125,7 +1125,7 @@ describe('TalentLayer protocol global testing', function () {
       // Proposal data check after the proposal
       // @dev: rateToken field not used any more
       expect(proposalDataAfter.rateToken).to.be.equal(ethers.constants.AddressZero)
-      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('20000')
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2000000')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
@@ -1162,7 +1162,7 @@ describe('TalentLayer protocol global testing', function () {
         .createProposalWithReferrer(
           carolTlId,
           7,
-          20000,
+          2000000,
           alicePlatformId,
           cid2,
           proposalExpirationDate,
@@ -1183,7 +1183,7 @@ describe('TalentLayer protocol global testing', function () {
       // Proposal data check after the proposal
       // @dev: rateToken field not used any more
       expect(proposalDataAfter.rateToken).to.be.equal(ethers.constants.AddressZero)
-      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('20000')
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2000000')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
@@ -1573,15 +1573,15 @@ describe('TalentLayer protocol global testing', function () {
           .to.emit(talentLayerEscrow, 'MetaEvidence')
       })
 
-      it('Alice can release 90% of the escrow to Carol for service 7 which includes a referral amount, and fees are correctly split, including referral amount.', async function () {
+      it('Alice can release 50% of the escrow to Carol for service 7 which includes a referral amount, and fees are correctly split.', async function () {
         const transactionDetails = await talentLayerEscrow.connect(alice).getTransactionDetails(2)
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
         const originServiceFeeRate = transactionDetails.originServiceFeeRate
         const originValidatedProposalFeeRate = transactionDetails.originValidatedProposalFeeRate
         const releaseAmount = transactionDetails.amount
           .add(transactionDetails.releasedAmount)
-          .mul(BigNumber.from(9))
-          .div(BigNumber.from(10))
+          .mul(BigNumber.from(1))
+          .div(BigNumber.from(2))
         const releasedReferrerAmount = releaseAmount
           .mul(transactionDetails.referralAmount)
           .div(transactionDetails.amount)
@@ -1611,6 +1611,37 @@ describe('TalentLayer protocol global testing', function () {
         await talentLayerEscrow.connect(deployer).claim(0, token.address)
       })
 
+      it('Alice can reimburse 40% of the escrow to Carol for service 7 which includes a referral amount.', async function () {
+        const transactionDetails = await talentLayerEscrow.connect(alice).getTransactionDetails(2)
+        const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
+        const originServiceFeeRate = transactionDetails.originServiceFeeRate
+        const originValidatedProposalFeeRate = transactionDetails.originValidatedProposalFeeRate
+        const reimburseAmount = transactionDetails.totalAmount
+          .mul(BigNumber.from(4))
+          .div(BigNumber.from(10))
+
+        const reimburseReferrerAmount = reimburseAmount
+          .mul(transactionDetails.referralAmount)
+          .div(transactionDetails.totalAmount)
+        const reimburseFeesAMount = reimburseAmount
+          .mul(protocolEscrowFeeRate)
+          .add(reimburseAmount.mul(originServiceFeeRate))
+          .add(reimburseAmount.mul(originValidatedProposalFeeRate))
+          .div(FEE_DIVIDER)
+
+        const totalReimburseAmount = reimburseAmount
+          .add(reimburseReferrerAmount)
+          .add(reimburseFeesAMount)
+
+        const tx = await talentLayerEscrow.connect(carol).reimburse(carolTlId, 2, reimburseAmount)
+        // Alice gets back: 40% of all 3 fees + 40% of referralAmount
+        await expect(tx).to.changeTokenBalances(
+          token,
+          [talentLayerEscrow.address, alice],
+          [-totalReimburseAmount, totalReimburseAmount],
+        )
+      })
+
       it('Alice can release the remaining 10% of the escrow (inferior to FEE_DIVIDER value) to Carol, and fees are correctly split, including referral amount.', async function () {
         const transactionDetails = await talentLayerEscrow.connect(alice).getTransactionDetails(2)
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
@@ -1619,7 +1650,7 @@ describe('TalentLayer protocol global testing', function () {
         const releaseAmount = transactionDetails.amount
         const releasedReferrerAmount = releaseAmount
           .mul(transactionDetails.referralAmount)
-          .div(transactionDetails.amount.add(transactionDetails.releasedAmount))
+          .div(transactionDetails.totalAmount)
 
         const tx = await talentLayerEscrow.connect(alice).release(aliceTlId, 2, releaseAmount)
         // Bob gets half of the referral amount
@@ -1647,7 +1678,11 @@ describe('TalentLayer protocol global testing', function () {
 
         // Service status is finished
         const serviceData = await talentLayerService.services(transactionDetails.serviceId)
+        const transactionDetailsAfter = await talentLayerEscrow
+          .connect(alice)
+          .getTransactionDetails(2)
         expect(serviceData.status).to.equal(2)
+        expect(transactionDetailsAfter.amount).to.equal(0)
       })
 
       it('Alice can release half of the escrow to bob, and fees are correctly split.', async function () {
@@ -2080,15 +2115,15 @@ describe('TalentLayer protocol global testing', function () {
           .to.emit(talentLayerEscrow, 'MetaEvidence')
       })
 
-      it('Alice can release 90% of the escrow to Carol for service 6 which includes a referral amount, and fees are correctly split, including referral amount.', async function () {
+      it('Alice can release 50% of the escrow to Carol for service 6 which includes a referral amount, and fees are correctly split, including referral amount.', async function () {
         const transactionDetails = await talentLayerEscrow.connect(alice).getTransactionDetails(4)
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
         const originServiceFeeRate = transactionDetails.originServiceFeeRate
         const originValidatedProposalFeeRate = transactionDetails.originValidatedProposalFeeRate
         const releaseAmount = transactionDetails.amount
           .add(transactionDetails.releasedAmount)
-          .mul(BigNumber.from(9))
-          .div(BigNumber.from(10))
+          .mul(BigNumber.from(1))
+          .div(BigNumber.from(2))
         const releasedReferrerAmount = releaseAmount
           .mul(transactionDetails.referralAmount)
           .div(transactionDetails.amount)
@@ -2119,6 +2154,36 @@ describe('TalentLayer protocol global testing', function () {
         await talentLayerEscrow.connect(deployer).claim(0, ethers.constants.AddressZero)
       })
 
+      it('Alice can reimburse 40% of the escrow to Carol for service 6 which includes a referral amount.', async function () {
+        const transactionDetails = await talentLayerEscrow.connect(alice).getTransactionDetails(4)
+        const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
+        const originServiceFeeRate = transactionDetails.originServiceFeeRate
+        const originValidatedProposalFeeRate = transactionDetails.originValidatedProposalFeeRate
+        const reimburseAmount = transactionDetails.totalAmount
+          .mul(BigNumber.from(4))
+          .div(BigNumber.from(10))
+
+        const reimburseReferrerAmount = reimburseAmount
+          .mul(transactionDetails.referralAmount)
+          .div(transactionDetails.totalAmount)
+        const reimburseFeesAMount = reimburseAmount
+          .mul(protocolEscrowFeeRate)
+          .add(reimburseAmount.mul(originServiceFeeRate))
+          .add(reimburseAmount.mul(originValidatedProposalFeeRate))
+          .div(FEE_DIVIDER)
+
+        const totalReimburseAmount = reimburseAmount
+          .add(reimburseReferrerAmount)
+          .add(reimburseFeesAMount)
+
+        const tx = await talentLayerEscrow.connect(carol).reimburse(carolTlId, 4, reimburseAmount)
+        // Alice gets back: 40% of all 3 fees + 40% of referralAmount
+        await expect(tx).to.changeEtherBalances(
+          [talentLayerEscrow.address, alice],
+          [-totalReimburseAmount, totalReimburseAmount],
+        )
+      })
+
       it('Alice can release the remaining 10% of the escrow (inferior to FEE_DIVIDER value) to Carol, and fees are correctly split, including referral amount.', async function () {
         const transactionDetails = await talentLayerEscrow.connect(alice).getTransactionDetails(4)
         const protocolEscrowFeeRate = transactionDetails.protocolEscrowFeeRate
@@ -2127,12 +2192,12 @@ describe('TalentLayer protocol global testing', function () {
         const releaseAmount = transactionDetails.amount
         const releasedReferrerAmount = releaseAmount
           .mul(transactionDetails.referralAmount)
-          .div(transactionDetails.amount.add(transactionDetails.releasedAmount))
+          .div(transactionDetails.totalAmount)
 
         const transaction = await talentLayerEscrow
           .connect(alice)
           .release(aliceTlId, 4, releaseAmount)
-        // Bob gets half of the referral amount
+        // Bob gets 10% of the referral amount
         await expect(transaction).to.changeEtherBalances(
           [talentLayerEscrow.address, alice, carol, bob],
           [-releaseAmount.add(releasedReferrerAmount), 0, releaseAmount, releasedReferrerAmount],
@@ -2144,7 +2209,7 @@ describe('TalentLayer protocol global testing', function () {
         const deployerBalance = await talentLayerEscrow
           .connect(deployer)
           .getClaimableFeeBalance(ethAddress)
-        // Alice gets half of both the originServiceFeeRate and the originValidatedProposalFeeRate
+        // Alice gets 10% of both the originServiceFeeRate and the originValidatedProposalFeeRate
         expect(alicePlatformBalance).to.be.equal(
           releaseAmount.mul(originServiceFeeRate + originValidatedProposalFeeRate).div(FEE_DIVIDER),
         )
@@ -2156,7 +2221,11 @@ describe('TalentLayer protocol global testing', function () {
 
         // Service status is finished
         const serviceData = await talentLayerService.services(transactionDetails.serviceId)
+        const transactionDetailsAfter = await talentLayerEscrow
+          .connect(alice)
+          .getTransactionDetails(4)
         expect(serviceData.status).to.equal(2)
+        expect(transactionDetailsAfter.amount).to.equal(0)
       })
 
       it('Carol should not be allowed to release escrow the service.', async function () {
