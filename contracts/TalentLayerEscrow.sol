@@ -1052,7 +1052,7 @@ contract TalentLayerEscrow is
         uint16 _originValidatedProposalFeeRate,
         uint256 _referralAmount
     ) private view returns (uint256 totalEscrowAmount) {
-        return
+        totalEscrowAmount =
             _amount +
             (((_amount * protocolEscrowFeeRate) +
                 (_amount * _originServiceFeeRate) +
