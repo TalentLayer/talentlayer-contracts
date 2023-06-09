@@ -38,6 +38,7 @@ interface ITalentLayerService {
         uint256 platformId;
         string dataUri;
         uint256 expirationDate;
+        uint256 referrerId;
     }
 
     function getService(uint256 _serviceId) external view returns (Service memory);
