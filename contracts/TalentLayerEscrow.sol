@@ -186,10 +186,16 @@ contract TalentLayerEscrow is
     /**
      * @notice Emitted after part of a referral amount is released
      * @param _referrerId The id of the referrer.
+     * @param _serviceId The related service ID.
      * @param _token The address of the token used for the payment.
      * @param _amount The amount released.
      */
-    event ReferralAmountReleased(uint256 indexed _referrerId, address indexed _token, uint256 _amount);
+    event ReferralAmountReleased(
+        uint256 indexed _referrerId,
+        uint256 _serviceId,
+        address indexed _token,
+        uint256 _amount
+    );
 
     /**
      * @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
@@ -477,10 +483,11 @@ contract TalentLayerEscrow is
             ? talentLayerPlatformIdContract.getPlatform(proposal.platformId)
             : originServiceCreationPlatform;
 
-        //        uint256 referralAmount = service.referralAmount;
-        //        if (transaction.referrer == address(0)) {
-        //            referralAmount = 0;
-        //        }
+        //TODO check if this is needed
+        uint256 referralAmount = service.referralAmount;
+        if (proposal.referrerId == 0) {
+            referralAmount = 0;
+        }
 
         uint256 transactionAmount = _calculateTotalWithFees(
             proposal.rateAmount,
@@ -987,7 +994,12 @@ contract TalentLayerEscrow is
             originServiceFeeRate
         );
 
-        emit ReferralAmountReleased(transaction.referrerId, transaction.token, releasedReferralAmount);
+        emit ReferralAmountReleased(
+            transaction.referrerId,
+            transaction.serviceId,
+            transaction.token,
+            releasedReferralAmount
+        );
     }
 
     /**
