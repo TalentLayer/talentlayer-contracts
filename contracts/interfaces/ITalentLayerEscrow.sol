@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
+import "../Arbitrator.sol";
+
 /**
  * @title Platform ID Interface
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
@@ -12,18 +14,23 @@ interface ITalentLayerEscrow {
         address receiver;
         address token;
         uint256 amount;
+        uint256 releasedAmount;
         uint256 serviceId;
+        uint256 proposalId;
         uint16 protocolEscrowFeeRate;
         uint16 originServiceFeeRate;
         uint16 originValidatedProposalFeeRate;
+        Arbitrator arbitrator;
+        Status status;
         uint256 disputeId;
         uint256 senderFee;
         uint256 receiverFee;
         uint256 lastInteraction;
-        Status status;
-        //        Arbitrator arbitrator;
         bytes arbitratorExtraData;
         uint256 arbitrationFeeTimeout;
+        uint256 referrerId;
+        uint256 referralAmount;
+        uint256 totalAmount;
     }
 
     enum Status {
