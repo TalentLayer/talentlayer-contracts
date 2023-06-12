@@ -13,7 +13,6 @@ import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
 import "./libs/ERC2771RecipientUpgradeable.sol";
 import {IArbitrable} from "./interfaces/IArbitrable.sol";
 import {Arbitrator} from "./Arbitrator.sol";
-import "hardhat/console.sol";
 
 /**
  * @title TalentLayer Escrow Contract
@@ -75,7 +74,6 @@ contract TalentLayerEscrow is
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
      * @param amount The amount of the transaction EXCLUDING FEES (will not vary)
-     * @param amount The amount of the transaction EXCLUDING FEES (will diminish after each release payment)
      * @param releasedAmount The amount of the transaction that has been released to the receiver EXCLUDING FEES
      * @param serviceId The ID of the associated service
      * @param proposalId The id of the validated proposal
@@ -92,13 +90,13 @@ contract TalentLayerEscrow is
      * @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
      * @param referrerId the id of the optional referrer
      * @param referralAmount the optional lump sum optional fee to be sent to the referrer
+     * @param totalAmount The amount of the transaction EXCLUDING FEES (will diminish after each release payment)
      */
     struct Transaction {
         uint256 id;
         address sender;
         address receiver;
         address token;
-        uint256 totalAmount;
         uint256 amount;
         uint256 releasedAmount;
         uint256 serviceId;
@@ -116,6 +114,7 @@ contract TalentLayerEscrow is
         uint256 arbitrationFeeTimeout;
         uint256 referrerId;
         uint256 referralAmount;
+        uint256 totalAmount;
     }
 
     // =========================== Events ==============================
