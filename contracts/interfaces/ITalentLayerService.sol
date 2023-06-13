@@ -55,27 +55,58 @@ interface ITalentLayerService {
         uint256 _tokenId,
         uint256 _platformId,
         uint256 _ownerId,
-        string calldata _dataUri
+        string calldata _dataUri,
+        address _token
+    ) external returns (uint256);
+
+    function createServiceWithReferral(
+        uint256 _profileId,
+        uint256 _platformId,
+        string calldata _dataUri,
+        bytes calldata _signature,
+        address _token,
+        uint256 _referralAmount
     ) external returns (uint256);
 
     function createProposal(
+        uint256 _profileId,
         uint256 _serviceId,
-        address _rateToken,
         uint256 _rateAmount,
         uint256 _platformId,
-        string calldata _dataUri
+        string calldata _dataUri,
+        uint256 _expirationDate,
+        bytes calldata _signature
+    ) external;
+
+    function createProposalWithReferrer(
+        uint256 _profileId,
+        uint256 _serviceId,
+        uint256 _rateAmount,
+        uint256 _platformId,
+        string calldata _dataUri,
+        uint256 _expirationDate,
+        bytes calldata _signature,
+        uint256 _referrerId
     ) external;
 
     function afterDeposit(uint256 _serviceId, uint256 _proposalId, uint256 _transactionId) external;
 
     function updateProposal(
+        uint256 _profileId,
         uint256 _serviceId,
-        address _rateToken,
         uint256 _rateAmount,
-        string calldata _dataUri
+        string calldata _dataUri,
+        uint256 _expirationDate,
+        uint256 _referrerId
     ) external;
 
     function afterFullPayment(uint256 _serviceId, uint256 _releasedAmount) external;
 
-    function updateServiceData(uint256 _serviceId, string calldata _dataUri) external;
+    function updateService(
+        uint256 _profileId,
+        uint256 _serviceId,
+        uint256 _referralAmount,
+        address _token,
+        string calldata _dataUri
+    ) external;
 }
