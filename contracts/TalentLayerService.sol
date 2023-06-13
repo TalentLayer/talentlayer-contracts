@@ -420,6 +420,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         address _token,
         uint256 _referralAmount
     ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
+        require(_referralAmount > 0, "Referral amount must be greater than 0");
         _validateService(_profileId, _platformId, _dataUri, _signature, _token);
 
         uint256 id = nextServiceId;
@@ -518,6 +519,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         proposals[_serviceId][_profileId] = Proposal({
             status: ProposalStatus.Pending,
             ownerId: _profileId,
+            //TODO keep address 0 ar add service token address ? (Need get Service if so)
             rateToken: address(0),
             rateAmount: _rateAmount,
             platformId: _platformId,
@@ -772,6 +774,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(service.status == Status.Opened, "Service not opened");
         require(service.ownerId != 0, "Service not exist");
         require(proposals[_serviceId][_profileId].ownerId != _profileId, "proposal already exist");
+        //TODO check to do this ?
+        //        require(service.referralAmount > 0, "Can't refer someone for this service");
 
         require(service.ownerId != _profileId, "can't create for your own service");
         require(bytes(_dataUri).length == 46, "Invalid cid");
