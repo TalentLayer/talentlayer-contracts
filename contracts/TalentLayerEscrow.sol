@@ -483,7 +483,6 @@ contract TalentLayerEscrow is
             ? talentLayerPlatformIdContract.getPlatform(proposal.platformId)
             : originServiceCreationPlatform;
 
-        //TODO check if this is needed
         uint256 referralAmount = service.referralAmount;
         if (proposal.referrerId == 0) {
             referralAmount = 0;
@@ -968,13 +967,17 @@ contract TalentLayerEscrow is
             transaction.token
         ] += originValidatedProposalFeeRate;
 
-        uint256 releasedReferralAmount = 0;
-
-        //TODO can amount be 0? Not as long as min amount in service contract
-        if (transaction.referrerId != 0) {
-            releasedReferralAmount = (_releaseAmount * transaction.referralAmount) / (transaction.totalAmount);
+        if (transaction.referrerId != 0 && transaction.referralAmount != 0) {
+            uint256 releasedReferralAmount = (_releaseAmount * transaction.referralAmount) / (transaction.totalAmount);
             _safeTransferBalance(
                 payable(talentLayerIdContract.ownerOf(transaction.referrerId)),
+                transaction.token,
+                releasedReferralAmount
+            );
+
+            emit ReferralAmountReleased(
+                transaction.referrerId,
+                transaction.serviceId,
                 transaction.token,
                 releasedReferralAmount
             );
@@ -992,13 +995,6 @@ contract TalentLayerEscrow is
             transaction.serviceId,
             transaction.token,
             originServiceFeeRate
-        );
-
-        emit ReferralAmountReleased(
-            transaction.referrerId,
-            transaction.serviceId,
-            transaction.token,
-            releasedReferralAmount
         );
     }
 
