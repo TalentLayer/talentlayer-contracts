@@ -138,34 +138,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param ownerId The talentLayerId of the seller who made the proposal
      * @param dataUri token Id to IPFS URI mapping
      * @param status proposal status
-     * @param rateToken the token choose for the payment
-     * @param rateAmount the amount of token chosen
-     * @param platformId the platform ID on which the proposal was created
-     * @param expirationDate the timeout for the proposal
-     */
-    event ProposalCreated(
-        uint256 serviceId,
-        uint256 ownerId,
-        string dataUri,
-        ProposalStatus status,
-        address rateToken,
-        uint256 rateAmount,
-        uint256 platformId,
-        uint256 expirationDate
-    );
-
-    /**
-     * @notice Emitted after a new proposal is created
-     * @param serviceId The service id
-     * @param ownerId The talentLayerId of the seller who made the proposal
-     * @param dataUri token Id to IPFS URI mapping
-     * @param status proposal status
      * @param rateAmount the amount of token chosen
      * @param platformId the platform ID on which the proposal was created
      * @param expirationDate the timeout for the proposal
      * @param referrerId the id of the referrer (Zero if no referrer)
      */
-    event ProposalCreatedWithoutToken(
+    event ProposalCreated(
         uint256 serviceId,
         uint256 ownerId,
         string dataUri,
@@ -405,58 +383,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _platformId platform ID from where the proposal is created
      * @param _expirationDate the time before the proposal is automatically validated
      * @param _signature optional platform signature to allow the operation
-     */
-    function createProposal(
-        uint256 _profileId,
-        uint256 _serviceId,
-        uint256 _rateAmount,
-        uint256 _platformId,
-        string calldata _dataUri,
-        uint256 _expirationDate,
-        bytes calldata _signature
-    ) public payable onlyOwnerOrDelegate(_profileId) {
-        _validateProposal(_profileId, _serviceId, _rateAmount, _platformId, _dataUri, _signature, 0);
-
-        proposals[_serviceId][_profileId] = Proposal({
-            status: ProposalStatus.Pending,
-            ownerId: _profileId,
-            rateToken: address(0),
-            rateAmount: _rateAmount,
-            platformId: _platformId,
-            dataUri: _dataUri,
-            expirationDate: _expirationDate,
-            referrerId: 0
-        });
-
-        if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
-            tlId.setHasActivity(_profileId);
-        }
-        proposalNonce[_profileId]++;
-
-        emit ProposalCreatedWithoutToken(
-            _serviceId,
-            _profileId,
-            _dataUri,
-            ProposalStatus.Pending,
-            _rateAmount,
-            _platformId,
-            _expirationDate,
-            0
-        );
-    }
-
-    /**
-     * @notice Allows an seller to propose his service for a service
-     * @param _profileId The TalentLayer ID of the user owner of the proposal
-     * @param _serviceId The service linked to the new proposal
-     * @param _rateAmount the amount of token chosen
-     * @param _dataUri token Id to IPFS URI mapping
-     * @param _platformId platform ID from where the proposal is created
-     * @param _expirationDate the time before the proposal is automatically validated
-     * @param _signature optional platform signature to allow the operation
      * @param _referrerId the id of the referrer (Zero if no referrer)
      */
-    function createProposalWithReferrer(
+    function createProposal(
         uint256 _profileId,
         uint256 _serviceId,
         uint256 _rateAmount,
@@ -466,13 +395,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         bytes calldata _signature,
         uint256 _referrerId
     ) public payable onlyOwnerOrDelegate(_profileId) {
+        Service storage service = services[_serviceId];
         _validateProposal(_profileId, _serviceId, _rateAmount, _platformId, _dataUri, _signature, _referrerId);
 
         proposals[_serviceId][_profileId] = Proposal({
             status: ProposalStatus.Pending,
             ownerId: _profileId,
-            //TODO keep address 0 ar add service token address ? (Need get Service if so)
-            rateToken: address(0),
+            rateToken: service.token,
             rateAmount: _rateAmount,
             platformId: _platformId,
             dataUri: _dataUri,
@@ -485,7 +414,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         }
         proposalNonce[_profileId]++;
 
-        emit ProposalCreatedWithoutToken(
+        emit ProposalCreated(
             _serviceId,
             _profileId,
             _dataUri,
