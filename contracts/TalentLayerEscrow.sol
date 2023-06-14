@@ -516,7 +516,7 @@ contract TalentLayerEscrow is
             proposal.amount,
             originServiceCreationPlatform.originServiceFeeRate,
             originProposalCreationPlatform.originValidatedProposalFeeRate,
-            service.referralAmount
+            referralAmount
         );
 
         if (service.token == address(0)) {
