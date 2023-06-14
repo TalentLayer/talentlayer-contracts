@@ -156,6 +156,14 @@ contract TalentLayerEscrow is
     event FeesClaimed(uint256 _platformId, address indexed _token, uint256 _amount);
 
     /**
+     * @notice Emitted after a referrer withdraws its balance
+     * @param _referrerId The Platform ID to which the balance is transferred.
+     * @param _token The address of the token used for the payment.
+     * @param _amount The amount transferred.
+     */
+    event ReferralAmountClaimed(uint256 _referrerId, address indexed _token, uint256 _amount);
+
+    /**
      * @notice Emitted after an origin service fee is released to a platform's balance
      * @param _platformId The platform ID.
      * @param _serviceId The related service ID.
@@ -281,6 +289,14 @@ contract TalentLayerEscrow is
     mapping(uint256 => mapping(address => uint256)) private platformIdToTokenToBalance;
 
     /**
+     * @notice Mapping from referrerId to Token address to Token Balance
+     *         Represents the amount of ETH or token present on this contract which
+     *         belongs to a referrer and can be withdrawn.
+     * @dev address(0) is reserved to ETH balance
+     */
+    mapping(uint256 => mapping(address => uint256)) private referrerIdToTokenToBalance;
+
+    /**
      * @notice Instance of TalentLayerService.sol
      */
     ITalentLayerService private talentLayerServiceContract;
@@ -400,6 +416,17 @@ contract TalentLayerEscrow is
         uint256 platformId = talentLayerPlatformIdContract.ids(sender);
         talentLayerPlatformIdContract.isValid(platformId);
         return platformIdToTokenToBalance[platformId][_token];
+    }
+
+    /**
+     * @dev Only the owner of the referrer ID can execute this function
+     * @param _token Token address ("0" for ETH)
+     * @return balance The balance of the referrer
+     */
+    function getClaimableReferralBalance(address _token) external view returns (uint256 balance) {
+        uint256 referrerId = talentLayerIdContract.ids(_msgSender());
+        talentLayerIdContract.isValid(referrerId);
+        return referrerIdToTokenToBalance[referrerId][_token];
     }
 
     /**
@@ -755,6 +782,28 @@ contract TalentLayerEscrow is
         emit FeesClaimed(_platformId, _tokenAddress, amount);
     }
 
+    // =========================== Referrer functions ==============================
+
+    /**
+     * @notice Allows a referrer to claim its tokens & / or ETH balance.
+     * @param _referrerId The ID of the referrer claiming the balance.
+     * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
+     * Emits a BalanceTransferred & a ReferralAmountClaimed events
+     */
+    function claimReferralBalance(uint256 _referrerId, address _tokenAddress) external whenNotPaused {
+        address payable recipient;
+
+        talentLayerIdContract.isValid(_referrerId);
+        recipient = payable(talentLayerIdContract.ownerOf(_referrerId));
+
+        uint256 amount = referrerIdToTokenToBalance[_referrerId][_tokenAddress];
+        require(amount > 0, "nothing to claim");
+        referrerIdToTokenToBalance[_referrerId][_tokenAddress] = 0;
+        _safeTransferBalance(recipient, _tokenAddress, amount);
+
+        emit ReferralAmountClaimed(_referrerId, _tokenAddress, amount);
+    }
+
     // =========================== Arbitrator functions ==============================
 
     /**
@@ -965,11 +1014,7 @@ contract TalentLayerEscrow is
 
         if (transaction.referrerId != 0 && transaction.referralAmount != 0) {
             uint256 releasedReferralAmount = (_releaseAmount * transaction.referralAmount) / (transaction.totalAmount);
-            _safeTransferBalance(
-                payable(talentLayerIdContract.ownerOf(transaction.referrerId)),
-                transaction.token,
-                releasedReferralAmount
-            );
+            referrerIdToTokenToBalance[transaction.referrerId][transaction.token] = releasedReferralAmount;
 
             emit ReferralAmountReleased(
                 transaction.referrerId,
