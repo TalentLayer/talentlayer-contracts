@@ -73,7 +73,7 @@ contract TalentLayerEscrow is
      * @param sender The party paying the escrow amount
      * @param receiver The intended receiver of the escrow amount
      * @param token The token used for the transaction
-     * @param amount The amount of the transaction EXCLUDING FEES (will not vary)
+     * @param amount The amount of the transaction EXCLUDING FEES (will diminish after each release payment)
      * @param releasedAmount The amount of the transaction that has been released to the receiver EXCLUDING FEES
      * @param serviceId The ID of the associated service
      * @param proposalId The id of the validated proposal
@@ -90,7 +90,7 @@ contract TalentLayerEscrow is
      * @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
      * @param referrerId the id of the optional referrer
      * @param referralAmount the optional lump sum optional fee to be sent to the referrer
-     * @param totalAmount The amount of the transaction EXCLUDING FEES (will diminish after each release payment)
+     * @param totalAmount The amount of the transaction EXCLUDING FEES (will not vary)
      */
     struct Transaction {
         uint256 id;
