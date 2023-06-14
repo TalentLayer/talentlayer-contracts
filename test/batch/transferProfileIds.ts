@@ -94,7 +94,7 @@ describe('Transfer of TalentLayer IDs', function () {
     const signature = await getSignatureForService(eve, bobTlId.toNumber(), 0, cid)
     await talentLayerService
       .connect(bob)
-      .createService(bobTlId, evePlatformId, cid, signature, tokenAddress)
+      .createService(bobTlId, evePlatformId, cid, signature, tokenAddress, 0)
 
     expect(await talentLayerID.hasActivity(bobTlId)).to.be.true
 

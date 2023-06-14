@@ -745,7 +745,7 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(dave)
-          .createService(0, 1, 'haveNotTlid', signature, token.address),
+          .createService(0, 1, 'haveNotTlid', signature, token.address, 0),
       ).to.be.revertedWith('ERC721: invalid token ID')
     })
 
@@ -754,7 +754,7 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(alice)
-          .createService(aliceTlId, 0, cid, signature, token.address),
+          .createService(aliceTlId, 0, cid, signature, token.address, 0),
       ).to.be.revertedWith('Invalid platform ID')
     })
 
@@ -765,7 +765,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
       const tx = talentLayerService
         .connect(alice)
-        .createService(aliceTlId, alicePlatformId, cid, signature, token.address, {
+        .createService(aliceTlId, alicePlatformId, cid, signature, token.address, 0, {
           value: alicePlatformServicePostingFee.sub(1),
         })
 
@@ -779,7 +779,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
       const tx = talentLayerService
         .connect(alice)
-        .createService(aliceTlId, alicePlatformId, cid, signature, nonListedRateToken, {
+        .createService(aliceTlId, alicePlatformId, cid, signature, nonListedRateToken, 0, {
           value: alicePlatformServicePostingFee,
         })
 
@@ -794,7 +794,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
       await talentLayerService
         .connect(alice)
-        .createService(aliceTlId, alicePlatformId, cid, signature, token.address, {
+        .createService(aliceTlId, alicePlatformId, cid, signature, token.address, 0, {
           value: alicePlatformServicePostingFee,
         })
       const service1Data = await talentLayerService.services(1)
@@ -803,7 +803,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature2 = await getSignatureForService(platformOneOwner, aliceTlId, 1, cid)
       await talentLayerService
         .connect(alice)
-        .createService(aliceTlId, alicePlatformId, cid, signature2, token.address, {
+        .createService(aliceTlId, alicePlatformId, cid, signature2, token.address, 0, {
           value: alicePlatformServicePostingFee,
         })
       await talentLayerService.services(2)
@@ -812,16 +812,24 @@ describe('TalentLayer protocol global testing', function () {
       const signature3 = await getSignatureForService(platformOneOwner, aliceTlId, 2, cid)
       await talentLayerService
         .connect(alice)
-        .createService(aliceTlId, alicePlatformId, cid, signature3, ethers.constants.AddressZero, {
-          value: alicePlatformServicePostingFee,
-        })
+        .createService(
+          aliceTlId,
+          alicePlatformId,
+          cid,
+          signature3,
+          ethers.constants.AddressZero,
+          0,
+          {
+            value: alicePlatformServicePostingFee,
+          },
+        )
       await talentLayerService.services(3)
 
       // service 4
       const signature4 = await getSignatureForService(platformOneOwner, aliceTlId, 3, cid)
       await talentLayerService
         .connect(alice)
-        .createService(aliceTlId, alicePlatformId, cid, signature4, token.address, {
+        .createService(aliceTlId, alicePlatformId, cid, signature4, token.address, 0, {
           value: alicePlatformServicePostingFee,
         })
       await talentLayerService.services(4)
@@ -830,7 +838,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature5 = await getSignatureForService(platformOneOwner, aliceTlId, 4, cid)
       await talentLayerService
         .connect(alice)
-        .createService(aliceTlId, alicePlatformId, cid, signature5, token.address, {
+        .createService(aliceTlId, alicePlatformId, cid, signature5, token.address, 0, {
           value: alicePlatformServicePostingFee,
         })
       await talentLayerService.services(5)
@@ -847,22 +855,23 @@ describe('TalentLayer protocol global testing', function () {
       const alicePlatformServicePostingFee = platform.servicePostingFee
 
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
-      const tx = await talentLayerService.connect(alice).createServiceWithReferral(
-        aliceTlId,
-        alicePlatformId,
-        cid,
-        signature,
-        ethers.constants.AddressZero,
-        // token.address,
-        referralAmount,
-        {
-          value: alicePlatformServicePostingFee,
-        },
-      )
+      const tx = await talentLayerService
+        .connect(alice)
+        .createService(
+          aliceTlId,
+          alicePlatformId,
+          cid,
+          signature,
+          ethers.constants.AddressZero,
+          referralAmount,
+          {
+            value: alicePlatformServicePostingFee,
+          },
+        )
       const service6Data = await talentLayerService.services(6)
 
       expect(tx)
-        .to.emit(talentLayerService, 'ServiceCreatedWithReferral')
+        .to.emit(talentLayerService, 'ServiceCreated')
         .withArgs(6, aliceTlId, alicePlatformId, cid, token.address, referralAmount)
 
       expect(service6Data.status).to.be.equal(ServiceStatus.Opened)
@@ -880,21 +889,13 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 6, cid)
       const tx = await talentLayerService
         .connect(alice)
-        .createServiceWithReferral(
-          aliceTlId,
-          alicePlatformId,
-          cid,
-          signature,
-          token.address,
-          referralAmount,
-          {
-            value: alicePlatformServicePostingFee,
-          },
-        )
+        .createService(aliceTlId, alicePlatformId, cid, signature, token.address, referralAmount, {
+          value: alicePlatformServicePostingFee,
+        })
       const service7Data = await talentLayerService.services(7)
 
       expect(tx)
-        .to.emit(talentLayerService, 'ServiceCreatedWithReferral')
+        .to.emit(talentLayerService, 'ServiceCreated')
         .withArgs(7, aliceTlId, alicePlatformId, cid, token.address, referralAmount)
 
       expect(service7Data.status).to.be.equal(ServiceStatus.Opened)
@@ -910,7 +911,7 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(alice)
-          .createService(aliceTlId, 5, 'wrongTlPid', signature, token.address),
+          .createService(aliceTlId, 5, 'wrongTlPid', signature, token.address, 0),
       ).to.be.revertedWith('Invalid platform ID')
     })
 
@@ -1797,7 +1798,7 @@ describe('TalentLayer protocol global testing', function () {
         const signature = await getSignatureForService(platformOneOwner, aliceTlId, 5, cid)
         await talentLayerService
           .connect(alice)
-          .createService(aliceTlId, 1, cid, signature, token.address, {
+          .createService(aliceTlId, 1, cid, signature, token.address, 0, {
             value: alicePlatformServicePostingFee,
           })
         await talentLayerService.services(serviceId)

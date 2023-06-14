@@ -70,7 +70,7 @@ async function deployAndSetup(): Promise<
   const signature = await getSignatureForService(carol, aliceTlId, 0, cid)
   await talentLayerService
     .connect(alice)
-    .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero)
+    .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
 
   // Bob, the seller, creates a proposal for the service
   const signature2 = await getSignatureForProposal(carol, bobTlId, serviceId, cid)

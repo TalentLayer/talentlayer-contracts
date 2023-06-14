@@ -101,7 +101,7 @@ async function deployAndSetup(
   const signature = await getSignatureForService(carol, aliceTlId, 0, cid)
   await talentLayerService
     .connect(alice)
-    .createService(aliceTlId, carolPlatformId, cid, signature, tokenAddress)
+    .createService(aliceTlId, carolPlatformId, cid, signature, tokenAddress, 0)
 
   // Bob, the seller, creates a proposal for the service
   const signature2 = await getSignatureForProposal(carol, bobTlId, serviceId, cid)

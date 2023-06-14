@@ -132,12 +132,12 @@ describe('Delegation System', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
       const tx = talentLayerService
         .connect(eve)
-        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
       await expect(tx).to.be.revertedWith('Not owner or delegate')
 
       await talentLayerService
         .connect(dave)
-        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
       const serviceData = await talentLayerService.services(1)
 
       expect(serviceData.ownerId.toNumber()).to.be.equal(aliceTlId)
@@ -241,7 +241,7 @@ describe('Delegation System', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 1, cid)
       const tx = talentLayerService
         .connect(dave)
-        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
       await expect(tx).to.be.revertedWith('Not owner or delegate')
     })
   })
