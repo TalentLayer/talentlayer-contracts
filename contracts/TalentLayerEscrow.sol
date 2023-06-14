@@ -489,7 +489,7 @@ contract TalentLayerEscrow is
         }
 
         uint256 transactionAmount = _calculateTotalWithFees(
-            proposal.rateAmount,
+            proposal.amount,
             originServiceCreationPlatform.originServiceFeeRate,
             originProposalCreationPlatform.originValidatedProposalFeeRate,
             service.referralAmount
@@ -518,8 +518,8 @@ contract TalentLayerEscrow is
             sender: sender,
             receiver: receiver,
             token: service.token,
-            totalAmount: proposal.rateAmount,
-            amount: proposal.rateAmount,
+            totalAmount: proposal.amount,
+            amount: proposal.amount,
             releasedAmount: 0,
             serviceId: _serviceId,
             proposalId: _proposalId,

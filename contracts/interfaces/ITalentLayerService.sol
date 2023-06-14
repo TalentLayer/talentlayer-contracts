@@ -33,8 +33,8 @@ interface ITalentLayerService {
     struct Proposal {
         ProposalStatus status;
         uint256 ownerId;
-        address rateToken;
-        uint256 rateAmount;
+        address token;
+        uint256 amount;
         uint256 platformId;
         string dataUri;
         uint256 expirationDate;
@@ -51,15 +51,6 @@ interface ITalentLayerService {
     ) external view returns (Service memory, Proposal memory);
 
     function createService(
-        Status _status,
-        uint256 _tokenId,
-        uint256 _platformId,
-        uint256 _ownerId,
-        string calldata _dataUri,
-        address _token
-    ) external returns (uint256);
-
-    function createServiceWithReferral(
         uint256 _profileId,
         uint256 _platformId,
         string calldata _dataUri,
@@ -71,17 +62,7 @@ interface ITalentLayerService {
     function createProposal(
         uint256 _profileId,
         uint256 _serviceId,
-        uint256 _rateAmount,
-        uint256 _platformId,
-        string calldata _dataUri,
-        uint256 _expirationDate,
-        bytes calldata _signature
-    ) external;
-
-    function createProposalWithReferrer(
-        uint256 _profileId,
-        uint256 _serviceId,
-        uint256 _rateAmount,
+        uint256 _amount,
         uint256 _platformId,
         string calldata _dataUri,
         uint256 _expirationDate,
@@ -94,7 +75,7 @@ interface ITalentLayerService {
     function updateProposal(
         uint256 _profileId,
         uint256 _serviceId,
-        uint256 _rateAmount,
+        uint256 _amount,
         string calldata _dataUri,
         uint256 _expirationDate,
         uint256 _referrerId
@@ -106,7 +87,6 @@ interface ITalentLayerService {
         uint256 _profileId,
         uint256 _serviceId,
         uint256 _referralAmount,
-        address _token,
         string calldata _dataUri
     ) external;
 }
