@@ -144,9 +144,7 @@ describe('Delegation System', function () {
     })
 
     it('Dave can update service data on behalf of Alice', async function () {
-      const tx = await talentLayerService
-        .connect(dave)
-        .updateService(aliceTlId, serviceId, referralAmount, ethers.constants.AddressZero, cid)
+      const tx = await talentLayerService.connect(dave).updateService(aliceTlId, serviceId, 0, cid)
       await expect(tx).to.not.be.reverted
     })
 

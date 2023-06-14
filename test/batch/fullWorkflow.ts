@@ -916,31 +916,26 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can update her service data', async function () {
-      await talentLayerService
-        .connect(alice)
-        .updateService(aliceTlId, 1, referralAmount, token.address, cid2)
+      await talentLayerService.connect(alice).updateService(aliceTlId, 1, referralAmount, cid2)
       const serviceData = await talentLayerService.services(1)
       expect(serviceData.dataUri).to.be.equal(cid2)
 
       const newReferralAmount = 40000
       const tx = await talentLayerService
         .connect(alice)
-        .updateService(aliceTlId, 6, newReferralAmount, ethers.constants.AddressZero, cid2)
+        .updateService(aliceTlId, 6, newReferralAmount, cid2)
       const service6Data = await talentLayerService.services(6)
 
       expect(tx)
         .to.emit(talentLayerService, 'ServiceUpdated')
         .withArgs(6, cid2, newReferralAmount, ethers.constants.AddressZero)
       expect(service6Data.referralAmount).to.be.equal(newReferralAmount)
-      expect(service6Data.token).to.be.equal(ethers.constants.AddressZero)
     })
 
-    it('Alice cannot update her service with a non-whitelisted token', async function () {
+    it('Alice cannot update her service with an inferior referral amount', async function () {
       await expect(
-        talentLayerService
-          .connect(alice)
-          .updateService(aliceTlId, 1, referralAmount, nonListedRateToken, cid2),
-      ).to.be.revertedWith('Token not allowed')
+        talentLayerService.connect(alice).updateService(aliceTlId, 1, referralAmount - 1, cid2),
+      ).to.be.revertedWith("Can't reduce referral amount")
     })
 
     it('Alice can cancel her own service', async function () {
@@ -1464,7 +1459,7 @@ describe('TalentLayer protocol global testing', function () {
       it('Alice cannot update her service data after it is confirmed', async function () {
         const tx = talentLayerService
           .connect(alice)
-          .updateService(aliceTlId, serviceId, referralAmount, token.address, cid2)
+          .updateService(aliceTlId, serviceId, referralAmount, cid2)
         await expect(tx).to.be.revertedWith('status must be opened')
       })
 
