@@ -1651,8 +1651,8 @@ describe('TalentLayer protocol global testing', function () {
         // Bob gets half of the referral amount
         await expect(tx).to.changeTokenBalances(
           token,
-          [talentLayerEscrow.address, alice, carol, bob],
-          [-releaseAmount.add(releasedReferrerAmount), 0, releaseAmount, releasedReferrerAmount],
+          [talentLayerEscrow.address, alice, carol],
+          [-releaseAmount, 0, releaseAmount],
         )
 
         const alicePlatformBalance = await talentLayerEscrow
@@ -1661,15 +1661,29 @@ describe('TalentLayer protocol global testing', function () {
         const deployerBalance = await talentLayerEscrow
           .connect(deployer)
           .getClaimableFeeBalance(token.address)
+        const referrerBalance = await talentLayerEscrow
+          .connect(bob)
+          .getClaimableReferralBalance(token.address)
+
         // Alice gets half of both the originServiceFeeRate and the originValidatedProposalFeeRate
         expect(alicePlatformBalance).to.be.equal(
           releaseAmount.mul(originServiceFeeRate + originValidatedProposalFeeRate).div(FEE_DIVIDER),
         )
-        expect(deployerBalance.toString()).to.be.equal(
+        expect(deployerBalance).to.be.equal(
           releaseAmount.mul(protocolEscrowFeeRate).div(FEE_DIVIDER),
         )
-        await talentLayerEscrow.connect(alice).claim(alicePlatformId, token.address)
-        await talentLayerEscrow.connect(deployer).claim(0, token.address)
+        expect(referrerBalance).to.be.equal(releasedReferrerAmount)
+        const aliceClaimTx = await talentLayerEscrow
+          .connect(alice)
+          .claim(alicePlatformId, token.address)
+        const deployerClaimTx = await talentLayerEscrow.connect(deployer).claim(0, token.address)
+        const bobReferrerClaimTx = await talentLayerEscrow
+          .connect(bob)
+          .claimReferralBalance(bobTlId, token.address)
+
+        expect(deployerClaimTx).to.changeTokenBalances(token, [alice], [alicePlatformBalance])
+        expect(aliceClaimTx).to.changeTokenBalances(token, [deployer], [deployerBalance])
+        expect(bobReferrerClaimTx).to.changeTokenBalances(token, [bob], [referrerBalance])
       })
 
       it('Alice can reimburse 40% of the escrow to Carol for service 7 which includes a referral amount.', async function () {
@@ -1714,11 +1728,11 @@ describe('TalentLayer protocol global testing', function () {
           .div(transactionDetails.totalAmount)
 
         const tx = await talentLayerEscrow.connect(alice).release(aliceTlId, 2, releaseAmount)
-        // Bob gets half of the referral amount
+        // Bob gets 10% of the referral amount
         await expect(tx).to.changeTokenBalances(
           token,
-          [talentLayerEscrow.address, alice, carol, bob],
-          [-releaseAmount.add(releasedReferrerAmount), 0, releaseAmount, releasedReferrerAmount],
+          [talentLayerEscrow.address, alice, carol],
+          [-releaseAmount, 0, releaseAmount],
         )
 
         const alicePlatformBalance = await talentLayerEscrow
@@ -1727,15 +1741,29 @@ describe('TalentLayer protocol global testing', function () {
         const deployerBalance = await talentLayerEscrow
           .connect(deployer)
           .getClaimableFeeBalance(token.address)
-        // Alice gets half of both the originServiceFeeRate and the originValidatedProposalFeeRate
+        const referrerBalance = await talentLayerEscrow
+          .connect(bob)
+          .getClaimableReferralBalance(token.address)
+
+        // Alice gets 10% of both the originServiceFeeRate and the originValidatedProposalFeeRate
         expect(alicePlatformBalance).to.be.equal(
           releaseAmount.mul(originServiceFeeRate + originValidatedProposalFeeRate).div(FEE_DIVIDER),
         )
         expect(deployerBalance.toString()).to.be.equal(
           releaseAmount.mul(protocolEscrowFeeRate).div(FEE_DIVIDER),
         )
-        await talentLayerEscrow.connect(alice).claim(alicePlatformId, token.address)
-        await talentLayerEscrow.connect(deployer).claim(0, token.address)
+        expect(referrerBalance.toString()).to.be.equal(releasedReferrerAmount)
+        const deployerClaimTx = await talentLayerEscrow
+          .connect(alice)
+          .claim(alicePlatformId, token.address)
+        const aliceClaimTx = await talentLayerEscrow.connect(deployer).claim(0, token.address)
+        const bobReferrerClaimTx = await talentLayerEscrow
+          .connect(bob)
+          .claimReferralBalance(bobTlId, token.address)
+
+        expect(deployerClaimTx).to.changeTokenBalances(token, [alice], [alicePlatformBalance])
+        expect(aliceClaimTx).to.changeTokenBalances(token, [deployer], [deployerBalance])
+        expect(bobReferrerClaimTx).to.changeTokenBalances(token, [bob], [referrerBalance])
 
         // Service status is finished
         const serviceData = await talentLayerService.services(transactionDetails.serviceId)
@@ -2192,13 +2220,11 @@ describe('TalentLayer protocol global testing', function () {
           .mul(transactionDetails.referralAmount)
           .div(transactionDetails.amount)
 
-        const transaction = await talentLayerEscrow
-          .connect(alice)
-          .release(aliceTlId, 4, releaseAmount)
+        const tx = await talentLayerEscrow.connect(alice).release(aliceTlId, 4, releaseAmount)
         // Bob gets half of the referral amount
-        await expect(transaction).to.changeEtherBalances(
-          [talentLayerEscrow.address, alice, carol, bob],
-          [-releaseAmount.add(releasedReferrerAmount), 0, releaseAmount, releasedReferrerAmount],
+        await expect(tx).to.changeEtherBalances(
+          [talentLayerEscrow.address, alice, carol],
+          [-releaseAmount, 0, releaseAmount],
         )
 
         const alicePlatformBalance = await talentLayerEscrow
@@ -2207,6 +2233,9 @@ describe('TalentLayer protocol global testing', function () {
         const deployerBalance = await talentLayerEscrow
           .connect(deployer)
           .getClaimableFeeBalance(ethAddress)
+        const referrerBalance = await talentLayerEscrow
+          .connect(bob)
+          .getClaimableReferralBalance(ethAddress)
         // Alice gets half of both the originServiceFeeRate and the originValidatedProposalFeeRate
         expect(alicePlatformBalance).to.be.equal(
           releaseAmount.mul(originServiceFeeRate + originValidatedProposalFeeRate).div(FEE_DIVIDER),
@@ -2214,8 +2243,18 @@ describe('TalentLayer protocol global testing', function () {
         expect(deployerBalance.toString()).to.be.equal(
           releaseAmount.mul(protocolEscrowFeeRate).div(FEE_DIVIDER),
         )
-        await talentLayerEscrow.connect(alice).claim(alicePlatformId, ethers.constants.AddressZero)
-        await talentLayerEscrow.connect(deployer).claim(0, ethers.constants.AddressZero)
+        expect(referrerBalance).to.be.equal(releasedReferrerAmount)
+        const aliceClaimTx = await talentLayerEscrow
+          .connect(alice)
+          .claim(alicePlatformId, ethAddress)
+        const deployerClaimTx = await talentLayerEscrow.connect(deployer).claim(0, ethAddress)
+        const bobReferrerClaimTx = await talentLayerEscrow
+          .connect(bob)
+          .claimReferralBalance(bobTlId, ethAddress)
+
+        expect(deployerClaimTx).to.changeTokenBalances(token, [alice], [alicePlatformBalance])
+        expect(aliceClaimTx).to.changeTokenBalances(token, [deployer], [deployerBalance])
+        expect(bobReferrerClaimTx).to.changeTokenBalances(token, [bob], [referrerBalance])
       })
 
       it('Alice can reimburse 40% of the escrow to Carol for service 6 which includes a referral amount.', async function () {
@@ -2258,13 +2297,11 @@ describe('TalentLayer protocol global testing', function () {
           .mul(transactionDetails.referralAmount)
           .div(transactionDetails.totalAmount)
 
-        const transaction = await talentLayerEscrow
-          .connect(alice)
-          .release(aliceTlId, 4, releaseAmount)
+        const tx = await talentLayerEscrow.connect(alice).release(aliceTlId, 4, releaseAmount)
         // Bob gets 10% of the referral amount
-        await expect(transaction).to.changeEtherBalances(
-          [talentLayerEscrow.address, alice, carol, bob],
-          [-releaseAmount.add(releasedReferrerAmount), 0, releaseAmount, releasedReferrerAmount],
+        await expect(tx).to.changeEtherBalances(
+          [talentLayerEscrow.address, alice, carol],
+          [-releaseAmount, 0, releaseAmount],
         )
 
         const alicePlatformBalance = await talentLayerEscrow
@@ -2273,6 +2310,10 @@ describe('TalentLayer protocol global testing', function () {
         const deployerBalance = await talentLayerEscrow
           .connect(deployer)
           .getClaimableFeeBalance(ethAddress)
+        const referrerBalance = await talentLayerEscrow
+          .connect(bob)
+          .getClaimableReferralBalance(ethAddress)
+
         // Alice gets 10% of both the originServiceFeeRate and the originValidatedProposalFeeRate
         expect(alicePlatformBalance).to.be.equal(
           releaseAmount.mul(originServiceFeeRate + originValidatedProposalFeeRate).div(FEE_DIVIDER),
@@ -2280,8 +2321,18 @@ describe('TalentLayer protocol global testing', function () {
         expect(deployerBalance.toString()).to.be.equal(
           releaseAmount.mul(protocolEscrowFeeRate).div(FEE_DIVIDER),
         )
-        await talentLayerEscrow.connect(alice).claim(alicePlatformId, ethers.constants.AddressZero)
-        await talentLayerEscrow.connect(deployer).claim(0, ethers.constants.AddressZero)
+        expect(referrerBalance.toString()).to.be.equal(releasedReferrerAmount)
+        const deployerClaimTx = await talentLayerEscrow
+          .connect(alice)
+          .claim(alicePlatformId, ethAddress)
+        const aliceClaimTx = await talentLayerEscrow.connect(deployer).claim(0, ethAddress)
+        const bobReferrerClaimTx = await talentLayerEscrow
+          .connect(bob)
+          .claimReferralBalance(bobTlId, ethAddress)
+
+        expect(deployerClaimTx).to.changeEtherBalances([alice], [alicePlatformBalance])
+        expect(aliceClaimTx).to.changeEtherBalances([deployer], [deployerBalance])
+        expect(bobReferrerClaimTx).to.changeEtherBalances([bob], [referrerBalance])
 
         // Service status is finished
         const serviceData = await talentLayerService.services(transactionDetails.serviceId)
