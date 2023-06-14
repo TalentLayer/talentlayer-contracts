@@ -483,10 +483,7 @@ contract TalentLayerEscrow is
             ? talentLayerPlatformIdContract.getPlatform(proposal.platformId)
             : originServiceCreationPlatform;
 
-        uint256 referralAmount = service.referralAmount;
-        if (proposal.referrerId == 0) {
-            referralAmount = 0;
-        }
+        uint256 referralAmount = proposal.referrerId == 0 ? 0 : service.referralAmount;
 
         uint256 transactionAmount = _calculateTotalWithFees(
             proposal.amount,
