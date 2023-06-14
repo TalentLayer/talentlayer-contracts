@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import {ITalentLayerService} from "../interfaces/ITalentLayerService.sol";
+import {ITalentLayerServiceV1} from "./interfaces/ITalentLayerServiceV1.sol";
 import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
 import "../libs/ERC2771RecipientUpgradeable.sol";
@@ -263,7 +263,7 @@ contract TalentLayerEscrowV1 is
     /**
      * @notice Instance of TalentLayerService.sol
      */
-    ITalentLayerService private talentLayerServiceContract;
+    ITalentLayerServiceV1 private talentLayerServiceContract;
 
     /**
      * @notice Instance of TalentLayerID.sol
@@ -354,7 +354,7 @@ contract TalentLayerEscrowV1 is
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        talentLayerServiceContract = ITalentLayerService(_talentLayerServiceAddress);
+        talentLayerServiceContract = ITalentLayerServiceV1(_talentLayerServiceAddress);
         talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(_talentLayerPlatformIDAddress);
         protocolWallet = payable(_protocolWallet);
@@ -451,8 +451,8 @@ contract TalentLayerEscrowV1 is
         string memory _originDataUri
     ) external payable whenNotPaused returns (uint256) {
         (
-            ITalentLayerService.Service memory service,
-            ITalentLayerService.Proposal memory proposal
+            ITalentLayerServiceV1.Service memory service,
+            ITalentLayerServiceV1.Proposal memory proposal
         ) = talentLayerServiceContract.getServiceAndProposal(_serviceId, _proposalId);
         (address sender, address receiver) = talentLayerIdContract.ownersOf(service.ownerId, proposal.ownerId);
 
@@ -478,8 +478,8 @@ contract TalentLayerEscrowV1 is
         require(_msgSender() == sender, "Access denied");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
         require(proposal.expirationDate >= block.timestamp, "Proposal expired");
-        require(service.status == ITalentLayerService.Status.Opened, "Service status not open");
-        require(proposal.status == ITalentLayerService.ProposalStatus.Pending, "Proposal status not pending");
+        require(service.status == ITalentLayerServiceV1.Status.Opened, "Service status not open");
+        require(proposal.status == ITalentLayerServiceV1.ProposalStatus.Pending, "Proposal status not pending");
         require(bytes(_metaEvidence).length == 46, "Invalid cid");
         require(
             keccak256(abi.encodePacked(proposal.dataUri)) == keccak256(abi.encodePacked(_originDataUri)),
@@ -914,8 +914,8 @@ contract TalentLayerEscrowV1 is
     function _distributeFees(uint256 _transactionId, uint256 _releaseAmount) private {
         Transaction storage transaction = transactions[_transactionId];
         (
-            ITalentLayerService.Service memory service,
-            ITalentLayerService.Proposal memory proposal
+            ITalentLayerServiceV1.Service memory service,
+            ITalentLayerServiceV1.Proposal memory proposal
         ) = talentLayerServiceContract.getServiceAndProposal(transaction.serviceId, transaction.proposalId);
 
         uint256 originServiceCreationPlatformId = service.platformId;
