@@ -94,15 +94,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     // =========================== Events ==============================
 
     /**
-     * @notice Emitted after a new service is created
-     * @param id The service ID (incremental)
-     * @param ownerId the talentLayerId of the buyer
-     * @param platformId platform ID on which the Service token was minted
-     * @param dataUri token Id to IPFS URI mapping
-     */
-    event ServiceCreated(uint256 id, uint256 ownerId, uint256 platformId, string dataUri);
-
-    /**
      * @notice Emitted after a new service is created with referral data
      * @param id The service ID (incremental)
      * @param ownerId the talentLayerId of the buyer
@@ -111,7 +102,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param token the token used for the service's payments, including the referral amount
      * @param referralAmount the amount which the referrer will receive if a proposal is validated by un user which was referred
      */
-    event ServiceCreatedWithReferral(
+    event ServiceCreated(
         uint256 indexed id,
         uint256 ownerId,
         uint256 platformId,
@@ -373,46 +364,9 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _dataUri IPFS URI of the offchain data of the service
      * @param _signature optional platform signature to allow the operation
      * @param _token token address to be used for the service's payments
-     */
-    function createService(
-        uint256 _profileId,
-        uint256 _platformId,
-        string calldata _dataUri,
-        bytes calldata _signature,
-        address _token
-    ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
-        _validateService(_profileId, _platformId, _dataUri, _signature, _token);
-
-        uint256 id = nextServiceId;
-        nextServiceId++;
-
-        Service storage service = services[id];
-        service.status = Status.Opened;
-        service.ownerId = _profileId;
-        service.dataUri = _dataUri;
-        service.platformId = _platformId;
-        service.token = _token;
-
-        if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
-            tlId.setHasActivity(_profileId);
-        }
-        serviceNonce[_profileId]++;
-
-        emit ServiceCreated(id, _profileId, _platformId, _dataUri);
-
-        return id;
-    }
-
-    /**
-     * @notice Allows a buyer to initiate an open service
-     * @param _profileId The TalentLayer ID of the user owner of the service
-     * @param _platformId platform ID on which the Service token was created
-     * @param _dataUri IPFS URI of the offchain data of the service
-     * @param _signature optional platform signature to allow the operation
-     * @param _token the token used for the referral amount
      * @param _referralAmount the amount which the referrer will receive if a proposal is validated by un user which was referred
      */
-    function createServiceWithReferral(
+    function createService(
         uint256 _profileId,
         uint256 _platformId,
         string calldata _dataUri,
@@ -420,7 +374,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         address _token,
         uint256 _referralAmount
     ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
-        require(_referralAmount > 0, "Referral amount must be greater than 0");
         _validateService(_profileId, _platformId, _dataUri, _signature, _token);
 
         uint256 id = nextServiceId;
@@ -439,7 +392,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         }
         serviceNonce[_profileId]++;
 
-        emit ServiceCreatedWithReferral(id, _profileId, _platformId, _dataUri, _token, _referralAmount);
+        emit ServiceCreated(id, _profileId, _platformId, _dataUri, _token, _referralAmount);
 
         return id;
     }
