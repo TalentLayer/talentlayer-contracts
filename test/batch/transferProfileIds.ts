@@ -131,6 +131,7 @@ describe('Transfer of TalentLayer IDs', function () {
         cid,
         proposalExpirationDate,
         signature,
+        0,
       )
 
     expect(await talentLayerID.hasActivity(carolTlId)).to.be.true

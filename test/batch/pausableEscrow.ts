@@ -84,6 +84,7 @@ async function deployAndSetup(): Promise<
       cid,
       proposalExpirationDate,
       signature2,
+      0,
     )
 
   return [talentLayerEscrow, talentLayerService, talentLayerPlatformID, talentLayerReview]

@@ -143,6 +143,7 @@ describe('Completion of service', function () {
             cid,
             proposalExpirationDate,
             signatureProposal,
+            0,
           )
 
         // Validate the proposal by locking the funds in the escrow

@@ -957,9 +957,19 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(platformOneOwner, aliceTlId, 1, cid)
       const tx = talentLayerService
         .connect(alice)
-        .createProposal(aliceTlId, 1, 15, alicePlatformId, cid, proposalExpirationDate, signature, {
-          value: alicePlatformProposalPostingFee,
-        })
+        .createProposal(
+          aliceTlId,
+          1,
+          15,
+          alicePlatformId,
+          cid,
+          proposalExpirationDate,
+          signature,
+          0,
+          {
+            value: alicePlatformProposalPostingFee,
+          },
+        )
 
       await expect(tx).to.be.revertedWith("can't create for your own service")
     })
@@ -971,7 +981,7 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(bob)
-          .createProposal(bobTlId, 5, 15, bobPlatformId, cid, proposalExpirationDate, signature),
+          .createProposal(bobTlId, 5, 15, bobPlatformId, cid, proposalExpirationDate, signature, 0),
       ).to.be.revertedWith('Service not opened')
     })
 
@@ -999,9 +1009,19 @@ describe('TalentLayer protocol global testing', function () {
       await expect(
         talentLayerService
           .connect(bob)
-          .createProposal(bobTlId, 1, 9, alicePlatformId, cid, proposalExpirationDate, signature, {
-            value: alicePlatformProposalPostingFee,
-          }),
+          .createProposal(
+            bobTlId,
+            1,
+            9,
+            alicePlatformId,
+            cid,
+            proposalExpirationDate,
+            signature,
+            0,
+            {
+              value: alicePlatformProposalPostingFee,
+            },
+          ),
       ).to.be.revertedWith('Amount too low')
     })
 
@@ -1013,9 +1033,19 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 1, cid2)
       const tx = talentLayerService
         .connect(bob)
-        .createProposal(bobTlId, 1, 15, alicePlatformId, cid2, proposalExpirationDate, signature, {
-          value: alicePlatformProposalPostingFee.sub(1),
-        })
+        .createProposal(
+          bobTlId,
+          1,
+          15,
+          alicePlatformId,
+          cid2,
+          proposalExpirationDate,
+          signature,
+          0,
+          {
+            value: alicePlatformProposalPostingFee.sub(1),
+          },
+        )
 
       await expect(tx).to.be.revertedWith('Non-matching funds')
     })
@@ -1034,9 +1064,19 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 1, cid2)
       const tx = await talentLayerService
         .connect(bob)
-        .createProposal(bobTlId, 1, 15, alicePlatformId, cid2, proposalExpirationDate, signature, {
-          value: alicePlatformProposalPostingFee,
-        })
+        .createProposal(
+          bobTlId,
+          1,
+          15,
+          alicePlatformId,
+          cid2,
+          proposalExpirationDate,
+          signature,
+          0,
+          {
+            value: alicePlatformProposalPostingFee,
+          },
+        )
 
       const serviceData = await talentLayerService.services(1)
       const proposalDataAfter = await talentLayerService.getProposal(1, bobTid)
@@ -1047,7 +1087,7 @@ describe('TalentLayer protocol global testing', function () {
 
       // Proposal data check after the proposal
       // @dev: rateToken field not used any more
-      expect(proposalDataAfter.rateToken).to.be.equal(ethers.constants.AddressZero)
+      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.token)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('15')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
@@ -1068,7 +1108,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(platformOneOwner, carolTlId, 4, cid2)
       const tx = talentLayerService
         .connect(carol)
-        .createProposalWithReferrer(
+        .createProposal(
           carolTlId,
           4,
           15,
@@ -1097,7 +1137,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(platformOneOwner, carolTlId, 6, cid2)
       const tx = await talentLayerService
         .connect(carol)
-        .createProposalWithReferrer(
+        .createProposal(
           carolTlId,
           6,
           2000000,
@@ -1120,7 +1160,7 @@ describe('TalentLayer protocol global testing', function () {
 
       // Proposal data check after the proposal
       // @dev: rateToken field not used any more
-      expect(proposalDataAfter.rateToken).to.be.equal(ethers.constants.AddressZero)
+      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.token)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2000000')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
@@ -1155,7 +1195,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(platformOneOwner, carolTlId, 7, cid2)
       const tx = await talentLayerService
         .connect(carol)
-        .createProposalWithReferrer(
+        .createProposal(
           carolTlId,
           7,
           2000000,
@@ -1178,7 +1218,7 @@ describe('TalentLayer protocol global testing', function () {
 
       // Proposal data check after the proposal
       // @dev: rateToken field not used any more
-      expect(proposalDataAfter.rateToken).to.be.equal(ethers.constants.AddressZero)
+      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.token)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2000000')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
@@ -1208,9 +1248,19 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(platformOneOwner, bobTlId, 1, cid2)
       const tx = talentLayerService
         .connect(bob)
-        .createProposal(bobTlId, 1, 15, alicePlatformId, cid2, proposalExpirationDate, signature, {
-          value: alicePlatformProposalPostingFee,
-        })
+        .createProposal(
+          bobTlId,
+          1,
+          15,
+          alicePlatformId,
+          cid2,
+          proposalExpirationDate,
+          signature,
+          0,
+          {
+            value: alicePlatformProposalPostingFee,
+          },
+        )
 
       await expect(tx).to.be.revertedWith('proposal already exist')
     })
@@ -1225,7 +1275,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(platformOneOwner, eveTid.toNumber(), 1, cid2)
       await talentLayerService
         .connect(eve)
-        .createProposal(eveTid, 1, 15, alicePlatformId, cid2, expiredProposalDate, signature, {
+        .createProposal(eveTid, 1, 15, alicePlatformId, cid2, expiredProposalDate, signature, 0, {
           value: alicePlatformProposalPostingFee,
         })
     })
@@ -1244,9 +1294,19 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForProposal(bob, carolTlId, 1, cid2)
       await talentLayerService
         .connect(carol)
-        .createProposal(carolTlId, 1, 16, bobPlatformId, cid2, proposalExpirationDate, signature, {
-          value: bobPlatformProposalPostingFee,
-        })
+        .createProposal(
+          carolTlId,
+          1,
+          16,
+          bobPlatformId,
+          cid2,
+          proposalExpirationDate,
+          signature,
+          0,
+          {
+            value: bobPlatformProposalPostingFee,
+          },
+        )
       await talentLayerService.services(1)
       // get proposal info
       const carolTid = await talentLayerID.ids(carol.address)
@@ -1256,6 +1316,8 @@ describe('TalentLayer protocol global testing', function () {
     it('Bob can update his first proposal ', async function () {
       const proposalDataBefore = await talentLayerService.getProposal(1, bobTlId)
       expect(proposalDataBefore.rateAmount.toString()).to.be.equal('15')
+
+      const serviceData = await talentLayerService.services(1)
 
       const tx = await talentLayerService
         .connect(bob)
@@ -1268,7 +1330,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('18')
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
       // @dev: This field is deprecated and should always be zero address
-      expect(proposalDataAfter.rateToken.toString()).to.be.equal(ethers.constants.AddressZero)
+      expect(proposalDataAfter.rateToken.toString()).to.be.equal(serviceData.token)
       expect(proposalDataAfter.dataUri).to.be.equal(cid)
       expect(proposalDataAfter.referrerId).to.be.equal(aliceTlId)
     })
@@ -1342,6 +1404,7 @@ describe('TalentLayer protocol global testing', function () {
             cid,
             proposalExpirationDate,
             signature,
+            0,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -1363,6 +1426,7 @@ describe('TalentLayer protocol global testing', function () {
             cid,
             proposalExpirationDate,
             signature,
+            0,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -1380,6 +1444,7 @@ describe('TalentLayer protocol global testing', function () {
             cid,
             proposalExpirationDate,
             signature2,
+            0,
           )
         await expect(tx).to.revertedWith('Service not exist')
       })
@@ -1484,6 +1549,7 @@ describe('TalentLayer protocol global testing', function () {
             cid2,
             proposalExpirationDate,
             signature,
+            0,
             {
               value: alicePlatformProposalPostingFee,
             },
@@ -1811,6 +1877,7 @@ describe('TalentLayer protocol global testing', function () {
             cid,
             proposalExpirationDate,
             signature2,
+            0,
             {
               value: alicePlatformProposalPostingFee,
             },
@@ -1980,6 +2047,7 @@ describe('TalentLayer protocol global testing', function () {
             cid,
             proposalExpirationDate,
             signature,
+            0,
             { value: bobPlatformProposalPostingFee },
           )
       })
@@ -2000,6 +2068,7 @@ describe('TalentLayer protocol global testing', function () {
             cid,
             proposalExpirationDate,
             signature,
+            0,
             { value: bobPlatformProposalPostingFee },
           )
       })

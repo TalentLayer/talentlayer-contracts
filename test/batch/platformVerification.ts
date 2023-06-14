@@ -188,6 +188,7 @@ describe('Platform verification', function () {
           cid,
           proposalExpirationDate,
           signature,
+          0,
         )
 
       await expect(tx).to.not.reverted
@@ -231,6 +232,7 @@ describe('Platform verification', function () {
           cid,
           proposalExpirationDate,
           signature,
+          0,
         )
 
       await expect(tx).to.not.reverted

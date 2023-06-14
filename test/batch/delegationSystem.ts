@@ -160,6 +160,7 @@ describe('Delegation System', function () {
           cid,
           proposalExpirationDate,
           signature,
+          0,
         )
       const proposal = await talentLayerService.proposals(serviceId, bobTlId)
       expect(proposal.ownerId).to.eq(bobTlId)

@@ -115,6 +115,7 @@ async function deployAndSetup(
       cid,
       proposalExpirationDate,
       signature2,
+      0,
     )
 
   return [talentLayerPlatformID, talentLayerEscrow, talentLayerArbitrator, talentLayerService]
