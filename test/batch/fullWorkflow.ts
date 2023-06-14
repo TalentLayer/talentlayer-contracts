@@ -59,7 +59,7 @@ describe('TalentLayer protocol global testing', function () {
     networkConfig: NetworkConfig,
     chainId: number
 
-  const nonListedRateToken = '0x6b175474e89094c44da98b954eedeac495271d0f'
+  const nonListedtoken = '0x6b175474e89094c44da98b954eedeac495271d0f'
   const referralAmount = 20000
 
   before(async function () {
@@ -779,7 +779,7 @@ describe('TalentLayer protocol global testing', function () {
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
       const tx = talentLayerService
         .connect(alice)
-        .createService(aliceTlId, alicePlatformId, cid, signature, nonListedRateToken, 0, {
+        .createService(aliceTlId, alicePlatformId, cid, signature, nonListedtoken, 0, {
           value: alicePlatformServicePostingFee,
         })
 
@@ -1086,9 +1086,9 @@ describe('TalentLayer protocol global testing', function () {
       expect(serviceData.ownerId).to.be.equal(aliceTlId)
 
       // Proposal data check after the proposal
-      // @dev: rateToken field not used any more
-      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.token)
-      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('15')
+      // @dev: token field not used any more
+      expect(proposalDataAfter.token).to.be.equal(serviceData.token)
+      expect(proposalDataAfter.amount.toString()).to.be.equal('15')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
@@ -1159,9 +1159,9 @@ describe('TalentLayer protocol global testing', function () {
       expect(serviceData.ownerId).to.be.equal(aliceTlId)
 
       // Proposal data check after the proposal
-      // @dev: rateToken field not used any more
-      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.token)
-      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2000000')
+      // @dev: token field not used any more
+      expect(proposalDataAfter.token).to.be.equal(serviceData.token)
+      expect(proposalDataAfter.amount.toString()).to.be.equal('2000000')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
@@ -1217,9 +1217,9 @@ describe('TalentLayer protocol global testing', function () {
       expect(serviceData.ownerId).to.be.equal(aliceTlId)
 
       // Proposal data check after the proposal
-      // @dev: rateToken field not used any more
-      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.token)
-      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2000000')
+      // @dev: token field not used any more
+      expect(proposalDataAfter.token).to.be.equal(serviceData.token)
+      expect(proposalDataAfter.amount.toString()).to.be.equal('2000000')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
@@ -1315,7 +1315,7 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Bob can update his first proposal ', async function () {
       const proposalDataBefore = await talentLayerService.getProposal(1, bobTlId)
-      expect(proposalDataBefore.rateAmount.toString()).to.be.equal('15')
+      expect(proposalDataBefore.amount.toString()).to.be.equal('15')
 
       const serviceData = await talentLayerService.services(1)
 
@@ -1327,9 +1327,9 @@ describe('TalentLayer protocol global testing', function () {
       expect(tx)
         .to.emit(talentLayerService, 'ProposalUpdatedWithoutToken')
         .withArgs(1, bobTlId, cid, 18, proposalExpirationDate)
-      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('18')
+      expect(proposalDataAfter.amount.toString()).to.be.equal('18')
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
-      expect(proposalDataAfter.rateToken.toString()).to.be.equal(serviceData.token)
+      expect(proposalDataAfter.token.toString()).to.be.equal(serviceData.token)
       expect(proposalDataAfter.dataUri).to.be.equal(cid)
       expect(proposalDataAfter.referrerId).to.be.equal(aliceTlId)
     })
@@ -1607,12 +1607,12 @@ describe('TalentLayer protocol global testing', function () {
         const originValidatedProposalFeeRate = alicePlatformData.originValidatedProposalFeeRate
         const referralAmount = service.referralAmount
 
-        const totalAmountWithReferral = proposal.rateAmount
+        const totalAmountWithReferral = proposal.amount
           .add(
-            proposal.rateAmount
+            proposal.amount
               .mul(protocolEscrowFeeRate)
-              .add(proposal.rateAmount.mul(originServiceFeeRate))
-              .add(proposal.rateAmount.mul(originValidatedProposalFeeRate))
+              .add(proposal.amount.mul(originServiceFeeRate))
+              .add(proposal.amount.mul(originValidatedProposalFeeRate))
               .div(FEE_DIVIDER),
           )
           .add(referralAmount)
@@ -2145,12 +2145,12 @@ describe('TalentLayer protocol global testing', function () {
         const originValidatedProposalFeeRate = alicePlatformData.originValidatedProposalFeeRate
         const referralAmount = service.referralAmount
 
-        const totalAmountWithReferral = proposal.rateAmount
+        const totalAmountWithReferral = proposal.amount
           .add(
-            proposal.rateAmount
+            proposal.amount
               .mul(protocolEscrowFeeRate)
-              .add(proposal.rateAmount.mul(originServiceFeeRate))
-              .add(proposal.rateAmount.mul(originValidatedProposalFeeRate))
+              .add(proposal.amount.mul(originServiceFeeRate))
+              .add(proposal.amount.mul(originValidatedProposalFeeRate))
               .div(FEE_DIVIDER),
           )
           .add(referralAmount)

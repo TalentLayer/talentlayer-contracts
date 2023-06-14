@@ -160,7 +160,7 @@ async function createTransaction(
 
   // we need to retreive the Bob proposal dataUri
   const proposal = await talentLayerService.proposals(serviceId, bobTlId)
-  const value = proposal.rateToken === ethAddress ? totalTransactionAmount : 0
+  const value = proposal.token === ethAddress ? totalTransactionAmount : 0
 
   let tx: ContractTransaction
   tokenAddress === ethAddress
