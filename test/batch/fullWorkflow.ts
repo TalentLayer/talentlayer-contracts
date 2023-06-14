@@ -1329,7 +1329,6 @@ describe('TalentLayer protocol global testing', function () {
         .withArgs(1, bobTlId, cid, 18, proposalExpirationDate)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('18')
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
-      // @dev: This field is deprecated and should always be zero address
       expect(proposalDataAfter.rateToken.toString()).to.be.equal(serviceData.token)
       expect(proposalDataAfter.dataUri).to.be.equal(cid)
       expect(proposalDataAfter.referrerId).to.be.equal(aliceTlId)
