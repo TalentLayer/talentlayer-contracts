@@ -876,7 +876,7 @@ describe('TalentLayer protocol global testing', function () {
 
       expect(service6Data.status).to.be.equal(ServiceStatus.Opened)
       expect(service6Data.ownerId).to.be.equal(aliceTlId)
-      expect(service6Data.token).to.be.equal(ethers.constants.AddressZero)
+      expect(service6Data.rateToken).to.be.equal(ethers.constants.AddressZero)
       expect(service6Data.dataUri).to.be.equal(cid)
       expect(service6Data.platformId).to.be.equal(1)
       expect(service6Data.referralAmount).to.be.equal(referralAmount)
@@ -900,7 +900,7 @@ describe('TalentLayer protocol global testing', function () {
 
       expect(service7Data.status).to.be.equal(ServiceStatus.Opened)
       expect(service7Data.ownerId).to.be.equal(aliceTlId)
-      expect(service7Data.token).to.be.equal(token.address)
+      expect(service7Data.rateToken).to.be.equal(token.address)
       expect(service7Data.dataUri).to.be.equal(cid)
       expect(service7Data.platformId).to.be.equal(1)
       expect(service7Data.referralAmount).to.be.equal(referralAmount)
@@ -1087,8 +1087,8 @@ describe('TalentLayer protocol global testing', function () {
 
       // Proposal data check after the proposal
       // @dev: token field not used any more
-      expect(proposalDataAfter.token).to.be.equal(serviceData.token)
-      expect(proposalDataAfter.amount.toString()).to.be.equal('15')
+      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.rateToken)
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('15')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
@@ -1096,7 +1096,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
       expect(proposalDataAfter.referrerId).to.be.equal(0)
       expect(tx)
-        .to.emit(talentLayerService, 'ProposalCreatedWithoutToken')
+        .to.emit(talentLayerService, 'ProposalCreatedWithoutrateToken')
         .withArgs(1, bobTlId, cid2, 'Pending', 15, alicePlatformId, proposalExpirationDate, 0)
     })
 
@@ -1160,8 +1160,8 @@ describe('TalentLayer protocol global testing', function () {
 
       // Proposal data check after the proposal
       // @dev: token field not used any more
-      expect(proposalDataAfter.token).to.be.equal(serviceData.token)
-      expect(proposalDataAfter.amount.toString()).to.be.equal('2000000')
+      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.rateToken)
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2000000')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
@@ -1218,8 +1218,8 @@ describe('TalentLayer protocol global testing', function () {
 
       // Proposal data check after the proposal
       // @dev: token field not used any more
-      expect(proposalDataAfter.token).to.be.equal(serviceData.token)
-      expect(proposalDataAfter.amount.toString()).to.be.equal('2000000')
+      expect(proposalDataAfter.rateToken).to.be.equal(serviceData.rateToken)
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('2000000')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
       expect(proposalDataAfter.platformId).to.be.equal(alicePlatformId)
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
@@ -1315,7 +1315,7 @@ describe('TalentLayer protocol global testing', function () {
 
     it('Bob can update his first proposal ', async function () {
       const proposalDataBefore = await talentLayerService.getProposal(1, bobTlId)
-      expect(proposalDataBefore.amount.toString()).to.be.equal('15')
+      expect(proposalDataBefore.rateAmount.toString()).to.be.equal('15')
 
       const serviceData = await talentLayerService.services(1)
 
@@ -1327,9 +1327,9 @@ describe('TalentLayer protocol global testing', function () {
       expect(tx)
         .to.emit(talentLayerService, 'ProposalUpdatedWithoutToken')
         .withArgs(1, bobTlId, cid, 18, proposalExpirationDate)
-      expect(proposalDataAfter.amount.toString()).to.be.equal('18')
+      expect(proposalDataAfter.rateAmount.toString()).to.be.equal('18')
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
-      expect(proposalDataAfter.token.toString()).to.be.equal(serviceData.token)
+      expect(proposalDataAfter.rateToken.toString()).to.be.equal(serviceData.rateToken)
       expect(proposalDataAfter.dataUri).to.be.equal(cid)
       expect(proposalDataAfter.referrerId).to.be.equal(aliceTlId)
     })
@@ -1607,12 +1607,12 @@ describe('TalentLayer protocol global testing', function () {
         const originValidatedProposalFeeRate = alicePlatformData.originValidatedProposalFeeRate
         const referralAmount = service.referralAmount
 
-        const totalAmountWithReferral = proposal.amount
+        const totalAmountWithReferral = proposal.rateAmount
           .add(
-            proposal.amount
+            proposal.rateAmount
               .mul(protocolEscrowFeeRate)
-              .add(proposal.amount.mul(originServiceFeeRate))
-              .add(proposal.amount.mul(originValidatedProposalFeeRate))
+              .add(proposal.rateAmount.mul(originServiceFeeRate))
+              .add(proposal.rateAmount.mul(originValidatedProposalFeeRate))
               .div(FEE_DIVIDER),
           )
           .add(referralAmount)
@@ -2173,12 +2173,12 @@ describe('TalentLayer protocol global testing', function () {
         const originValidatedProposalFeeRate = alicePlatformData.originValidatedProposalFeeRate
         const referralAmount = service.referralAmount
 
-        const totalAmountWithReferral = proposal.amount
+        const totalAmountWithReferral = proposal.rateAmount
           .add(
-            proposal.amount
+            proposal.rateAmount
               .mul(protocolEscrowFeeRate)
-              .add(proposal.amount.mul(originServiceFeeRate))
-              .add(proposal.amount.mul(originValidatedProposalFeeRate))
+              .add(proposal.rateAmount.mul(originServiceFeeRate))
+              .add(proposal.rateAmount.mul(originValidatedProposalFeeRate))
               .div(FEE_DIVIDER),
           )
           .add(referralAmount)
