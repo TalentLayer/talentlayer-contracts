@@ -513,13 +513,13 @@ contract TalentLayerEscrow is
         uint256 referralAmount = proposal.referrerId == 0 ? 0 : service.referralAmount;
 
         uint256 transactionAmount = _calculateTotalWithFees(
-            proposal.amount,
+            proposal.rateAmount,
             originServiceCreationPlatform.originServiceFeeRate,
             originProposalCreationPlatform.originValidatedProposalFeeRate,
             referralAmount
         );
 
-        if (service.token == address(0)) {
+        if (service.rateToken == address(0)) {
             require(msg.value == transactionAmount, "Non-matching funds");
         } else {
             require(msg.value == 0, "Non-matching funds");
@@ -541,9 +541,9 @@ contract TalentLayerEscrow is
             id: transactionId,
             sender: sender,
             receiver: receiver,
-            token: service.token,
-            totalAmount: proposal.amount,
-            amount: proposal.amount,
+            token: service.rateToken,
+            totalAmount: proposal.rateAmount,
+            amount: proposal.rateAmount,
             releasedAmount: 0,
             serviceId: _serviceId,
             proposalId: _proposalId,
@@ -566,8 +566,8 @@ contract TalentLayerEscrow is
 
         talentLayerServiceContract.afterDeposit(_serviceId, _proposalId, transactionId);
 
-        if (service.token != address(0)) {
-            IERC20Upgradeable(service.token).safeTransferFrom(sender, address(this), transactionAmount);
+        if (service.rateToken != address(0)) {
+            IERC20Upgradeable(service.rateToken).safeTransferFrom(sender, address(this), transactionAmount);
         }
 
         _afterCreateTransaction(service.ownerId, proposal.ownerId, transactionId, _metaEvidence);
