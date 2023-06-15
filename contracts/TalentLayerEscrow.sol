@@ -289,14 +289,6 @@ contract TalentLayerEscrow is
     mapping(uint256 => mapping(address => uint256)) private platformIdToTokenToBalance;
 
     /**
-     * @notice Mapping from referrerId to Token address to Token Balance
-     *         Represents the amount of ETH or token present on this contract which
-     *         belongs to a referrer and can be withdrawn.
-     * @dev address(0) is reserved to ETH balance
-     */
-    mapping(uint256 => mapping(address => uint256)) private referrerIdToTokenToBalance;
-
-    /**
      * @notice Instance of TalentLayerService.sol
      */
     ITalentLayerService private talentLayerServiceContract;
@@ -355,6 +347,14 @@ contract TalentLayerEscrow is
      * @notice Platform Id counter
      */
     CountersUpgradeable.Counter private nextTransactionId;
+
+    /**
+     * @notice Mapping from referrerId to Token address to Token Balance
+     *         Represents the amount of ETH or token present on this contract which
+     *         belongs to a referrer and can be withdrawn.
+     * @dev address(0) is reserved to ETH balance
+     */
+    mapping(uint256 => mapping(address => uint256)) private referrerIdToTokenToBalance;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
