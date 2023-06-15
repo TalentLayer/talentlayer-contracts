@@ -1011,8 +1011,8 @@ describe('TalentLayer protocol global testing', function () {
           .connect(bob)
           .createProposal(
             bobTlId,
-            1,
-            9,
+            3,
+            6,
             alicePlatformId,
             cid,
             proposalExpirationDate,
@@ -1101,7 +1101,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it("Carol can't create a proposal with a non existing referrer id", async function () {
-      // Proposal on the Open service n 4
+      // Proposal on the Open service n 1
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformProposalPostingFee = platform.servicePostingFee
 
@@ -1110,7 +1110,7 @@ describe('TalentLayer protocol global testing', function () {
         .connect(carol)
         .createProposal(
           carolTlId,
-          4,
+          1,
           15,
           alicePlatformId,
           cid2,
