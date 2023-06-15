@@ -102,8 +102,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param rateToken the token used for the service's payments, including the referral amount
      * @param referralAmount the amount which the referrer will receive if a proposal is validated by un user which was referred
      */
-    event ServiceCreated(
-        uint256 indexed id,
+    event ServiceCreatedWithReferral(
+        uint256 id,
         uint256 ownerId,
         uint256 platformId,
         string dataUri,
@@ -123,7 +123,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param dataUri New service Data URI
      * @param referralAmount New referral amount
      */
-    event ServiceUpdated(uint256 indexed id, string dataUri, uint256 referralAmount);
+    event ServiceUpdated(uint256 id, string dataUri, uint256 referralAmount);
 
     /**
      * @notice Emitted after a new proposal is created
@@ -136,7 +136,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param expirationDate the timeout for the proposal
      * @param referrerId the id of the referrer (Zero if no referrer)
      */
-    event ProposalCreated(
+    event ProposalCreatedWithReferrer(
         uint256 serviceId,
         uint256 ownerId,
         string dataUri,
@@ -156,7 +156,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param expirationDate the timeout for the proposal
      * @param referrerId the id of the referrer (Zero if no referrer)
      */
-    event ProposalUpdated(
+    event ProposalUpdatedWithReferrer(
         uint256 serviceId,
         uint256 ownerId,
         string dataUri,
@@ -344,7 +344,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         }
         serviceNonce[_profileId]++;
 
-        emit ServiceCreated(id, _profileId, _platformId, _dataUri, _rateToken, _referralAmount);
+        emit ServiceCreatedWithReferral(id, _profileId, _platformId, _dataUri, _rateToken, _referralAmount);
 
         return id;
     }
@@ -389,7 +389,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         }
         proposalNonce[_profileId]++;
 
-        emit ProposalCreated(
+        emit ProposalCreatedWithReferrer(
             _serviceId,
             _profileId,
             _dataUri,
@@ -435,7 +435,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         proposal.expirationDate = _expirationDate;
         proposal.referrerId = _referrerId;
 
-        emit ProposalUpdated(_serviceId, _profileId, _dataUri, _rateAmount, _expirationDate, _referrerId);
+        emit ProposalUpdatedWithReferrer(_serviceId, _profileId, _dataUri, _rateAmount, _expirationDate, _referrerId);
     }
 
     /**
