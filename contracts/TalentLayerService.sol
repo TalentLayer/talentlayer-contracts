@@ -632,7 +632,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(service.status == Status.Opened, "Service not opened");
         require(service.ownerId != 0, "Service not exist");
         require(proposals[_serviceId][_profileId].ownerId != _profileId, "proposal already exist");
-        //TODO add test for this ? We keep it or not ? (Good for stats, bad if buyer adds referral amount)
+        //TODO @Romain: add test for this ? We keep it or not ? (Good for stats, bad if buyer adds referral amount)
         if (_referrerId != 0) {
             require(service.referralAmount > 0, "Can't refer someone for this service");
         }

@@ -50,6 +50,8 @@ interface ITalentLayerService {
         uint256 _proposal
     ) external view returns (Service memory, Proposal memory);
 
+    function isTokenAllowed(address _tokenAddress) external view returns (bool);
+
     function createService(
         uint256 _profileId,
         uint256 _platformId,
@@ -58,6 +60,13 @@ interface ITalentLayerService {
         address _rateToken,
         uint256 _referralAmount
     ) external returns (uint256);
+
+    function updateService(
+        uint256 _profileId,
+        uint256 _serviceId,
+        uint256 _referralAmount,
+        string calldata _dataUri
+    ) external;
 
     function createProposal(
         uint256 _profileId,
@@ -70,8 +79,6 @@ interface ITalentLayerService {
         uint256 _referrerId
     ) external;
 
-    function afterDeposit(uint256 _serviceId, uint256 _proposalId, uint256 _transactionId) external;
-
     function updateProposal(
         uint256 _profileId,
         uint256 _serviceId,
@@ -81,12 +88,17 @@ interface ITalentLayerService {
         uint256 _referrerId
     ) external;
 
+    function afterDeposit(uint256 _serviceId, uint256 _proposalId, uint256 _transactionId) external;
+
+    function updateAllowedTokenList(
+        address _tokenAddress,
+        bool _isWhitelisted,
+        uint256 _minimumTransactionAmount
+    ) external;
+
     function afterFullPayment(uint256 _serviceId, uint256 _releasedAmount) external;
 
-    function updateService(
-        uint256 _profileId,
-        uint256 _serviceId,
-        uint256 _referralAmount,
-        string calldata _dataUri
-    ) external;
+    function cancelService(uint256 _profileId, uint256 _serviceId) external;
+
+    function updateMinCompletionPercentage(uint256 _minCompletionPercentage) external;
 }
