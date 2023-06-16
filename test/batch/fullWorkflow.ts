@@ -792,7 +792,7 @@ describe('TalentLayer protocol global testing', function () {
 
       // Alice will create 4 Open services fo the whole unit test process
       const signature = await getSignatureForService(platformOneOwner, aliceTlId, 0, cid)
-      await talentLayerService
+      const tx = await talentLayerService
         .connect(alice)
         .createService(aliceTlId, alicePlatformId, cid, signature, token.address, 0, {
           value: alicePlatformServicePostingFee,
@@ -848,6 +848,9 @@ describe('TalentLayer protocol global testing', function () {
       expect(service1Data.dataUri).to.be.equal(cid)
       expect(service1Data.platformId).to.be.equal(1)
       expect(service1Data.referralAmount).to.be.equal(0)
+      expect(tx)
+        .to.emit(talentLayerService, 'ServiceCreated')
+        .withArgs(5, aliceTlId, alicePlatformId, cid, token.address, 0)
     })
 
     it('Alice the buyer can create a service using ETH with referral', async function () {
@@ -872,7 +875,7 @@ describe('TalentLayer protocol global testing', function () {
 
       expect(tx)
         .to.emit(talentLayerService, 'ServiceCreated')
-        .withArgs(6, aliceTlId, alicePlatformId, cid, token.address, referralAmount)
+        .withArgs(6, aliceTlId, alicePlatformId, cid, ethers.constants.AddressZero, referralAmount)
 
       expect(service6Data.status).to.be.equal(ServiceStatus.Opened)
       expect(service6Data.ownerId).to.be.equal(aliceTlId)
@@ -1086,7 +1089,6 @@ describe('TalentLayer protocol global testing', function () {
       expect(serviceData.ownerId).to.be.equal(aliceTlId)
 
       // Proposal data check after the proposal
-      // @dev: token field not used any more
       expect(proposalDataAfter.rateToken).to.be.equal(serviceData.rateToken)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('15')
       expect(proposalDataAfter.dataUri).to.be.equal(cid2)
@@ -1096,7 +1098,7 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
       expect(proposalDataAfter.referrerId).to.be.equal(0)
       expect(tx)
-        .to.emit(talentLayerService, 'ProposalCreatedWithoutrateToken')
+        .to.emit(talentLayerService, 'ProposalCreated')
         .withArgs(1, bobTlId, cid2, 'Pending', 15, alicePlatformId, proposalExpirationDate, 0)
     })
 
@@ -1169,16 +1171,16 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
       expect(proposalDataAfter.referrerId.toString()).to.be.equal(bobTlId.toString())
       expect(tx)
-        .to.emit(talentLayerService, 'ProposalCreatedWithoutToken')
+        .to.emit(talentLayerService, 'ProposalCreated')
         .withArgs(
           6,
-          bobTlId,
+          carolTlId,
           cid2,
           'Pending',
-          15,
+          2000000,
           alicePlatformId,
           proposalExpirationDate,
-          carolTlId,
+          bob,
         )
     })
 
@@ -1227,16 +1229,16 @@ describe('TalentLayer protocol global testing', function () {
       expect(proposalDataAfter.status.toString()).to.be.equal('0')
       expect(proposalDataAfter.referrerId.toString()).to.be.equal(bobTlId.toString())
       expect(tx)
-        .to.emit(talentLayerService, 'ProposalCreatedWithoutToken')
+        .to.emit(talentLayerService, 'ProposalCreated')
         .withArgs(
           7,
-          bobTlId,
+          carolTlId,
           cid2,
           'Pending',
-          15,
+          2000000,
           alicePlatformId,
           proposalExpirationDate,
-          carolTlId,
+          bobTlId,
         )
     })
 
@@ -1325,7 +1327,7 @@ describe('TalentLayer protocol global testing', function () {
 
       const proposalDataAfter = await talentLayerService.getProposal(1, bobTlId)
       expect(tx)
-        .to.emit(talentLayerService, 'ProposalUpdatedWithoutToken')
+        .to.emit(talentLayerService, 'ProposalUpdated')
         .withArgs(1, bobTlId, cid, 18, proposalExpirationDate)
       expect(proposalDataAfter.rateAmount.toString()).to.be.equal('18')
       expect(proposalDataAfter.expirationDate).to.be.equal(proposalExpirationDate)
