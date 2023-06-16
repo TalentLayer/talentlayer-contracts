@@ -972,8 +972,11 @@ contract TalentLayerEscrow is
     function _reimburse(uint256 _transactionId, uint256 _amount) private {
         Transaction storage transaction = transactions[_transactionId];
 
-        //If no referrerId (=0), the referralAmount will always be 0
-        uint256 reimbursedReferralAmount = (_amount * transaction.referralAmount) / (transaction.totalAmount);
+        // If no referrerId (=0), the referralAmount will always be 0
+        // @dev: Legacy transactions will have a totalAmount of 0; need to check for that
+        uint256 reimbursedReferralAmount = transaction.totalAmount != 0
+            ? (_amount * transaction.referralAmount) / (transaction.totalAmount)
+            : 0;
 
         uint256 totalReimburseAmount = _calculateTotalWithFees(
             _amount,
