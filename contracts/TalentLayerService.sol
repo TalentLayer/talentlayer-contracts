@@ -350,6 +350,31 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     }
 
     /**
+     * @notice Update Service URI data
+     * @param _profileId The TalentLayer ID of the user, owner of the service
+     * @param _serviceId, Service ID to update
+     * @param _referralAmount, New referral amount
+     * @param _dataUri New IPFS URI
+     */
+    function updateService(
+        uint256 _profileId,
+        uint256 _serviceId,
+        uint256 _referralAmount,
+        string calldata _dataUri
+    ) public onlyOwnerOrDelegate(_profileId) {
+        Service storage service = services[_serviceId];
+        require(service.ownerId == _profileId, "Not the owner");
+        require(service.status == Status.Opened, "status must be opened");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
+        require(_referralAmount >= service.referralAmount, "Can't reduce referral amount");
+
+        service.dataUri = _dataUri;
+        service.referralAmount = _referralAmount;
+
+        emit ServiceUpdated(_serviceId, _dataUri, _referralAmount);
+    }
+
+    /**
      * @notice Allows an seller to propose his service for a service
      * @param _profileId The TalentLayer ID of the user owner of the proposal
      * @param _serviceId The service linked to the new proposal
@@ -494,31 +519,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         } else {
             service.status = Status.Uncompleted;
         }
-    }
-
-    /**
-     * @notice Update Service URI data
-     * @param _profileId The TalentLayer ID of the user, owner of the service
-     * @param _serviceId, Service ID to update
-     * @param _referralAmount, New referral amount
-     * @param _dataUri New IPFS URI
-     */
-    function updateService(
-        uint256 _profileId,
-        uint256 _serviceId,
-        uint256 _referralAmount,
-        string calldata _dataUri
-    ) public onlyOwnerOrDelegate(_profileId) {
-        Service storage service = services[_serviceId];
-        require(service.ownerId == _profileId, "Not the owner");
-        require(service.status == Status.Opened, "status must be opened");
-        require(bytes(_dataUri).length == 46, "Invalid cid");
-        require(_referralAmount >= service.referralAmount, "Can't reduce referral amount");
-
-        service.dataUri = _dataUri;
-        service.referralAmount = _referralAmount;
-
-        emit ServiceUpdated(_serviceId, _dataUri, _referralAmount);
     }
 
     /**
