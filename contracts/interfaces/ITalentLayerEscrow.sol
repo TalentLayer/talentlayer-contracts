@@ -43,6 +43,8 @@ interface ITalentLayerEscrow {
 
     function getClaimableFeeBalance(address _token) external view returns (uint256 balance);
 
+    function getClaimableReferralBalance(address _token) external view returns (uint256 balance);
+
     function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory);
 
     function updateProtocolEscrowFeeRate(uint16 _protocolEscrowFeeRate) external;
@@ -56,25 +58,23 @@ interface ITalentLayerEscrow {
         string memory originDataUri
     ) external payable returns (uint256);
 
-    function release(uint256 _transactionId, uint256 _amount) external;
+    function release(uint256 _profileId, uint256 _transactionId, uint256 _amount) external;
 
-    function reimburse(uint256 _transactionId, uint256 _amount) external;
-
-    function claim(uint256 _platformId, address _tokenAddress) external;
-
-    function claimAll(uint256 _platformId) external;
+    function reimburse(uint256 _profileId, uint256 _transactionId, uint256 _amount) external;
 
     function payArbitrationFeeBySender(uint256 _transactionId) external payable;
 
     function payArbitrationFeeByReceiver(uint256 _transactionId) external payable;
 
-    function timeOutBySender(uint256 _transactionId) external;
+    function arbitrationFeeTimeout(uint256 _transactionId) external;
 
-    function timeOutByReceiver(uint256 _transactionId) external;
-
-    function submitEvidence(uint256 _transactionId, string memory _evidence) external;
+    function submitEvidence(uint256 _profileId, uint256 _transactionId, string memory _evidence) external;
 
     function appeal(uint256 _transactionId) external payable;
+
+    function claim(uint256 _platformId, address _tokenAddress) external;
+
+    function claimReferralBalance(uint256 _referrerId, address _tokenAddress) external;
 
     function rule(uint256 _disputeID, uint256 _ruling) external;
 }
