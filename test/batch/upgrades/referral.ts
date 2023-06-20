@@ -286,10 +286,9 @@ describe.only('TalentLayer protocol global testing', function () {
       expect(review.rating).to.be.equal(4)
     })
 
-    it('Alice can create 1 ERC20 proposal for service 3. ', async function () {
+    it('Alice & Dave can create 1 ERC20 proposal each for service 3. ', async function () {
       // Service3(Carol): 2 proposals created ERC20, none validated
-      //    ===> Need to validate one + 100% release + 100% reviews
-
+      //    ===> Need to validate one + 100% release
       // Proposal 4
       await talentLayerServiceV1
         .connect(alice)
@@ -387,6 +386,32 @@ describe.only('TalentLayer protocol global testing', function () {
         expect(aliceReview.serviceId).to.be.equal(2)
         expect(aliceReview.rating).to.be.equal(5)
       })
+    })
+  })
+  describe('For Service3 => Check whether a proposal can be validated after upgrade', async function () {
+    it("Even if Dave's proposal used ERC20 token, the validated one will be with MATIC", async function () {
+      const totalAmount = getTotalTransactionValue(
+        talentLayerEscrow,
+        talentLayerPlatformID,
+        rateAmount,
+      )
+      // await token.connect(carol).approve(talentLayerEscrow.address, totalAmount)
+      const service3Data = await talentLayerService.services(3)
+      console.log('service3Data', service3Data.rateToken)
+
+      // Transaction 3
+      await talentLayerEscrow.connect(carol).createTransaction(3, daveTlId, metaEvidenceCid, cid, {
+        value: totalAmount,
+      })
+      const transactionData = await talentLayerEscrow.connect(carol).getTransactionDetails(3)
+      expect(transactionData.id).to.be.equal(3)
+      expect(transactionData.token).to.be.equal(ethers.constants.AddressZero)
+    })
+    it('All funds can be released & reimbursed', async function () {
+      await talentLayerEscrow.connect(dave).reimburse(daveTlId, 3, (rateAmount * 9) / 10)
+      await talentLayerEscrow.connect(carol).release(carolTlId, 3, rateAmount / 10)
+      const transactionData = await talentLayerEscrow.connect(dave).getTransactionDetails(3)
+      expect(transactionData.amount).to.be.equal(0)
     })
   })
 })
