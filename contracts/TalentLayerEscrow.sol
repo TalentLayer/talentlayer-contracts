@@ -89,8 +89,8 @@ contract TalentLayerEscrow is
      * @param arbitratorExtraData Extra data to set up the arbitration.
      * @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
      * @param referrerId the id of the optional referrer
-     * @param referralAmount the optional lump sum optional fee to be sent to the referrer
-     * @param totalAmount The amount of the transaction EXCLUDING FEES (will not vary)
+     * @param referralAmount the optional lump sum optional amount to be sent to the referrer
+     * @param totalAmount The amount of the transaction EXCLUDING FEES (fixed, will not vary)
      */
     struct Transaction {
         uint256 id;
@@ -157,7 +157,7 @@ contract TalentLayerEscrow is
 
     /**
      * @notice Emitted after a referrer withdraws its balance
-     * @param _referrerId The Platform ID to which the balance is transferred.
+     * @param _referrerId The TalentLayerID to which the balance is transferred.
      * @param _token The address of the token used for the payment.
      * @param _amount The amount transferred.
      */
@@ -404,7 +404,7 @@ contract TalentLayerEscrow is
 
     /**
      * @dev Only the owner of the platform ID or the owner can execute this function
-     * @param _token Token address ("0" for ETH)
+     * @param _token Token address (address(0) for ETH)
      * @return balance The balance of the platform or the protocol
      */
     function getClaimableFeeBalance(address _token) external view returns (uint256 balance) {
@@ -419,8 +419,7 @@ contract TalentLayerEscrow is
     }
 
     /**
-     * @dev Only the owner of the referrer ID can execute this function
-     * @param _token Token address ("0" for ETH)
+     * @param _token Token address (address(0) for ETH)
      * @return balance The balance of the referrer
      */
     function getClaimableReferralBalance(address _token) external view returns (uint256 balance) {
@@ -488,7 +487,7 @@ contract TalentLayerEscrow is
      * @param _serviceId Id of the service that the sender created and the proposal was made for.
      * @param _proposalId Id of the proposal that the transaction validates.
      * @param _metaEvidence Link to the meta-evidence.
-     * @param _originDataUri dataURI of the validated proposal
+     * @param _originDataUri dataURI of the validated proposal.
      */
     function createTransaction(
         uint256 _serviceId,
@@ -577,7 +576,7 @@ contract TalentLayerEscrow is
     /**
      * @notice Allows the sender to release locked-in escrow value to the intended recipient.
      *         The amount released must not include the fees.
-     * @param _profileId The TalentLayer ID of the user
+     * @param _profileId The TalentLayer ID of the user.
      * @param _transactionId Id of the transaction to release escrow value for.
      * @param _amount Value to be released without fees. Should not be more than amount locked in.
      */
@@ -598,7 +597,7 @@ contract TalentLayerEscrow is
     /**
      * @notice Allows the intended receiver to return locked-in escrow value back to the sender.
      *         The amount reimbursed must not include the fees.
-     * @param _profileId The TalentLayer ID of the user
+     * @param _profileId The TalentLayer ID of the user.
      * @param _transactionId Id of the transaction to reimburse escrow value for.
      * @param _amount Value to be reimbursed without fees. Should not be more than amount locked in.
      */
@@ -787,7 +786,7 @@ contract TalentLayerEscrow is
      * @notice Allows a referrer to claim its tokens & / or ETH balance.
      * @param _referrerId The ID of the referrer claiming the balance.
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
-     * Emits a BalanceTransferred & a ReferralAmountClaimed events
+     * @dev Emits a BalanceTransferred & a ReferralAmountClaimed events
      */
     function claimReferralBalance(uint256 _referrerId, address _tokenAddress) external whenNotPaused {
         address payable recipient;
@@ -915,7 +914,7 @@ contract TalentLayerEscrow is
     // =========================== Private functions ==============================
 
     /**
-     * @notice Emits the events related to the creation of a transaction.
+     * @notice Emits the events related to the creation of a transaction
      * @param _senderId The TL ID of the sender
      * @param _receiverId The TL ID of the receiver
      * @param _transactionId The ID of the transaction
@@ -973,6 +972,7 @@ contract TalentLayerEscrow is
 
         // If no referrerId (=0), the referralAmount will always be 0
         // @dev: Legacy transactions will have a totalAmount of 0; need to check for that
+        // @dev: This check should be removed in a future upgrade, when all legacy transactions will be completed
         uint256 reimbursedReferralAmount = transaction.totalAmount != 0
             ? (_amount * transaction.referralAmount) / (transaction.totalAmount)
             : 0;
@@ -1102,7 +1102,7 @@ contract TalentLayerEscrow is
      * @param _amount The core escrow amount
      * @param _originServiceFeeRate the %fee (per ten thousands) asked by the platform for each service created on the platform
      * @param _originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
-     * @param _referralAmount the lump sum optional fee to be sent to the referrer, if any
+     * @param _referralAmount the lump sum optional amount to be sent to the referrer, if any
      * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
      */
     function _calculateTotalWithFees(
