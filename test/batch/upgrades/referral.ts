@@ -38,7 +38,7 @@ const fakeSignature =
   '0xea53f5cd3f7db698f2fdd38909c58fbd41fe35b54d5b0d6acc3b05555bae1f01795b86ea1d65d8c76954fd6cefd5c59c9c57274966a071be1ee3b783a123ff961b'
 
 const alicePlatformProposalPostingFee = 0
-describe.only('TalentLayer protocol global testing', function () {
+describe('TalentLayer protocol global testing', function () {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -54,11 +54,7 @@ describe.only('TalentLayer protocol global testing', function () {
     talentLayerArbitrator: TalentLayerArbitrator,
     token: SimpleERC20,
     platformName: string,
-    platformId: string,
-    mintFee: number
-
-  const nonListedToken = '0x6b175474e89094c44da98b954eedeac495271d0f'
-  const referralAmount = 20000
+    platformId: string
 
   before(async function () {
     // Get the Signers
@@ -89,7 +85,6 @@ describe.only('TalentLayer protocol global testing', function () {
     // Deployer mints Platform Id for Alice
     platformName = 'rac00n-corp'
     await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, alice.address)
-    mintFee = 100
 
     const allowedTokenList = ['0x0000000000000000000000000000000000000000', token.address]
 
@@ -321,7 +316,7 @@ describe.only('TalentLayer protocol global testing', function () {
           },
         )
     })
-    // Service4: Nothing
+    // Service4(dave): Nothing
     //    ===> Need to create proposal after service creation, validate it, release 90%, reimburse 10% and review 100%
   })
 
@@ -358,6 +353,8 @@ describe.only('TalentLayer protocol global testing', function () {
         await talentLayerEscrow.connect(bob).reimburse(bobTlId, 1, rateAmount / 10)
         const transactionData = await talentLayerEscrow.connect(alice).getTransactionDetails(1)
         expect(transactionData.amount).to.be.equal(0)
+        // @dev: Legacy transactions should have this field equal to zero
+        expect(transactionData.totalAmount).to.be.equal(0)
       })
       it('Bob & Alice can both review the service', async function () {
         await talentLayerReview.connect(bob).mint(bobTlId, 1, cid, 5)
@@ -388,7 +385,7 @@ describe.only('TalentLayer protocol global testing', function () {
       })
     })
   })
-  describe('For Service3 => Check whether a proposal can be validated after upgrade', async function () {
+  describe('For Service3 => Check whether a proposal created before an upgrade can be validated after upgrade', async function () {
     it("Even if Dave's proposal used ERC20 token, the validated one will be with MATIC", async function () {
       const totalAmount = getTotalTransactionValue(
         talentLayerEscrow,
@@ -396,8 +393,6 @@ describe.only('TalentLayer protocol global testing', function () {
         rateAmount,
       )
       // await token.connect(carol).approve(talentLayerEscrow.address, totalAmount)
-      const service3Data = await talentLayerService.services(3)
-      console.log('service3Data', service3Data.rateToken)
 
       // Transaction 3
       await talentLayerEscrow.connect(carol).createTransaction(3, daveTlId, metaEvidenceCid, cid, {
@@ -411,6 +406,50 @@ describe.only('TalentLayer protocol global testing', function () {
       await talentLayerEscrow.connect(dave).reimburse(daveTlId, 3, (rateAmount * 9) / 10)
       await talentLayerEscrow.connect(carol).release(carolTlId, 3, rateAmount / 10)
       const transactionData = await talentLayerEscrow.connect(dave).getTransactionDetails(3)
+      expect(transactionData.amount).to.be.equal(0)
+    })
+  })
+  describe('For Service4 => Check whether a proposal can be created after the upgrade for a service created before', async function () {
+    it("Carol can create a proposal for Dave's service & both can release & reimburse", async function () {
+      await talentLayerService
+        .connect(carol)
+        .createProposal(
+          carolTlId,
+          4,
+          rateAmount,
+          1,
+          cid,
+          proposalExpirationDate,
+          fakeSignature,
+          0,
+          {
+            value: alicePlatformProposalPostingFee,
+          },
+        )
+
+      const totalAmount = getTotalTransactionValue(
+        talentLayerEscrow,
+        talentLayerPlatformID,
+        rateAmount,
+      )
+
+      // Transaction 4
+      await talentLayerEscrow.connect(dave).createTransaction(4, carolTlId, metaEvidenceCid, cid, {
+        value: totalAmount,
+      })
+      const transactionData = await talentLayerEscrow.connect(dave).getTransactionDetails(4)
+      expect(transactionData.id).to.be.equal(4)
+      expect(transactionData.token).to.be.equal(ethers.constants.AddressZero)
+      expect(transactionData.totalAmount).to.be.equal(rateAmount)
+      expect(transactionData.sender).to.be.equal(dave.address)
+      expect(transactionData.receiver).to.be.equal(carol.address)
+      expect(transactionData.totalAmount).to.be.equal(rateAmount)
+      expect(transactionData.referrerId).to.be.equal(0)
+    })
+    it('All funds can be released & reimbursed', async function () {
+      await talentLayerEscrow.connect(dave).release(daveTlId, 4, (rateAmount * 9) / 10)
+      await talentLayerEscrow.connect(carol).reimburse(carolTlId, 4, rateAmount / 10)
+      const transactionData = await talentLayerEscrow.connect(dave).getTransactionDetails(4)
       expect(transactionData.amount).to.be.equal(0)
     })
   })
