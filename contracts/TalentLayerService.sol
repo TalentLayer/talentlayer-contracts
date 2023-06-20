@@ -131,7 +131,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param ownerId The talentLayerId of the seller who made the proposal
      * @param dataUri token Id to IPFS URI mapping
      * @param status proposal status
-     * @param amount the amount of token chosen
+     * @param rateAmount the amount of token chosen
      * @param platformId the platform ID on which the proposal was created
      * @param expirationDate the timeout for the proposal
      * @param referrerId the id of the referrer (Zero if no referrer)
@@ -141,7 +141,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 ownerId,
         string dataUri,
         ProposalStatus status,
-        uint256 amount,
+        uint256 rateAmount,
         uint256 platformId,
         uint256 expirationDate,
         uint256 referrerId
@@ -152,7 +152,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param serviceId The service id
      * @param ownerId The talentLayerId of the seller who made the proposal
      * @param dataUri token Id to IPFS URI mapping
-     * @param amount the amount of token chosen
+     * @param rateAmount the amount of token chosen
      * @param expirationDate the timeout for the proposal
      * @param referrerId the id of the referrer (Zero if no referrer)
      */
@@ -160,7 +160,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 serviceId,
         uint256 ownerId,
         string dataUri,
-        uint256 amount,
+        uint256 rateAmount,
         uint256 expirationDate,
         uint256 referrerId
     );
@@ -606,7 +606,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Validate a new proposal
      * @param _profileId The TalentLayer ID of the user
      * @param _serviceId The service linked to the new proposal
-     * @param _amount The amount of token chosen
+     * @param _rateAmount The amount of token chosen
      * @param _platformId Platform ID on which the Proposal was created
      * @param _dataUri Token Id to IPFS URI mapping
      * @param _signature Platform signature to allow the operation
@@ -615,7 +615,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     function _validateProposal(
         uint256 _profileId,
         uint256 _serviceId,
-        uint256 _amount,
+        uint256 _rateAmount,
         uint256 _platformId,
         string calldata _dataUri,
         bytes calldata _signature,
@@ -626,7 +626,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
 
         Service storage service = services[_serviceId];
         require(
-            _amount + service.referralAmount >= allowedTokenList[service.rateToken].minimumTransactionAmount,
+            _rateAmount + service.referralAmount >= allowedTokenList[service.rateToken].minimumTransactionAmount,
             "Amount too low"
         );
         require(service.status == Status.Opened, "Service not opened");
