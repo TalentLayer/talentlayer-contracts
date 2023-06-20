@@ -425,7 +425,6 @@ contract TalentLayerEscrow is
      */
     function getClaimableReferralBalance(address _token) external view returns (uint256 balance) {
         uint256 referrerId = talentLayerIdContract.ids(_msgSender());
-        talentLayerIdContract.isValid(referrerId);
         return referrerIdToTokenToBalance[referrerId][_token];
     }
 
