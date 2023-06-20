@@ -10,7 +10,6 @@ import {
   TalentLayerService,
   TalentLayerServiceV1,
 } from '../../../typechain-types'
-import { NetworkConfig } from '../../../networkConfig'
 import { ethers } from 'hardhat'
 import { deployForV1, upgradeEscrowV1, upgradeServiceV1 } from '../../utils/deploy'
 import { expect } from 'chai'
@@ -39,7 +38,7 @@ const fakeSignature =
   '0xea53f5cd3f7db698f2fdd38909c58fbd41fe35b54d5b0d6acc3b05555bae1f01795b86ea1d65d8c76954fd6cefd5c59c9c57274966a071be1ee3b783a123ff961b'
 
 const alicePlatformProposalPostingFee = 0
-describe('TalentLayer protocol global testing', function () {
+describe.only('TalentLayer protocol global testing', function () {
   let deployer: SignerWithAddress,
     alice: SignerWithAddress,
     bob: SignerWithAddress,
@@ -56,11 +55,9 @@ describe('TalentLayer protocol global testing', function () {
     token: SimpleERC20,
     platformName: string,
     platformId: string,
-    mintFee: number,
-    networkConfig: NetworkConfig,
-    chainId: number
+    mintFee: number
 
-  const nonListedtoken = '0x6b175474e89094c44da98b954eedeac495271d0f'
+  const nonListedToken = '0x6b175474e89094c44da98b954eedeac495271d0f'
   const referralAmount = 20000
 
   before(async function () {
@@ -80,7 +77,7 @@ describe('TalentLayer protocol global testing', function () {
     const mintRole = await talentLayerPlatformID.MINT_ROLE()
     await talentLayerPlatformID.connect(deployer).grantRole(mintRole, deployer.address)
 
-    // we first check the actual minting status (should be ONLY_WHITELIST )
+    // we first check the actual minting status (should be ONLY_WHITELIST)
     const mintingStatus = await talentLayerPlatformID.connect(deployer).mintStatus()
     expect(mintingStatus).to.be.equal(1)
     // then we whitelist the deployer and Alice to mint a PlatformId for someone
@@ -140,7 +137,7 @@ describe('TalentLayer protocol global testing', function () {
     it('Users can freely create services without providing tokens', async function () {
       const platform = await talentLayerPlatformID.getPlatform(alicePlatformId)
       const alicePlatformServicePostingFee = platform.servicePostingFee
-      // @dev: Signature not activated, will use the same signature for all services
+      // @dev: Signature not activated, will use the same signature for all services & proposals
       const tx = await talentLayerServiceV1
         .connect(alice)
         .createService(aliceTlId, alicePlatformId, cid, fakeSignature, {
@@ -185,7 +182,7 @@ describe('TalentLayer protocol global testing', function () {
     })
     it('Bob and dave can create 2 MATIC proposals for service 1. ', async function () {
       // Service1(alice): 2 proposals created, one validated MATIC, 25% released, 25% reimbursed
-      //    ===> Need to release the rest + 100% reviews
+      //    ===> Need to release the rest + 100% reviews after upgrade
 
       // Proposal 1
       const tx = await talentLayerServiceV1
@@ -329,16 +326,16 @@ describe('TalentLayer protocol global testing', function () {
     //    ===> Need to create proposal after service creation, validate it, release 90%, reimburse 10% and review 100%
   })
 
-  describe.only('Upgrade Service & Escrow contracts', async function () {
+  describe('Upgrade Service & Escrow contracts', async function () {
     it('Upgrade should not alter data', async function () {
       const service1DataBeforeUpgrade = await talentLayerServiceV1.services(1)
-      const proposalDataBeforeUpgrade = await talentLayerServiceV1.getProposal(1, 1)
+      const proposalDataBeforeUpgrade = await talentLayerServiceV1.getProposal(1, 2)
       talentLayerService = await upgradeServiceV1(talentLayerServiceV1.address)
       talentLayerEscrow = await upgradeEscrowV1(talentLayerEscrowV1.address)
       expect(talentLayerService.address).to.be.equal(talentLayerServiceV1.address)
       expect(talentLayerEscrow.address).to.be.equal(talentLayerEscrowV1.address)
       const service1DataAfterUpgrade = await talentLayerService.services(1)
-      const proposalDataAfterUpgrade = await talentLayerService.getProposal(1, 1)
+      const proposalDataAfterUpgrade = await talentLayerService.getProposal(1, 2)
       expect(service1DataBeforeUpgrade.ownerId).to.be.equal(service1DataAfterUpgrade.ownerId)
       expect(service1DataBeforeUpgrade.dataUri).to.be.equal(service1DataAfterUpgrade.dataUri)
       expect(service1DataBeforeUpgrade.platformId).to.be.equal(service1DataAfterUpgrade.platformId)
@@ -347,7 +344,49 @@ describe('TalentLayer protocol global testing', function () {
       )
       expect(service1DataAfterUpgrade.rateToken).to.be.equal(ethers.constants.AddressZero)
 
-      expect(proposalDataBeforeUpgrade).to.be.deep.equal(proposalDataAfterUpgrade)
+      expect(proposalDataBeforeUpgrade.ownerId).to.be.equal(proposalDataAfterUpgrade.ownerId)
+      expect(proposalDataBeforeUpgrade.dataUri).to.be.equal(proposalDataAfterUpgrade.dataUri)
+      expect(proposalDataBeforeUpgrade.rateAmount).to.be.equal(proposalDataAfterUpgrade.rateAmount)
+      expect(proposalDataBeforeUpgrade.platformId).to.be.equal(proposalDataAfterUpgrade.platformId)
+      expect(proposalDataBeforeUpgrade.expirationDate).to.be.equal(
+        proposalDataAfterUpgrade.expirationDate,
+      )
+      expect(proposalDataBeforeUpgrade.rateToken).to.be.equal(ethers.constants.AddressZero)
+    })
+    describe('For Service1 => Check whether escrow balance can be released & reimbursed after an upgrade', async function () {
+      it('Alice can release 40% of the remaining escrow amount & Bob can reimburse 10% of the remaining escrow amount', async function () {
+        await talentLayerEscrow.connect(alice).release(aliceTlId, 1, (rateAmount * 4) / 10)
+        await talentLayerEscrow.connect(bob).reimburse(bobTlId, 1, rateAmount / 10)
+        const transactionData = await talentLayerEscrow.connect(alice).getTransactionDetails(1)
+        expect(transactionData.amount).to.be.equal(0)
+      })
+      it('Bob & Alice can both review the service', async function () {
+        await talentLayerReview.connect(bob).mint(bobTlId, 1, cid, 5)
+        const bobReview = await talentLayerReview.getReview(2)
+        expect(bobReview.id).to.be.equal(2)
+        expect(bobReview.ownerId).to.be.equal(aliceTlId)
+        expect(bobReview.dataUri).to.be.equal(cid)
+        expect(bobReview.serviceId).to.be.equal(1)
+        expect(bobReview.rating).to.be.equal(5)
+        await talentLayerReview.connect(alice).mint(aliceTlId, 1, cid, 5)
+        const aliceReview = await talentLayerReview.getReview(3)
+        expect(aliceReview.id).to.be.equal(3)
+        expect(aliceReview.ownerId).to.be.equal(bobTlId)
+        expect(aliceReview.dataUri).to.be.equal(cid)
+        expect(aliceReview.serviceId).to.be.equal(1)
+        expect(aliceReview.rating).to.be.equal(5)
+      })
+    })
+    describe('For Service2 => Check whether a service can be reviewed after an upgrade', async function () {
+      it('Alice can review the service', async function () {
+        await talentLayerReview.connect(alice).mint(aliceTlId, 2, cid, 5)
+        const aliceReview = await talentLayerReview.getReview(4)
+        expect(aliceReview.id).to.be.equal(4)
+        expect(aliceReview.ownerId).to.be.equal(bobTlId)
+        expect(aliceReview.dataUri).to.be.equal(cid)
+        expect(aliceReview.serviceId).to.be.equal(2)
+        expect(aliceReview.rating).to.be.equal(5)
+      })
     })
   })
 })
