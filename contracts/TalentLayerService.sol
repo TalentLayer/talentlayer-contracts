@@ -47,7 +47,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param transactionId the escrow transaction ID linked to the service
      * @param platformId the platform ID on which the service was created
      * @param rateToken the token used for the service's payments, including the referral amount
-     * @param referralAmount the amount which the referrer will receive if a proposal is validated by un user which was referred
+     * @param referralAmount the amount which the referrer will receive if a proposal provided it's ID as a referrer and was validated
      */
     struct Service {
         Status status;
@@ -94,13 +94,13 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     // =========================== Events ==============================
 
     /**
-     * @notice Emitted after a new service is created with referral data
+     * @notice Emitted after a new service is created
      * @param id The service ID (incremental)
      * @param ownerId the talentLayerId of the buyer
      * @param platformId platform ID on which the Service token was minted
      * @param dataUri token Id to IPFS URI mapping
      * @param rateToken the token used for the service's payments, including the referral amount
-     * @param referralAmount the amount which the referrer will receive if a proposal is validated by un user which was referred
+     * @param referralAmount the amount which the referrer will receive if a proposal provided it's ID as a referrer and was validated
      */
     event ServiceCreated(
         uint256 id,
@@ -192,7 +192,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     ITalentLayerID private tlId;
 
     /**
-     * @notice TalentLayer Platform ID registry contract
+     * @notice TalentLayerPlatformId contract
      */
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
@@ -316,7 +316,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _dataUri IPFS URI of the offchain data of the service
      * @param _signature optional platform signature to allow the operation
      * @param _rateToken token address to be used for the service's payments
-     * @param _referralAmount the amount which the referrer will receive if a proposal is validated by un user which was referred
+     * @param _referralAmount the amount which the referrer will receive if a proposal provided it's ID as a referrer and was validated
      */
     function createService(
         uint256 _profileId,
