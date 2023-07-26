@@ -1608,16 +1608,15 @@ describe('TalentLayer protocol global testing', function () {
         const originServiceFeeRate = alicePlatformData.originServiceFeeRate
         const originValidatedProposalFeeRate = alicePlatformData.originValidatedProposalFeeRate
         const referralAmount = service.referralAmount
+        const totalAmountWithoutFees = proposal.rateAmount.add(referralAmount)
 
-        const totalAmountWithReferral = proposal.rateAmount
-          .add(
-            proposal.rateAmount
-              .mul(protocolEscrowFeeRate)
-              .add(proposal.rateAmount.mul(originServiceFeeRate))
-              .add(proposal.rateAmount.mul(originValidatedProposalFeeRate))
-              .div(FEE_DIVIDER),
-          )
-          .add(referralAmount)
+        const totalAmountWithReferral = totalAmountWithoutFees.add(
+          totalAmountWithoutFees
+            .mul(protocolEscrowFeeRate)
+            .add(totalAmountWithoutFees.mul(originServiceFeeRate))
+            .add(totalAmountWithoutFees.mul(originValidatedProposalFeeRate))
+            .div(FEE_DIVIDER),
+        )
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmountWithReferral)
 
@@ -1700,10 +1699,12 @@ describe('TalentLayer protocol global testing', function () {
         const reimburseReferrerAmount = reimburseAmount
           .mul(transactionDetails.referralAmount)
           .div(transactionDetails.totalAmount)
-        const reimburseFeesAMount = reimburseAmount
+
+        const reimburseAmountWithReferrer = reimburseAmount.add(reimburseReferrerAmount)
+        const reimburseFeesAMount = reimburseAmountWithReferrer
           .mul(protocolEscrowFeeRate)
-          .add(reimburseAmount.mul(originServiceFeeRate))
-          .add(reimburseAmount.mul(originValidatedProposalFeeRate))
+          .add(reimburseAmountWithReferrer.mul(originServiceFeeRate))
+          .add(reimburseAmountWithReferrer.mul(originValidatedProposalFeeRate))
           .div(FEE_DIVIDER)
 
         const totalReimburseAmount = reimburseAmount
@@ -2174,16 +2175,15 @@ describe('TalentLayer protocol global testing', function () {
         const originServiceFeeRate = alicePlatformData.originServiceFeeRate
         const originValidatedProposalFeeRate = alicePlatformData.originValidatedProposalFeeRate
         const referralAmount = service.referralAmount
+        const totalAmountWithoutFees = proposal.rateAmount.add(referralAmount)
 
-        const totalAmountWithReferral = proposal.rateAmount
-          .add(
-            proposal.rateAmount
-              .mul(protocolEscrowFeeRate)
-              .add(proposal.rateAmount.mul(originServiceFeeRate))
-              .add(proposal.rateAmount.mul(originValidatedProposalFeeRate))
-              .div(FEE_DIVIDER),
-          )
-          .add(referralAmount)
+        const totalAmountWithReferral = totalAmountWithoutFees.add(
+          totalAmountWithoutFees
+            .mul(protocolEscrowFeeRate)
+            .add(totalAmountWithoutFees.mul(originServiceFeeRate))
+            .add(totalAmountWithoutFees.mul(originValidatedProposalFeeRate))
+            .div(FEE_DIVIDER),
+        )
 
         // Fails if value sent is not the total amount
         const tx = talentLayerEscrow
@@ -2271,10 +2271,12 @@ describe('TalentLayer protocol global testing', function () {
         const reimburseReferrerAmount = reimburseAmount
           .mul(transactionDetails.referralAmount)
           .div(transactionDetails.totalAmount)
-        const reimburseFeesAMount = reimburseAmount
+
+        const reimburseAmountWithReferrer = reimburseAmount.add(reimburseReferrerAmount)
+        const reimburseFeesAMount = reimburseAmountWithReferrer
           .mul(protocolEscrowFeeRate)
-          .add(reimburseAmount.mul(originServiceFeeRate))
-          .add(reimburseAmount.mul(originValidatedProposalFeeRate))
+          .add(reimburseAmountWithReferrer.mul(originServiceFeeRate))
+          .add(reimburseAmountWithReferrer.mul(originValidatedProposalFeeRate))
           .div(FEE_DIVIDER)
 
         const totalReimburseAmount = reimburseAmount
