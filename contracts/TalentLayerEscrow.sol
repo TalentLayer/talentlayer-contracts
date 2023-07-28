@@ -759,7 +759,7 @@ contract TalentLayerEscrow is
      * @notice Allows a platform owner to claim its tokens & / or ETH balance.
      * @param _platformId The ID of the platform claiming the balance.
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
-     * Emits a BalanceTransferred event
+     * Emits a FeesClaimed event
      */
     function claim(uint256 _platformId, address _tokenAddress) external whenNotPaused {
         address payable recipient;
@@ -786,7 +786,7 @@ contract TalentLayerEscrow is
      * @notice Allows a referrer to claim its tokens & / or ETH balance.
      * @param _referrerId The ID of the referrer claiming the balance.
      * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
-     * @dev Emits a BalanceTransferred & a ReferralAmountClaimed events
+     * @dev Emits a ReferralAmountClaimed events
      */
     function claimReferralBalance(uint256 _referrerId, address _tokenAddress) external whenNotPaused {
         address payable recipient;
