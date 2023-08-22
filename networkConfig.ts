@@ -6,6 +6,7 @@ export enum Network {
   FUJI = 43113,
   POLYGON = 137,
   MUMBAI = 80001,
+  IEXEC = 134,
 }
 
 export type NetworkConfig = {
@@ -113,12 +114,28 @@ const polygon: NetworkConfig = {
   platformList: {},
 }
 
+const iexec: NetworkConfig = {
+  multisigAddressList: {
+    fee: '0x2E6f7222d4d7A71B05E7C35389d23C3dB400851f',
+    admin: '0x2E6f7222d4d7A71B05E7C35389d23C3dB400851f',
+  },
+  allowedTokenList: {
+    xRLC: {
+      address: ethers.constants.AddressZero,
+      minTransactionAmount: '0.01',
+      decimals: 18,
+    },
+  },
+  platformList: {},
+}
+
 export const configs: { [networkId in Network]: NetworkConfig } = {
   [Network.LOCAL]: local,
   [Network.AVALANCHE]: avalanche,
   [Network.FUJI]: fuji,
   [Network.POLYGON]: polygon,
   [Network.MUMBAI]: mumbai,
+  [Network.IEXEC]: iexec,
 }
 
 export const getConfig = (networkId: Network): NetworkConfig => {
