@@ -8,37 +8,11 @@ async function main() {
   const config = getDeploymennt(network)
   const subgraphNetwork = JSON.parse(loadJSON())
 
-  if (network == 'localhost') {
-    subgraphNetwork.localhost.TalentLayerID.address = config.talentLayerIdAddress
-    subgraphNetwork.localhost.TalentLayerReview.address = config.talentLayerReviewAddress
-    subgraphNetwork.localhost.TalentLayerService.address = config.talentLayerServiceAddress
-    subgraphNetwork.localhost.TalentLayerEscrow.address = config.talentLayerEscrowAddress
-    subgraphNetwork.localhost.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
-  } else if (network == 'fuji') {
-    subgraphNetwork.fuji.TalentLayerID.address = config.talentLayerIdAddress
-    subgraphNetwork.fuji.TalentLayerReview.address = config.talentLayerReviewAddress
-    subgraphNetwork.fuji.TalentLayerService.address = config.talentLayerServiceAddress
-    subgraphNetwork.fuji.TalentLayerEscrow.address = config.talentLayerEscrowAddress
-    subgraphNetwork.fuji.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
-  } else if (network == 'mumbai') {
-    subgraphNetwork.mumbai.TalentLayerID.address = config.talentLayerIdAddress
-    subgraphNetwork.mumbai.TalentLayerReview.address = config.talentLayerReviewAddress
-    subgraphNetwork.mumbai.TalentLayerService.address = config.talentLayerServiceAddress
-    subgraphNetwork.mumbai.TalentLayerEscrow.address = config.talentLayerEscrowAddress
-    subgraphNetwork.mumbai.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
-  } else if (network == 'avalanche') {
-    subgraphNetwork.avalanche.TalentLayerID.address = config.talentLayerIdAddress
-    subgraphNetwork.avalanche.TalentLayerReview.address = config.talentLayerReviewAddress
-    subgraphNetwork.avalanche.TalentLayerService.address = config.talentLayerServiceAddress
-    subgraphNetwork.avalanche.TalentLayerEscrow.address = config.talentLayerEscrowAddress
-    subgraphNetwork.avalanche.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
-  } else if (network == 'polygon') {
-    subgraphNetwork.polygon.TalentLayerID.address = config.talentLayerIdAddress
-    subgraphNetwork.polygon.TalentLayerReview.address = config.talentLayerReviewAddress
-    subgraphNetwork.polygon.TalentLayerService.address = config.talentLayerServiceAddress
-    subgraphNetwork.polygon.TalentLayerEscrow.address = config.talentLayerEscrowAddress
-    subgraphNetwork.polygon.TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
-  }
+  subgraphNetwork[network].TalentLayerID.address = config.talentLayerIdAddress
+  subgraphNetwork[network].TalentLayerReview.address = config.talentLayerReviewAddress
+  subgraphNetwork[network].TalentLayerService.address = config.talentLayerServiceAddress
+  subgraphNetwork[network].TalentLayerEscrow.address = config.talentLayerEscrowAddress
+  subgraphNetwork[network].TalentLayerPlatformID.address = config.talentLayerPlatformIdAddress
 
   saveJSON(subgraphNetwork)
 }

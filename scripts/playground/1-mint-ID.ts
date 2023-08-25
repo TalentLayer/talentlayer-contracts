@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
+import postToIPFS from '../utils/ipfs'
 
 /*
 In this script we will mint a new TalentLayer ID for Alice, Bob, Carol and Dave
@@ -52,6 +53,20 @@ async function main() {
 
   await talentLayerIdContract.connect(dave).mint(daveTalentLayerIdPlatform, 'dave_')
   console.log('dave registered')
+
+  // Alice update her profile data
+  const aliceProfileData = await postToIPFS(
+    JSON.stringify({
+      name: 'Alice',
+      title: 'Full Stack Developer',
+      web3mailPreferences: {
+        activeOnNewService: true,
+        activeOnProtocolMarketing: false,
+      },
+    }),
+  )
+  console.log('Alice Profile Data Uri', aliceProfileData)
+  await talentLayerIdContract.connect(alice).updateProfileData(aliceTalentLayerId, aliceProfileData)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
