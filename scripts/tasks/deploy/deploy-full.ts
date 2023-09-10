@@ -40,6 +40,8 @@ task('deploy-full', 'Deploy all the contracts on their first version')
         },
       )
 
+      await talentLayerPlatformID.deployTransaction.wait(1)
+
       if (verify) {
         await verifyAddress(talentLayerPlatformID.address)
       }
@@ -72,6 +74,9 @@ task('deploy-full', 'Deploy all the contracts on their first version')
           pollingInterval: 20000,
         },
       )
+
+      await talentLayerID.deployTransaction.wait(1)
+
       if (verify) {
         await verifyAddress(talentLayerID.address)
       }
@@ -100,6 +105,8 @@ task('deploy-full', 'Deploy all the contracts on their first version')
           pollingInterval: 20000,
         },
       )
+
+      await talentLayerService.deployTransaction.wait(1)
 
       if (verify) {
         await verifyAddress(talentLayerService.address)
@@ -132,6 +139,9 @@ task('deploy-full', 'Deploy all the contracts on their first version')
           pollingInterval: 20000,
         },
       )
+
+      await talentLayerReview.deployTransaction.wait(1)
+
       if (verify) {
         await verifyAddress(talentLayerReview.address)
       }
@@ -154,6 +164,9 @@ task('deploy-full', 'Deploy all the contracts on their first version')
       const talentLayerArbitrator = await TalentLayerArbitrator.deploy(
         talentLayerPlatformID.address,
       )
+
+      await talentLayerArbitrator.deployTransaction.wait(1)
+
       if (verify) {
         await verifyAddress(talentLayerArbitrator.address, [talentLayerPlatformID.address])
       }
@@ -184,6 +197,9 @@ task('deploy-full', 'Deploy all the contracts on their first version')
           pollingInterval: 20000,
         },
       )
+
+      await talentLayerEscrow.deployTransaction.wait(1)
+
       if (verify) {
         await verifyAddress(talentLayerEscrow.address)
       }
