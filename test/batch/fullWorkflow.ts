@@ -1927,7 +1927,13 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can review Bob for the service they had', async function () {
-      await talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, cid, 4)
+      const tx = await talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, cid, 4)
+
+      const reviewId = 1
+      const acceptedProposalId = 2
+      await expect(tx)
+        .to.emit(talentLayerReview, 'Mint')
+        .withArgs(finishedServiceId, bobTlId, reviewId, 4, cid, acceptedProposalId)
 
       const owner = await talentLayerReview.ownerOf(bobReviewId)
       expect(owner).to.be.equal(bob.address)
