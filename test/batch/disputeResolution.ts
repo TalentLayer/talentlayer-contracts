@@ -559,6 +559,7 @@ describe('Dispute Resolution, standard flow', function () {
             ethers.constants.AddressZero,
             currentTransactionAmount,
             serviceId,
+            proposalId,
           )
       })
 
@@ -834,6 +835,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
           ethers.constants.AddressZero,
           halfTransactionAmount,
           serviceId,
+          proposalId,
         )
 
       await expect(tx)
@@ -844,6 +846,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
           ethers.constants.AddressZero,
           halfTransactionAmount,
           serviceId,
+          proposalId,
         )
     })
   })
@@ -933,6 +936,7 @@ describe('Dispute Resolution, receiver winning', function () {
           ethers.constants.AddressZero,
           transactionAmount,
           serviceId,
+          proposalId,
         )
     })
   })
