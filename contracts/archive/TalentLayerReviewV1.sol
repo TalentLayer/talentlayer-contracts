@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
-import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
-import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {ERC2771RecipientUpgradeable} from "../libs/ERC2771RecipientUpgradeable.sol";
+import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
+import {ITalentLayerService} from "../interfaces/ITalentLayerService.sol";
+import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
 
 import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base64Upgradeable.sol";
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
