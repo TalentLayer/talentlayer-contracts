@@ -151,7 +151,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         // Increment counter to start platform ids at index 1
         nextPlatformId.increment();
         mintStatus = MintStatus.ONLY_WHITELIST;
-        emit ArbitratorAdded(address(0), false);
     }
 
     // =========================== View functions ==============================
