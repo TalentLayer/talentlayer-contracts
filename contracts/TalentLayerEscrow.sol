@@ -477,7 +477,7 @@ IArbitrable
             require(msg.value == 0, "Non-matching funds");
         }
 
-        require(_msgSender() == sender, "Access denied");
+        require(service.ownerId == _profileId, "Access denied");
         require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
         require(proposal.expirationDate >= block.timestamp, "Proposal expired");
         require(service.status == ITalentLayerService.Status.Opened, "Service status not open");

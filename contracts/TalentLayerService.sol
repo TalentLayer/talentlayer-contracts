@@ -347,7 +347,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         string calldata _dataUri,
         uint256 _expirationDate,
         bytes calldata _signature
-    ) public payable onlyOwnerOrDelegate(_profileId) {
+    ) public payable onlyOwnerOrDelegate(_profileId)  returns(uint256 proposalId) {
         _validateProposal(_profileId, _serviceId, _rateToken, _rateAmount, _platformId, _dataUri, _signature);
 
         proposals[_serviceId][_profileId] = Proposal({
@@ -375,6 +375,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             _platformId,
             _expirationDate
         );
+
+        return _profileId;
     }
 
     /**
