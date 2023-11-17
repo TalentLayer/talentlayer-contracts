@@ -34,24 +34,39 @@ interface ITalentLayerEscrow {
         Resolved // the transaction is solved (either no dispute has ever arisen or the dispute has been resolved)
     }
 
-    function getClaimableFeeBalance(address _token) external view returns (uint256 balance);
+    function getClaimableFeeBalance(
+        address _token
+    ) external view returns (uint256 balance);
 
-    function getTransactionDetails(uint256 _transactionId) external view returns (Transaction memory);
+    function getTransactionDetails(
+        uint256 _transactionId
+    ) external view returns (Transaction memory);
 
-    function updateProtocolEscrowFeeRate(uint16 _protocolEscrowFeeRate) external;
+    function updateProtocolEscrowFeeRate(
+        uint16 _protocolEscrowFeeRate
+    ) external;
 
     function updateProtocolWallet(address payable _protocolWallet) external;
 
     function createTransaction(
+        uint256 _profileId,
         uint256 _serviceId,
         uint256 _proposalId,
         string memory _metaEvidence,
-        string memory originDataUri
+        string memory _originDataUri
     ) external payable returns (uint256);
 
-    function release(uint256 _transactionId, uint256 _amount) external;
+    function release(
+        uint256 _profileId,
+        uint256 _transactionId,
+        uint256 _amount
+    ) external;
 
-    function reimburse(uint256 _transactionId, uint256 _amount) external;
+    function reimburse(
+        uint256 _profileId,
+        uint256 _transactionId,
+        uint256 _amount
+    ) external;
 
     function claim(uint256 _platformId, address _tokenAddress) external;
 
@@ -59,13 +74,18 @@ interface ITalentLayerEscrow {
 
     function payArbitrationFeeBySender(uint256 _transactionId) external payable;
 
-    function payArbitrationFeeByReceiver(uint256 _transactionId) external payable;
+    function payArbitrationFeeByReceiver(
+        uint256 _transactionId
+    ) external payable;
 
     function timeOutBySender(uint256 _transactionId) external;
 
     function timeOutByReceiver(uint256 _transactionId) external;
 
-    function submitEvidence(uint256 _transactionId, string memory _evidence) external;
+    function submitEvidence(
+        uint256 _transactionId,
+        string memory _evidence
+    ) external;
 
     function appeal(uint256 _transactionId) external payable;
 

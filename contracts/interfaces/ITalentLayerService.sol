@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.4;
 
 /**
  * @title Platform ID Interface
@@ -48,20 +48,22 @@ interface ITalentLayerService {
     ) external view returns (Service memory, Proposal memory);
 
     function createService(
-        Status _status,
-        uint256 _tokenId,
+        uint256 _profileId,
         uint256 _platformId,
-        uint256 _ownerId,
-        string calldata _dataUri
+        string calldata _dataUri,
+        bytes calldata _signature
     ) external returns (uint256);
 
     function createProposal(
+        uint256 _profileId,
         uint256 _serviceId,
         address _rateToken,
         uint256 _rateAmount,
         uint256 _platformId,
-        string calldata _dataUri
-    ) external;
+        string calldata _dataUri,
+        uint256 _expirationDate,
+        bytes calldata _signature
+    ) external returns (uint256);
 
     function afterDeposit(uint256 _serviceId, uint256 _proposalId, uint256 _transactionId) external;
 
