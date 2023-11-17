@@ -19,11 +19,11 @@ import {Arbitrator} from "./Arbitrator.sol";
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
 contract TalentLayerEscrow is
-Initializable,
-ERC2771RecipientUpgradeable,
-PausableUpgradeable,
-UUPSUpgradeable,
-IArbitrable
+    Initializable,
+    ERC2771RecipientUpgradeable,
+    PausableUpgradeable,
+    UUPSUpgradeable,
+    IArbitrable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using SafeERC20Upgradeable for IERC20Upgradeable;
