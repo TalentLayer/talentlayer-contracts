@@ -12,7 +12,7 @@ import {Arbitrator} from "../Arbitrator.sol";
  * @title Platform ID Contract
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
-contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract TalentLayerPlatformIDV1 is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     uint8 constant MIN_HANDLE_LENGTH = 5;
