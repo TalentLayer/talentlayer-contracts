@@ -22,6 +22,7 @@ import {
   expiredProposalDate,
   proposalExpirationDate,
   ServiceStatus,
+  PaymentType,
 } from '../utils/constant'
 import { getSignatureForProposal, getSignatureForService } from '../utils/signature'
 
@@ -1405,6 +1406,17 @@ describe('TalentLayer protocol global testing', function () {
           [-releasedAmount, 0, releasedAmount],
         )
 
+        await expect(tx)
+          .to.emit(talentLayerEscrow, 'Payment')
+          .withArgs(
+            transactionId,
+            PaymentType.Release,
+            token.address,
+            releasedAmount,
+            serviceId,
+            transactionDetailsBefore.proposalId,
+          )
+
         // Check transaction data has been updated correctly
         const transactionDetailsAfter = await talentLayerEscrow
           .connect(alice)
@@ -1535,7 +1547,7 @@ describe('TalentLayer protocol global testing', function () {
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
 
-        // we need to retreive the Bob proposal dataUri
+        // we need to retrieve the Bob proposal dataUri
         const proposal = await talentLayerService.proposals(serviceId, bobTlId)
 
         await expect(
@@ -1577,6 +1589,16 @@ describe('TalentLayer protocol global testing', function () {
           [talentLayerEscrow.address, alice, bob],
           [-totalAmount / 4, totalAmount / 4, 0],
         )
+        await expect(transaction)
+          .to.emit(talentLayerEscrow, 'Payment')
+          .withArgs(
+            transactionId,
+            PaymentType.Reimburse,
+            token.address,
+            totalAmount / 4,
+            serviceId,
+            transactionDetailsBefore.proposalId,
+          )
         await expect(transaction).to.emit(talentLayerEscrow, 'PaymentCompleted').withArgs(serviceId)
 
         // Check transaction data has been updated correctly
