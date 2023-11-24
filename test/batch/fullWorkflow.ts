@@ -1595,7 +1595,7 @@ describe('TalentLayer protocol global testing', function () {
             transactionId,
             PaymentType.Reimburse,
             token.address,
-            totalAmount / 4,
+            reimburseAmount,
             serviceId,
             transactionDetailsBefore.proposalId,
           )
