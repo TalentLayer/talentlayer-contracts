@@ -76,4 +76,8 @@ interface ITalentLayerPlatformID is IERC721Upgradeable {
     event Mint(address indexed _platformOwnerAddress, uint256 _tokenId, string _platformName);
 
     event CidUpdated(uint256 indexed _tokenId, string _newCid);
+
+    event ArbitratorAdded(address arbitrator, bool isInternal);
+
+    event ArbitratorRemoved(address arbitrator);
 }

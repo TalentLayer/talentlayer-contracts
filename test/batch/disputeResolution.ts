@@ -73,7 +73,13 @@ async function deployAndSetup(
   await talentLayerPlatformID.connect(deployer).mintForAddress(platformName, carol.address)
 
   // Add arbitrator to platform available arbitrators
-  await talentLayerPlatformID.connect(deployer).addArbitrator(talentLayerArbitrator.address, true)
+  expect(
+    await talentLayerPlatformID
+      .connect(deployer)
+      .addArbitrator(talentLayerArbitrator.address, true),
+  )
+    .to.emit(talentLayerPlatformID, 'ArbitratorAdded')
+    .withArgs(talentLayerArbitrator.address, true)
 
   // Update platform arbitrator, and fee timeout
   await talentLayerPlatformID
@@ -559,6 +565,7 @@ describe('Dispute Resolution, standard flow', function () {
             ethers.constants.AddressZero,
             currentTransactionAmount,
             serviceId,
+            proposalId,
           )
       })
 
@@ -834,6 +841,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
           ethers.constants.AddressZero,
           halfTransactionAmount,
           serviceId,
+          proposalId,
         )
 
       await expect(tx)
@@ -844,6 +852,7 @@ describe('Dispute Resolution, arbitrator abstaining from giving a ruling', funct
           ethers.constants.AddressZero,
           halfTransactionAmount,
           serviceId,
+          proposalId,
         )
     })
   })
@@ -933,6 +942,7 @@ describe('Dispute Resolution, receiver winning', function () {
           ethers.constants.AddressZero,
           transactionAmount,
           serviceId,
+          proposalId,
         )
     })
   })

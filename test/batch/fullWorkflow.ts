@@ -22,6 +22,7 @@ import {
   expiredProposalDate,
   proposalExpirationDate,
   ServiceStatus,
+  PaymentType,
 } from '../utils/constant'
 import { getSignatureForProposal, getSignatureForService } from '../utils/signature'
 
@@ -377,9 +378,13 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('The deployer can add a new available arbitrator', async function () {
-      await talentLayerPlatformID
-        .connect(deployer)
-        .addArbitrator(talentLayerArbitrator.address, true)
+      expect(
+        await talentLayerPlatformID
+          .connect(deployer)
+          .addArbitrator(talentLayerArbitrator.address, true),
+      )
+        .to.emit(talentLayerPlatformID, 'ArbitratorAdded')
+        .withArgs(talentLayerArbitrator.address, true)
       const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
       expect(isValid).to.be.true
 
@@ -441,7 +446,13 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('The deployer can remove an available arbitrator', async function () {
-      await talentLayerPlatformID.connect(deployer).removeArbitrator(talentLayerArbitrator.address)
+      expect(
+        await talentLayerPlatformID
+          .connect(deployer)
+          .removeArbitrator(talentLayerArbitrator.address),
+      )
+        .to.emit(talentLayerPlatformID, 'ArbitratorRemoved')
+        .withArgs(talentLayerArbitrator.address)
       const isValid = await talentLayerPlatformID.validArbitrators(talentLayerArbitrator.address)
       expect(isValid).to.be.false
 
@@ -1395,6 +1406,17 @@ describe('TalentLayer protocol global testing', function () {
           [-releasedAmount, 0, releasedAmount],
         )
 
+        await expect(tx)
+          .to.emit(talentLayerEscrow, 'Payment')
+          .withArgs(
+            transactionId,
+            PaymentType.Release,
+            token.address,
+            releasedAmount,
+            serviceId,
+            transactionDetailsBefore.proposalId,
+          )
+
         // Check transaction data has been updated correctly
         const transactionDetailsAfter = await talentLayerEscrow
           .connect(alice)
@@ -1525,7 +1547,7 @@ describe('TalentLayer protocol global testing', function () {
 
         await token.connect(alice).approve(talentLayerEscrow.address, totalAmount)
 
-        // we need to retreive the Bob proposal dataUri
+        // we need to retrieve the Bob proposal dataUri
         const proposal = await talentLayerService.proposals(serviceId, bobTlId)
 
         await expect(
@@ -1567,6 +1589,16 @@ describe('TalentLayer protocol global testing', function () {
           [talentLayerEscrow.address, alice, bob],
           [-totalAmount / 4, totalAmount / 4, 0],
         )
+        await expect(transaction)
+          .to.emit(talentLayerEscrow, 'Payment')
+          .withArgs(
+            transactionId,
+            PaymentType.Reimburse,
+            token.address,
+            reimburseAmount,
+            serviceId,
+            transactionDetailsBefore.proposalId,
+          )
         await expect(transaction).to.emit(talentLayerEscrow, 'PaymentCompleted').withArgs(serviceId)
 
         // Check transaction data has been updated correctly
@@ -1927,7 +1959,13 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Alice can review Bob for the service they had', async function () {
-      await talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, cid, 4)
+      const tx = await talentLayerReview.connect(alice).mint(aliceTlId, finishedServiceId, cid, 4)
+
+      const reviewId = 1
+      const acceptedProposalId = 2
+      await expect(tx)
+        .to.emit(talentLayerReview, 'Mint')
+        .withArgs(finishedServiceId, bobTlId, reviewId, 4, cid, acceptedProposalId)
 
       const owner = await talentLayerReview.ownerOf(bobReviewId)
       expect(owner).to.be.equal(bob.address)

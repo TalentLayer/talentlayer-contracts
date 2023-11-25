@@ -6,13 +6,13 @@ import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base6
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {Arbitrator} from "./Arbitrator.sol";
+import {Arbitrator} from "../Arbitrator.sol";
 
 /**
  * @title Platform ID Contract
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
-contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract TalentLayerPlatformIDV1 is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     uint8 constant MIN_HANDLE_LENGTH = 5;
@@ -419,7 +419,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     function addArbitrator(address _arbitrator, bool _isInternal) public onlyRole(DEFAULT_ADMIN_ROLE) {
         validArbitrators[address(_arbitrator)] = true;
         internalArbitrators[address(_arbitrator)] = _isInternal;
-        emit ArbitratorAdded(_arbitrator, _isInternal);
     }
 
     /**
@@ -430,7 +429,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     function removeArbitrator(address _arbitrator) public onlyRole(DEFAULT_ADMIN_ROLE) {
         validArbitrators[address(_arbitrator)] = false;
         internalArbitrators[address(_arbitrator)] = false;
-        emit ArbitratorRemoved(_arbitrator);
     }
 
     /**
@@ -639,19 +637,6 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @param originValidatedProposalFeeRate The new fee
      */
     event OriginValidatedProposalFeeRateUpdated(uint256 platformId, uint16 originValidatedProposalFeeRate);
-
-    /**
-     * @notice Emit after the arbitrator is added
-     * @param arbitrator The address of the new arbitrator
-     * @param isInternal Boolean denoting if the arbitrator is internal (is part of TalentLayer) or not
-     */
-    event ArbitratorAdded(address arbitrator, bool isInternal);
-
-    /**
-     * @notice Emit after the arbitrator is removed
-     * @param arbitrator The address of the arbitrator
-     */
-    event ArbitratorRemoved(address arbitrator);
 
     /**
      * @notice Emit after the arbitrator is updated for a platform

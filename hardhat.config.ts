@@ -60,7 +60,7 @@ function getChainConfig(chain: Network): NetworkUserConfig {
       jsonRpcUrl = 'https://polygon-rpc.com/'
       break
     case Network.MUMBAI:
-      jsonRpcUrl = process.env.MUMBAI_RPC || 'https://matic-mumbai.chainstacklabs.com'
+      jsonRpcUrl = process.env.MUMBAI_RPC || 'https://polygon-mumbai-bor.publicnode.com'
       break
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey
@@ -74,6 +74,7 @@ function getChainConfig(chain: Network): NetworkUserConfig {
     },
     chainId: chain,
     url: jsonRpcUrl,
+    gasMultiplier: 1.5,
   }
 }
 
