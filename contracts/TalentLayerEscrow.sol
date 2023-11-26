@@ -126,13 +126,15 @@ contract TalentLayerEscrow is
      * @param _token The address of the token used for the payment.
      * @param _amount The amount paid.
      * @param _serviceId The id of the concerned service.
+     * @param _proposalId The id of the corresponding proposal.
      */
     event Payment(
         uint256 _transactionId,
         PaymentType _paymentType,
         address _token,
         uint256 _amount,
-        uint256 _serviceId
+        uint256 _serviceId,
+        uint256 _proposalId
     );
 
     /**
@@ -1075,7 +1077,14 @@ contract TalentLayerEscrow is
      */
     function _afterPayment(uint256 _transactionId, PaymentType _paymentType, uint256 _releaseAmount) private {
         Transaction storage transaction = transactions[_transactionId];
-        emit Payment(transaction.id, _paymentType, transaction.token, _releaseAmount, transaction.serviceId);
+        emit Payment(
+            transaction.id,
+            _paymentType,
+            transaction.token,
+            _releaseAmount,
+            transaction.serviceId,
+            transaction.proposalId
+        );
 
         if (transaction.amount == 0) {
             talentLayerServiceContract.afterFullPayment(transaction.serviceId, transaction.releasedAmount);

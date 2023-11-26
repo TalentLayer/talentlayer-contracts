@@ -2,7 +2,6 @@ import { ethers } from 'hardhat'
 import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/deploymentManager'
 import hre = require('hardhat')
 import { cid, cid2 } from './constants'
-import { expect } from 'chai'
 
 /*
 in this script we will mint a new platform ID for HireVibes

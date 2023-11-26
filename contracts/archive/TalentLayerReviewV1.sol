@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
-import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {ITalentLayerService} from "./interfaces/ITalentLayerService.sol";
-import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
+import {ERC2771RecipientUpgradeable} from "../libs/ERC2771RecipientUpgradeable.sol";
+import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
+import {ITalentLayerService} from "../interfaces/ITalentLayerService.sol";
+import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
 
 import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base64Upgradeable.sol";
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -20,7 +20,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
  * @title TalentLayer Review Contract
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
-contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
+contract TalentLayerReviewV1 is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUpgradeable {
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -165,8 +165,6 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
         uint256 reviewId = nextReviewId.current();
         nextReviewId.increment();
 
-        ITalentLayerService.Service memory service = talentLayerService.getService(_serviceId);
-
         reviews[reviewId] = Review({
             id: reviewId,
             ownerId: _to,
@@ -175,7 +173,7 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
             rating: _rating
         });
 
-        emit Mint(_serviceId, _to, reviewId, _rating, _reviewUri, service.acceptedProposalId);
+        emit Mint(_serviceId, _to, reviewId, _rating, _reviewUri);
         return reviewId;
     }
 
@@ -273,14 +271,12 @@ contract TalentLayerReview is ERC2771RecipientUpgradeable, ERC721Upgradeable, UU
      * @param tokenId The ID of the review token
      * @param rating The rating of the review
      * @param reviewUri The IPFS URI of the review metadata
-     * @param proposalId The id of the corresponding proposal.
      */
     event Mint(
         uint256 indexed serviceId,
         uint256 indexed toId,
         uint256 indexed tokenId,
         uint256 rating,
-        string reviewUri,
-        uint256 proposalId
+        string reviewUri
     );
 }
