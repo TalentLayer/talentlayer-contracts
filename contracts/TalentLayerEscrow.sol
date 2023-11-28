@@ -134,8 +134,9 @@ contract TalentLayerEscrow is
     /**
      * @notice Emitted after the total amount of a transaction has been paid. At this moment the service is considered finished.
      * @param _serviceId The service ID
+     * @param _transactionId The id of the transaction.
      */
-    event PaymentCompleted(uint256 _serviceId);
+    event PaymentCompleted(uint256 _serviceId, uint256 _transactionId);
 
     /**
      * @notice Emitted after the protocol fee was updated
@@ -993,7 +994,7 @@ contract TalentLayerEscrow is
 
         if (transaction.amount == 0) {
             talentLayerServiceContract.afterFullPayment(transaction.serviceId, transaction.releasedAmount);
-            emit PaymentCompleted(transaction.serviceId);
+            emit PaymentCompleted(transaction.serviceId, transaction.id);
         }
     }
 

@@ -19,7 +19,7 @@ async function main() {
   )
   const rateAmount = ethers.utils.parseUnits('0.003', 18)
 
-  const release = await talentLayerEscrow.connect(alice).release(aliceTlId, 1, rateAmount)
+  const release = await talentLayerEscrow.connect(alice).release(aliceTlId, 2, rateAmount)
   await release.wait()
 }
 

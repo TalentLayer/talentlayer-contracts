@@ -3,6 +3,7 @@ import { DeploymentProperty, getDeploymentProperty } from '../../.deployment/dep
 import hre = require('hardhat')
 
 const aliceTlId = 1
+const carolTlId = 3
 
 /*
 In this script  Alice releases 3/4 of the escrow & Carol reimburses the remaining 1/4 to Alice
@@ -10,11 +11,6 @@ In this script  Alice releases 3/4 of the escrow & Carol reimburses the remainin
 async function main() {
   const network = hre.network.name
   console.log(network)
-
-  const talentLayerService = await ethers.getContractAt(
-    'TalentLayerService',
-    getDeploymentProperty(network, DeploymentProperty.TalentLayerService),
-  )
 
   const [alice, bob, carol, dave] = await ethers.getSigners()
 
@@ -25,16 +21,15 @@ async function main() {
 
   const rateAmount = ethers.utils.parseUnits('0.002', 18)
 
+  // Alice releases an amount too low for the service to be considered finished
   const firstRelease = await talentLayerEscrow
     .connect(alice)
-    .release(aliceTlId, 0, rateAmount.div(2))
+    .release(aliceTlId, 1, rateAmount.mul(20).div(100))
   await firstRelease.wait()
   const secondRelease = await talentLayerEscrow
-    .connect(alice)
-    .release(aliceTlId, 0, rateAmount.div(2))
+    .connect(carol)
+    .reimburse(carolTlId, 1, rateAmount.mul(80).div(100))
   await secondRelease.wait()
-  // const reimburse = await talentLayerEscrow.connect(carol).reimburse(0, rateAmount.div(4))
-  // reimburse.wait()
 }
 
 // We recommend this pattern to be able to use async/await everywhere
