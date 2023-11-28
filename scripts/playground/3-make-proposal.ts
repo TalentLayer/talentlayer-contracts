@@ -91,7 +91,7 @@ async function main() {
 
   /* ---------  Proposal creation --------- */
 
-  // Bob create a proposal #2 for Alice's service #1 on Dave's platform #1 (id : 1-2 in GraphQL)
+  // Bob creates a proposal #2 for Alice's service #1 on Dave's platform #1 (id : 1-2 in GraphQL)
 
   const signatureBobProposal = await getSignatureForProposal(dave, bobTlId, 1, bobUri)
 
