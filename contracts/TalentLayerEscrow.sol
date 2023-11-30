@@ -1018,7 +1018,7 @@ contract TalentLayerEscrow is
 
         if (transaction.referrerId != 0 && transaction.referralAmount != 0) {
             uint256 releasedReferralAmount = (_releaseAmount * transaction.referralAmount) / (transaction.totalAmount);
-            referrerIdToTokenToBalance[transaction.referrerId][transaction.token] = releasedReferralAmount;
+            referrerIdToTokenToBalance[transaction.referrerId][transaction.token] += releasedReferralAmount;
 
             emit ReferralAmountReleased(
                 transaction.referrerId,
