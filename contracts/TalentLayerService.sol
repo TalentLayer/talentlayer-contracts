@@ -121,9 +121,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Emit when data is updated for a Service
      * @param id The service ID
      * @param dataUri New service Data URI
+     * @param rateToken token address to be used for the service's payments
      * @param referralAmount New referral amount
      */
-    event ServiceUpdated(uint256 id, string dataUri, uint256 referralAmount);
+    event ServiceUpdated(uint256 id, string dataUri, address rateToken, uint256 referralAmount);
 
     /**
      * @notice Emitted after a new proposal is created
@@ -353,12 +354,14 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Update Service URI data
      * @param _profileId The TalentLayer ID of the user, owner of the service
      * @param _serviceId, Service ID to update
+     * @param _rateToken token address to be used for the service's payments
      * @param _referralAmount, New referral amount
      * @param _dataUri New IPFS URI
      */
     function updateService(
         uint256 _profileId,
         uint256 _serviceId,
+        address _rateToken,
         uint256 _referralAmount,
         string calldata _dataUri
     ) public onlyOwnerOrDelegate(_profileId) {
@@ -366,12 +369,14 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         require(service.ownerId == _profileId, "Not the owner");
         require(service.status == Status.Opened, "status must be opened");
         require(bytes(_dataUri).length == 46, "Invalid cid");
+        require(allowedTokenList[_rateToken].isWhitelisted, "Token not allowed");
         require(_referralAmount >= service.referralAmount, "Can't reduce referral amount");
 
         service.dataUri = _dataUri;
         service.referralAmount = _referralAmount;
+        service.rateToken = _rateToken;
 
-        emit ServiceUpdated(_serviceId, _dataUri, _referralAmount);
+        emit ServiceUpdated(_serviceId, _dataUri, _rateToken, _referralAmount);
     }
 
     /**
