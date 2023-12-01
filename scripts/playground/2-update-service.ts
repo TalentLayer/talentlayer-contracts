@@ -50,7 +50,7 @@ async function main() {
 
   await talentLayerService
     .connect(alice)
-    .updateService(aliceTlId, firstServiceId, ethers.constants.AddressZero, referralAmount, aliceUpdateJobData)
+    .updateService(aliceTlId, firstServiceId, referralAmount, aliceUpdateJobData)
   const jobDataAfterUpdate = await talentLayerService.getService(firstServiceId)
   console.log('Job Data after update', jobDataAfterUpdate)
 }
