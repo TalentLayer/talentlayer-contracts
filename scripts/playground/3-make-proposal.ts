@@ -7,6 +7,7 @@ const aliceTlId = 1
 const bobTlId = 2
 const carolTlId = 3
 const daveTlId = 4
+const referrerTlId = 0
 
 const minTokenWhitelistTransactionAmount = ethers.utils.parseUnits('0.0001', 18)
 
@@ -101,12 +102,12 @@ async function main() {
     .createProposal(
       bobTlId,
       firstServiceId,
-      rateTokenBob,
       ethers.utils.parseUnits('0.001', 18),
       davePlatformId,
       bobUri,
       proposalExpirationDate,
       signatureBobProposal,
+      referrerTlId,
     )
   console.log('Bob proposal created')
   await bobProposal.wait()
@@ -124,12 +125,12 @@ async function main() {
     .createProposal(
       carolTlId,
       firstServiceId,
-      rateTokenCarol,
       ethers.utils.parseUnits('0.002', 18),
       bobPlatformId,
       carolUri,
       proposalExpirationDate,
       signatureCarolProposal,
+      referrerTlId,
     )
   console.log('Carol proposal created')
   await carolProposal.wait()
@@ -147,12 +148,12 @@ async function main() {
     .createProposal(
       daveTlId,
       secondServiceId,
-      rateTokenDave,
       ethers.utils.parseUnits('0.003', 18),
       bobPlatformId,
       daveUri,
       proposalExpirationDate,
       signatureDaveProposal,
+      referrerTlId,
     )
   console.log('Dave proposal created')
   await daveProposal.wait()

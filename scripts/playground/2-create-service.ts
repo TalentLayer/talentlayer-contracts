@@ -5,6 +5,7 @@ import { getSignatureForService } from '../../test/utils/signature'
 import hre = require('hardhat')
 
 const aliceTlId = 1
+const referralAmount = 0
 
 /*
 In this script Alice will create two services.
@@ -56,7 +57,7 @@ async function main() {
 
   const createFirstOpenService = await talentLayerService
     .connect(alice)
-    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData, signatureFirstJob)
+    .createService(aliceTlId, daveTalentLayerIdPlatform, aliceCreateFirstJobData, signatureFirstJob, ethers.constants.AddressZero, referralAmount)
   await createFirstOpenService.wait()
   console.log('First Open Service created')
 
@@ -91,6 +92,8 @@ async function main() {
       daveTalentLayerIdPlatform,
       aliceCreateSecondJobData,
       signatureSecondJob,
+      ethers.constants.AddressZero,
+      referralAmount,
     )
   await createSecondOpenService.wait()
   console.log('Open Service 2 created')
