@@ -395,7 +395,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         bytes calldata _signature,
         uint256 _referrerId
     ) public payable onlyOwnerOrDelegate(_profileId) {
-        Service storage service = services[_serviceId];
+        Service memory service = services[_serviceId];
         _validateProposal(_profileId, _serviceId, _rateAmount, _platformId, _dataUri, _signature, _referrerId);
 
         proposals[_serviceId][_profileId] = Proposal({
@@ -624,7 +624,7 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
 
-        Service storage service = services[_serviceId];
+        Service memory service = services[_serviceId];
         require(
             _rateAmount + service.referralAmount >= allowedTokenList[service.rateToken].minimumTransactionAmount,
             "Amount too low"
