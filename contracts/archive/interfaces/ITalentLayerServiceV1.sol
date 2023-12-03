@@ -5,7 +5,7 @@ pragma solidity ^0.8.9;
  * @title Platform ID Interface
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
-interface ITalentLayerService {
+interface ITalentLayerServiceV1 {
     enum Status {
         Opened,
         Confirmed,
@@ -26,8 +26,6 @@ interface ITalentLayerService {
         string dataUri;
         uint256 transactionId;
         uint256 platformId;
-        address rateToken;
-        uint256 referralAmount;
     }
 
     struct Proposal {
@@ -38,7 +36,6 @@ interface ITalentLayerService {
         uint256 platformId;
         string dataUri;
         uint256 expirationDate;
-        uint256 referrerId;
     }
 
     function getService(uint256 _serviceId) external view returns (Service memory);
@@ -50,55 +47,32 @@ interface ITalentLayerService {
         uint256 _proposal
     ) external view returns (Service memory, Proposal memory);
 
-    function isTokenAllowed(address _tokenAddress) external view returns (bool);
-
     function createService(
-        uint256 _profileId,
+        Status _status,
+        uint256 _tokenId,
         uint256 _platformId,
-        string calldata _dataUri,
-        bytes calldata _signature,
-        address _rateToken,
-        uint256 _referralAmount
+        uint256 _ownerId,
+        string calldata _dataUri
     ) external returns (uint256);
 
-    function updateService(
-        uint256 _profileId,
-        uint256 _serviceId,
-        uint256 _referralAmount,
-        string calldata _dataUri
-    ) external;
-
     function createProposal(
-        uint256 _profileId,
         uint256 _serviceId,
+        address _rateToken,
         uint256 _rateAmount,
         uint256 _platformId,
-        string calldata _dataUri,
-        uint256 _expirationDate,
-        bytes calldata _signature,
-        uint256 _referrerId
-    ) external;
-
-    function updateProposal(
-        uint256 _profileId,
-        uint256 _serviceId,
-        uint256 _rateAmount,
-        string calldata _dataUri,
-        uint256 _expirationDate,
-        uint256 _referrerId
+        string calldata _dataUri
     ) external;
 
     function afterDeposit(uint256 _serviceId, uint256 _proposalId, uint256 _transactionId) external;
 
-    function updateAllowedTokenList(
-        address _tokenAddress,
-        bool _isWhitelisted,
-        uint256 _minimumTransactionAmount
+    function updateProposal(
+        uint256 _serviceId,
+        address _rateToken,
+        uint256 _rateAmount,
+        string calldata _dataUri
     ) external;
 
     function afterFullPayment(uint256 _serviceId, uint256 _releasedAmount) external;
 
-    function cancelService(uint256 _profileId, uint256 _serviceId) external;
-
-    function updateMinCompletionPercentage(uint256 _minCompletionPercentage) external;
+    function updateServiceData(uint256 _serviceId, string calldata _dataUri) external;
 }

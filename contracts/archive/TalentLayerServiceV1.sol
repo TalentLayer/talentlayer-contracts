@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ITalentLayerID} from "./interfaces/ITalentLayerID.sol";
-import {ITalentLayerPlatformID} from "./interfaces/ITalentLayerPlatformID.sol";
-import {ERC2771RecipientUpgradeable} from "./libs/ERC2771RecipientUpgradeable.sol";
+import {ITalentLayerID} from "../interfaces/ITalentLayerID.sol";
+import {ITalentLayerPlatformID} from "../interfaces/ITalentLayerPlatformID.sol";
+import {ERC2771RecipientUpgradeable} from "../libs/ERC2771RecipientUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -14,7 +14,7 @@ import {ECDSAUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/crypto
  * @title TalentLayerService Contract
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
-contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, AccessControlUpgradeable {
+contract TalentLayerServiceV1 is Initializable, ERC2771RecipientUpgradeable, UUPSUpgradeable, AccessControlUpgradeable {
     // =========================== Enum ==============================
 
     /**
@@ -42,12 +42,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Service information struct
      * @param status the current status of a service
      * @param ownerId the talentLayerId of the buyer
-     * @param acceptedProposalId the accepted proposal ID, which is the ID of the user who submitted the proposal
+     * @param acceptedProposalId the accepted proposal ID
      * @param dataUri token Id to IPFS URI mapping
      * @param transactionId the escrow transaction ID linked to the service
      * @param platformId the platform ID on which the service was created
-     * @param rateToken the token used for the service's payments, including the referral amount
-     * @param referralAmount the amount which the referrer will receive if a proposal provided it's ID as a referrer and was validated
      */
     struct Service {
         Status status;
@@ -56,8 +54,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         string dataUri;
         uint256 transactionId;
         uint256 platformId;
-        address rateToken;
-        uint256 referralAmount;
     }
 
     /**
@@ -68,7 +64,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param rateAmount the amount of token chosen
      * @param dataUri token Id to IPFS URI mapping
      * @param expirationDate the timeout for the proposal
-     * @param referrerId the id of the referrer (Zero if no referrer)
      */
     struct Proposal {
         ProposalStatus status;
@@ -78,7 +73,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         uint256 platformId;
         string dataUri;
         uint256 expirationDate;
-        uint256 referrerId;
     }
 
     /**
@@ -99,17 +93,8 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param ownerId the talentLayerId of the buyer
      * @param platformId platform ID on which the Service token was minted
      * @param dataUri token Id to IPFS URI mapping
-     * @param rateToken the token used for the service's payments, including the referral amount
-     * @param referralAmount the amount which the referrer will receive if a proposal provided it's ID as a referrer and was validated
      */
-    event ServiceCreated(
-        uint256 id,
-        uint256 ownerId,
-        uint256 platformId,
-        string dataUri,
-        address rateToken,
-        uint256 referralAmount
-    );
+    event ServiceCreated(uint256 id, uint256 ownerId, uint256 platformId, string dataUri);
 
     /**
      * @notice Emitted after a service is cancelled by the owner
@@ -118,12 +103,11 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     event ServiceCancelled(uint256 id);
 
     /**
-     * @notice Emit when data is updated for a Service
+     * @notice Emit when Cid is updated for a Service
      * @param id The service ID
      * @param dataUri New service Data URI
-     * @param referralAmount New referral amount
      */
-    event ServiceUpdated(uint256 id, string dataUri, uint256 referralAmount);
+    event ServiceDetailedUpdated(uint256 indexed id, string dataUri);
 
     /**
      * @notice Emitted after a new proposal is created
@@ -131,20 +115,20 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param ownerId The talentLayerId of the seller who made the proposal
      * @param dataUri token Id to IPFS URI mapping
      * @param status proposal status
+     * @param rateToken the token choose for the payment
      * @param rateAmount the amount of token chosen
      * @param platformId the platform ID on which the proposal was created
      * @param expirationDate the timeout for the proposal
-     * @param referrerId the id of the referrer (Zero if no referrer)
      */
     event ProposalCreated(
         uint256 serviceId,
         uint256 ownerId,
         string dataUri,
         ProposalStatus status,
+        address rateToken,
         uint256 rateAmount,
         uint256 platformId,
-        uint256 expirationDate,
-        uint256 referrerId
+        uint256 expirationDate
     );
 
     /**
@@ -152,17 +136,17 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param serviceId The service id
      * @param ownerId The talentLayerId of the seller who made the proposal
      * @param dataUri token Id to IPFS URI mapping
+     * @param rateToken the token choose for the payment
      * @param rateAmount the amount of token chosen
      * @param expirationDate the timeout for the proposal
-     * @param referrerId the id of the referrer (Zero if no referrer)
      */
     event ProposalUpdated(
         uint256 serviceId,
         uint256 ownerId,
         string dataUri,
+        address rateToken,
         uint256 rateAmount,
-        uint256 expirationDate,
-        uint256 referrerId
+        uint256 expirationDate
     );
 
     /**
@@ -187,12 +171,12 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     uint256 public nextServiceId;
 
     /**
-     * @notice TalentLayerId contract
+     * @notice TalentLayerId address
      */
     ITalentLayerID private tlId;
 
     /**
-     * @notice TalentLayerPlatformId contract
+     * @notice TalentLayer Platform ID registry contract
      */
     ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
@@ -315,18 +299,14 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _platformId platform ID on which the Service token was created
      * @param _dataUri IPFS URI of the offchain data of the service
      * @param _signature optional platform signature to allow the operation
-     * @param _rateToken token address to be used for the service's payments
-     * @param _referralAmount the amount which the referrer will receive if a proposal provided it's ID as a referrer and was validated
      */
     function createService(
         uint256 _profileId,
         uint256 _platformId,
         string calldata _dataUri,
-        bytes calldata _signature,
-        address _rateToken,
-        uint256 _referralAmount
+        bytes calldata _signature
     ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
-        _validateService(_profileId, _platformId, _dataUri, _signature, _rateToken);
+        _validateService(_profileId, _platformId, _dataUri, _signature);
 
         uint256 id = nextServiceId;
         nextServiceId++;
@@ -336,77 +316,48 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         service.ownerId = _profileId;
         service.dataUri = _dataUri;
         service.platformId = _platformId;
-        service.rateToken = _rateToken;
-        service.referralAmount = _referralAmount;
 
         if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
             tlId.setHasActivity(_profileId);
         }
         serviceNonce[_profileId]++;
 
-        emit ServiceCreated(id, _profileId, _platformId, _dataUri, _rateToken, _referralAmount);
+        emit ServiceCreated(id, _profileId, _platformId, _dataUri);
 
         return id;
-    }
-
-    /**
-     * @notice Update Service URI data
-     * @param _profileId The TalentLayer ID of the user, owner of the service
-     * @param _serviceId, Service ID to update
-     * @param _referralAmount, New referral amount
-     * @param _dataUri New IPFS URI
-     */
-    function updateService(
-        uint256 _profileId,
-        uint256 _serviceId,
-        uint256 _referralAmount,
-        string calldata _dataUri
-    ) public onlyOwnerOrDelegate(_profileId) {
-        Service storage service = services[_serviceId];
-        require(service.ownerId == _profileId, "Not the owner");
-        require(service.status == Status.Opened, "status must be opened");
-        require(bytes(_dataUri).length == 46, "Invalid cid");
-        require(_referralAmount >= service.referralAmount, "Can't reduce referral amount");
-
-        service.dataUri = _dataUri;
-        service.referralAmount = _referralAmount;
-
-        emit ServiceUpdated(_serviceId, _dataUri, _referralAmount);
     }
 
     /**
      * @notice Allows an seller to propose his service for a service
      * @param _profileId The TalentLayer ID of the user owner of the proposal
      * @param _serviceId The service linked to the new proposal
+     * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
      * @param _dataUri token Id to IPFS URI mapping
      * @param _platformId platform ID from where the proposal is created
      * @param _expirationDate the time before the proposal is automatically validated
      * @param _signature optional platform signature to allow the operation
-     * @param _referrerId the id of the referrer (Zero if no referrer)
      */
     function createProposal(
         uint256 _profileId,
         uint256 _serviceId,
+        address _rateToken,
         uint256 _rateAmount,
         uint256 _platformId,
         string calldata _dataUri,
         uint256 _expirationDate,
-        bytes calldata _signature,
-        uint256 _referrerId
+        bytes calldata _signature
     ) public payable onlyOwnerOrDelegate(_profileId) {
-        Service memory service = services[_serviceId];
-        _validateProposal(_profileId, _serviceId, _rateAmount, _platformId, _dataUri, _signature, _referrerId);
+        _validateProposal(_profileId, _serviceId, _rateToken, _rateAmount, _platformId, _dataUri, _signature);
 
         proposals[_serviceId][_profileId] = Proposal({
             status: ProposalStatus.Pending,
             ownerId: _profileId,
-            rateToken: service.rateToken,
+            rateToken: _rateToken,
             rateAmount: _rateAmount,
             platformId: _platformId,
             dataUri: _dataUri,
-            expirationDate: _expirationDate,
-            referrerId: _referrerId
+            expirationDate: _expirationDate
         });
 
         if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
@@ -419,10 +370,10 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
             _profileId,
             _dataUri,
             ProposalStatus.Pending,
+            _rateToken,
             _rateAmount,
             _platformId,
-            _expirationDate,
-            _referrerId
+            _expirationDate
         );
     }
 
@@ -430,37 +381,35 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Allows the owner to update his own proposal for a given service
      * @param _profileId The TalentLayer ID of the user
      * @param _serviceId The service linked to the new proposal
+     * @param _rateToken the token choose for the payment
      * @param _rateAmount the amount of token chosen
      * @param _dataUri token Id to IPFS URI mapping
      * @param _expirationDate the time before the proposal is automatically validated
-     * @param _referrerId the id of the referrer (Zero if no referrer)
      */
     function updateProposal(
         uint256 _profileId,
         uint256 _serviceId,
+        address _rateToken,
         uint256 _rateAmount,
         string calldata _dataUri,
-        uint256 _expirationDate,
-        uint256 _referrerId
+        uint256 _expirationDate
     ) public onlyOwnerOrDelegate(_profileId) {
+        require(allowedTokenList[_rateToken].isWhitelisted, "Token not allowed");
+
         Service storage service = services[_serviceId];
         Proposal storage proposal = proposals[_serviceId][_profileId];
         require(service.status == Status.Opened, "Service not opened");
         require(proposal.ownerId == _profileId, "Not the owner");
         require(bytes(_dataUri).length == 46, "Invalid cid");
         require(proposal.status != ProposalStatus.Validated, "Already validated");
-        require(_rateAmount >= allowedTokenList[service.rateToken].minimumTransactionAmount, "Amount too low");
+        require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount too low");
 
-        if (_referrerId != 0) {
-            tlId.isValid(_referrerId);
-        }
-
+        proposal.rateToken = _rateToken;
         proposal.rateAmount = _rateAmount;
         proposal.dataUri = _dataUri;
         proposal.expirationDate = _expirationDate;
-        proposal.referrerId = _referrerId;
 
-        emit ProposalUpdated(_serviceId, _profileId, _dataUri, _rateAmount, _expirationDate, _referrerId);
+        emit ProposalUpdated(_serviceId, _profileId, _dataUri, _rateToken, _rateAmount, _expirationDate);
     }
 
     /**
@@ -522,6 +471,27 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
     }
 
     /**
+     * @notice Update Service URI data
+     * @param _profileId The TalentLayer ID of the user, owner of the service
+     * @param _serviceId, Service ID to update
+     * @param _dataUri New IPFS URI
+     */
+    function updateServiceData(
+        uint256 _profileId,
+        uint256 _serviceId,
+        string calldata _dataUri
+    ) public onlyOwnerOrDelegate(_profileId) {
+        Service storage service = services[_serviceId];
+        require(service.ownerId == _profileId, "Not the owner");
+        require(service.status == Status.Opened, "status must be opened");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
+
+        service.dataUri = _dataUri;
+
+        emit ServiceDetailedUpdated(_serviceId, _dataUri);
+    }
+
+    /**
      * @notice Cancel an open Service
      * @param _profileId The TalentLayer ID of the user, owner of the service
      * @param _serviceId Service ID to cancel
@@ -579,19 +549,16 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @param _platformId platform ID on which the Service was created
      * @param _dataUri token Id to IPFS URI mapping
      * @param _signature platform signature to allow the operation
-     * @param _rateToken token address to be validated
      */
     function _validateService(
         uint256 _profileId,
         uint256 _platformId,
         string calldata _dataUri,
-        bytes calldata _signature,
-        address _rateToken
+        bytes calldata _signature
     ) private view {
         uint256 servicePostingFee = talentLayerPlatformIdContract.getServicePostingFee(_platformId);
         require(msg.value == servicePostingFee, "Non-matching funds");
         require(bytes(_dataUri).length == 46, "Invalid cid");
-        require(allowedTokenList[_rateToken].isWhitelisted, "Token not allowed");
 
         address platformSigner = talentLayerPlatformIdContract.getSigner(_platformId);
         if (platformSigner != address(0)) {
@@ -606,29 +573,27 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
      * @notice Validate a new proposal
      * @param _profileId The TalentLayer ID of the user
      * @param _serviceId The service linked to the new proposal
-     * @param _rateAmount The amount of token chosen
-     * @param _platformId Platform ID on which the Proposal was created
-     * @param _dataUri Token Id to IPFS URI mapping
-     * @param _signature Platform signature to allow the operation
-     * @param _referrerId The TalentLayer ID of the referrer
+     * @param _rateToken the token choose for the payment
+     * @param _rateAmount the amount of token chosen
+     * @param _platformId platform ID on which the Proposal was created
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
      */
     function _validateProposal(
         uint256 _profileId,
         uint256 _serviceId,
+        address _rateToken,
         uint256 _rateAmount,
         uint256 _platformId,
         string calldata _dataUri,
-        bytes calldata _signature,
-        uint256 _referrerId
+        bytes calldata _signature
     ) private view {
+        require(allowedTokenList[_rateToken].isWhitelisted, "Token not allowed");
         uint256 proposalPostingFee = talentLayerPlatformIdContract.getProposalPostingFee(_platformId);
         require(msg.value == proposalPostingFee, "Non-matching funds");
+        require(_rateAmount >= allowedTokenList[_rateToken].minimumTransactionAmount, "Amount too low");
 
-        Service memory service = services[_serviceId];
-        require(
-            _rateAmount + service.referralAmount >= allowedTokenList[service.rateToken].minimumTransactionAmount,
-            "Amount too low"
-        );
+        Service storage service = services[_serviceId];
         require(service.status == Status.Opened, "Service not opened");
         require(service.ownerId != 0, "Service not exist");
         require(proposals[_serviceId][_profileId].ownerId != _profileId, "proposal already exist");
@@ -640,10 +605,6 @@ contract TalentLayerService is Initializable, ERC2771RecipientUpgradeable, UUPSU
         if (platformSigner != address(0)) {
             bytes32 messageHash = keccak256(abi.encodePacked("createProposal", _profileId, ";", _serviceId, _dataUri));
             _validatePlatformSignature(_signature, messageHash, platformSigner);
-        }
-
-        if (_referrerId != 0) {
-            tlId.isValid(_referrerId);
         }
     }
 

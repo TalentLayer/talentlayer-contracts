@@ -119,7 +119,7 @@ describe('Platform verification', function () {
 
       const tx = talentLayerService
         .connect(alice)
-        .createService(aliceTlId, carolPlatformId, cid, signature)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
 
       await expect(tx).to.not.reverted
     })
@@ -129,7 +129,7 @@ describe('Platform verification', function () {
 
       const tx = talentLayerService
         .connect(bob)
-        .createService(bobTlId, carolPlatformId, cid, signature)
+        .createService(bobTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
 
       await expect(tx).to.revertedWith('invalid signature')
     })
@@ -139,7 +139,7 @@ describe('Platform verification', function () {
 
       const tx = talentLayerService
         .connect(bob)
-        .createService(bobTlId, carolPlatformId, cid, signature)
+        .createService(bobTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
 
       await expect(tx).to.revertedWith('invalid signature')
     })
@@ -149,7 +149,7 @@ describe('Platform verification', function () {
 
       const tx = talentLayerService
         .connect(bob)
-        .createService(bobTlId, carolPlatformId, cid, signature)
+        .createService(bobTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
 
       await expect(tx).to.revertedWith('invalid signature')
     })
@@ -159,7 +159,7 @@ describe('Platform verification', function () {
 
       const tx = talentLayerService
         .connect(alice)
-        .createService(aliceTlId, carolPlatformId, cid, signature)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
 
       await expect(tx).to.revertedWith('invalid signature')
     })
@@ -169,7 +169,7 @@ describe('Platform verification', function () {
 
       const tx = talentLayerService
         .connect(alice)
-        .createService(aliceTlId, carolPlatformId, cid, signature)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
 
       await expect(tx).to.not.reverted
     })
@@ -183,12 +183,12 @@ describe('Platform verification', function () {
         .createProposal(
           bobTlId,
           serviceId,
-          ethers.constants.AddressZero,
           1,
           carolPlatformId,
           cid,
           proposalExpirationDate,
           signature,
+          0,
         )
 
       await expect(tx).to.not.reverted
@@ -209,7 +209,7 @@ describe('Platform verification', function () {
 
       const tx = await talentLayerService
         .connect(alice)
-        .createService(aliceTlId, carolPlatformId, cid, signature)
+        .createService(aliceTlId, carolPlatformId, cid, signature, ethers.constants.AddressZero, 0)
 
       await expect(tx).to.not.reverted
     })
@@ -227,12 +227,12 @@ describe('Platform verification', function () {
         .createProposal(
           bobTlId,
           serviceId,
-          ethers.constants.AddressZero,
           1,
           carolPlatformId,
           cid,
           proposalExpirationDate,
           signature,
+          0,
         )
 
       await expect(tx).to.not.reverted

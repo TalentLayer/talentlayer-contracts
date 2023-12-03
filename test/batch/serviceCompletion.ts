@@ -41,7 +41,7 @@ async function deployAndSetup(): Promise<
     ,
     talentLayerService,
     talentLayerReview,
-  ] = await deploy(true)
+  ] = await deploy(false)
 
   // Grant Platform Id Mint role to Deployer and Bob
   const mintRole = await talentLayerPlatformID.MINT_ROLE()
@@ -129,7 +129,7 @@ describe('Completion of service', function () {
         )
         await talentLayerService
           .connect(alice)
-          .createService(aliceTlId, carolPlatformId, cid, signatureService)
+          .createService(aliceTlId, carolPlatformId, cid, signatureService, tokenAddress, 0)
 
         // Bob, the seller, creates a proposal for the service
         const signatureProposal = await getSignatureForProposal(carol, bobTlId, serviceId, cid)
@@ -138,12 +138,12 @@ describe('Completion of service', function () {
           .createProposal(
             bobTlId,
             serviceId,
-            tokenAddress,
             transactionAmount,
             carolPlatformId,
             cid,
             proposalExpirationDate,
             signatureProposal,
+            0,
           )
 
         // Validate the proposal by locking the funds in the escrow

@@ -18,7 +18,7 @@ async function main() {
 
   const talentLayerReview = await ethers.getContractAt(
     'TalentLayerReview',
-    getDeploymentProperty(network, DeploymentProperty.Reviewscontract),
+    getDeploymentProperty(network, DeploymentProperty.TalentLayerReview),
   )
 
   const aliceReviewCarol = await postToIPFS(

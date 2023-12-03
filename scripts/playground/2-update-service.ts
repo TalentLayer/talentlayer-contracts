@@ -4,6 +4,7 @@ import postToIPFS from '../utils/ipfs'
 import hre = require('hardhat')
 
 const aliceTlId = 1
+const referralAmount = 0
 
 /*
 In this script Alice will update the first service.
@@ -49,7 +50,7 @@ async function main() {
 
   await talentLayerService
     .connect(alice)
-    .updateServiceData(aliceTlId, firstServiceId, aliceUpdateJobData)
+    .updateService(aliceTlId, firstServiceId, referralAmount, aliceUpdateJobData)
   const jobDataAfterUpdate = await talentLayerService.getService(firstServiceId)
   console.log('Job Data after update', jobDataAfterUpdate)
 }

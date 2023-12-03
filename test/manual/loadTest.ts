@@ -91,7 +91,13 @@ describe('Load test', function () {
           await expect(
             await talentLayerService
               .connect(signers[signerIndex])
-              .createService(talentLayerId, platformId, cid, signature),
+              .createService(
+                talentLayerId,
+                platformId,
+                cid,
+                signature,
+                ethers.constants.AddressZero,
+              ),
           ).to.emit(talentLayerService, 'ServiceCreated')
         }
       }
@@ -123,7 +129,6 @@ describe('Load test', function () {
               .createProposal(
                 talentLayerId,
                 serviceId,
-                ethers.constants.AddressZero,
                 VALUE,
                 platformId,
                 cid,
