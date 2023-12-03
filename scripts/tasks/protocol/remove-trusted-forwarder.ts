@@ -26,7 +26,7 @@ task('remove-trusted-forwarder', 'Removes a trusted forwarder for meta transacti
 
     const talentLayerReview = await ethers.getContractAt(
       'TalentLayerReview',
-      getDeploymentProperty(network.name, DeploymentProperty.Reviewscontract),
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerReview),
     )
 
     const talentLayerEscrow = await ethers.getContractAt(
