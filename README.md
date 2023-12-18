@@ -21,10 +21,10 @@ Understand the protocol and how we tackle our main problems:
 - [Mumbai](./.deployment/mumbai.json)
 - [Polygon](./.deployment/polygon.json)
 
-## Audits 
+## Audits
 
 - Internal: https://talentlayer.notion.site/TLIP-0002-Security-Assessment-782ab9e80d774749811adfc61cbb7622
-- Externals: 
+- Externals:
   - Bios42: https://github.com/bios42eth/talenlayer-id-report
   - Ahmet: https://github.com/ahmedovv123/audits/blob/main/audits/TalentLayer.md
 
@@ -36,7 +36,7 @@ Understand the protocol and how we tackle our main problems:
 - Launch your local node: `npx hardhat node`
 - Deploy contract: `npx hardhat deploy-full --use-test-erc20 --network localhost`
 
-## Tests 
+## Tests
 
 ### Coverage
 

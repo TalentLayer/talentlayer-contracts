@@ -56,12 +56,10 @@
 ## Step 5: Defender
 
 - Transfer ownership to the multisig for every contracts
-  - for ownable contracts: 
+  - for ownable contracts:
     - `npx hardhat transfer-ownership --contract-name "TalentLayerID" --address 0x0CFF3F17b62704A0fc76539dED9223a44CAf4825 --network polygon`
     - `npx hardhat transfer-ownership --contract-name "TalentLayerService" --address 0x0CFF3F17b62704A0fc76539dED9223a44CAf4825 --network polygon`
     - `npx hardhat transfer-ownership --contract-name "TalentLayerReview" --address 0x0CFF3F17b62704A0fc76539dED9223a44CAf4825 --network polygon`
     - `npx hardhat transfer-ownership --contract-name "TalentLayerEscrow" --address 0x0CFF3F17b62704A0fc76539dED9223a44CAf4825 --network polygon`
-  - for access control contracts: 
+  - for access control contracts:
     - `npx hardhat grant-role --contract-name "TalentLayerPlatformID" --address 0x0CFF3F17b62704A0fc76539dED9223a44CAf4825 --network polygon`
-
-
