@@ -15,10 +15,10 @@ interface ITalentLayerReview {
         uint256 rating;
     }
 
-
     // Function declarations
     // View Functions
     function getReview(uint256 _reviewId) external view returns (Review memory);
+
     function totalSupply() external view returns (uint256);
 
     // User Functions
@@ -28,7 +28,6 @@ interface ITalentLayerReview {
         string calldata _reviewUri,
         uint256 _rating
     ) external returns (uint256);
-
 
     // Event declarations
     event Mint(
