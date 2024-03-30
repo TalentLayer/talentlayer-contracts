@@ -59,6 +59,12 @@ describe.only('TalentLayerIdUtils', function () {
       await deployAndSetup()
   })
 
+    it("should fail to setBackendDelegate if executed by non-owner", async function () {
+      await expect(
+          talentLayerIdUtils.connect(alice).setBackendDelegate(alice.address)
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
     it('mintDelegateAndTransfer', async function () {
       const handle = "pipou";
       const mintFee = talentLayerId.getHandlePrice(handle);
