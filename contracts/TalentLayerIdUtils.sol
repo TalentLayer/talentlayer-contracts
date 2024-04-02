@@ -3,9 +3,8 @@ pragma solidity ^0.8.9;
 
 import {TalentLayerID} from "./TalentLayerID.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TalentLayerIdUtils is IERC721Receiver, Ownable {
+contract TalentLayerIdUtils is IERC721Receiver {
 
     // =========================== Mappings & Variables ==============================
 

@@ -30,7 +30,7 @@ task('deploy-talent-layer-utils', 'Deploy utils contract')
           getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
       )
 
-      console.log('TalentLayerID address:', talentLayerID.address)
+      console.log('Deploying TalentLayerIdUtils...');
 
       const TalentLayerIdUtils = await ethers.getContractFactory("TalentLayerIdUtils");
       const talentLayerIdUtils = await TalentLayerIdUtils.deploy(talentLayerID.address);
