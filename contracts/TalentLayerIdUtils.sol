@@ -12,7 +12,7 @@ contract TalentLayerIdUtils is IERC721Receiver, Ownable {
     /**
      * @notice Instance of TalentLayerID.sol
      */
-    TalentLayerID private talentLayerIdContract;
+    TalentLayerID public talentLayerIdContract;
 
 
     // =========================== Initializers ==============================
