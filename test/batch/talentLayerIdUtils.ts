@@ -35,9 +35,8 @@ async function deployAndSetup(
   // Disable whitelist for reserved handles
   await talentLayerID.connect(deployer).updateMintStatus(MintStatus.PUBLIC)
 
-  // Set backend delegate address in TalentLayerIdUtils contract
-  await talentLayerIdUtils.connect(deployer).setBackendDelegate(backendDelegate.address)
-
+// Update mint fee
+    await talentLayerID.connect(deployer).updateMintFee(ethers.utils.parseEther("0.01"))
 
   return [talentLayerPlatformID, talentLayerID, talentLayerIdUtils];
 }
@@ -59,25 +58,15 @@ describe.only('TalentLayerIdUtils', function () {
       await deployAndSetup()
   })
 
-    it("should fail to setBackendDelegate if executed by non-owner", async function () {
-      await expect(
-          talentLayerIdUtils.connect(alice).setBackendDelegate(alice.address)
-      ).to.be.revertedWith("Ownable: caller is not the owner");
-    });
-
     it('mintDelegateAndTransfer', async function () {
       const handle = "pipou";
-      const mintFee = talentLayerId.getHandlePrice(handle);
-      const aliceBalancez = await talentLayerId.balanceOf(alice.address)
+      const mintFee = await talentLayerId.getHandlePrice(handle);
 
-      console.log(aliceBalancez.toString())
       await expect(
           talentLayerIdUtils.connect(backendDelegate).mintDelegateAndTransfer(alice.address, backendDelegate.address, platformId, 'pip')
-      // ).to.be.revertedWith("Incorrect amount of ETH for mint fee");
       ).to.be.reverted
-      // revertedWith("Insufficient funds");
 
-      await talentLayerIdUtils.connect(backendDelegate).mintDelegateAndTransfer(alice.address, backendDelegate.address, platformId, 'pipou', { value: mintFee })
+      await talentLayerIdUtils.connect(backendDelegate).mintDelegateAndTransfer(alice.address, backendDelegate.address, platformId, handle, { value: mintFee })
 
       // Assert that the token balance of alice is 1
       const aliceBalance = await talentLayerId.balanceOf(alice.address)
@@ -93,11 +82,5 @@ describe.only('TalentLayerIdUtils', function () {
       const backendDelegateBalance = await talentLayerId.balanceOf(backendDelegate.address)
       expect(backendDelegateBalance).to.equal(0)
 
-    })
-
-    it("Another address than the backendDelegate can't call the function", async function () {
-      await expect(
-          talentLayerIdUtils.connect(alice).mintDelegateAndTransfer(alice.address, backendDelegate.address, platformId, 'pip')
-      ).to.be.revertedWith("Not delegate");
     })
 })

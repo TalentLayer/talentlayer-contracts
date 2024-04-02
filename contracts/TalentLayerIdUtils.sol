@@ -14,10 +14,6 @@ contract TalentLayerIdUtils is IERC721Receiver, Ownable {
      */
     TalentLayerID private talentLayerIdContract;
 
-    /**
-     * @notice Address of the wallet which can execute mintDelegateAndTransfer
-     */
-    address private backendDelegate;
 
     // =========================== Initializers ==============================
 
@@ -27,15 +23,9 @@ contract TalentLayerIdUtils is IERC721Receiver, Ownable {
 
     // =========================== User functions ==============================
 
-    function setBackendDelegate(address _backendDelegate) external onlyOwner {
-        backendDelegate = _backendDelegate;
-    }
-
-    function mintDelegateAndTransfer(address _to, address _delegateAddress, uint256 _platformId, string calldata _handle) external payable onlyBackendDelegate {
-        uint256 mintFee = talentLayerIdContract.getHandlePrice(_handle);
-//        require(msg.value >= mintFee, "Insufficient funds");
+    function mintDelegateAndTransfer(address _to, address _delegateAddress, uint256 _platformId, string calldata _handle) external payable {
         // Mint TLID token
-        uint256 tokenId = talentLayerIdContract.mint{value: mintFee}(_platformId, _handle);
+        uint256 tokenId = talentLayerIdContract.mint{value: msg.value}(_platformId, _handle);
         // Add address as delegate
         talentLayerIdContract.addDelegate(tokenId, _delegateAddress);
         // Transfer token to the user
@@ -48,10 +38,4 @@ contract TalentLayerIdUtils is IERC721Receiver, Ownable {
         return this.onERC721Received.selector;
     }
 
-    // =========================== Modifiers ==============================
-
-    modifier onlyBackendDelegate() {
-        require((msg.sender == backendDelegate), "Not delegate");
-        _;
-    }
 }
