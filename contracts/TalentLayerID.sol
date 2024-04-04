@@ -470,7 +470,7 @@ contract TalentLayerID is ERC2771RecipientUpgradeable, ERC721Upgradeable, UUPSUp
     // =========================== Overrides ==============================
 
     /**
-     * @notice Transfer the token from one address to another only if the NFT has no actiity linked to it.
+     * @notice Transfer the token from one address to another only if the NFT has no activity linked to it.
      * @param from address of the sender
      * @param to address of the receiver
      * @param tokenId id of the token to transfer

@@ -8,6 +8,7 @@ export enum DeploymentProperty {
   TalentLayerEscrow = 'talentLayerEscrowAddress',
   SimpleERC20 = 'simpleERC20Address',
   TalentLayerPlatformID = 'talentLayerPlatformIdAddress',
+  TalentLayerIdUtils = 'talentLayerIdUtils',
 }
 
 const loadJSON = (network: string) => {
