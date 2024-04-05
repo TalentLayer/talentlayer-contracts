@@ -1599,7 +1599,7 @@ describe('TalentLayer protocol global testing', function () {
             serviceId,
             transactionDetailsBefore.proposalId,
           )
-        await expect(transaction).to.emit(talentLayerEscrow, 'PaymentCompleted').withArgs(serviceId)
+        await expect(transaction).to.emit(talentLayerEscrow, 'PaymentCompleted').withArgs(serviceId, transactionId)
 
         // Check transaction data has been updated correctly
         const transactionDetailsAfter = await talentLayerEscrow
@@ -1901,7 +1901,7 @@ describe('TalentLayer protocol global testing', function () {
           [talentLayerEscrow.address, alice, bob],
           [-totalAmount / 4, totalAmount / 4, 0],
         )
-        await expect(transaction).to.emit(talentLayerEscrow, 'PaymentCompleted').withArgs(serviceId)
+        await expect(transaction).to.emit(talentLayerEscrow, 'PaymentCompleted').withArgs(serviceId, transactionId)
       })
 
       it('Alice can not release escrow because there is none left.', async function () {
