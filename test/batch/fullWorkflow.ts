@@ -155,24 +155,6 @@ describe('TalentLayer protocol global testing', function () {
       expect(alicePlatformData.proposalPostingFee).to.be.equal(100)
     })
 
-    it('Alice should not be able to transfer her PlatformId Id to Bob', async function () {
-      await expect(
-        talentLayerPlatformID.connect(alice).transferFrom(alice.address, bob.address, 1),
-      ).to.be.revertedWith('Token transfer is not allowed')
-
-      await expect(
-        talentLayerPlatformID
-          .connect(alice)
-          ['safeTransferFrom(address,address,uint256)'](alice.address, bob.address, 1),
-      ).to.be.revertedWith('Token transfer is not allowed')
-
-      await expect(
-        talentLayerPlatformID
-          .connect(alice)
-          ['safeTransferFrom(address,address,uint256,bytes)'](alice.address, bob.address, 1, []),
-      ).to.be.revertedWith('Token transfer is not allowed')
-    })
-
     it('Alice should not be able to mint a new PlatformId ID', async function () {
       await expect(talentLayerPlatformID.connect(alice).mint('SecPlatId')).to.be.revertedWith(
         'Platform already has a Platform ID',
@@ -348,6 +330,30 @@ describe('TalentLayer protocol global testing', function () {
           .connect(grace)
           .mint('longerbut_ok_platformbygrace', { value: mintFee }),
       ).not.to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
+    })
+
+    it('Grace can not transfer her platform ID to Bob who already owns one', async function () {
+      const gracePlatformId = await talentLayerPlatformID.ids(grace.address)
+      expect(
+        talentLayerPlatformID
+          .connect(grace)
+          .transferFrom(grace.address, bob.address, gracePlatformId),
+      ).to.be.revertedWith('Recipient already has a Platform ID')
+    })
+
+    it('Grace can transfer her platform ID to Carol who does not own one', async function () {
+      const gracePlatformId = await talentLayerPlatformID.ids(grace.address)
+      expect(
+        await talentLayerPlatformID
+          .connect(grace)
+          .transferFrom(grace.address, carol.address, gracePlatformId),
+      ).not.to.be.revertedWith('Recipient already has a Platform ID')
+
+      const graceBalance = await talentLayerPlatformID.balanceOf(grace.address)
+      expect(graceBalance).to.be.equal(0)
+
+      const carolBalance = await talentLayerPlatformID.balanceOf(carol.address)
+      expect(carolBalance).to.be.equal(1)
     })
 
     it("The deployer can withdraw the contract's balance", async function () {

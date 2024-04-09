@@ -6,13 +6,13 @@ import {Base64Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/Base6
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {Arbitrator} from "./Arbitrator.sol";
+import {Arbitrator} from "../Arbitrator.sol";
 
 /**
  * @title Platform ID Contract
  * @author TalentLayer Team <labs@talentlayer.org> | Website: https://talentlayer.org | Twitter: @talentlayer
  */
-contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract TalentLayerPlatformIDV2 is ERC721Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     uint8 constant MIN_HANDLE_LENGTH = 5;
@@ -502,14 +502,10 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
     }
 
     /**
-     * @dev Implementation of the {ERC721Upgradeable-transferFrom} function.
-     * @notice Only one Id allowed per account.
+     * @dev Override to prevent token transfer.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
-        require(balanceOf(to) == 0, "Recipient already has a Platform ID");
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
-
-        _transfer(from, to, tokenId);
+    function _transfer(address, address, uint256) internal virtual override(ERC721Upgradeable) {
+        revert("Token transfer is not allowed");
     }
 
     /**
@@ -544,21 +540,21 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
         );
         return
             string(
-                abi.encodePacked(
-                    "data:application/json;base64,",
-                    Base64Upgradeable.encode(
-                        bytes(
-                            abi.encodePacked(
-                                '{"name":"',
-                                platformName,
-                                '", "image":"',
-                                image,
-                                unicode'", "description": "TalentLayer Platform ID"}'
-                            )
-                        )
-                    )
-                )
-            );
+        abi.encodePacked(
+        "data:application/json;base64,",
+        Base64Upgradeable.encode(
+        bytes(
+        abi.encodePacked(
+        '{"name":"',
+        platformName,
+        '", "image":"',
+        image,
+        unicode'", "description": "TalentLayer Platform ID"}'
+        )
+        )
+        )
+        )
+        );
     }
 
     /**
