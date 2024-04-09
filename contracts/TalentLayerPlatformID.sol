@@ -505,11 +505,7 @@ contract TalentLayerPlatformID is ERC721Upgradeable, AccessControlUpgradeable, U
      * @dev Implementation of the {ERC721Upgradeable-transferFrom} function.
      * @notice Only one Id allowed per account.
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
         require(balanceOf(to) == 0, "Recipient already has a Platform ID");
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
 

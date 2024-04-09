@@ -1,7 +1,11 @@
-import {formatEther} from 'ethers/lib/utils'
-import {task} from 'hardhat/config'
-import {DeploymentProperty, getDeploymentProperty, setDeploymentProperty} from '../../../.deployment/deploymentManager'
-import {verifyAddress} from './utils'
+import { formatEther } from 'ethers/lib/utils'
+import { task } from 'hardhat/config'
+import {
+  DeploymentProperty,
+  getDeploymentProperty,
+  setDeploymentProperty,
+} from '../../../.deployment/deploymentManager'
+import { verifyAddress } from './utils'
 
 /**
  * @notice Task created only for test purposes of the upgradable process
@@ -26,14 +30,14 @@ task('deploy-talent-layer-utils', 'Deploy utils contract')
       await run('compile')
 
       const talentLayerID = await ethers.getContractAt(
-          'TalentLayerID',
-          getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
+        'TalentLayerID',
+        getDeploymentProperty(network.name, DeploymentProperty.TalentLayerID),
       )
 
-      console.log('Deploying TalentLayerIdUtils...');
+      console.log('Deploying TalentLayerIdUtils...')
 
-      const TalentLayerIdUtils = await ethers.getContractFactory("TalentLayerIdUtils");
-      const talentLayerIdUtils = await TalentLayerIdUtils.deploy(talentLayerID.address);
+      const TalentLayerIdUtils = await ethers.getContractFactory('TalentLayerIdUtils')
+      const talentLayerIdUtils = await TalentLayerIdUtils.deploy(talentLayerID.address)
 
       await talentLayerIdUtils.deployTransaction.wait(1)
 

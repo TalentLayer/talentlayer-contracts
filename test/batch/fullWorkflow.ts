@@ -333,7 +333,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Grace can not transfer her platform ID to someone who already owns one', async function () {
-      const gracePlatformId = await talentLayerPlatformID.ids(grace.address);
+      const gracePlatformId = await talentLayerPlatformID.ids(grace.address)
       expect(
         talentLayerPlatformID
           .connect(grace)
@@ -342,7 +342,7 @@ describe('TalentLayer protocol global testing', function () {
     })
 
     it('Grace can transfer her platform ID to someone who does not own one', async function () {
-      const gracePlatformId = await talentLayerPlatformID.ids(grace.address);
+      const gracePlatformId = await talentLayerPlatformID.ids(grace.address)
       expect(
         await talentLayerPlatformID
           .connect(grace)

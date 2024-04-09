@@ -5,7 +5,6 @@ import {TalentLayerID} from "./TalentLayerID.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 contract TalentLayerIdUtils is IERC721Receiver {
-
     // =========================== Mappings & Variables ==============================
 
     /**
@@ -13,16 +12,20 @@ contract TalentLayerIdUtils is IERC721Receiver {
      */
     TalentLayerID public talentLayerIdContract;
 
-
     // =========================== Initializers ==============================
 
-    constructor(address _talentLayerIDAddress){
+    constructor(address _talentLayerIDAddress) {
         talentLayerIdContract = TalentLayerID(_talentLayerIDAddress);
     }
 
     // =========================== User functions ==============================
 
-    function mintDelegateAndTransfer(address _to, address _delegateAddress, uint256 _platformId, string calldata _handle) external payable {
+    function mintDelegateAndTransfer(
+        address _to,
+        address _delegateAddress,
+        uint256 _platformId,
+        string calldata _handle
+    ) external payable {
         // Mint TLID token
         uint256 tokenId = talentLayerIdContract.mint{value: msg.value}(_platformId, _handle);
         // Add address as delegate
@@ -33,8 +36,12 @@ contract TalentLayerIdUtils is IERC721Receiver {
 
     // =========================== Overrides ==============================
 
-    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external pure override returns (bytes4) {
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external pure override returns (bytes4) {
         return this.onERC721Received.selector;
     }
-
 }
