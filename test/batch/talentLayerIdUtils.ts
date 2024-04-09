@@ -42,7 +42,7 @@ async function deployAndSetup(
 }
 
 
-describe.only('TalentLayerIdUtils', function () {
+describe('TalentLayerIdUtils', function () {
   let alice: SignerWithAddress,
     backendDelegate: SignerWithAddress,
     platformOwner: SignerWithAddress,

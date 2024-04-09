@@ -112,7 +112,7 @@ describe('Audit test', function () {
       await expect(tx).to.revertedWith('nothing to claim')
     })
 
-    it.only('must prevent to create a proposal on a non existent Service', async function () {
+    it('must prevent to create a proposal on a non existent Service', async function () {
       const aliceTlId = await talentLayerID.connect(alice).ids(alice.address)
       const signature = await getSignatureForService(carol, aliceTlId.toNumber(), 0, cid)
       await talentLayerService
