@@ -332,7 +332,7 @@ describe('TalentLayer protocol global testing', function () {
       ).not.to.be.revertedWithCustomError(talentLayerPlatformID, 'HandleContainsInvalidCharacters')
     })
 
-    it('Grace can not transfer her platform ID to someone who already owns one', async function () {
+    it('Grace can not transfer her platform ID to Bob who already owns one', async function () {
       const gracePlatformId = await talentLayerPlatformID.ids(grace.address)
       expect(
         talentLayerPlatformID
@@ -341,7 +341,7 @@ describe('TalentLayer protocol global testing', function () {
       ).to.be.revertedWith('Recipient already has a Platform ID')
     })
 
-    it('Grace can transfer her platform ID to someone who does not own one', async function () {
+    it('Grace can transfer her platform ID to Carol who does not own one', async function () {
       const gracePlatformId = await talentLayerPlatformID.ids(grace.address)
       expect(
         await talentLayerPlatformID
