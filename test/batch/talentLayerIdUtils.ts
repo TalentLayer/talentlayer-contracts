@@ -70,7 +70,6 @@ describe('TalentLayerIdUtils', function () {
 
       // Assert that the token balance of alice is 1
       const aliceBalance = await talentLayerId.balanceOf(alice.address)
-      console.log(aliceBalance.toString())
       expect(aliceBalance).to.equal(1)
 
       // Assert that backendDelegate is delegate of alice
