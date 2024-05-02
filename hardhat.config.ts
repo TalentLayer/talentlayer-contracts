@@ -63,6 +63,9 @@ function getChainConfig(chain: Network): NetworkUserConfig {
     case Network.MUMBAI:
       jsonRpcUrl = process.env.MUMBAI_RPC || 'https://polygon-mumbai-bor.publicnode.com'
       break
+    case Network.AMOY:
+      jsonRpcUrl = process.env.AMOY_RPC || 'https://rpc-amoy.polygon.technology'
+      break
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey
   }
@@ -89,7 +92,18 @@ const config: HardhatUserConfig = {
       avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || '',
       polygon: process.env.POLYGONSCAN_API_KEY || '',
       polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
+      amoy: process.env.POLYGONSCAN_API_KEY || '',
     },
+    customChains: [
+      {
+        network: 'amoy',
+        chainId: 80002,
+        urls: {
+          apiURL: 'https://api-testnet.polygonscan.com/api',
+          browserURL: 'https://amoy.polygonscan.com',
+        },
+      },
+    ],
   },
   gasReporter: {
     currency: 'USD',
@@ -121,6 +135,7 @@ const config: HardhatUserConfig = {
     fuji: getChainConfig(Network.FUJI),
     polygon: getChainConfig(Network.POLYGON),
     mumbai: getChainConfig(Network.MUMBAI),
+    amoy: getChainConfig(Network.AMOY),
   },
   paths: {
     artifacts: './artifacts',
