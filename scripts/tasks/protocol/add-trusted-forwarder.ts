@@ -27,7 +27,7 @@ task('add-trusted-forwarder', 'Adds a trusted forwarder for meta transactions.')
 
     const talentLayerReview = await ethers.getContractAt(
       'TalentLayerReview',
-      getDeploymentProperty(network.name, DeploymentProperty.Reviewscontract),
+      getDeploymentProperty(network.name, DeploymentProperty.TalentLayerReview),
     )
 
     const talentLayerEscrow = await ethers.getContractAt(
