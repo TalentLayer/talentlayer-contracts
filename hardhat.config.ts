@@ -63,6 +63,9 @@ function getChainConfig(chain: Network): NetworkUserConfig {
     case Network.MUMBAI:
       jsonRpcUrl = process.env.MUMBAI_RPC || 'https://polygon-mumbai-bor.publicnode.com'
       break
+    case Network.IEXEC:
+      jsonRpcUrl = 'https://bellecour.iex.ec'
+      break
     default:
       jsonRpcUrl = 'https://mainnet.infura.io/v3/' + infuraApiKey
   }
@@ -89,7 +92,18 @@ const config: HardhatUserConfig = {
       avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || '',
       polygon: process.env.POLYGONSCAN_API_KEY || '',
       polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
+      iexec: 'abc',
     },
+    customChains: [
+      {
+        network: 'iexec',
+        chainId: Network.IEXEC,
+        urls: {
+          apiURL: 'https://blockscout-bellecour.iex.ec/api',
+          browserURL: 'https://blockscout-bellecour.iex.ec',
+        },
+      },
+    ],
   },
   gasReporter: {
     currency: 'USD',
@@ -121,6 +135,7 @@ const config: HardhatUserConfig = {
     fuji: getChainConfig(Network.FUJI),
     polygon: getChainConfig(Network.POLYGON),
     mumbai: getChainConfig(Network.MUMBAI),
+    iexec: getChainConfig(Network.IEXEC),
   },
   paths: {
     artifacts: './artifacts',

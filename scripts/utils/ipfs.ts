@@ -12,6 +12,7 @@ const postToIPFS = async (data: any): Promise<string> => {
       )
 
     ipfs = create({
+      // url: 'http://localhost:5001/api/v0', // use this url if you want to work with your local docker ipfs node and test for the graph
       url: 'https://infura-ipfs.io:5001/api/v0',
       headers: {
         authorization,
