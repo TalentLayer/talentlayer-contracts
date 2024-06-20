@@ -6,6 +6,7 @@ export enum Network {
   FUJI = 43113,
   POLYGON = 137,
   MUMBAI = 80001,
+  AMOY = 80002,
 }
 
 export type NetworkConfig = {
@@ -40,7 +41,7 @@ const local: NetworkConfig = {
 
 const fuji: NetworkConfig = {
   multisigAddressList: {
-    fee: '0x_TODO_CREATE_MULTISIG',
+    fee: '0x754edfB906252B304f89c59c61f4368028bdcE6c',
   },
   allowedTokenList: {
     AVAX: {
@@ -87,6 +88,34 @@ const mumbai: NetworkConfig = {
   },
 }
 
+// TODO: replace with correct addresses
+const amoy: NetworkConfig = {
+  multisigAddressList: {
+    fee: '0x00000000000000000000000000000000000000000',
+    admin: '0x00000000000000000000000000000000000000000',
+  },
+  allowedTokenList: {
+    MATIC: {
+      address: ethers.constants.AddressZero,
+      minTransactionAmount: '1',
+      decimals: 18,
+    },
+    USDC: {
+      address: '0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582',
+      minTransactionAmount: '1',
+      decimals: 6,
+    },
+  },
+  platformList: {
+    hirevibes: '0x00000000000000000000000000000000000000000',
+    workpod: '0x00000000000000000000000000000000000000000',
+    scalesecurity: '0x00000000000000000000000000000000000000000',
+    indie: '0x00000000000000000000000000000000000000000',
+    orb_ac: '0x00000000000000000000000000000000000000000',
+    workx: '0x00000000000000000000000000000000000000000',
+  },
+}
+
 const avalanche = {} as NetworkConfig
 const polygon: NetworkConfig = {
   multisigAddressList: {
@@ -119,6 +148,7 @@ export const configs: { [networkId in Network]: NetworkConfig } = {
   [Network.FUJI]: fuji,
   [Network.POLYGON]: polygon,
   [Network.MUMBAI]: mumbai,
+  [Network.AMOY]: amoy,
 }
 
 export const getConfig = (networkId: Network): NetworkConfig => {

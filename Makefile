@@ -97,7 +97,6 @@ else
 	w := $(wait_other_network)
 endif
 
-
 ifeq ($(OS),Windows_NT)
 setup-fakedata:
 	npx hardhat run scripts/playground/0-mint-platform-ID.ts --network $(DEPLOY_NETWORK)
