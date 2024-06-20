@@ -41,7 +41,7 @@ const local: NetworkConfig = {
 
 const fuji: NetworkConfig = {
   multisigAddressList: {
-    fee: '0x_TODO_CREATE_MULTISIG',
+    fee: '0x754edfB906252B304f89c59c61f4368028bdcE6c',
   },
   allowedTokenList: {
     AVAX: {
